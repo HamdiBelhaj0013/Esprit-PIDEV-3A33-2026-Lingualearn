@@ -1,0 +1,81 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ user.id ? 'Edit User' : 'New User' }}{% endblock %}
+
+{% block body %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ path('app_user_index') }}">Users</a></li>
+                {% if user.id %}
+                    <li class="breadcrumb-item"><a href="{{ path('app_user_show', {id: user.id}) }}">{{ user.fullName }}</a></li>
+                    <li class="breadcrumb-item active">Edit</li>
+                {% else %}
+                    <li class="breadcrumb-item active">New User</li>
+                {% endif %}
+            </ol>
+        </nav>
+
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="bi bi-{{ user.id ? 'pencil' : 'plus-circle' }}"></i>
+                    {{ user.id ? 'Edit User' : 'Create New User' }}
+                </h4>
+            </div>
+            <div class="card-body">
+                {{ form_start(form) }}
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form_row(form.firstName) }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form_row(form.lastName) }}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    {{ form_row(form.email) }}
+                </div>
+
+                {% if form.plainPassword is defined %}
+                    <div class="mb-3">
+                        {{ form_row(form.plainPassword.first) }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form_row(form.plainPassword.second) }}
+                    </div>
+                {% endif %}
+
+                {% if form.status is defined %}
+                    <div class="mb-3">
+                        {{ form_row(form.status) }}
+                    </div>
+                {% endif %}
+
+                {% if form.roles is defined %}
+                    <div class="mb-3">
+                        {{ form_label(form.roles) }}
+                        {{ form_widget(form.roles) }}
+                        {{ form_errors(form.roles) }}
+                    </div>
+                {% endif %}
+
+                <div class="d-flex justify-content-between">
+                    <a href="{{ user.id ? path('app_user_show', {id: user.id}) : path('app_user_index') }}" 
+                       class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> {{ user.id ? 'Update' : 'Create' }}
+                    </button>
+                </div>
+
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,11 +1,6 @@
 doctrine:
     dbal:
         url: '%env(resolve:DATABASE_URL)%'
-
-        # IMPORTANT: You MUST configure your server version,
-        # either here or in the DATABASE_URL env var (see .env file)
-        #server_version: '16'
-
         profiling_collect_backtrace: '%kernel.debug%'
         use_savepoints: true
     orm:
@@ -18,19 +13,48 @@ doctrine:
             Doctrine\DBAL\Platforms\PostgreSQLPlatform: identity
         auto_mapping: true
         mappings:
-            App:
+            ExercisesQuizzes:
                 type: attribute
                 is_bundle: false
-                dir: '%kernel.project_dir%/src/Entity'
-                prefix: 'App\Entity'
-                alias: App
+                dir: '%kernel.project_dir%/src/Module/ExercisesQuizzes/Entity'
+                prefix: 'App\Module\ExercisesQuizzes\Entity'
+                alias: ExercisesQuizzes
+            Forum:
+                type: attribute
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Module/Forum/Entity'
+                prefix: 'App\Module\Forum\Entity'
+                alias: Forum
+            InternationalTests:
+                type: attribute
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Module/InternationalTests/Entity'
+                prefix: 'App\Module\InternationalTests\Entity'
+                alias: InternationalTests
+            PedagogicalContent:
+                type: attribute
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Module/PedagogicalContent/Entity'
+                prefix: 'App\Module\PedagogicalContent\Entity'
+                alias: PedagogicalContent
+            Support:
+                type: attribute
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Module/Support/Entity'
+                prefix: 'App\Module\Support\Entity'
+                alias: Support
+            UserManagement:
+                type: attribute
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Module/UserManagement/Entity'
+                prefix: 'App\Module\UserManagement\Entity'
+                alias: UserManagement
         controller_resolver:
             auto_mapping: false
 
 when@test:
     doctrine:
         dbal:
-            # "TEST_TOKEN" is typically set by ParaTest
             dbname_suffix: '_test%env(default::TEST_TOKEN)%'
 
 when@prod:

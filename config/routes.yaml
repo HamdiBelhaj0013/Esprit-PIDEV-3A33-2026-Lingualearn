@@ -1,11 +1,29 @@
-# yaml-language-server: $schema=../vendor/symfony/routing/Loader/schema/routing.schema.json
+# UserManagement routes
+user_management_controllers:
+    resource: ../src/Module/UserManagement/Controller/
+    type: attribute
 
-# This file is the entry point to configure the routes of your app.
-# Methods with the #[Route] attribute are automatically imported.
-# See also https://symfony.com/doc/current/routing.html
+# ExercisesQuizzes routes
+exercises_quizzes_controllers:
+    resource: ../src/Module/ExercisesQuizzes/Controller/
+    type: attribute
 
-# To list all registered routes, run the following command:
-#   bin/console debug:router
+# Forum routes
+forum_controllers:
+    resource: ../src/Module/Forum/Controller/
+    type: attribute
 
-controllers:
-    resource: routing.controllers
+# InternationalTests routes
+international_tests_controllers:
+    resource: ../src/Module/InternationalTests/Controller/
+    type: attribute
+
+# PedagogicalContent routes
+pedagogical_content_controllers:
+    resource: ../src/Module/PedagogicalContent/Controller/
+    type: attribute
+
+# Support routes
+support_controllers:
+    resource: ../src/Module/Support/Controller/
+    type: attribute
