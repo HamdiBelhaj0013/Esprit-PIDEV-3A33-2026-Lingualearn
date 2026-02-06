@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/admin/users')]
+#[Route('/admin/users', name: 'admin_users_')]
 /**#[IsGranted('ROLE_ADMIN')]**/
 class UserController extends AbstractController
 {
@@ -25,7 +25,7 @@ class UserController extends AbstractController
     /**
      * List all users
      */
-    #[Route('', name: 'app_user_index', methods: ['GET'])]
+    #[Route('', name: 'index', methods: ['GET'])]
     public function index(Request $request): Response
     {
         $page = max(1, $request->query->getInt('page', 1));
@@ -56,7 +56,7 @@ class UserController extends AbstractController
     /**
      * Create new user
      */
-    #[Route('/new', name: 'app_user_new', methods: ['GET', 'POST'])]
+    #[Route('/new', name: 'new', methods: ['GET', 'POST'])]
     public function new(Request $request): Response
     {
         $user = new User();
@@ -79,7 +79,7 @@ class UserController extends AbstractController
 
             $this->addFlash('success', 'User created successfully!');
 
-            return $this->redirectToRoute('app_user_index');
+            return $this->redirectToRoute('admin_users_index');
         }
 
         return $this->render('user_management/new.html.twig', [
@@ -91,7 +91,7 @@ class UserController extends AbstractController
     /**
      * Show user details
      */
-    #[Route('/{id}', name: 'app_user_show', methods: ['GET'])]
+    #[Route('/{id}', name: 'show', methods: ['GET'])]
     public function show(int $id): Response
     {
         $user = $this->userRepository->findWithStats($id);
@@ -108,7 +108,7 @@ class UserController extends AbstractController
     /**
      * Edit user
      */
-    #[Route('/{id}/edit', name: 'app_user_edit', methods: ['GET', 'POST'])]
+    #[Route('/{id}/edit', name: 'edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, User $user): Response
     {
         $form = $this->createForm(UserFormType::class, $user, [
@@ -127,7 +127,7 @@ class UserController extends AbstractController
 
             $this->addFlash('success', 'User updated successfully!');
 
-            return $this->redirectToRoute('app_user_show', ['id' => $user->getId()]);
+            return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
         }
 
         return $this->render('user_management/edit.html.twig', [
@@ -137,9 +137,9 @@ class UserController extends AbstractController
     }
 
     /**
-     * Delete user (soft delete)
+     * Delete user (hard delete)
      */
-    #[Route('/{id}/delete', name: 'app_user_delete', methods: ['POST'])]
+    #[Route('/{id}/delete', name: 'delete', methods: ['POST'])]
     public function delete(Request $request, User $user): Response
     {
         if ($this->isCsrfTokenValid('delete' . $user->getId(), $request->request->get('_token'))) {
@@ -148,13 +148,13 @@ class UserController extends AbstractController
             $this->addFlash('success', 'User deleted successfully!');
         }
 
-        return $this->redirectToRoute('app_user_index');
+        return $this->redirectToRoute('admin_users_index');
     }
 
     /**
      * Activate user
      */
-    #[Route('/{id}/activate', name: 'app_user_activate', methods: ['POST'])]
+    #[Route('/{id}/activate', name: 'activate', methods: ['POST'])]
     public function activate(Request $request, User $user): Response
     {
         if ($this->isCsrfTokenValid('activate' . $user->getId(), $request->request->get('_token'))) {
@@ -163,13 +163,13 @@ class UserController extends AbstractController
             $this->addFlash('success', 'User activated successfully!');
         }
 
-        return $this->redirectToRoute('app_user_show', ['id' => $user->getId()]);
+        return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
     }
 
     /**
      * Suspend user
      */
-    #[Route('/{id}/suspend', name: 'app_user_suspend', methods: ['POST'])]
+    #[Route('/{id}/suspend', name: 'suspend', methods: ['POST'])]
     public function suspend(Request $request, User $user): Response
     {
         if ($this->isCsrfTokenValid('suspend' . $user->getId(), $request->request->get('_token'))) {
@@ -178,13 +178,13 @@ class UserController extends AbstractController
             $this->addFlash('warning', 'User suspended successfully!');
         }
 
-        return $this->redirectToRoute('app_user_show', ['id' => $user->getId()]);
+        return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
     }
 
     /**
      * Upgrade to premium
      */
-    #[Route('/{id}/premium/upgrade', name: 'app_user_premium_upgrade', methods: ['POST'])]
+    #[Route('/{id}/premium/upgrade', name: 'premium_upgrade', methods: ['POST'])]
     public function upgradePremium(Request $request, User $user): Response
     {
         if ($this->isCsrfTokenValid('premium' . $user->getId(), $request->request->get('_token'))) {
@@ -202,13 +202,13 @@ class UserController extends AbstractController
             $this->addFlash('success', 'User upgraded to premium successfully!');
         }
 
-        return $this->redirectToRoute('app_user_show', ['id' => $user->getId()]);
+        return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
     }
 
     /**
      * Downgrade to free
      */
-    #[Route('/{id}/premium/downgrade', name: 'app_user_premium_downgrade', methods: ['POST'])]
+    #[Route('/{id}/premium/downgrade', name: 'premium_downgrade', methods: ['POST'])]
     public function downgradePremium(Request $request, User $user): Response
     {
         if ($this->isCsrfTokenValid('downgrade' . $user->getId(), $request->request->get('_token'))) {
@@ -217,6 +217,6 @@ class UserController extends AbstractController
             $this->addFlash('info', 'User downgraded to free plan successfully!');
         }
 
-        return $this->redirectToRoute('app_user_show', ['id' => $user->getId()]);
+        return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
     }
 }

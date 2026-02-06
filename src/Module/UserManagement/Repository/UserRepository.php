@@ -133,4 +133,53 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->getQuery()
             ->getOneOrNullResult();
     }
+
+    /**
+     * Count users created between dates
+     *
+     * @param \DateTimeInterface $startDate
+     * @param \DateTimeInterface $endDate
+     * @return int
+     */
+    public function countBetweenDates(\DateTimeInterface $startDate, \DateTimeInterface $endDate): int
+    {
+        return (int) $this->createQueryBuilder('u')
+            ->select('COUNT(u.id)')
+            ->where('u.createdAt >= :start')
+            ->andWhere('u.createdAt < :end')
+            ->setParameter('start', $startDate)
+            ->setParameter('end', $endDate)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * Get user registration statistics
+     *
+     * @param int $days Number of days to look back
+     * @return array
+     */
+    public function getRegistrationStats(int $days = 30): array
+    {
+        $startDate = new \DateTime("-{$days} days");
+
+        return $this->createQueryBuilder('u')
+            ->select('DATE(u.createdAt) as date, COUNT(u.id) as count')
+            ->where('u.createdAt >= :startDate')
+            ->setParameter('startDate', $startDate)
+            ->groupBy('date')
+            ->orderBy('date', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Get EntityManager for external queries
+     *
+     * @return \Doctrine\ORM\EntityManagerInterface
+     */
+    public function getEntityManager(): \Doctrine\ORM\EntityManagerInterface
+    {
+        return parent::getEntityManager();
+    }
 }

@@ -73,19 +73,14 @@ class UserService
     }
 
     /**
-     * Delete user (soft delete)
+     * Delete user (hard delete)
      */
     public function deleteUser(User $user): void
     {
-        $user->setStatus('deleted');
-        $this->entityManager->flush();
-    }
-
-    /**
-     * Permanently delete user
-     */
-    public function permanentlyDeleteUser(User $user): void
-    {
+        // First, check if the user has learning stats and remove them
+        if ($user->getLearningStats()) {
+            $this->entityManager->remove($user->getLearningStats());
+        }
         $this->entityManager->remove($user);
         $this->entityManager->flush();
     }

@@ -1,204 +1,290 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ user.fullName }} - User Details{% endblock %}
+{% block title %}{{ user.fullName }} - User Details - {{ parent() }}{% endblock %}
+
+{% block page_title %}
+    <i class="ti ti-user-circle me-2"></i> {{ user.fullName }}
+{% endblock %}
+
+{% block breadcrumb %}
+    <ol class="breadcrumb breadcrumb-arrows" aria-label="breadcrumbs">
+        <li class="breadcrumb-item"><a href="{{ path('admin_users_index') }}">Users</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ user.fullName }}</li>
+    </ol>
+{% endblock %}
+
+{% block page_actions %}
+    <div class="col-auto ms-auto d-print-none">
+        <div class="btn-list">
+            <a href="{{ path('admin_users_edit', {id: user.id}) }}" class="btn btn-primary">
+                <i class="ti ti-pencil icon"></i>
+                Edit
+            </a>
+            <a href="{{ path('admin_users_index') }}" class="btn">
+                <i class="ti ti-arrow-left icon"></i>
+                Back
+            </a>
+        </div>
+    </div>
+{% endblock %}
 
 {% block body %}
-<div class="row">
-    <div class="col-12">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ path('app_user_index') }}">Users</a></li>
-                <li class="breadcrumb-item active">{{ user.fullName }}</li>
-            </ol>
-        </nav>
+    <div class="row row-deck row-cards">
+        {# User Profile Card #}
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <span class="avatar avatar-xl mb-3" style="background-image: url(https://ui-avatars.com/api/?name={{ user.firstName }}+{{ user.lastName }}&size=200&background=206bc4&color=fff)"></span>
+                    <h3 class="m-0 mb-1">{{ user.fullName }}</h3>
+                    <div class="text-muted">{{ user.email }}</div>
+                    <div class="mt-3">
+                        {% if user.isPremium %}
+                            <span class="badge bg-yellow-lt">
+                                <i class="ti ti-crown"></i> Premium Member
+                            </span>
+                        {% else %}
+                            <span class="badge bg-blue-lt">Free Account</span>
+                        {% endif %}
+                        
+                        {% if user.status == 'active' %}
+                            <span class="badge bg-green-lt ms-1">
+                                <i class="ti ti-check"></i> Active
+                            </span>
+                        {% elseif user.status == 'suspended' %}
+                            <span class="badge bg-yellow-lt ms-1">
+                                <i class="ti ti-alert-triangle"></i> Suspended
+                            </span>
+                        {% else %}
+                            <span class="badge bg-red-lt ms-1">
+                                <i class="ti ti-x"></i> Deleted
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="row">
+                        <div class="col">
+                            <a href="mailto:{{ user.email }}" class="btn w-100">
+                                <i class="ti ti-mail"></i>
+                                Email
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1><i class="bi bi-person-circle"></i> {{ user.fullName }}</h1>
-            <div>
-                <a href="{{ path('app_user_edit', {id: user.id}) }}" class="btn btn-primary">
-                    <i class="bi bi-pencil"></i> Edit
-                </a>
-                <a href="{{ path('app_user_index') }}" class="btn btn-secondary">
-                    <i class="bi bi-arrow-left"></i> Back
-                </a>
+            {# Quick Actions Card #}
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h3 class="card-title">Quick Actions</h3>
+                </div>
+                <div class="card-body">
+                    {# Status Actions #}
+                    {% if user.status == 'active' %}
+                        <form method="post" action="{{ path('admin_users_suspend', {id: user.id}) }}" class="mb-2">
+                            <input type="hidden" name="_token" value="{{ csrf_token('suspend' ~ user.id) }}">
+                            <button type="submit" class="btn btn-warning w-100" onclick="return confirm('Are you sure you want to suspend this user?')">
+                                <i class="ti ti-player-pause"></i> Suspend User
+                            </button>
+                        </form>
+                    {% elseif user.status == 'suspended' %}
+                        <form method="post" action="{{ path('admin_users_activate', {id: user.id}) }}" class="mb-2">
+                            <input type="hidden" name="_token" value="{{ csrf_token('activate' ~ user.id) }}">
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="ti ti-check"></i> Activate User
+                            </button>
+                        </form>
+                    {% endif %}
+
+                    {# Premium Actions #}
+                    {% if not user.isPremium %}
+                        <form method="post" action="{{ path('admin_users_premium_upgrade', {id: user.id}) }}" class="mb-2">
+                            <input type="hidden" name="_token" value="{{ csrf_token('premium' ~ user.id) }}">
+                            <div class="mb-2">
+                                <select name="plan" class="form-select">
+                                    <option value="PREMIUM_MONTHLY">Monthly Premium ($9.99/mo)</option>
+                                    <option value="PREMIUM_YEARLY">Yearly Premium ($99/yr)</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-info w-100">
+                                <i class="ti ti-crown"></i> Upgrade to Premium
+                            </button>
+                        </form>
+                    {% else %}
+                        <form method="post" action="{{ path('admin_users_premium_downgrade', {id: user.id}) }}" class="mb-2">
+                            <input type="hidden" name="_token" value="{{ csrf_token('downgrade' ~ user.id) }}">
+                            <button type="submit" class="btn btn-secondary w-100" onclick="return confirm('Downgrade this user to free plan?')">
+                                <i class="ti ti-arrow-down"></i> Downgrade to Free
+                            </button>
+                        </form>
+                    {% endif %}
+
+                    <hr>
+
+                    {# Delete Action #}
+                    {% if user.status != 'deleted' %}
+                        <form method="post" action="{{ path('admin_users_delete', {id: user.id}) }}" id="deleteForm">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
+                            <button type="button" class="btn btn-danger w-100" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
+                                <i class="ti ti-trash"></i> Delete User
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
             </div>
         </div>
 
-        <div class="row">
-            <!-- User Information Card -->
-            <div class="col-md-8">
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0">User Information</h5>
-                    </div>
-                    <div class="card-body">
-                        <table class="table table-borderless">
-                            <tbody>
-                                <tr>
-                                    <th width="200">ID:</th>
-                                    <td>{{ user.id }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Email:</th>
-                                    <td>{{ user.email }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Full Name:</th>
-                                    <td>{{ user.fullName }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Status:</th>
-                                    <td>
-                                        {% if user.status == 'active' %}
-                                            <span class="badge bg-success">Active</span>
-                                        {% elseif user.status == 'suspended' %}
-                                            <span class="badge bg-warning">Suspended</span>
-                                        {% else %}
-                                            <span class="badge bg-danger">Deleted</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>Subscription Plan:</th>
-                                    <td>
-                                        {% if user.isPremium %}
-                                            <span class="badge bg-info">{{ user.subscriptionPlan }}</span>
-                                        {% else %}
-                                            <span class="badge bg-secondary">FREE</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% if user.subscriptionExpiry %}
-                                <tr>
-                                    <th>Subscription Expires:</th>
-                                    <td>{{ user.subscriptionExpiry|date('Y-m-d H:i') }}</td>
-                                </tr>
+        {# User Information and Stats #}
+        <div class="col-md-8">
+            {# Account Information #}
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3 class="card-title">Account Information</h3>
+                </div>
+                <div class="card-body">
+                    <div class="datagrid">
+                        <div class="datagrid-item">
+                            <div class="datagrid-title">User ID</div>
+                            <div class="datagrid-content">#{{ user.id }}</div>
+                        </div>
+                        <div class="datagrid-item">
+                            <div class="datagrid-title">Email Address</div>
+                            <div class="datagrid-content">
+                                <a href="mailto:{{ user.email }}">{{ user.email }}</a>
+                            </div>
+                        </div>
+                        <div class="datagrid-item">
+                            <div class="datagrid-title">Full Name</div>
+                            <div class="datagrid-content">{{ user.fullName }}</div>
+                        </div>
+                        <div class="datagrid-item">
+                            <div class="datagrid-title">Account Status</div>
+                            <div class="datagrid-content">
+                                {% if user.status == 'active' %}
+                                    <span class="status status-green">
+                                        <span class="status-dot"></span>
+                                        Active
+                                    </span>
+                                {% elseif user.status == 'suspended' %}
+                                    <span class="status status-yellow">
+                                        <span class="status-dot"></span>
+                                        Suspended
+                                    </span>
+                                {% else %}
+                                    <span class="status status-red">
+                                        <span class="status-dot"></span>
+                                        Deleted
+                                    </span>
                                 {% endif %}
-                                <tr>
-                                    <th>Roles:</th>
-                                    <td>
-                                        {% for role in user.roles %}
-                                            <span class="badge bg-primary">{{ role }}</span>
-                                        {% endfor %}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>Member Since:</th>
-                                    <td>{{ user.createdAt|date('F j, Y') }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                            </div>
+                        </div>
+                        <div class="datagrid-item">
+                            <div class="datagrid-title">Subscription Plan</div>
+                            <div class="datagrid-content">
+                                {% if user.isPremium %}
+                                    <span class="badge bg-yellow">
+                                        <i class="ti ti-crown"></i> {{ user.subscriptionPlan|replace({'_': ' '}) }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-blue">FREE</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if user.subscriptionExpiry %}
+                        <div class="datagrid-item">
+                            <div class="datagrid-title">Subscription Expires</div>
+                            <div class="datagrid-content">
+                                {{ user.subscriptionExpiry|date('F j, Y - H:i') }}
+                                {% if user.subscriptionExpiry < date() %}
+                                    <span class="badge bg-red ms-2">Expired</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        <div class="datagrid-item">
+                            <div class="datagrid-title">User Roles</div>
+                            <div class="datagrid-content">
+                                {% for role in user.roles %}
+                                    <span class="badge bg-primary me-1">
+                                        {{ role|replace({'ROLE_': ''}) }}
+                                    </span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% if user.lastPaymentStatus %}
+                        <div class="datagrid-item">
+                            <div class="datagrid-title">Last Payment</div>
+                            <div class="datagrid-content">
+                                {% if user.lastPaymentStatus == 'success' %}
+                                    <span class="badge bg-success">{{ user.lastPaymentStatus|upper }}</span>
+                                {% else %}
+                                    <span class="badge bg-danger">{{ user.lastPaymentStatus|upper }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        <div class="datagrid-item">
+                            <div class="datagrid-title">Member Since</div>
+                            <div class="datagrid-content">{{ user.createdAt|date('F j, Y') }}</div>
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Learning Statistics Card -->
-                {% if user.learningStats %}
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">Learning Statistics</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row text-center">
-                            <div class="col-md-3">
-                                <div class="p-3">
-                                    <i class="bi bi-clock-history" style="font-size: 2rem;"></i>
-                                    <h3>{{ user.learningStats.totalMinutesStudied }}</h3>
-                                    <p class="text-muted">Minutes Studied</p>
+            {# Learning Statistics #}
+            {% if user.learningStats %}
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Learning Statistics</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-6 col-md-3">
+                            <div class="text-center">
+                                <div class="text-muted mb-2">
+                                    <i class="ti ti-clock" style="font-size: 2rem;"></i>
                                 </div>
+                                <div class="h1">{{ user.learningStats.totalMinutesStudied }}</div>
+                                <div class="text-muted">Minutes Studied</div>
                             </div>
-                            <div class="col-md-3">
-                                <div class="p-3">
-                                    <i class="bi bi-book" style="font-size: 2rem;"></i>
-                                    <h3>{{ user.learningStats.wordsLearned }}</h3>
-                                    <p class="text-muted">Words Learned</p>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="text-center">
+                                <div class="text-muted mb-2">
+                                    <i class="ti ti-vocabulary" style="font-size: 2rem;"></i>
                                 </div>
+                                <div class="h1">{{ user.learningStats.wordsLearned }}</div>
+                                <div class="text-muted">Words Learned</div>
                             </div>
-                            <div class="col-md-3">
-                                <div class="p-3">
-                                    <i class="bi bi-star-fill" style="font-size: 2rem;"></i>
-                                    <h3>{{ user.learningStats.totalXP }}</h3>
-                                    <p class="text-muted">Total XP</p>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="text-center">
+                                <div class="text-muted mb-2">
+                                    <i class="ti ti-star" style="font-size: 2rem;"></i>
                                 </div>
+                                <div class="h1">{{ user.learningStats.totalXP }}</div>
+                                <div class="text-muted">Total XP</div>
                             </div>
-                            <div class="col-md-3">
-                                <div class="p-3">
-                                    <i class="bi bi-calendar-check" style="font-size: 2rem;"></i>
-                                    <h3>
-                                        {% if user.learningStats.lastStudySession %}
-                                            {{ user.learningStats.lastStudySession|date('M d') }}
-                                        {% else %}
-                                            Never
-                                        {% endif %}
-                                    </h3>
-                                    <p class="text-muted">Last Session</p>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="text-center">
+                                <div class="text-muted mb-2">
+                                    <i class="ti ti-calendar" style="font-size: 2rem;"></i>
                                 </div>
+                                <div class="h1">
+                                    {% if user.learningStats.lastStudySession %}
+                                        {{ user.learningStats.lastStudySession|date('M d') }}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </div>
+                                <div class="text-muted">Last Session</div>
                             </div>
                         </div>
                     </div>
                 </div>
-                {% endif %}
             </div>
-
-            <!-- Actions Card -->
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">Actions</h5>
-                    </div>
-                    <div class="card-body">
-                        <!-- Status Actions -->
-                        {% if user.status == 'active' %}
-                            <form method="post" action="{{ path('app_user_suspend', {id: user.id}) }}" class="mb-2">
-                                <input type="hidden" name="_token" value="{{ csrf_token('suspend' ~ user.id) }}">
-                                <button type="submit" class="btn btn-warning w-100" onclick="return confirm('Suspend this user?')">
-                                    <i class="bi bi-pause-circle"></i> Suspend User
-                                </button>
-                            </form>
-                        {% elseif user.status == 'suspended' %}
-                            <form method="post" action="{{ path('app_user_activate', {id: user.id}) }}" class="mb-2">
-                                <input type="hidden" name="_token" value="{{ csrf_token('activate' ~ user.id) }}">
-                                <button type="submit" class="btn btn-success w-100">
-                                    <i class="bi bi-check-circle"></i> Activate User
-                                </button>
-                            </form>
-                        {% endif %}
-
-                        <!-- Premium Actions -->
-                        {% if not user.isPremium %}
-                            <form method="post" action="{{ path('app_user_premium_upgrade', {id: user.id}) }}" class="mb-2">
-                                <input type="hidden" name="_token" value="{{ csrf_token('premium' ~ user.id) }}">
-                                <select name="plan" class="form-select mb-2">
-                                    <option value="PREMIUM_MONTHLY">Monthly Premium</option>
-                                    <option value="PREMIUM_YEARLY">Yearly Premium</option>
-                                </select>
-                                <button type="submit" class="btn btn-info w-100">
-                                    <i class="bi bi-star"></i> Upgrade to Premium
-                                </button>
-                            </form>
-                        {% else %}
-                            <form method="post" action="{{ path('app_user_premium_downgrade', {id: user.id}) }}" class="mb-2">
-                                <input type="hidden" name="_token" value="{{ csrf_token('downgrade' ~ user.id) }}">
-                                <button type="submit" class="btn btn-secondary w-100" onclick="return confirm('Downgrade to free?')">
-                                    <i class="bi bi-arrow-down-circle"></i> Downgrade to Free
-                                </button>
-                            </form>
-                        {% endif %}
-
-                        <hr>
-
-                        <!-- Delete Action -->
-                        {% if user.status != 'deleted' %}
-                            <form method="post" action="{{ path('app_user_delete', {id: user.id}) }}">
-                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
-                                <button type="submit" class="btn btn-danger w-100" onclick="return confirm('Delete this user?')">
-                                    <i class="bi bi-trash"></i> Delete User
-                                </button>
-                            </form>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
+            {% endif %}
         </div>
     </div>
-</div>
 {% endblock %}

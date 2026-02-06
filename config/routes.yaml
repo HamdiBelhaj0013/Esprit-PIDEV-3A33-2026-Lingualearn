@@ -1,3 +1,8 @@
+# Admin routes
+admin_controllers:
+    resource: ../src/Controller/Admin/
+    type: attribute
+
 # UserManagement routes
 user_management_controllers:
     resource: ../src/Module/UserManagement/Controller/
