@@ -1,0 +1,142 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détails du Post #{{ post.id }} - Forum{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-5">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>{{ post.title }}</h1>
+            <p class="text-muted">
+                <i class="bi bi-person-circle"></i> Auteur: {{ post.authorId }}
+                | <i class="bi bi-calendar"></i> {{ post.postedAt|date('d/m/Y H:i') }}
+            </p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ path('admin_forum_post_edit', {id: post.id}) }}" class="btn btn-warning">
+                <i class="bi bi-pencil"></i> Modifier
+            </a>
+            <a href="{{ path('admin_forum_post_index') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Retour
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Contenu du Post -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Contenu du Post</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text lh-lg">{{ post.content|nl2br }}</p>
+                </div>
+            </div>
+
+            <!-- Réponses -->
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-chat-dots"></i> Réponses ({{ post.replies|length }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if post.replies|length > 0 %}
+                        {% for reply in post.replies %}
+                            <div class="border-bottom pb-3 mb-3">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <p class="mb-1">
+                                            <strong>Auteur ID:</strong> {{ reply.authorId }}
+                                            {% if reply.isBestAnswer %}
+                                                <span class="badge bg-success">
+                                                    <i class="bi bi-star-fill"></i> Meilleure réponse
+                                                </span>
+                                            {% endif %}
+                                            {% if not reply.isActive %}
+                                                <span class="badge bg-danger">Inactif</span>
+                                            {% endif %}
+                                        </p>
+                                        <p class="mb-0">{{ reply.content|nl2br }}</p>
+                                    </div>
+                                </div>
+                                <small class="text-muted">{{ reply.repliedAt|date('Y-m-d H:i:s') }}</small>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center py-4">
+                            <i class="bi bi-inbox"></i> Aucune réponse pour ce post.
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Informations -->
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informations</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-6">ID:</dt>
+                        <dd class="col-sm-6"><strong>#{{ post.id }}</strong></dd>
+
+                        <dt class="col-sm-6">Auteur:</dt>
+                        <dd class="col-sm-6">{{ post.authorId }}</dd>
+
+                        <dt class="col-sm-6">Langue:</dt>
+                        <dd class="col-sm-6">
+                            {% if post.platformLanguageId == 1 %}
+                                <span class="badge bg-info">Français</span>
+                            {% elseif post.platformLanguageId == 2 %}
+                                <span class="badge bg-warning">Anglais</span>
+                            {% elseif post.platformLanguageId == 3 %}
+                                <span class="badge bg-success">Arabe</span>
+                            {% elseif post.platformLanguageId == 4 %}
+                                <span class="badge bg-danger">Espagnol</span>
+                            {% elseif post.platformLanguageId == 5 %}
+                                <span class="badge bg-secondary">Allemand</span>
+                            {% endif %}
+                        </dd>
+
+                        <dt class="col-sm-6">Vues:</dt>
+                        <dd class="col-sm-6"><span class="badge bg-info">{{ post.viewCount }}</span></dd>
+
+                        <dt class="col-sm-6">Réponses:</dt>
+                        <dd class="col-sm-6"><span class="badge bg-secondary">{{ post.replyCount }}</span></dd>
+
+                        <dt class="col-sm-6">Statut:</dt>
+                        <dd class="col-sm-6">
+                            {% if post.isActive %}
+                                <span class="badge bg-success"><i class="bi bi-check-circle"></i> Actif</span>
+                            {% else %}
+                                <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Inactif</span>
+                            {% endif %}
+                        </dd>
+
+                        <dt class="col-sm-6">Créé le:</dt>
+                        <dd class="col-sm-6"><small>{{ post.postedAt|date('Y-m-d H:i:s') }}</small></dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Actions</h5>
+                </div>
+                <div class="card-body d-grid gap-2">
+                    <a href="{{ path('admin_forum_post_edit', {id: post.id}) }}" class="btn btn-warning">
+                        <i class="bi bi-pencil"></i> Modifier
+                    </a>
+                    <a href="{{ path('admin_forum_reply_new', {postId: post.id}) }}" class="btn btn-success">
+                        <i class="bi bi-reply"></i> Ajouter une réponse
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

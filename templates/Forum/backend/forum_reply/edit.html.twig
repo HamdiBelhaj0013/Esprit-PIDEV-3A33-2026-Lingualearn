@@ -1,0 +1,152 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier une Réponse - Forum{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-5">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1><i class="ti ti-pencil-square"></i> Modifier la Réponse #{{ reply.id }}</h1>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ path('admin_forum_reply_index') }}" class="btn btn-secondary">
+                <i class="ti ti-arrow-left"></i> Retour à la liste
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Formulaire de modification</h5>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form) }}
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.content.vars.label }}</label>
+                        {{ form_widget(form.content, {'attr': {'class': 'form-control', 'placeholder': 'Écrivez votre réponse...', 'rows': '6'}}) }}
+                        {{ form_errors(form.content) }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.authorId.vars.label }}</label>
+                        {{ form_widget(form.authorId, {'attr': {'class': 'form-control', 'type': 'number'}}) }}
+                        {{ form_errors(form.authorId) }}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3 form-check">
+                            {{ form_widget(form.isActive, {'attr': {'class': 'form-check-input'}}) }}
+                            <label class="form-check-label">{{ form.isActive.vars.label }}</label>
+                            {{ form_errors(form.isActive) }}
+                        </div>
+
+                        <div class="col-md-6 mb-3 form-check">
+                            {{ form_widget(form.isBestAnswer, {'attr': {'class': 'form-check-input'}}) }}
+                            <label class="form-check-label">{{ form.isBestAnswer.vars.label }}</label>
+                            {{ form_errors(form.isBestAnswer) }}
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ path('admin_forum_reply_index') }}" class="btn btn-secondary">
+                            <i class="ti ti-x"></i> Annuler
+                        </a>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="ti ti-check"></i> Mettre à jour
+                        </button>
+                    </div>
+
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Informations de la réponse -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="ti ti-info-circle"></i> Informations</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row small">
+                        <dt class="col-sm-8">ID:</dt>
+                        <dd class="col-sm-4"><strong>#{{ reply.id }}</strong></dd>
+
+                        <dt class="col-sm-8">Auteur:</dt>
+                        <dd class="col-sm-4">{{ reply.authorId }}</dd>
+
+                        <dt class="col-sm-8">Créée le:</dt>
+                        <dd class="col-sm-4"><small>{{ reply.repliedAt|date('Y-m-d H:i:s') }}</small></dd>
+
+                        <dt class="col-sm-8">Statut:</dt>
+                        <dd class="col-sm-4">
+                            {% if reply.isActive %}
+                                <span class="badge bg-success"><i class="ti ti-check"></i> Actif</span>
+                            {% else %}
+                                <span class="badge bg-danger"><i class="ti ti-x"></i> Inactif</span>
+                            {% endif %}
+                        </dd>
+
+                        <dt class="col-sm-8">Meilleure:</dt>
+                        <dd class="col-sm-4">
+                            {% if reply.isBestAnswer %}
+                                <span class="badge bg-success"><i class="ti ti-star-filled"></i> Oui</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Non</span>
+                            {% endif %}
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+
+            <!-- Informations du post parent -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="ti ti-message-square"></i> Post parent</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2">
+                        <strong>{{ reply.post.title }}</strong>
+                    </p>
+                    <p class="text-muted small mb-2">
+                        {{ reply.post.content|slice(0, 100) }}{% if reply.post.content|length > 100 %}...{% endif %}
+                    </p>
+                    <dl class="row small">
+                        <dt class="col-sm-8">ID Post:</dt>
+                        <dd class="col-sm-4">#{{ reply.post.id }}</dd>
+
+                        <dt class="col-sm-8">Auteur:</dt>
+                        <dd class="col-sm-4">{{ reply.post.authorId }}</dd>
+
+                        <dt class="col-sm-8">Réponses:</dt>
+                        <dd class="col-sm-4">{{ reply.post.replyCount }}</dd>
+                    </dl>
+                    <a href="{{ path('admin_forum_post_show', {id: reply.post.id}) }}" class="btn btn-sm btn-outline-primary w-100">
+                        <i class="ti ti-eye"></i> Voir le post
+                    </a>
+                </div>
+            </div>
+
+            <!-- Actions rapides -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="ti ti-lightning"></i> Actions rapides</h5>
+                </div>
+                <div class="card-body d-grid gap-2">
+                    <a href="{{ path('admin_forum_reply_index') }}" class="btn btn-secondary btn-sm">
+                        <i class="ti ti-list"></i> Retour à la liste
+                    </a>
+                    <a href="{{ path('admin_forum_post_show', {id: reply.post.id}) }}" class="btn btn-info btn-sm">
+                        <i class="ti ti-message-square"></i> Voir le post
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
