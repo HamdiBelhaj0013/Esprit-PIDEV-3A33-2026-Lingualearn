@@ -1,0 +1,148 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Reclamation #{{ reclamation.id }}{% endblock %}
+
+{% block page_title %}
+    <i class="ti ti-ticket me-2"></i> Reclamation #{{ reclamation.id }}
+{% endblock %}
+
+{% block body %}
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Reclamation Details -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Details</h3>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong>Subject:</strong> {{ reclamation.subject }}
+                </div>
+                <div class="mb-3">
+                    <strong>Status:</strong>
+                    {% if reclamation.status == 'PENDING' %}
+                        <span class="badge bg-yellow">Pending</span>
+                    {% elseif reclamation.status == 'IN_PROGRESS' %}
+                        <span class="badge bg-blue">In Progress</span>
+                    {% elseif reclamation.status == 'RESOLVED' %}
+                        <span class="badge bg-green">Resolved</span>
+                    {% elseif reclamation.status == 'CLOSED' %}
+                        <span class="badge bg-secondary">Closed</span>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <strong>Message:</strong>
+                    <div class="card card-sm mt-2">
+                        <div class="card-body">
+                            {{ reclamation.messageBody|nl2br }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Conversation -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h3 class="card-title">Responses</h3>
+            </div>
+            <div class="card-body">
+                {% if reclamation.responses|length > 0 %}
+                    {% for response in reclamation.responses %}
+                    <div class="card card-sm mb-3">
+                        <div class="card-header bg-light">
+                            <strong>
+                                <i class="ti ti-headset me-1"></i> Support Team
+                                ({{ response.author.firstName }} {{ response.author.lastName }})
+                            </strong>
+                            <small class="text-muted float-end">{{ response.respondedAt|date('d/m/Y H:i') }}</small>
+                        </div>
+                        <div class="card-body">
+                            {{ response.message|nl2br }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty">
+                        <div class="empty-icon">
+                            <i class="ti ti-messages"></i>
+                        </div>
+                        <p class="empty-title">No Responses Yet</p>
+                        <p class="empty-subtitle">Our support team will respond soon.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Information</h3>
+            </div>
+            <div class="list-group list-group-flush">
+                <div class="list-group-item">
+                    <div class="row align-items-center">
+                        <div class="col text-muted">ID</div>
+                        <div class="col-auto"><strong>#{{ reclamation.id }}</strong></div>
+                    </div>
+                </div>
+                <div class="list-group-item">
+                    <div class="row align-items-center">
+                        <div class="col text-muted">Status</div>
+                        <div class="col-auto">
+                            {% if reclamation.status == 'PENDING' %}
+                                <span class="badge bg-yellow">Pending</span>
+                            {% elseif reclamation.status == 'IN_PROGRESS' %}
+                                <span class="badge bg-blue">In Progress</span>
+                            {% elseif reclamation.status == 'RESOLVED' %}
+                                <span class="badge bg-green">Resolved</span>
+                            {% elseif reclamation.status == 'CLOSED' %}
+                                <span class="badge bg-secondary">Closed</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="list-group-item">
+                    <div class="row align-items-center">
+                        <div class="col text-muted">Created</div>
+                        <div class="col-auto">{{ reclamation.submittedAt|date('d/m/Y H:i') }}</div>
+                    </div>
+                </div>
+                <div class="list-group-item">
+                    <div class="row align-items-center">
+                        <div class="col text-muted">Responses</div>
+                        <div class="col-auto"><span class="badge bg-azure">{{ reclamation.responses|length }}</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">Actions</h3>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ path('front_support_dashboard') }}" class="btn btn-outline-primary">
+                        <i class="ti ti-arrow-back"></i> Back to Support
+                    </a>
+                    {% if can_modify %}
+                        <a href="{{ path('front_support_reclamation_edit', {'id': reclamation.id}) }}" class="btn btn-warning">
+                            <i class="ti ti-edit"></i> Edit
+                        </a>
+                        <form method="post" action="{{ path('front_support_reclamation_delete', {'id': reclamation.id}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reclamation.id) }}">
+                            <button type="submit" class="btn btn-danger w-100" onclick="return confirm('Are you sure?')">
+                                <i class="ti ti-trash"></i> Delete
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

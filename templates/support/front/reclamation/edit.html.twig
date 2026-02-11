@@ -1,0 +1,121 @@
+{% extends 'base/layout.html.twig' %}
+
+{% block title %}Modifier réclamation #{{ reclamation.id }} - Support{% endblock %}
+
+{% block page_title %}
+    <i class="ti ti-edit me-2"></i> Modifier la réclamation #{{ reclamation.id }}
+{% endblock %}
+
+{% block body %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Détails de la réclamation</h3>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <label class="form-label">Statut actuel</label>
+                    <div>
+                        {% if reclamation.status == 'PENDING' %}
+                            <span class="badge bg-yellow">En attente</span>
+                        {% elseif reclamation.status == 'IN_PROGRESS' %}
+                            <span class="badge bg-blue">En cours</span>
+                        {% elseif reclamation.status == 'RESOLVED' %}
+                            <span class="badge bg-green">Résolu</span>
+                        {% elseif reclamation.status == 'CLOSED' %}
+                            <span class="badge bg-secondary">Fermé</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">Date de soumission</label>
+                    <div>
+                        {{ reclamation.submittedAt|date('d/m/Y à H:i') }}
+                    </div>
+                </div>
+
+                <hr>
+
+                {{ form_start(form, {'attr': {'class': 'form-horizontal'}}) }}
+
+                    <div class="mb-3">
+                        {{ form_row(form.subject) }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_row(form.messageBody) }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_row(form.status) }}
+                    </div>
+
+                    <div class="form-footer">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="ti ti-check"></i> Enregistrer les modifications
+                        </button>
+                        <a href="{{ path('front_reclamation_show', {'id': reclamation.id}) }}" class="btn btn-link">
+                            Annuler
+                        </a>
+                    </div>
+
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Informations -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Informations</h3>
+            </div>
+            <div class="list-group list-group-flush">
+                <div class="list-group-item">
+                    <div class="row align-items-center">
+                        <div class="col text-muted">ID</div>
+                        <div class="col-auto">
+                            <strong>#{{ reclamation.id }}</strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="list-group-item">
+                    <div class="row align-items-center">
+                        <div class="col text-muted">Créée le</div>
+                        <div class="col-auto">
+                            {{ reclamation.submittedAt|date('d/m/Y H:i') }}
+                        </div>
+                    </div>
+                </div>
+                <div class="list-group-item">
+                    <div class="row align-items-center">
+                        <div class="col text-muted">Réponses</div>
+                        <div class="col-auto">
+                            <span class="badge bg-azure">{{ reclamation.responses|length }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">Actions</h3>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ path('front_reclamation_show', {'id': reclamation.id}) }}" class="btn btn-outline-primary">
+                        <i class="ti ti-eye"></i> Voir la réclamation
+                    </a>
+                    <a href="{{ path('front_reclamation_index') }}" class="btn btn-outline-primary">
+                        <i class="ti ti-arrow-back"></i> Retour à la liste
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

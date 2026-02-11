@@ -1,0 +1,71 @@
+{% extends 'base/layout.html.twig' %}
+
+{% block title %}Create FAQ - Admin{% endblock %}
+
+{% block page_title %}
+    <i class="ti ti-plus me-2"></i> Create New FAQ
+{% endblock %}
+
+{% block body %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">FAQ Details</h3>
+            </div>
+            <div class="card-body">
+                {{ form_start(form) }}
+
+                    <div class="mb-3">
+                        {{ form_row(form.question) }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_row(form.answer) }}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form_row(form.subject) }}
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form_row(form.category) }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-footer">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="ti ti-check"></i> Create FAQ
+                        </button>
+                        <a href="{{ path('admin_faq_index') }}" class="btn btn-link">
+                            Cancel
+                        </a>
+                    </div>
+
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Help</h3>
+            </div>
+            <div class="card-body small">
+                <p>
+                    <strong>Subject:</strong> Choose the type of problem this FAQ addresses (e.g., Payment, Technical)
+                </p>
+                <p>
+                    <strong>Category:</strong> Choose the category that best describes the content (e.g., General, Technical)
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
