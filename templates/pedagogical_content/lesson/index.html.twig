@@ -1,0 +1,186 @@
+﻿{% extends 'base.html.twig' %}
+
+{% block title %}Admin · Leçons{% endblock %}
+
+{% block page_title %}
+    <i class="ti ti-notebook text-primary me-2"></i> Leçons
+{% endblock %}
+
+{% block breadcrumb %}
+<ol class="breadcrumb breadcrumb-icons p-2 rounded" style="background: rgba(32,107,196,0.1);">
+    <li class="breadcrumb-item">
+        <a href="{{ path('admin_dashboard') }}" style="color: #206bc4; text-decoration: none;">
+            <i class="ti ti-home"></i> Tableau de bord
+        </a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="{{ path('admin_pedagogical_content_index') }}" style="color: #206bc4; text-decoration: none;">Contenu Pédagogique</a>
+    </li>
+    <li class="breadcrumb-item active" style="color: #206bc4;">Leçons</li>
+</ol>
+{% endblock %}
+
+{% block page_actions %}
+<div class="col-auto">
+    <a href="{{ path('admin_lesson_new') }}" class="btn btn-primary shadow-sm" style="border-radius: 8px; font-weight: 600;">
+        <i class="ti ti-plus me-1"></i> Créer une leçon
+    </a>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="row g-4">
+
+    <!-- Formulaire de recherche et filtrage -->
+    <div class="col-12">
+        <div class="card shadow-sm border-0 rounded-3 mb-4">
+            <div class="card-body p-3">
+                <form id="filterForm" class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold text-secondary small text-uppercase">
+                            <i class="ti ti-search"></i> Rechercher
+                        </label>
+                        <input type="text" name="search" id="searchInput" class="form-control form-control-sm"
+                               placeholder="Titre ou contenu..." value="{{ search }}" style="border-radius: 8px;">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold text-secondary small text-uppercase">
+                            <i class="ti ti-filter"></i> Filtrer par cours
+                        </label>
+                        <select name="course" id="courseFilter" class="form-select form-select-sm" style="border-radius: 8px;">
+                            <option value="">-- Tous les cours --</option>
+                            {% for c in courses %}
+                                <option value="{{ c.id }}" {% if course == c.id %}selected{% endif %}>{{ c.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold text-secondary small text-uppercase">
+                            <i class="ti ti-sort-ascending"></i> Trier par
+                        </label>
+                        <select name="sort" id="sortSelect" class="form-select form-select-sm" style="border-radius: 8px;">
+                            <option value="title" {% if sort == 'title' %}selected{% endif %}>Titre</option>
+                            <option value="xpReward" {% if sort == 'xpReward' %}selected{% endif %}>Récompense XP</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold text-secondary small text-uppercase">
+                            <i class="ti ti-arrow-up-down"></i> Ordre
+                        </label>
+                        <select name="order" id="orderSelect" class="form-select form-select-sm" style="border-radius: 8px;">
+                            <option value="ASC" {% if order == 'ASC' %}selected{% endif %}>Croissant ↑</option>
+                            <option value="DESC" {% if order == 'DESC' %}selected{% endif %}>Décroissant ↓</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary btn-sm w-100">
+                            <i class="ti ti-search"></i>
+                        </button>
+                        <a href="{{ path('admin_lesson_index') }}" class="btn btn-secondary btn-sm w-100">
+                            <i class="ti ti-x"></i>
+                        </a>
+                    </div>
+                </form>
+
+                <div id="searchInfo" class="mt-2 small text-secondary" style="display: none;">
+                    Résultats pour: <strong id="searchInfoText"></strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loadingIndicator" class="text-center my-3" style="display: none;">
+        <div class="spinner-border text-primary" style="width: 40px; height: 40px;"></div>
+        <p class="text-secondary mt-2">Recherche en cours...</p>
+    </div>
+
+    <!-- Tableau -->
+    <div class="col-12">
+        <div class="card shadow-sm border-0 rounded-3">
+            <div id="lessonTableContainer" class="table-responsive p-3">
+                {% include 'pedagogical_content/lesson/_table.html.twig' %}
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Script AJAX -->
+<script>
+const filterForm = document.getElementById('filterForm');
+const searchInput = document.getElementById('searchInput');
+const courseFilter = document.getElementById('courseFilter');
+const sortSelect = document.getElementById('sortSelect');
+const orderSelect = document.getElementById('orderSelect');
+const lessonTableContainer = document.getElementById('lessonTableContainer');
+const loadingIndicator = document.getElementById('loadingIndicator');
+const searchInfo = document.getElementById('searchInfo');
+const searchInfoText = document.getElementById('searchInfoText');
+
+filterForm.addEventListener('submit', e => { e.preventDefault(); performSearch(); });
+searchInput.addEventListener('keyup', () => { clearTimeout(window.searchTimeout); window.searchTimeout = setTimeout(performSearch, 300); });
+courseFilter.addEventListener('change', performSearch);
+sortSelect.addEventListener('change', performSearch);
+orderSelect.addEventListener('change', performSearch);
+
+function performSearch() {
+    const params = new URLSearchParams(new FormData(filterForm));
+    const searchValue = searchInput.value;
+    loadingIndicator.style.display = 'block';
+    lessonTableContainer.style.opacity = '0.5';
+
+    fetch('{{ path('admin_lesson_index') }}?' + params.toString(), { headers: { 'X-Requested-With':'XMLHttpRequest' } })
+        .then(r => r.ok ? r.json() : Promise.reject('Erreur réseau'))
+        .then(data => {
+            lessonTableContainer.innerHTML = data.html;
+            lessonTableContainer.style.transition = 'opacity 0.3s ease';
+            lessonTableContainer.style.opacity = '1';
+            loadingIndicator.style.display = 'none';
+
+            if (searchValue) {
+                searchInfo.style.display = 'block';
+                searchInfoText.textContent = `"${searchValue}" (${data.count} résultat${data.count !== 1 ? 's' : ''})`;
+            } else { searchInfo.style.display = 'none'; }
+
+            attachToggleEvents();
+        })
+        .catch(e => { console.error(e); loadingIndicator.style.display='none'; lessonTableContainer.style.opacity='1'; alert('Une erreur est survenue'); });
+}
+
+function attachToggleEvents() {
+    document.querySelectorAll('.toggle-status').forEach(cb => {
+        cb.addEventListener('change', () => toggleStatus(cb.dataset.lessonId, cb.checked));
+    });
+}
+
+function toggleStatus(lessonId, isChecked) {
+    const button = event.target;
+    const originalState = !isChecked;
+    fetch('{{ path('admin_lesson_toggle_status', {'id': 'LESSON_ID'}) }}'.replace('LESSON_ID', lessonId), {
+        method:'POST',
+        headers:{'X-Requested-With':'XMLHttpRequest','Content-Type':'application/x-www-form-urlencoded'},
+        body: '_token=' + document.querySelector('meta[name="csrf-token"]')?.content || ''
+    })
+    .then(r=>r.json())
+    .then(data=> { if (!data.success) button.checked = originalState; })
+    .catch(()=>{ button.checked = originalState; });
+}
+
+attachToggleEvents();
+</script>
+
+<!-- Styles -->
+<style>
+.form-control:focus, .form-select:focus { border-color:#206bc4!important; box-shadow:0 0 0 3px rgba(32,107,196,0.1)!important; }
+.form-control, .form-select { transition: all 0.3s ease; }
+.form-control:hover, .form-select:hover { border-color:#206bc4!important; }
+.table tbody tr { animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+.form-check-input { cursor:pointer; }
+.form-check-input:checked { background-color:#206bc4; border-color:#206bc4; }
+.card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.card:hover { transform: translateY(-3px); box-shadow: 0 6px 18px rgba(32,107,196,0.12); }
+.table-hover tbody tr:hover { background-color: #f0f8ff; transition: 0.2s; }
+</style>
+{% endblock %}

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Module\PedagogicalContent\Repository;
 
 use App\Module\PedagogicalContent\Entity\Course;
@@ -17,10 +19,28 @@ class CourseRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return int Returns the total count of Course entities
+     * @return Course[] Returns an array of Course objects
      */
-    public function countAll(): int
+    public function findByLanguage(int $languageId): array
     {
-        return $this->count([]);
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.platformLanguage = :languageId')
+            ->setParameter('languageId', $languageId)
+            ->orderBy('c.title', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @return Course[] Returns published courses
+     */
+    public function findPublished(): array
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.status = :status')
+            ->setParameter('status', 'Published')
+            ->orderBy('c.publishedAt', 'DESC')
+            ->getQuery()
+            ->getResult();
     }
 }

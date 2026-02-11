@@ -1,0 +1,123 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin · {{ language.name }}{% endblock %}
+
+{% block page_title %}{{ language.name }}{% endblock %}
+
+{% block breadcrumb %}
+    <ol class="breadcrumb breadcrumb-icons" aria-label="breadcrumbs">
+        <li class="breadcrumb-item">
+            <a href="{{ path('admin_dashboard') }}">
+                <i class="ti ti-home"></i> Tableau de bord
+            </a>
+        </li>
+        <li class="breadcrumb-item">Contenu Pédagogique</li>
+        <li class="breadcrumb-item">
+            <a href="{{ path('admin_language_index') }}">Langues</a>
+        </li>
+        <li class="breadcrumb-item active">{{ language.name }}</li>
+    </ol>
+{% endblock %}
+
+{% block page_actions %}
+    <div class="col-auto">
+        <div class="btn-group">
+            <a href="{{ path('admin_language_edit', {'id': language.id}) }}" class="btn btn-primary">
+                <i class="ti ti-edit"></i> Modifier
+            </a>
+            <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-form-id="deleteForm{{ language.id }}">
+                <i class="ti ti-trash"></i> Supprimer
+            </button>
+        </div>
+    </div>
+{% endblock %}
+
+{% block body %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <div class="mb-4">
+                    <h4 class="text-muted mb-2">Drapeau</h4>
+                    <img src="{{ language.flagUrl }}" alt="{{ language.name }}" style="height: 60px; width: auto; object-fit: cover;">
+                </div>
+
+                <div class="mb-4">
+                    <h4 class="text-muted mb-2">Nom</h4>
+                    <p class="mb-0">{{ language.name }}</p>
+                </div>
+
+                <div class="mb-4">
+                    <h4 class="text-muted mb-2">Code (ISO 639-1)</h4>
+                    <p class="mb-0">
+                        <span class="badge bg-blue">{{ language.code|upper }}</span>
+                    </p>
+                </div>
+
+                <div class="mb-4">
+                    <h4 class="text-muted mb-2">Statut</h4>
+                    <p class="mb-0">
+                        {% if language.isEnabled %}
+                            <span class="badge bg-success">Activée</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Désactivée</span>
+                        {% endif %}
+                    </p>
+                </div>
+
+                <div class="mb-4">
+                    <h4 class="text-muted mb-2">Cours</h4>
+                    {% if language.courses|length > 0 %}
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Titre du cours</th>
+                                        <th>Niveau</th>
+                                        <th>Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for course in language.courses %}
+                                        <tr>
+                                            <td>
+                                                <a href="{{ path('admin_course_show', {'id': course.id}) }}">
+                                                    {{ course.title }}
+                                                </a>
+                                            </td>
+                                            <td>
+                                                {% if course.level == 'beginner' %}
+                                                    <span class="badge bg-green">Débutant</span>
+                                                {% elseif course.level == 'intermediate' %}
+                                                    <span class="badge bg-yellow">Intermédiaire</span>
+                                                {% else %}
+                                                    <span class="badge bg-red">Avancé</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if course.status == 'published' %}
+                                                    <span class="badge bg-success">Publié</span>
+                                                {% elseif course.status == 'draft' %}
+                                                    <span class="badge bg-warning">Brouillon</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">Archivé</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">Aucun cours pour cette langue</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form method="post" action="{{ path('admin_language_delete', {'id': language.id}) }}" style="display:none;" id="deleteForm{{ language.id }}">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ language.id) }}">
+</form>
+{% endblock %}
