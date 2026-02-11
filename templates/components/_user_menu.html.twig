@@ -1,0 +1,39 @@
+<div class="nav-item dropdown">
+    <a href="#" class="nav-link d-flex lh-1 text-reset p-0" data-bs-toggle="dropdown" aria-label="Open user menu">
+        <span class="avatar avatar-sm" style="background-image: url(https://ui-avatars.com/api/?name={{ app.user ? app.user.firstName ~ '+' ~ app.user.lastName : 'Guest' }}&background=206bc4&color=fff)"></span>
+        <div class="d-none d-xl-block ps-2">
+            <div>{{ app.user ? app.user.firstName ~ ' ' ~ app.user.lastName : 'Guest' }}</div>
+            <div class="mt-1 small text-muted">
+                {% if app.user and app.user.isPremium %}
+                    <i class="ti ti-crown text-yellow"></i> Premium
+                {% else %}
+                    Free Account
+                {% endif %}
+            </div>
+        </div>
+    </a>
+    <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+        {% if app.user %}
+            <a href="{{ path('user_profile') }}" class="dropdown-item">
+                <i class="ti ti-user me-2"></i> Profile
+            </a>
+            <a href="{{ path('user_stats') }}" class="dropdown-item">
+                <i class="ti ti-chart-line me-2"></i> My Progress
+            </a>
+            <a href="{{ path('user_subscription') }}" class="dropdown-item">
+                <i class="ti ti-crown me-2"></i> Subscription
+            </a>
+            <div class="dropdown-divider"></div>
+            <a href="#" class="dropdown-item">
+                <i class="ti ti-settings me-2"></i> Settings
+            </a>
+            <a href="{{ path('app_logout') }}" class="dropdown-item">
+                <i class="ti ti-logout me-2"></i> Logout
+            </a>
+        {% else %}
+            <a href="{{ path('app_login') }}" class="dropdown-item">
+                <i class="ti ti-login me-2"></i> Login
+            </a>
+        {% endif %}
+    </div>
+</div>

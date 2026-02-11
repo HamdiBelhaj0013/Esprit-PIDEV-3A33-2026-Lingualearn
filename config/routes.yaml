@@ -1,0 +1,36 @@
+# config/routes.yaml
+
+# Admin routes (si le dossier existe)
+admin_controllers:
+    resource: ../src/Controller/Admin/
+    type: attribute
+
+# UserManagement routes (existe)
+user_management_controllers:
+    resource: ../src/Module/UserManagement/Controller/
+    type: attribute
+
+# ExercisesQuizzes routes (COMMENTÉ - n'existe pas encore)
+# exercises_quizzes_controllers:
+#     resource: ../src/Module/ExercisesQuizzes/Controller/
+#     type: attribute
+
+# Forum routes (COMMENTÉ - n'existe pas encore)
+# forum_controllers:
+#     resource: ../src/Module/Forum/Controller/
+#     type: attribute
+
+# InternationalTests routes (COMMENTÉ - n'existe pas encore)
+# international_tests_controllers:
+#     resource: ../src/Module/InternationalTests/Controller/
+#     type: attribute
+
+# PedagogicalContent routes (COMMENTÉ - n'existe pas encore)
+# pedagogical_content_controllers:
+#     resource: ../src/Module/PedagogicalContent/Controller/
+#     type: attribute
+
+# Support routes (votre module - existe)
+support_controllers:
+    resource: ../src/Module/Support/Controller/
+    type: attribute

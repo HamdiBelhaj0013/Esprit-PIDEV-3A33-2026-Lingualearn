@@ -1,0 +1,39 @@
+parameters:
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    # Load all services from src/
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Kernel.php'
+            - '../src/Module/*/Entity/'
+
+    # Load controllers from each module individually
+    App\Module\UserManagement\Controller\:
+        resource: '../src/Module/UserManagement/Controller'
+        tags: ['controller.service_arguments']
+
+    # App\Module\ExercisesQuizzes\Controller\:
+    #     resource: '../src/Module/ExercisesQuizzes/Controller'
+    #     tags: ['controller.service_arguments']
+
+    # App\Module\Forum\Controller\:
+    #     resource: '../src/Module/Forum/Controller'
+    #     tags: ['controller.service_arguments']
+
+    # App\Module\InternationalTests\Controller\:
+    #     resource: '../src/Module/InternationalTests/Controller'
+    #     tags: ['controller.service_arguments']
+
+    # App\Module\PedagogicalContent\Controller\:
+    #     resource: '../src/Module/PedagogicalContent/Controller'
+    #     tags: ['controller.service_arguments']
+
+    App\Module\Support\Controller\:
+        resource: '../src/Module/Support/Controller'
+        tags: ['controller.service_arguments']

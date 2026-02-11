@@ -1,0 +1,48 @@
+# Module 6 - Support Routes
+
+# Front Office (Utilisateurs)
+front_reclamation_index:
+    path: /support/reclamations
+    controller: App\Module\Support\Controller\FrontOffice\ReclamationController::index
+    methods: GET
+
+front_reclamation_new:
+    path: /support/reclamations/new
+    controller: App\Module\Support\Controller\FrontOffice\ReclamationController::new
+    methods: [GET, POST]
+
+front_reclamation_show:
+    path: /support/reclamations/{id}
+    controller: App\Module\Support\Controller\FrontOffice\ReclamationController::show
+    methods: GET
+
+front_reclamation_edit:
+    path: /support/reclamations/{id}/edit
+    controller: App\Module\Support\Controller\FrontOffice\ReclamationController::edit
+    methods: [GET, POST]
+
+front_reclamation_delete:
+    path: /support/reclamations/{id}/delete
+    controller: App\Module\Support\Controller\FrontOffice\ReclamationController::delete
+    methods: POST
+
+# Back Office (Administration)
+admin_support_dashboard:
+    path: /admin/support/dashboard
+    controller: App\Module\Support\Controller\BackOffice\DashboardController::index
+    methods: GET
+
+admin_reclamation_index:
+    path: /admin/support/reclamations
+    controller: App\Module\Support\Controller\BackOffice\AdminReclamationController::index
+    methods: GET
+
+admin_reclamation_show:
+    path: /admin/support/reclamations/{id}
+    controller: App\Module\Support\Controller\BackOffice\AdminReclamationController::show
+    methods: [GET, POST]
+
+admin_reclamation_delete:
+    path: /admin/support/reclamations/{id}/delete
+    controller: App\Module\Support\Controller\BackOffice\AdminReclamationController::delete
+    methods: POST

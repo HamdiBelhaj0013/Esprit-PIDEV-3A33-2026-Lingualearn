@@ -1,0 +1,838 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin Dashboard - {{ parent() }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .stat-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .trend-up { color: #2fb344; }
+        .trend-down { color: #d63939; }
+        .activity-item {
+            border-left: 3px solid #e9ecef;
+            padding-left: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.2s;
+        }
+        .activity-item:hover {
+            border-left-color: #206bc4;
+            background-color: #f8f9fa;
+            padding-left: 1.5rem;
+        }
+        .chart-container { position: relative; height: 300px; }
+        .badge-status { font-size: 0.75rem; padding: 0.25rem 0.5rem; }
+        .metric-icon {
+            font-size: 2rem;
+            opacity: 0.8;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 600;
+            line-height: 1;
+        }
+        .stat-label {
+            font-size: 0.875rem;
+            color: #6c757d;
+            margin-top: 0.5rem;
+        }
+        .progress-circle {
+            width: 100px;
+            height: 100px;
+        }
+        .user-avatar-group {
+            display: flex;
+            margin: 0 -0.25rem;
+        }
+        .user-avatar-group .avatar {
+            margin: 0 0.25rem;
+            border: 2px solid #fff;
+        }
+    </style>
+{% endblock %}
+
+{% block page_title %}
+    <div class="d-flex justify-content-between align-items-center w-100">
+        <div>
+            <i class="ti ti-dashboard me-2"></i> Admin Dashboard
+        </div>
+        <div class="btn-list">
+            <button type="button" class="btn btn-outline-primary btn-sm" id="refreshDashboard">
+                <i class="ti ti-refresh"></i> Refresh
+            </button>
+            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#dateRangeModal">
+                <i class="ti ti-calendar"></i> Date Range
+            </button>
+            <button type="button" class="btn btn-primary btn-sm" id="exportReport">
+                <i class="ti ti-download"></i> Export Report
+            </button>
+        </div>
+    </div>
+{% endblock %}
+
+{% block body %}
+    <div class="container-xl">
+        {# Date Range Display #}
+        {% if dateRange is defined %}
+            <div class="alert alert-info mb-3">
+                <i class="ti ti-info-circle"></i>
+                Showing data from <strong>{{ dateRange.start|date('M d, Y') }}</strong> to <strong>{{ dateRange.end|date('M d, Y') }}</strong>
+            </div>
+        {% endif %}
+
+        <div class="row row-deck row-cards">
+
+            {# Enhanced User Statistics with Trends #}
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="ti ti-users me-2 text-primary"></i>
+                            User Statistics
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-sm-6 col-lg-3">
+                                <div class="card card-sm stat-card border-0 bg-primary-lt">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center justify-content-between mb-3">
+                                            <span class="text-primary metric-icon">
+                                                <i class="ti ti-users"></i>
+                                            </span>
+                                            {% if userStats.totalTrend is defined %}
+                                                <span class="badge bg-primary">
+                                                    <i class="ti ti-trending-{{ userStats.totalTrend >= 0 ? 'up' : 'down' }}"></i>
+                                                    {{ userStats.totalTrend|abs }}%
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="stat-value text-primary">
+                                            {{ userStats.total|number_format }}
+                                        </div>
+                                        <div class="stat-label">Total Users</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-lg-3">
+                                <div class="card card-sm stat-card border-0 bg-success-lt">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center justify-content-between mb-3">
+                                            <span class="text-success metric-icon">
+                                                <i class="ti ti-user-check"></i>
+                                            </span>
+                                            {% if userStats.total > 0 %}
+                                                <span class="badge bg-success">
+                                                    {{ ((userStats.active / userStats.total) * 100)|number_format(0) }}%
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="stat-value text-success">
+                                            {{ userStats.active|number_format }}
+                                        </div>
+                                        <div class="stat-label">Active Users</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-lg-3">
+                                <div class="card card-sm stat-card border-0 bg-info-lt">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center justify-content-between mb-3">
+                                            <span class="text-info metric-icon">
+                                                <i class="ti ti-crown"></i>
+                                            </span>
+                                            {% if userStats.premiumRevenue is defined %}
+                                                <span class="badge bg-info">
+                                                    ${{ userStats.premiumRevenue|number_format(0) }}
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="stat-value text-info">
+                                            {{ userStats.premium|number_format }}
+                                        </div>
+                                        <div class="stat-label">Premium Users</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-lg-3">
+                                <div class="card card-sm stat-card border-0 bg-warning-lt">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center justify-content-between mb-3">
+                                            <span class="text-warning metric-icon">
+                                                <i class="ti ti-user-off"></i>
+                                            </span>
+                                            {% if userStats.suspended > 0 %}
+                                                <span class="badge bg-warning">
+                                                    <i class="ti ti-alert-triangle"></i>
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="stat-value text-warning">
+                                            {{ userStats.suspended|number_format }}
+                                        </div>
+                                        <div class="stat-label">Suspended Users</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# User Growth Chart - Full Width #}
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="ti ti-chart-line me-2 text-primary"></i>
+                            User Growth
+                        </h3>
+                        <div class="card-actions">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <input type="radio" class="btn-check" name="user-growth-period" id="period-7d" checked>
+                                <label for="period-7d" class="btn">7D</label>
+                                <input type="radio" class="btn-check" name="user-growth-period" id="period-30d">
+                                <label for="period-30d" class="btn">30D</label>
+                                <input type="radio" class="btn-check" name="user-growth-period" id="period-90d">
+                                <label for="period-90d" class="btn">90D</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container" style="height: 350px;">
+                            <canvas id="userGrowthChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Content Statistics - Improved #}
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="ti ti-books me-2 text-primary"></i>
+                            Content Overview
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="card card-sm stat-card border-0 bg-purple-lt">
+                                    <div class="card-body text-center">
+                                        <div class="metric-icon text-purple mb-2">
+                                            <i class="ti ti-books"></i>
+                                        </div>
+                                        <div class="stat-value text-purple mb-1">
+                                            {{ courseCount|number_format }}
+                                        </div>
+                                        <div class="stat-label mb-2">Total Courses</div>
+                                        {% if courseStats is defined %}
+                                            <div>
+                                                <span class="badge bg-success-lt badge-status">{{ courseStats.published }} Published</span>
+                                                <span class="badge bg-warning-lt badge-status">{{ courseStats.draft }} Draft</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card card-sm stat-card border-0 bg-teal-lt">
+                                    <div class="card-body text-center">
+                                        <div class="metric-icon text-teal mb-2">
+                                            <i class="ti ti-playlist"></i>
+                                        </div>
+                                        <div class="stat-value text-teal mb-1">
+                                            {{ lessonCount|number_format }}
+                                        </div>
+                                        <div class="stat-label mb-2">Total Lessons</div>
+                                        {% if courseCount > 0 %}
+                                            <div>
+                                                <span class="badge bg-teal-lt badge-status">
+                                                    Avg {{ (lessonCount / courseCount)|number_format(1) }} per course
+                                                </span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card card-sm stat-card border-0 bg-lime-lt">
+                                    <div class="card-body text-center">
+                                        <div class="metric-icon text-lime mb-2">
+                                            <i class="ti ti-pencil-check"></i>
+                                        </div>
+                                        <div class="stat-value text-lime mb-1">
+                                            {{ exerciseCount|number_format }}
+                                        </div>
+                                        <div class="stat-label mb-2">Total Exercises</div>
+                                        {% if exerciseStats is defined %}
+                                            <div>
+                                                <span class="badge bg-lime-lt badge-status">
+                                                    {{ exerciseStats.completionRate }}% completion
+                                                </span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Engagement Metrics #}
+                        <div class="row g-3 mt-2">
+                            <div class="col-md-6">
+                                <div class="card card-sm border-primary">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <div>
+                                                <div class="stat-label mb-2">Average Course Rating</div>
+                                                <div class="h2 mb-0">
+                                                    {% if averageRating is defined and averageRating %}
+                                                        {{ averageRating|number_format(2) }}
+                                                        <span class="text-warning fs-3">
+                                                            {% for i in 1..5 %}
+                                                                <i class="ti ti-star{{ i <= averageRating|round ? '-filled' : '' }}"></i>
+                                                            {% endfor %}
+                                                        </span>
+                                                    {% else %}
+                                                        <span class="text-muted">N/A</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <div class="text-primary" style="font-size: 3rem; opacity: 0.3;">
+                                                <i class="ti ti-star-filled"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card card-sm border-success">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <div>
+                                                <div class="stat-label mb-2">Total Enrollments</div>
+                                                <div class="h2 mb-0 text-success">
+                                                    {{ totalEnrollments|default(0)|number_format }}
+                                                </div>
+                                            </div>
+                                            <div class="text-success" style="font-size: 3rem; opacity: 0.3;">
+                                                <i class="ti ti-users"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Revenue Overview #}
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="ti ti-wallet me-2 text-success"></i>
+                            Revenue Overview
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container" style="height: 200px;">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                        {% if revenueStats is defined %}
+                            <div class="mt-4">
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <div class="card card-sm bg-success-lt border-0">
+                                            <div class="card-body text-center">
+                                                <div class="text-muted small">This Month</div>
+                                                <div class="h3 mb-0 text-success">
+                                                    ${{ revenueStats.thisMonth|number_format(0) }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="card card-sm bg-azure-lt border-0">
+                                            <div class="card-body text-center">
+                                                <div class="text-muted small">Last Month</div>
+                                                <div class="h3 mb-0">
+                                                    ${{ revenueStats.lastMonth|number_format(0) }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-3 text-center">
+                                    <div class="text-muted small mb-1">Growth Rate</div>
+                                    <div class="h2 mb-0 {{ revenueStats.growth >= 0 ? 'text-success' : 'text-danger' }}">
+                                        <i class="ti ti-trending-{{ revenueStats.growth >= 0 ? 'up' : 'down' }}"></i>
+                                        {{ revenueStats.growth >= 0 ? '+' : '' }}{{ revenueStats.growth }}%
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {# Forum Statistics #}
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="ti ti-messages me-2 text-orange"></i>
+                            Community Engagement
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <div class="card card-sm stat-card border-0 bg-orange-lt">
+                                    <div class="card-body text-center">
+                                        <div class="metric-icon text-orange mb-2">
+                                            <i class="ti ti-messages"></i>
+                                        </div>
+                                        <div class="stat-value text-orange mb-1">
+                                            {{ forumPostCount|number_format }}
+                                        </div>
+                                        <div class="stat-label">Forum Posts</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="card card-sm stat-card border-0 bg-red-lt">
+                                    <div class="card-body text-center">
+                                        <div class="metric-icon text-red mb-2">
+                                            <i class="ti ti-message-2"></i>
+                                        </div>
+                                        <div class="stat-value text-red mb-1">
+                                            {{ forumReplyCount|number_format }}
+                                        </div>
+                                        <div class="stat-label">Replies</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% if forumStats is defined %}
+                            <div class="mt-4">
+                                <div class="list-group list-group-flush">
+                                    <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                        <span class="text-muted">
+                                            <i class="ti ti-activity me-2"></i>Today's Activity
+                                        </span>
+                                        <span class="badge bg-primary">{{ forumStats.todayPosts }} posts</span>
+                                    </div>
+                                    <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                        <span class="text-muted">
+                                            <i class="ti ti-trophy me-2"></i>Most Active User
+                                        </span>
+                                        <strong>{{ forumStats.mostActiveUser|default('N/A') }}</strong>
+                                    </div>
+                                    <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                        <span class="text-muted">
+                                            <i class="ti ti-clock me-2"></i>Avg Response Time
+                                        </span>
+                                        <span class="badge bg-success">{{ forumStats.avgResponseTime|default('N/A') }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {# Recent Registrations #}
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="ti ti-user-plus me-2 text-success"></i>
+                            Recent Registrations
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        {% if recentRegistrations is defined and recentRegistrations|length > 0 %}
+                            <div class="list-group list-group-flush">
+                                {% for user in recentRegistrations|slice(0, 5) %}
+                                    <div class="list-group-item px-0">
+                                        <div class="row align-items-center">
+                                            <div class="col-auto">
+                                                {% if user.avatarUrl is defined %}
+                                                    <span class="avatar avatar-sm" style="background-image: url({{ user.avatarUrl }})"></span>
+                                                {% else %}
+                                                    <span class="avatar avatar-sm" style="background-color: {{ ['#206bc4', '#4299e1', '#17a2b8', '#28a745', '#6f42c1'][loop.index0 % 5] }}">
+                                                        {{ user.fullName|first|upper }}
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+                                            <div class="col">
+                                                <div class="fw-bold">{{ user.fullName }}</div>
+                                                <div class="text-muted small">{{ user.email }}</div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <div class="text-muted small">
+                                                    <i class="ti ti-clock"></i>
+                                                    {{ user.createdAt|date('M d, H:i') }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5">
+                                <div class="text-muted mb-3" style="font-size: 3rem; opacity: 0.3;">
+                                    <i class="ti ti-user-off"></i>
+                                </div>
+                                <p class="text-muted mb-0">No recent registrations</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {# Recent Activity Feed #}
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="ti ti-activity me-2 text-info"></i>
+                            Recent Activity
+                        </h3>
+                    </div>
+                    <div class="card-body" style="max-height: 450px; overflow-y: auto;">
+                        {% if recentActivity is defined and recentActivity|length > 0 %}
+                            {% for activity in recentActivity %}
+                                <div class="activity-item">
+                                    <div class="d-flex">
+                                        <div class="me-3">
+                                            <span class="avatar avatar-sm {% if activity.type == 'course' %}bg-purple{% elseif activity.type == 'user' %}bg-primary{% elseif activity.type == 'forum' %}bg-orange{% else %}bg-secondary{% endif %} text-white">
+                                                <i class="ti ti-{{ activity.icon|default('activity') }}"></i>
+                                            </span>
+                                        </div>
+                                        <div class="flex-fill">
+                                            <div>{{ activity.description|raw }}</div>
+                                            <div class="text-muted small mt-1">
+                                                <i class="ti ti-clock"></i> {{ activity.createdAt|date('M d, Y H:i') }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center py-5">
+                                <div class="text-muted mb-3" style="font-size: 3rem; opacity: 0.3;">
+                                    <i class="ti ti-activity"></i>
+                                </div>
+                                <p class="text-muted mb-0">No recent activity</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {# Top Performing Courses #}
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="ti ti-trophy me-2 text-warning"></i>
+                            Top Performing Courses
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        {% if topCourses is defined and topCourses|length > 0 %}
+                            <div class="table-responsive">
+                                <table class="table table-vcenter card-table">
+                                    <thead>
+                                    <tr>
+                                        <th>Course</th>
+                                        <th class="text-center">Enrollments</th>
+                                        <th class="text-center">Rating</th>
+                                        <th class="text-center">Completion</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for course in topCourses|slice(0, 5) %}
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <span class="avatar avatar-sm me-2" style="background-color: {{ ['#206bc4', '#4299e1', '#17a2b8', '#28a745', '#6f42c1'][loop.index0 % 5] }}">
+                                                        {{ loop.index }}
+                                                    </span>
+                                                    <div>
+                                                        <a href="{{ path('admin_dashboard') }}" class="text-reset">
+                                                            {{ course.title|length > 30 ? course.title|slice(0, 30) ~ '...' : course.title }}
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge bg-primary-lt">{{ course.enrollments|number_format }}</span>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="text-warning">
+                                                    <i class="ti ti-star-filled"></i> {{ course.rating|number_format(1) }}
+                                                </span>
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="d-flex align-items-center justify-content-center">
+                                                    <div class="me-2" style="width: 50px;">
+                                                        <div class="progress progress-sm">
+                                                            <div class="progress-bar bg-success" style="width: {{ course.completionRate }}%"></div>
+                                                        </div>
+                                                    </div>
+                                                    <span class="text-muted small">{{ course.completionRate }}%</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5">
+                                <div class="text-muted mb-3" style="font-size: 3rem; opacity: 0.3;">
+                                    <i class="ti ti-book-off"></i>
+                                </div>
+                                <p class="text-muted mb-0">No course data available</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    {# Date Range Modal #}
+    <div class="modal modal-blur fade" id="dateRangeModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Select Date Range</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="get" action="{{ path('admin_dashboard') }}">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" class="form-control" name="start_date" value="{{ dateRange.start|default('now')|date('Y-m-d') }}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">End Date</label>
+                            <input type="date" class="form-control" name="end_date" value="{{ dateRange.end|default('now')|date('Y-m-d') }}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Quick Select</label>
+                            <select class="form-select" id="quickDateSelect">
+                                <option value="">Custom Range</option>
+                                <option value="today">Today</option>
+                                <option value="yesterday">Yesterday</option>
+                                <option value="last7days">Last 7 Days</option>
+                                <option value="last30days">Last 30 Days</option>
+                                <option value="thismonth">This Month</option>
+                                <option value="lastmonth">Last Month</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn me-auto" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Apply</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // User Growth Chart
+            {% if userGrowthData is defined %}
+            const userGrowthCtx = document.getElementById('userGrowthChart');
+            if (userGrowthCtx) {
+                new Chart(userGrowthCtx, {
+                    type: 'line',
+                    data: {
+                        labels: {{ userGrowthData.labels|json_encode|raw }},
+                        datasets: [{
+                            label: 'New Users',
+                            data: {{ userGrowthData.data|json_encode|raw }},
+                            borderColor: '#206bc4',
+                            backgroundColor: 'rgba(32, 107, 196, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            pointBackgroundColor: '#206bc4',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                padding: 12,
+                                titleFont: {
+                                    size: 14
+                                },
+                                bodyFont: {
+                                    size: 13
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0
+                                },
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.05)'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        },
+                        interaction: {
+                            intersect: false,
+                            mode: 'index'
+                        }
+                    }
+                });
+            }
+            {% endif %}
+
+            // Revenue Chart (Doughnut)
+            {% if revenueData is defined %}
+            const revenueCtx = document.getElementById('revenueChart');
+            if (revenueCtx) {
+                new Chart(revenueCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: {{ revenueData.labels|json_encode|raw }},
+                        datasets: [{
+                            data: {{ revenueData.data|json_encode|raw }},
+                            backgroundColor: [
+                                '#206bc4',
+                                '#4299e1',
+                                '#79c0ff'
+                            ],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 15,
+                                    usePointStyle: true,
+                                    font: {
+                                        size: 11
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                padding: 12,
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.label + ': $' + context.parsed.toFixed(2);
+                                    }
+                                }
+                            }
+                        },
+                        cutout: '70%'
+                    }
+                });
+            }
+            {% endif %}
+
+            // Refresh Dashboard
+            document.getElementById('refreshDashboard')?.addEventListener('click', function() {
+                location.reload();
+            });
+
+            // Export Report
+            document.getElementById('exportReport')?.addEventListener('click', function() {
+                window.location.href = '{{ path('admin_dashboard_export') }}';
+            });
+
+            // Quick Date Select
+            document.getElementById('quickDateSelect')?.addEventListener('change', function(e) {
+                const value = e.target.value;
+                const today = new Date();
+                let startDate, endDate;
+
+                switch(value) {
+                    case 'today':
+                        startDate = endDate = today;
+                        break;
+                    case 'yesterday':
+                        startDate = endDate = new Date(today.setDate(today.getDate() - 1));
+                        break;
+                    case 'last7days':
+                        endDate = new Date();
+                        startDate = new Date(today.setDate(today.getDate() - 7));
+                        break;
+                    case 'last30days':
+                        endDate = new Date();
+                        startDate = new Date(today.setDate(today.getDate() - 30));
+                        break;
+                    case 'thismonth':
+                        startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                        endDate = new Date();
+                        break;
+                    case 'lastmonth':
+                        startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                        endDate = new Date(today.getFullYear(), today.getMonth(), 0);
+                        break;
+                }
+
+                if (startDate && endDate) {
+                    document.querySelector('input[name="start_date"]').value = startDate.toISOString().split('T')[0];
+                    document.querySelector('input[name="end_date"]').value = endDate.toISOString().split('T')[0];
+                }
+            });
+
+            // Period Selection for User Growth Chart
+            document.querySelectorAll('input[name="user-growth-period"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    const period = this.id.replace('period-', '');
+                    fetch(`{{ path('admin_dashboard_chart_data') }}?period=${period}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log('Chart data updated for period:', period);
+                        })
+                        .catch(error => console.error('Error fetching chart data:', error));
+                });
+            });
+        });
+    </script>
+{% endblock %}

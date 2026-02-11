@@ -1,0 +1,25 @@
+<div class="container-xl mt-3">
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible" role="alert">
+                <div class="d-flex">
+                    <div>
+                        {% if label == 'success' %}
+                            <i class="ti ti-check icon alert-icon"></i>
+                        {% elseif label == 'error' or label == 'danger' %}
+                            <i class="ti ti-alert-circle icon alert-icon"></i>
+                        {% elseif label == 'warning' %}
+                            <i class="ti ti-alert-triangle icon alert-icon"></i>
+                        {% else %}
+                            <i class="ti ti-info-circle icon alert-icon"></i>
+                        {% endif %}
+                    </div>
+                    <div>
+                        {{ message }}
+                    </div>
+                </div>
+                <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+            </div>
+        {% endfor %}
+    {% endfor %}
+</div>

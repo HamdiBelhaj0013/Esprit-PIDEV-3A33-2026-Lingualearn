@@ -1,0 +1,121 @@
+<aside class="navbar navbar-vertical navbar-expand-lg" data-bs-theme="dark">
+    <div class="container-fluid">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-menu" aria-controls="sidebar-menu" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <h1 class="navbar-brand navbar-brand-autodark">
+            <a href="{{ path('app_home') }}">
+                <i class="ti ti-language fs-1"></i>
+                <span class="ms-2">Learn Hub</span>
+            </a>
+        </h1>
+
+        <div class="collapse navbar-collapse" id="sidebar-menu">
+            <ul class="navbar-nav pt-lg-3">
+                {# Dashboard #}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ path('app_home') }}">
+                        <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <i class="ti ti-home"></i>
+                        </span>
+                        <span class="nav-link-title">Dashboard</span>
+                    </a>
+                </li>
+
+                {# Module 1: User Management #}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#navbar-user" data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="false">
+                        <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <i class="ti ti-users"></i>
+                        </span>
+                        <span class="nav-link-title">User Management</span>
+                    </a>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="{{ path('user_profile') }}">
+                            <i class="ti ti-user me-2"></i> My Profile
+                        </a>
+                        <a class="dropdown-item" href="{{ path('user_stats') }}">
+                            <i class="ti ti-chart-line me-2"></i> Learning Stats
+                        </a>
+                        <a class="dropdown-item" href="{{ path('user_languages') }}">
+                            <i class="ti ti-world me-2"></i> My Languages
+                        </a>
+                        <a class="dropdown-item" href="{{ path('user_subscription') }}">
+                            <i class="ti ti-crown me-2"></i> Subscription
+                        </a>
+                    </div>
+                </li>
+
+                {# Module 2: Courses #}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#navbar-courses" data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="false">
+                        <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <i class="ti ti-book"></i>
+                        </span>
+                        <span class="nav-link-title">Courses</span>
+                    </a>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="#">
+                            <i class="ti ti-list me-2"></i> All Courses
+                        </a>
+                        <a class="dropdown-item" href="#">
+                            <i class="ti ti-book-2 me-2"></i> My Courses
+                        </a>
+                        <a class="dropdown-item" href="#">
+                            <i class="ti ti-plus me-2"></i> Create Course
+                        </a>
+                    </div>
+                </li>
+
+                {# Module 3: Exercises & Quizzes #}
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <i class="ti ti-puzzle"></i>
+                        </span>
+                        <span class="nav-link-title">Exercises & Quizzes</span>
+                    </a>
+                </li>
+
+                {# Module 4: International Tests #}
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <i class="ti ti-certificate"></i>
+                        </span>
+                        <span class="nav-link-title">Mock Tests</span>
+                    </a>
+                </li>
+
+                {# Module 5: Forum #}
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <i class="ti ti-messages"></i>
+                        </span>
+                        <span class="nav-link-title">Forum</span>
+                    </a>
+                </li>
+
+                {# Module 6: Support #}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#navbar-support" data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="false">
+                        <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <i class="ti ti-lifebuoy"></i>
+                        </span>
+                        <span class="nav-link-title">Support</span>
+                    </a>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="{{ path('front_reclamation_index') }}">
+                            <i class="ti ti-message-question me-2"></i> Reclamation
+                        </a>
+                        <a class="dropdown-item" href="{{ path('admin_faq_index') }}">
+                            <i class="ti ti-help-circle me-2"></i> FAQ
+                        </a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</aside>

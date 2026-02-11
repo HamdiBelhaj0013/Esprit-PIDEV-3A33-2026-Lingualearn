@@ -1,0 +1,222 @@
+{% extends 'base/layout.html.twig' %}
+
+{% block title %}FAQ Management - Admin{% endblock %}
+
+{% block page_title %}
+    <i class="ti ti-help me-2"></i> FAQ Management
+{% endblock %}
+
+{% block body %}
+<div class="row">
+    <div class="col-12">
+        <!-- Search & Filter Bar -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <form method="get" class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <div class="input-icon">
+                            <span class="input-icon-addon">
+                                <i class="ti ti-search"></i>
+                            </span>
+                            <input type="text" name="search" class="form-control" 
+                                   placeholder="Search question..." value="{{ search }}">
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <select name="subject" class="form-select">
+                            <option value="">All Subjects</option>
+                            {% for subj in subjects %}
+                                <option value="{{ subj }}" {% if selected_subject == subj %}selected{% endif %}>{{ subj|capitalize }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <select name="sort" class="form-select">
+                            <option value="submittedAt" {% if sort == 'submittedAt' %}selected{% endif %}>Sort by Date</option>
+                            <option value="question" {% if sort == 'question' %}selected{% endif %}>Sort by Question</option>
+                            <option value="subject" {% if sort == 'subject' %}selected{% endif %}>Sort by Subject</option>
+                            <option value="category" {% if sort == 'category' %}selected{% endif %}>Sort by Category</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-2">
+                        <select name="order" class="form-select">
+                            <option value="DESC" {% if order == 'DESC' %}selected{% endif %}>Descending</option>
+                            <option value="ASC" {% if order == 'ASC' %}selected{% endif %}>Ascending</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-1">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="ti ti-filter"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="col-md-2 text-end">
+                        <a href="{{ path('admin_faq_new') }}" class="btn btn-success w-100">
+                            <i class="ti ti-plus"></i> New FAQ
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    All FAQs
+                    {% if total > 0 %}
+                        <span class="badge bg-azure ms-2">{{ total }}</span>
+                    {% endif %}
+                </h3>
+                {% if pages > 1 %}
+                    <div class="card-actions">
+                        <span class="text-muted">Page {{ page }} / {{ pages }}</span>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if faqs|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-vcenter table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Question</th>
+                                    <th>Subject</th>
+                                    <th>Category</th>
+                                    <th>Created</th>
+                                    <th style="width: 1%; white-space: nowrap;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for faq in faqs %}
+                                <tr>
+                                    <td>
+                                        <strong>#{{ faq.id }}</strong>
+                                    </td>
+                                    <td>
+                                        <div class="text-truncate" style="max-width: 300px;">
+                                            {{ faq.question }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if faq.subject %}
+                                            {% if faq.subject == 'payment' %}
+                                                <span class="badge bg-primary">Payment</span>
+                                            {% elseif faq.subject == 'technical' %}
+                                                <span class="badge bg-info">Technical</span>
+                                            {% elseif faq.subject == 'content' %}
+                                                <span class="badge bg-warning">Content</span>
+                                            {% elseif faq.subject == 'premium' %}
+                                                <span class="badge bg-danger">Premium</span>
+                                            {% elseif faq.subject == 'account' %}
+                                                <span class="badge bg-success">Account</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ faq.subject }}</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if faq.category %}
+                                            {% if faq.category == 'general' %}
+                                                General
+                                            {% elseif faq.category == 'technical' %}
+                                                Technical
+                                            {% elseif faq.category == 'pedagogical' %}
+                                                Pedagogical
+                                            {% elseif faq.category == 'billing' %}
+                                                Billing
+                                            {% else %}
+                                                {{ faq.category }}
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ faq.submittedAt|date('d/m/Y') }}
+                                    </td>
+                                    <td style="white-space: nowrap;">
+                                        <a href="{{ path('admin_faq_edit', {'id': faq.id}) }}"
+                                           class="btn btn-sm btn-warning">
+                                            <i class="ti ti-edit"></i>
+                                        </a>
+                                        <form method="post"
+                                              action="{{ path('admin_faq_delete', {'id': faq.id}) }}"
+                                              class="d-inline">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ faq.id) }}">
+                                            <button type="submit" class="btn btn-sm btn-danger"
+                                                    onclick="return confirm('Are you sure?')">
+                                                <i class="ti ti-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if pages > 1 %}
+                    <div class="d-flex justify-content-center mt-3">
+                        <ul class="pagination">
+                            <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+                                <a class="page-link" href="{{ path('admin_faq_index', app.request.query.all|merge({'page': page - 1})) }}">
+                                    <i class="ti ti-chevron-left"></i>
+                                </a>
+                            </li>
+                            
+                            {% for p in 1..pages %}
+                                <li class="page-item {% if p == page %}active{% endif %}">
+                                    <a class="page-link" href="{{ path('admin_faq_index', app.request.query.all|merge({'page': p})) }}">{{ p }}</a>
+                                </li>
+                            {% endfor %}
+                            
+                            <li class="page-item {% if page >= pages %}disabled{% endif %}">
+                                <a class="page-link" href="{{ path('admin_faq_index', app.request.query.all|merge({'page': page + 1})) }}">
+                                    <i class="ti ti-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <div class="empty">
+                        <div class="empty-icon">
+                            <i class="ti ti-help-off"></i>
+                        </div>
+                        <p class="empty-title">No FAQs found</p>
+                        <p class="empty-subtitle text-muted">
+                            {% if search or selected_subject %}
+                                No results for your search.
+                            {% else %}
+                                Start by creating a new FAQ to help your users.
+                            {% endif %}
+                        </p>
+                        <div class="empty-action">
+                            {% if search or selected_subject %}
+                            <a href="{{ path('admin_faq_index') }}" class="btn btn-outline-primary me-2">
+                                <i class="ti ti-arrow-back"></i> Clear filters
+                            </a>
+                            {% endif %}
+                            <a href="{{ path('admin_faq_new') }}" class="btn btn-primary">
+                                <i class="ti ti-plus"></i> Create First FAQ
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
