@@ -4,7 +4,7 @@ namespace App\Module\PedagogicalContent\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: App\Module\PedagogicalContent\Repository\LessonRepository::class)]
+#[ORM\Entity]
 class Lesson
 {
     #[ORM\Id]
@@ -12,8 +12,22 @@ class Lesson
     #[ORM\Column]
     private ?int $id = null;
 
+    #[ORM\Column(length: 255)]
+    private ?string $title = null;
+
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getTitle(): ?string
+    {
+        return $this->title;
+    }
+
+    public function setTitle(string $title): self
+    {
+        $this->title = $title;
+        return $this;
     }
 }

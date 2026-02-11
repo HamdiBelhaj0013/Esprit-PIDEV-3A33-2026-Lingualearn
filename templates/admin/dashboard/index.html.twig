@@ -223,7 +223,7 @@
                     </div>
                     <div class="card-body">
                         <div class="row g-3">
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <div class="card card-sm stat-card border-0 bg-purple-lt">
                                     <div class="card-body text-center">
                                         <div class="metric-icon text-purple mb-2">
@@ -242,27 +242,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="card card-sm stat-card border-0 bg-teal-lt">
-                                    <div class="card-body text-center">
-                                        <div class="metric-icon text-teal mb-2">
-                                            <i class="ti ti-playlist"></i>
-                                        </div>
-                                        <div class="stat-value text-teal mb-1">
-                                            {{ lessonCount|number_format }}
-                                        </div>
-                                        <div class="stat-label mb-2">Total Lessons</div>
-                                        {% if courseCount > 0 %}
-                                            <div>
-                                                <span class="badge bg-teal-lt badge-status">
-                                                    Avg {{ (lessonCount / courseCount)|number_format(1) }} per course
-                                                </span>
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <div class="card card-sm stat-card border-0 bg-lime-lt">
                                     <div class="card-body text-center">
                                         <div class="metric-icon text-lime mb-2">

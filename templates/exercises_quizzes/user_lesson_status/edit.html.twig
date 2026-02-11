@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier le statut{% endblock %}
+
+{% block body %}
+<h1>Modifier le statut</h1>
+
+<form method="POST">
+    <label>Utilisateur ID : <input type="text" name="userId" value="{{ status.user.id }}"></label><br>
+    <label>Leçon ID : <input type="text" name="lessonId" value="{{ status.lesson.id }}"></label><br>
+    <label>Complété : <input type="checkbox" name="completed" {% if status.isCompleted %}checked{% endif %}></label><br>
+    <button type="submit">Modifier</button>
+</form>
+
+<a href="{{ path('app_exercises_quizzes_user_lesson_status_list') }}">Retour à la liste</a>
+{% endblock %}

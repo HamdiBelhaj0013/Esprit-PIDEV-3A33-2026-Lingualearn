@@ -1,0 +1,15 @@
+{# templates/exercises_quizzes/exercice/edit.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier l'exercice{% endblock %}
+
+{% block body %}
+    <h1>Modifier l'exercice</h1>
+
+    {# On inclut le formulaire et on passe is_edit = true #}
+    {% include 'exercises_quizzes/exercice/_form.html.twig' with {'form': form, 'is_edit': true} %}
+
+    <a href="{{ path('exercice_index') }}" class="btn btn-outline-secondary mt-3">
+        Retour à la liste
+    </a>
+{% endblock %}

@@ -1,4 +1,5 @@
-<div class="modal modal-blur fade" id="confirmDeleteModal" tabindex="-1" role="dialog" aria-hidden="true">
+{# Delete Confirmation Modal #}
+<div class="modal modal-blur fade" id="deleteModal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
         <div class="modal-content">
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -6,7 +7,9 @@
             <div class="modal-body text-center py-4">
                 <i class="ti ti-alert-triangle icon mb-2 text-danger icon-lg"></i>
                 <h3>Are you sure?</h3>
-                <div class="text-muted">Do you really want to delete this item? What you've done cannot be undone.</div>
+                <div class="text-muted" id="deleteModalMessage">
+                    Do you really want to delete this item? This action cannot be undone.
+                </div>
             </div>
             <div class="modal-footer">
                 <div class="w-100">
@@ -17,9 +20,12 @@
                             </button>
                         </div>
                         <div class="col">
-                            <button type="submit" form="deleteForm" class="btn btn-danger w-100" id="confirmDeleteButton">
-                                Delete
-                            </button>
+                            <form method="POST" id="deleteForm">
+                                <input type="hidden" name="_token" id="deleteToken">
+                                <button type="submit" class="btn btn-danger w-100">
+                                    Delete
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -30,14 +36,24 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        var confirmDeleteModal = document.getElementById('confirmDeleteModal');
-        confirmDeleteModal.addEventListener('show.bs.modal', function (event) {
-            var button = event.relatedTarget; // Button that triggered the modal
-            var form = button.closest('form'); // Find the form associated with the button
-            var confirmButton = confirmDeleteModal.querySelector('#confirmDeleteButton');
-
-            // Set the form action on the modal's confirm button
-            confirmButton.setAttribute('form', form.id);
-        });
+        const deleteModal = document.getElementById('deleteModal');
+        if (deleteModal) {
+            deleteModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const deleteUrl = button.getAttribute('data-delete-url');
+                const itemName = button.getAttribute('data-item-name');
+                
+                const form = document.getElementById('deleteForm');
+                const message = document.getElementById('deleteModalMessage');
+                
+                if (deleteUrl) {
+                    form.action = deleteUrl;
+                }
+                
+                if (itemName) {
+                    message.textContent = `Do you really want to delete "${itemName}"? This action cannot be undone.`;
+                }
+            });
+        }
     });
 </script>

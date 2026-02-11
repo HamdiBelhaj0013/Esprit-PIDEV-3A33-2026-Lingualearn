@@ -1,0 +1,48 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Create Quiz{% endblock %}
+{% block page_title %}Create New Quiz{% endblock %}
+
+{% block breadcrumb %}
+<ol class="breadcrumb breadcrumb-arrows" aria-label="breadcrumbs">
+    <li class="breadcrumb-item"><a href="{{ path('admin_dashboard') }}">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="{{ path('quiz_index') }}">Quizzes</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Create</li>
+</ol>
+{% endblock %}
+
+{% block body %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <form method="post" action="{{ path('quiz_new') }}">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Quiz Details</h3>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form) }}
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                {{ form_label(form.title, 'Quiz Title', {'label_attr': {'class': 'form-label required'}}) }}
+                                {{ form_widget(form.title, {'attr': {'class': 'form-control', 'placeholder': 'Enter quiz title'}}) }}
+                                {{ form_errors(form.title) }}
+                            </div>
+                        </div>
+                    </div>
+                    {{ form_end(form) }}
+                </div>
+                <div class="card-footer text-end">
+                    <div class="d-flex">
+                        <a href="{{ path('quiz_index') }}" class="btn btn-link">Cancel</a>
+                        <button type="submit" class="btn btn-primary ms-auto">
+                            <i class="ti ti-device-floppy icon"></i>
+                            Create Quiz
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

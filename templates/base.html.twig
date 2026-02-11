@@ -33,22 +33,22 @@
                     {# Dashboard #}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ path('admin_dashboard') }}">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                    <i class="ti ti-home"></i>
-                                </span>
+                            <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                <i class="ti ti-home"></i>
+                            </span>
                             <span class="nav-link-title">Dashboard</span>
                         </a>
                     </li>
 
                     {# User Management #}
-                    <li class="nav-item dropdown active">
-                        <a class="nav-link dropdown-toggle" href="#navbar-user" data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="true">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                    <i class="ti ti-users"></i>
-                                </span>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#navbar-user" data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="false">
+                            <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                <i class="ti ti-users"></i>
+                            </span>
                             <span class="nav-link-title">User Management</span>
                         </a>
-                        <div class="dropdown-menu show">
+                        <div class="dropdown-menu">
                             <a class="dropdown-item" href="{{ path('admin_users_index') }}">
                                 <i class="ti ti-list me-2"></i> All Users
                             </a>
@@ -58,52 +58,92 @@
                         </div>
                     </li>
 
-                    {# Courses (Placeholder for Module 2) #}
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                    <i class="ti ti-book"></i>
-                                </span>
+                    {# Courses #}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#navbar-courses" data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="false">
+                            <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                <i class="ti ti-book"></i>
+                            </span>
                             <span class="nav-link-title">Courses</span>
                         </a>
+                        <div class="dropdown-menu">
+                            <a class="dropdown-item" href="#">
+                                <i class="ti ti-list me-2"></i> All Courses
+                            </a>
+                            <a class="dropdown-item" href="#">
+                                <i class="ti ti-book-2 me-2"></i> My Courses
+                            </a>
+                            <a class="dropdown-item" href="#">
+                                <i class="ti ti-plus me-2"></i> Create Course
+                            </a>
+                        </div>
                     </li>
 
-                    {# Exercises (Placeholder for Module 3) #}
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                    <i class="ti ti-puzzle"></i>
-                                </span>
+                    {# Lessons & Exercises #}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#navbar-lessons" data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="false">
+                            <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                <i class="ti ti-school"></i>
+                            </span>
                             <span class="nav-link-title">Exercises</span>
                         </a>
+                        <div class="dropdown-menu">
+                            <a class="dropdown-item" href="{{ path('exercice_index') }}">
+                                <i class="ti ti-puzzle me-2"></i> All Exercises
+                            </a>
+                            <a class="dropdown-item" href="{{ path('exercice_new') }}">
+                                <i class="ti ti-plus me-2"></i> Create Exercise
+                            </a>
+                        </div>
                     </li>
 
-                    {# Tests (Placeholder for Module 4) #}
+                    {# Quizzes #}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#navbar-quizzes" data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="false">
+                            <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                <i class="ti ti-list-check"></i>
+                            </span>
+                            <span class="nav-link-title">Quizzes</span>
+                        </a>
+                        <div class="dropdown-menu">
+                            <a class="dropdown-item" href="{{ path('quiz_index') }}">
+                                <i class="ti ti-list me-2"></i> All Quizzes
+                            </a>
+                            <a class="dropdown-item" href="{{ path('quiz_new') }}">
+                                <i class="ti ti-plus me-2"></i> Create Quiz
+                            <a class="dropdown-item" href="{{ path('app_exercises_quizzes_user_lesson_status_list') }}">
+    <i class="ti ti-chart-line me-2"></i> User Progress
+</a>
+
+                        </div>
+                    </li>
+
+                    {# Mock Tests #}
                     <li class="nav-item">
                         <a class="nav-link" href="#">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                    <i class="ti ti-certificate"></i>
-                                </span>
+                            <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                <i class="ti ti-certificate"></i>
+                            </span>
                             <span class="nav-link-title">Mock Tests</span>
                         </a>
                     </li>
 
-                    {# Forum (Placeholder for Module 5) #}
+                    {# Forum #}
                     <li class="nav-item">
                         <a class="nav-link" href="#">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                    <i class="ti ti-messages"></i>
-                                </span>
+                            <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                <i class="ti ti-messages"></i>
+                            </span>
                             <span class="nav-link-title">Forum</span>
                         </a>
                     </li>
 
-                    {# Support (Placeholder for Module 6) #}
+                    {# Support #}
                     <li class="nav-item">
                         <a class="nav-link" href="#">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                    <i class="ti ti-lifebuoy"></i>
-                                </span>
+                            <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                <i class="ti ti-lifebuoy"></i>
+                            </span>
                             <span class="nav-link-title">Support</span>
                         </a>
                     </li>

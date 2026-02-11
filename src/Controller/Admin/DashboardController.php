@@ -44,24 +44,23 @@ class DashboardController extends AbstractController
         $userStats = $this->getUserStatistics($startDate, $endDate);
 
         // Content Statistics - Use dynamic repository lookup
-        $courseCount = $this->getEntityCount('App\Entity\Course') ?? 0;
-        $lessonCount = $this->getEntityCount('App\Entity\Lesson') ?? 0;
-        $exerciseCount = $this->getEntityCount('App\Entity\Exercise') ?? 0;
+        $courseCount = $this->getEntityCount('App\Module\PedagogicalContent\Entity\Course') ?? 0;
+        $exerciseCount = $this->getEntityCount('App\Module\ExercisesQuizzes\Entity\Exercice') ?? 0;
 
         // Course Statistics
         $courseStats = [
-            'published' => $this->getEntityCountByField('App\Entity\Course', 'status', 'published') ?? 0,
-            'draft' => $this->getEntityCountByField('App\Entity\Course', 'status', 'draft') ?? 0,
+            'published' => $this->getEntityCountByField('App\Module\PedagogicalContent\Entity\Course', 'status', 'published') ?? 0,
+            'draft' => $this->getEntityCountByField('App\Module\PedagogicalContent\Entity\Course', 'status', 'draft') ?? 0,
         ];
 
         // Forum Statistics
-        $forumPostCount = $this->getEntityCount('App\Entity\ForumPost') ?? 0;
-        $forumReplyCount = $this->getEntityCount('App\Entity\ForumReply') ?? 0;
+        $forumPostCount = $this->getEntityCount('App\Module\Forum\Entity\ForumPost') ?? 0;
+        $forumReplyCount = $this->getEntityCount('App\Module\Forum\Entity\ForumReply') ?? 0;
         $forumStats = $this->getForumStatistics();
 
         // Engagement Metrics
         $averageRating = 4.5; // Placeholder - implement when rating system exists
-        $totalEnrollments = $this->getEntityCount('App\Entity\Enrollment') ?? 0;
+        $totalEnrollments = $this->getEntityCount('App\Module\PedagogicalContent\Entity\Enrollment') ?? 0;
 
         // Recent Activity
         $recentRegistrations = $this->userRepository->findBy(
@@ -89,10 +88,8 @@ class DashboardController extends AbstractController
         $systemHealth = $this->getSystemHealthMetrics();
 
         return $this->render('admin/dashboard/index.html.twig', [
-
             'userStats' => $userStats,
             'courseCount' => $courseCount,
-            'lessonCount' => $lessonCount,
             'exerciseCount' => $exerciseCount,
             'courseStats' => $courseStats,
             'forumPostCount' => $forumPostCount,
