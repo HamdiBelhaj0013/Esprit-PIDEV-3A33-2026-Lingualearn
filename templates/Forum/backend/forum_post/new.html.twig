@@ -1,0 +1,121 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Créer un Post - Forum{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-5">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1><i class="ti ti-plus-circle"></i> Créer un nouveau Post</h1>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ path('admin_forum_post_index') }}" class="btn btn-secondary">
+                <i class="ti ti-arrow-left"></i> Retour à la liste
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Formulaire de création</h5>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form, {
+                        'attr': {
+                            'class': 'needs-validation',
+                            'novalidate': true
+                        }
+                    }) }}
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.title.vars.label }}</label>
+                        {{ form_widget(form.title, {
+                            'attr': {
+                                'class': 'form-control',
+                                'placeholder': 'Entrez le titre...'
+                            }
+                        }) }}
+                        {{ form_errors(form.title) }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form.content.vars.label }}</label>
+                        {{ form_widget(form.content, {
+                            'attr': {
+                                'class': 'form-control',
+                                'placeholder': 'Écrivez votre contenu...',
+                                'rows': '8'
+                            }
+                        }) }}
+                        {{ form_errors(form.content) }}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.authorId.vars.label }}</label>
+                            {{ form_widget(form.authorId, {
+                                'attr': {
+                                    'class': 'form-control',
+                                    'type': 'number'
+                                }
+                            }) }}
+                            {{ form_errors(form.authorId) }}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form.platformLanguageId.vars.label }}</label>
+                            {{ form_widget(form.platformLanguageId, {
+                                'attr': {
+                                    'class': 'form-select'
+                                }
+                            }) }}
+                            {{ form_errors(form.platformLanguageId) }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        {{ form_widget(form.isActive, {
+                            'attr': {
+                                'class': 'form-check-input'
+                            }
+                        }) }}
+                        <label class="form-check-label">{{ form.isActive.vars.label }}</label>
+                        {{ form_errors(form.isActive) }}
+                    </div>
+
+                    <hr />
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ path('admin_forum_post_index') }}" class="btn btn-secondary">
+                            <i class="ti ti-x"></i> Annuler
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="ti ti-check"></i> Créer le Post
+                        </button>
+                    </div>
+
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">💡 Aide</h5>
+                </div>
+                <div class="card-body text-sm">
+                    <ul>
+                        <li>Titre clair et descriptif</li>
+                        <li>Contenu détaillé</li>
+                        <li>Sélectionnez la bonne langue</li>
+                        <li>Activez le post</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

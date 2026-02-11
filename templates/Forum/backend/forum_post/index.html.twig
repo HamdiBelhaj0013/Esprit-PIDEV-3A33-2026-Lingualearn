@@ -1,0 +1,400 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des Posts - Forum{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-5">
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h1><i class="ti ti-message-square"></i> Gestion des Posts du Forum</h1>
+        </div>
+        <div class="col-md-6 text-end">
+            <a href="{{ path('admin_forum_post_new') }}" class="btn btn-primary">
+                <i class="ti ti-plus"></i> Nouveau Post
+            </a>
+            <a href="{{ path('admin_forum_post_export_csv') }}" class="btn btn-success">
+                <i class="ti ti-download"></i> Exporter CSV
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistiques -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5 class="card-title">Total Posts</h5>
+                    <p class="card-text fs-4">{{ stats.total ?? 0 }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title">Posts Actifs</h5>
+                    <p class="card-text fs-4">{{ stats.active ?? 0 }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <h5 class="card-title">Posts Inactifs</h5>
+                    <p class="card-text fs-4">{{ stats.inactive ?? 0 }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <h5 class="card-title">Total Vues</h5>
+                    <p class="card-text fs-4">{{ stats.totalViews ?? 0 }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recherche et Filtres -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="ti ti-filter"></i> Recherche et Filtres</h5>
+        </div>
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Mot-clé</label>
+                    <input type="text" name="keyword" class="form-control" placeholder="Rechercher..." 
+                           value="{{ filters.keyword ?? '' }}">
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">ID Auteur</label>
+                    <input type="number" name="authorId" class="form-control" placeholder="ID Auteur" 
+                           value="{{ filters.authorId ?? '' }}">
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Langue</label>
+                    <select name="platformLanguageId" class="form-select">
+                        <option value="">Toutes</option>
+                        <option value="1" {% if filters.platformLanguageId == 1 %}selected{% endif %}>Français</option>
+                        <option value="2" {% if filters.platformLanguageId == 2 %}selected{% endif %}>Anglais</option>
+                        <option value="3" {% if filters.platformLanguageId == 3 %}selected{% endif %}>Arabe</option>
+                        <option value="4" {% if filters.platformLanguageId == 4 %}selected{% endif %}>Espagnol</option>
+                        <option value="5" {% if filters.platformLanguageId == 5 %}selected{% endif %}>Allemand</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Statut</label>
+                    <select name="isActive" class="form-select">
+                        <option value="">Tous</option>
+                        <option value="1" {% if filters.isActive == 1 %}selected{% endif %}>Actifs</option>
+                        <option value="0" {% if filters.isActive == 0 %}selected{% endif %}>Inactifs</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3 align-self-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="ti ti-search"></i> Rechercher
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tri -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="ti ti-sort-ascending"></i> Tri</h5>
+        </div>
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <!-- Passer les filtres actuels -->
+                <input type="hidden" name="keyword" value="{{ filters.keyword ?? '' }}">
+                <input type="hidden" name="authorId" value="{{ filters.authorId ?? '' }}">
+                <input type="hidden" name="platformLanguageId" value="{{ filters.platformLanguageId ?? '' }}">
+                <input type="hidden" name="isActive" value="{{ filters.isActive ?? '' }}">
+
+                <div class="col-md-6">
+                    <label class="form-label">Trier par</label>
+                    <select name="sortField" class="form-select">
+                        <option value="postedAt" {% if filters.sortField == 'postedAt' %}selected{% endif %}>Date de publication</option>
+                        <option value="id" {% if filters.sortField == 'id' %}selected{% endif %}>ID</option>
+                        <option value="title" {% if filters.sortField == 'title' %}selected{% endif %}>Titre</option>
+                        <option value="authorId" {% if filters.sortField == 'authorId' %}selected{% endif %}>Auteur</option>
+                        <option value="viewCount" {% if filters.sortField == 'viewCount' %}selected{% endif %}>Nombre de vues</option>
+                        <option value="replyCount" {% if filters.sortField == 'replyCount' %}selected{% endif %}>Nombre de réponses</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Ordre</label>
+                    <select name="sortOrder" class="form-select">
+                        <option value="DESC" {% if filters.sortOrder == 'DESC' %}selected{% endif %}>Décroissant ↓</option>
+                        <option value="ASC" {% if filters.sortOrder == 'ASC' %}selected{% endif %}>Croissant ↑</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3 align-self-end">
+                    <button type="submit" class="btn btn-info w-100">
+                        <i class="ti ti-check"></i> Appliquer le tri
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Messages Flash -->
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="ti ti-check"></i> {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="ti ti-alert-circle"></i> {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
+    <!-- Tableau des Posts -->
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th width="40"><input type="checkbox" id="selectAll" class="form-check-input"></th>
+                        <th>ID</th>
+                        <th>Titre</th>
+                        <th>Auteur</th>
+                        <th>Langue</th>
+                        <th>Vues</th>
+                        <th>Réponses</th>
+                        <th>Date</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if posts is not empty %}
+                        {% for post in posts %}
+                        <tr>
+                            <td><input type="checkbox" class="form-check-input post-checkbox" value="{{ post.id }}"></td>
+                            <td><strong>#{{ post.id }}</strong></td>
+                            <td>
+                                <div class="text-truncate" title="{{ post.title }}">
+                                    {{ post.title }}
+                                </div>
+                            </td>
+                            <td>{{ post.authorId }}</td>
+                            <td>
+                                {% if post.platformLanguageId == 1 %}
+                                    <span class="badge bg-info">FR</span>
+                                {% elseif post.platformLanguageId == 2 %}
+                                    <span class="badge bg-warning">EN</span>
+                                {% elseif post.platformLanguageId == 3 %}
+                                    <span class="badge bg-success">AR</span>
+                                {% elseif post.platformLanguageId == 4 %}
+                                    <span class="badge bg-danger">ES</span>
+                                {% elseif post.platformLanguageId == 5 %}
+                                    <span class="badge bg-secondary">DE</span>
+                                {% endif %}
+                            </td>
+                            <td><span class="badge bg-info">{{ post.viewCount }}</span></td>
+                            <td><span class="badge bg-secondary">{{ post.replyCount }}</span></td>
+                            <td><small>{{ post.postedAt|date('Y-m-d H:i') }}</small></td>
+                            <td>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input toggle-status" type="checkbox" 
+                                           {% if post.isActive %}checked{% endif %}
+                                           data-post-id="{{ post.id }}" 
+                                           data-url="{{ path('admin_forum_post_toggle_status', {id: post.id}) }}">
+                                </div>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{{ path('admin_forum_post_show', {id: post.id}) }}" 
+                                       class="btn btn-info" title="Voir">
+                                        <i class="ti ti-eye"></i>
+                                    </a>
+                                    <a href="{{ path('admin_forum_post_edit', {id: post.id}) }}" 
+                                       class="btn btn-warning" title="Modifier">
+                                        <i class="ti ti-pencil"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-danger delete-post" 
+                                            data-post-id="{{ post.id }}" data-url="{{ path('admin_forum_post_delete', {id: post.id}) }}" 
+                                            title="Supprimer">
+                                        <i class="ti ti-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="10" class="text-center text-muted py-5">
+                                <i class="ti ti-inbox" style="font-size: 2rem;"></i>
+                                <p class="mt-2">Aucun post trouvé</p>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Actions en masse -->
+    {% if posts is not empty %}
+    <div class="card mt-3">
+        <div class="card-body">
+            <form method="POST" action="{{ path('admin_forum_post_bulk_action') }}" id="bulkForm">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Action en masse</label>
+                        <select name="action" class="form-select" required>
+                            <option value="">Sélectionnez une action...</option>
+                            <option value="activate">✓ Activer les posts sélectionnés</option>
+                            <option value="deactivate">✗ Désactiver les posts sélectionnés</option>
+                            <option value="delete">🗑️ Supprimer les posts sélectionnés</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 align-self-end">
+                        <button type="submit" class="btn btn-warning w-100" id="bulkActionBtn" disabled>
+                            <i class="ti ti-lightning"></i> Appliquer l'action
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Pagination -->
+    {% if totalPages > 1 %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if currentPage > 1 %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1&keyword={{ filters.keyword }}&authorId={{ filters.authorId }}&platformLanguageId={{ filters.platformLanguageId }}&isActive={{ filters.isActive }}&sortField={{ filters.sortField }}&sortOrder={{ filters.sortOrder }}">Première</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ currentPage - 1 }}&keyword={{ filters.keyword }}&authorId={{ filters.authorId }}&platformLanguageId={{ filters.platformLanguageId }}&isActive={{ filters.isActive }}&sortField={{ filters.sortField }}&sortOrder={{ filters.sortOrder }}">Précédente</a>
+                </li>
+            {% endif %}
+
+            {% for page in 1..totalPages %}
+                {% if page >= currentPage - 2 and page <= currentPage + 2 %}
+                    <li class="page-item {% if page == currentPage %}active{% endif %}">
+                        <a class="page-link" href="?page={{ page }}&keyword={{ filters.keyword }}&authorId={{ filters.authorId }}&platformLanguageId={{ filters.platformLanguageId }}&isActive={{ filters.isActive }}&sortField={{ filters.sortField }}&sortOrder={{ filters.sortOrder }}">{{ page }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if currentPage < totalPages %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ currentPage + 1 }}&keyword={{ filters.keyword }}&authorId={{ filters.authorId }}&platformLanguageId={{ filters.platformLanguageId }}&isActive={{ filters.isActive }}&sortField={{ filters.sortField }}&sortOrder={{ filters.sortOrder }}">Suivante</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ totalPages }}&keyword={{ filters.keyword }}&authorId={{ filters.authorId }}&platformLanguageId={{ filters.platformLanguageId }}&isActive={{ filters.isActive }}&sortField={{ filters.sortField }}&sortOrder={{ filters.sortOrder }}">Dernière</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<!-- Modal de confirmation pour suppression -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="ti ti-alert-triangle"></i> Confirmer la suppression</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">Êtes-vous sûr de vouloir supprimer ce post ?</p>
+                <p class="text-muted small">Cette action est irréversible.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <form method="POST" id="deleteForm" style="display: inline;">
+                    <input type="hidden" name="_token" id="csrfToken">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="ti ti-trash"></i> Supprimer
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.post-checkbox');
+    const bulkActionBtn = document.getElementById('bulkActionBtn');
+
+    selectAll?.addEventListener('change', function() {
+        checkboxes.forEach(checkbox => checkbox.checked = this.checked);
+        updateBulkActionButton();
+    });
+
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateBulkActionButton);
+    });
+
+    function updateBulkActionButton() {
+        const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
+        bulkActionBtn.disabled = !anyChecked;
+    }
+
+    const bulkForm = document.getElementById('bulkForm');
+    bulkForm?.addEventListener('submit', function(e) {
+        const selectedIds = Array.from(checkboxes)
+            .filter(cb => cb.checked)
+            .map(cb => cb.value);
+        
+        selectedIds.forEach(id => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'post_ids[]';
+            input.value = id;
+            this.appendChild(input);
+        });
+    });
+
+    document.querySelectorAll('.toggle-status').forEach(toggle => {
+        toggle.addEventListener('change', function() {
+            const url = this.dataset.url;
+            fetch(url, {
+                method: 'POST',
+                headers: {'X-Requested-With': 'XMLHttpRequest'}
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    alert('Erreur: ' + data.message);
+                    this.checked = !this.checked;
+                }
+            })
+            .catch(() => {
+                alert('Une erreur est survenue');
+                this.checked = !this.checked;
+            });
+        });
+    });
+
+    document.querySelectorAll('.delete-post').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const url = this.dataset.url;
+            const deleteForm = document.getElementById('deleteForm');
+            deleteForm.action = url;
+            new bootstrap.Modal(document.getElementById('deleteModal')).show();
+        });
+    });
+});
+</script>
+{% endblock %}

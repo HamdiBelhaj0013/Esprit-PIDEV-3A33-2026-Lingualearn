@@ -15,9 +15,9 @@ user_management_controllers:
     type: attribute
 
 # ExercisesQuizzes routes
-exercises_quizzes_controllers:
-    resource: ../src/Module/ExercisesQuizzes/Controller/
-    type: attribute
+#exercises_quizzes_controllers:
+ #   resource: ../src/Module/ExercisesQuizzes/Controller/
+  #  type: attribute
 
 # Forum routes
 forum_controllers:

@@ -1,0 +1,109 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Forum - Administration{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-5">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1><i class="ti ti-messages"></i> Administration du Forum</h1>
+        </div>
+    </div>
+
+    <!-- Statistiques -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5 class="card-title">Total Posts</h5>
+                    <p class="card-text fs-4">{{ stats.totalPosts ?? 0 }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title">Posts Actifs</h5>
+                    <p class="card-text fs-4">{{ stats.activePosts ?? 0 }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <h5 class="card-title">Posts Inactifs</h5>
+                    <p class="card-text fs-4">{{ stats.inactivePosts ?? 0 }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <h5 class="card-title">Total Réponses</h5>
+                    <p class="card-text fs-4">{{ stats.totalReplies ?? 0 }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title">Réponses Actives</h5>
+                    <p class="card-text fs-4">{{ stats.activeReplies ?? 0 }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-secondary">
+                <div class="card-body">
+                    <h5 class="card-title">Meilleures Réponses</h5>
+                    <p class="card-text fs-4">{{ stats.bestAnswers ?? 0 }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions rapides -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="ti ti-message-square"></i> Posts</h5>
+                </div>
+                <div class="card-body d-grid gap-2">
+                    <a href="{{ path('admin_forum_post_index') }}" class="btn btn-primary">
+                        <i class="ti ti-list"></i> Gérer les Posts
+                    </a>
+                    <a href="{{ path('admin_forum_post_new') }}" class="btn btn-success">
+                        <i class="ti ti-plus"></i> Créer un Post
+                    </a>
+                    <a href="{{ path('admin_forum_post_export_csv') }}" class="btn btn-info">
+                        <i class="ti ti-download"></i> Exporter les Posts
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="ti ti-message-circle"></i> Réponses</h5>
+                </div>
+                <div class="card-body d-grid gap-2">
+                    <a href="{{ path('admin_forum_reply_index') }}" class="btn btn-primary">
+                        <i class="ti ti-list"></i> Gérer les Réponses
+                    </a>
+                    <a href="{{ path('admin_forum_reply_new') }}" class="btn btn-success">
+                        <i class="ti ti-plus"></i> Créer une Réponse
+                    </a>
+                    <a href="{{ path('admin_forum_reply_export_csv') }}" class="btn btn-info">
+                        <i class="ti ti-download"></i> Exporter les Réponses
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

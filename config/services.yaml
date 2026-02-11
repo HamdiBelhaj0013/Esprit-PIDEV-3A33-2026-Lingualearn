@@ -23,22 +23,22 @@ services:
         resource: '../src/Module/UserManagement/Controller'
         tags: ['controller.service_arguments']
 
-    App\Module\ExercisesQuizzes\Controller\:
-        resource: '../src/Module/ExercisesQuizzes/Controller'
-        tags: ['controller.service_arguments']
+    #App\Module\ExercisesQuizzes\Controller\:
+     #   resource: '../src/Module/ExercisesQuizzes/Controller'
+      #  tags: ['controller.service_arguments']
 
     App\Module\Forum\Controller\:
         resource: '../src/Module/Forum/Controller'
         tags: ['controller.service_arguments']
 
-    App\Module\InternationalTests\Controller\:
-        resource: '../src/Module/InternationalTests/Controller'
-        tags: ['controller.service_arguments']
+    #App\Module\InternationalTests\Controller\:
+     #   resource: '../src/Module/InternationalTests/Controller'
+      #  tags: ['controller.service_arguments']
 
-    App\Module\PedagogicalContent\Controller\:
-        resource: '../src/Module/PedagogicalContent/Controller'
-        tags: ['controller.service_arguments']
+    #App\Module\PedagogicalContent\Controller\:
+     #   resource: '../src/Module/PedagogicalContent/Controller'
+      #  tags: ['controller.service_arguments']
 
-    App\Module\Support\Controller\:
-        resource: '../src/Module/Support/Controller'
-        tags: ['controller.service_arguments']
+    #App\Module\Support\Controller\:
+     #   resource: '../src/Module/Support/Controller'
+      #  tags: ['controller.service_arguments']
