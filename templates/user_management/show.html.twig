@@ -1,4 +1,4 @@
-{% extends 'base.html.twig' %}
+{% extends 'admin/base.html.twig' %}
 
 {% block title %}{{ user.fullName }} - User Details - {{ parent() }}{% endblock %}
 
@@ -45,7 +45,7 @@
                         {% else %}
                             <span class="badge bg-blue-lt">Free Account</span>
                         {% endif %}
-                        
+
                         {% if user.status == 'active' %}
                             <span class="badge bg-green-lt ms-1">
                                 <i class="ti ti-check"></i> Active
@@ -183,7 +183,7 @@
                             <div class="datagrid-content">
                                 {% if user.isPremium %}
                                     <span class="badge bg-yellow">
-                                        <i class="ti ti-crown"></i> 
+                                        <i class="ti ti-crown"></i>
                                         {{ user.subscriptionPlan == 'MONTHLY' ? 'Monthly Premium' : 'Yearly Premium' }}
                                     </span>
                                 {% else %}
