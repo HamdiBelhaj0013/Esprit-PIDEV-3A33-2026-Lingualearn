@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+    <title>Create Admin - LinguaLearn Setup</title>
+
+    {# Tabler CSS #}
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/css/tabler.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet"/>
+
+    <style>
+        .page-center {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+    </style>
+</head>
+<body class="d-flex flex-column">
+<div class="page page-center">
+    <div class="container container-tight py-4">
+        <div class="text-center mb-4">
+            <i class="ti ti-shield-check fs-1 text-white"></i>
+            <h1 class="text-white mt-2">LinguaLearn Setup</h1>
+            <p class="text-white-50">Create your first admin account</p>
+        </div>
+
+        {% if success %}
+            <div class="card card-md">
+                <div class="card-body text-center py-5">
+                    <div class="text-success mb-3">
+                        <i class="ti ti-circle-check" style="font-size: 4rem;"></i>
+                    </div>
+                    <h2 class="text-success">Admin Account Created!</h2>
+                    <p class="text-muted mt-3">Your admin account has been successfully created.</p>
+                    <div class="mt-4">
+                        <a href="{{ path('app_admin_login') }}" class="btn btn-primary btn-lg">
+                            <i class="ti ti-login me-2"></i>Go to Admin Login
+                        </a>
+                    </div>
+                    <div class="mt-3">
+                        <a href="{{ path('app_register') }}" class="btn btn-outline-secondary">
+                            Create Regular User Account
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="card card-md">
+                <div class="card-body">
+                    <h2 class="h2 text-center mb-4">
+                        <i class="ti ti-user-shield text-danger"></i>
+                        <br>Create Admin Account
+                    </h2>
+
+                    <div class="alert alert-warning" role="alert">
+                        <div class="d-flex">
+                            <div>
+                                <i class="ti ti-alert-triangle icon alert-icon"></i>
+                            </div>
+                            <div>
+                                <h4 class="alert-title">Important!</h4>
+                                <div class="text-secondary">This account will have full admin access to your LinguaLearn platform. Keep these credentials safe!</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if error %}
+                        <div class="alert alert-danger alert-dismissible" role="alert">
+                            <div class="d-flex">
+                                <div>
+                                    <i class="ti ti-alert-circle icon alert-icon"></i>
+                                </div>
+                                <div>
+                                    <h4 class="alert-title">Error</h4>
+                                    <div class="text-secondary">{{ error }}</div>
+                                </div>
+                            </div>
+                            <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+                        </div>
+                    {% endif %}
+
+                    <form method="post" action="{{ path('setup_create_admin') }}" autocomplete="off">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label" for="first_name">
+                                    <i class="ti ti-user me-1"></i>First Name
+                                </label>
+                                <input
+                                    type="text"
+                                    name="first_name"
+                                    id="first_name"
+                                    class="form-control"
+                                    placeholder="Admin"
+                                    required
+                                    autofocus
+                                >
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="last_name">
+                                    <i class="ti ti-user me-1"></i>Last Name
+                                </label>
+                                <input
+                                    type="text"
+                                    name="last_name"
+                                    id="last_name"
+                                    class="form-control"
+                                    placeholder="User"
+                                    required
+                                >
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="email">
+                                <i class="ti ti-mail me-1"></i>Admin Email
+                            </label>
+                            <input
+                                type="email"
+                                name="email"
+                                id="email"
+                                class="form-control"
+                                placeholder="admin@lingualearn.com"
+                                autocomplete="email"
+                                required
+                            >
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="password">
+                                <i class="ti ti-lock me-1"></i>Password
+                            </label>
+                            <input
+                                type="password"
+                                name="password"
+                                id="password"
+                                class="form-control"
+                                placeholder="Minimum 6 characters"
+                                autocomplete="new-password"
+                                required
+                                minlength="6"
+                            >
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label" for="confirm_password">
+                                <i class="ti ti-lock-check me-1"></i>Confirm Password
+                            </label>
+                            <input
+                                type="password"
+                                name="confirm_password"
+                                id="confirm_password"
+                                class="form-control"
+                                placeholder="Re-enter your password"
+                                autocomplete="new-password"
+                                required
+                                minlength="6"
+                            >
+                        </div>
+
+                        <div class="form-footer">
+                            <button type="submit" class="btn btn-danger w-100 btn-lg">
+                                <i class="ti ti-shield-check me-2"></i>Create Admin Account
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="text-center text-white mt-3">
+                <small>
+                    Need a regular user account? <a href="{{ path('app_register') }}" class="text-white">Register here</a>
+                </small>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{# Tabler JS #}
+<script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/js/tabler.min.js"></script>
+</body>
+</html>

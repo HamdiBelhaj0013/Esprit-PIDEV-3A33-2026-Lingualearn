@@ -13,6 +13,11 @@ services:
             - '../src/Kernel.php'
             - '../src/Module/*/Entity/'
 
+    # Main app controllers (including User subfolder)
+    App\Controller\:
+        resource: '../src/Controller/'
+        tags: ['controller.service_arguments']
+
     # Load controllers from each module individually
     App\Module\UserManagement\Controller\:
         resource: '../src/Module/UserManagement/Controller'

@@ -1,42 +1,154 @@
-{% extends 'base.html.twig' %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+    <title>Login - LinguaLearn</title>
 
-{% block title %}Log in!{% endblock %}
-
-{% block body %}
-<form method="post">
-    {% if error %}
-        <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
-    {% endif %}
-
-    {% if app.user %}
-        <div class="mb-3">
-            You are logged in as {{ app.user.userIdentifier }}, <a href="{{ path('app_logout') }}">Logout</a>
+    {# Tabler CSS #}
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/css/tabler.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet"/>
+</head>
+<body class="d-flex flex-column">
+<div class="page page-center">
+    <div class="container container-tight py-4">
+        <div class="text-center mb-4">
+            <a href="/" class="navbar-brand navbar-brand-autodark">
+                <i class="ti ti-language fs-1 text-primary"></i>
+                <span class="ms-2 fs-2">LinguaLearn</span>
+            </a>
         </div>
-    {% endif %}
 
-    <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
-    <label for="inputEmail">Email</label>
-    <input type="email" value="{{ last_username }}" name="email" id="inputEmail" class="form-control" autocomplete="email" required autofocus>
-    <label for="inputPassword">Password</label>
-    <input type="password" name="password" id="inputPassword" class="form-control" autocomplete="current-password" required>
+        <div class="card card-md">
+            <div class="card-body">
+                <h2 class="h2 text-center mb-4">Login to your account</h2>
 
-    <input type="hidden" name="_csrf_token"
-           value="{{ csrf_token('authenticate') }}"
-    >
+                {% for message in app.flashes('success') %}
+                    <div class="alert alert-success alert-dismissible" role="alert">
+                        <div class="d-flex">
+                            <div>
+                                <i class="ti ti-check icon alert-icon"></i>
+                            </div>
+                            <div>{{ message }}</div>
+                        </div>
+                        <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+                    </div>
+                {% endfor %}
 
-    {#
-        Uncomment this section and add a remember_me option below your firewall to activate remember me functionality.
-        See https://symfony.com/doc/current/security/remember_me.html
+                {% if error %}
+                    <div class="alert alert-danger alert-dismissible" role="alert">
+                        <div class="d-flex">
+                            <div>
+                                <i class="ti ti-alert-circle icon alert-icon"></i>
+                            </div>
+                            <div>
+                                <h4 class="alert-title">Login Failed</h4>
+                                <div class="text-secondary">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+                            </div>
+                        </div>
+                        <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+                    </div>
+                {% endif %}
 
-        <div class="checkbox mb-3">
-            <label>
-                <input type="checkbox" name="_remember_me"> Remember me
-            </label>
+                {% if app.user %}
+                    <div class="alert alert-info" role="alert">
+                        <div class="d-flex">
+                            <div>
+                                <i class="ti ti-info-circle icon alert-icon"></i>
+                            </div>
+                            <div>
+                                You are logged in as <strong>{{ app.user.userIdentifier }}</strong>.
+                                <a href="{{ path('app_logout') }}" class="alert-link">Logout</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <form method="post" action="{{ path('app_login') }}" autocomplete="off">
+                    <div class="mb-3">
+                        <label class="form-label" for="inputEmail">
+                            <i class="ti ti-mail me-1"></i>Email address
+                        </label>
+                        <input
+                            type="email"
+                            value="{{ last_username }}"
+                            name="email"
+                            id="inputEmail"
+                            class="form-control"
+                            placeholder="your@email.com"
+                            autocomplete="email"
+                            required
+                            autofocus
+                        >
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label" for="inputPassword">
+                            <i class="ti ti-lock me-1"></i>Password
+                            <span class="form-label-description">
+                                    <a href="#">I forgot password</a>
+                                </span>
+                        </label>
+                        <input
+                            type="password"
+                            name="password"
+                            id="inputPassword"
+                            class="form-control"
+                            placeholder="Your password"
+                            autocomplete="current-password"
+                            required
+                        >
+                    </div>
+
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+                    <div class="mb-2">
+                        <label class="form-check">
+                            <input type="checkbox" name="_remember_me" class="form-check-input">
+                            <span class="form-check-label">Remember me on this device</span>
+                        </label>
+                    </div>
+
+                    <div class="form-footer">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="ti ti-login me-2"></i>Sign in
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="hr-text">or</div>
+
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <a href="#" class="btn w-100">
+                            <i class="ti ti-brand-google me-2"></i>Login with Google
+                        </a>
+                    </div>
+                    <div class="col">
+                        <a href="#" class="btn w-100">
+                            <i class="ti ti-brand-facebook me-2"></i>Login with Facebook
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
-    #}
 
-    <button class="btn btn-lg btn-primary" type="submit">
-        Sign in
-    </button>
-</form>
-{% endblock %}
+        <div class="text-center text-muted mt-3">
+            Don't have an account yet? <a href="{{ path('app_register') }}">Sign up</a>
+        </div>
+
+        <div class="text-center mt-2">
+            <small class="text-muted">
+                Admin? <a href="{{ path('app_admin_login') }}">Access admin panel</a>
+            </small>
+        </div>
+    </div>
+</div>
+
+{# Tabler JS #}
+<script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/js/tabler.min.js"></script>
+</body>
+</html>

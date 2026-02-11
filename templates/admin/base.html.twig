@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+    <title>{% block title %}Admin Panel{% endblock %} - LinguaLearn</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/css/tabler.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet"/>
+    {% block stylesheets %}{% endblock %}
+</head>
+<body class="antialiased">
+<div class="wrapper">
+
+    {# ===== ADMIN SIDEBAR ===== #}
+    <aside class="navbar navbar-vertical navbar-expand-lg" data-bs-theme="dark">
+        <div class="container-fluid">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#admin-sidebar-menu" aria-controls="admin-sidebar-menu"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <h1 class="navbar-brand navbar-brand-autodark">
+                <a href="{{ path('admin_dashboard') }}">
+                    <i class="ti ti-language fs-1 text-primary"></i>
+                    <span class="ms-2">LinguaLearn</span>
+                </a>
+            </h1>
+
+            {# Admin badge #}
+            <div class="d-none d-lg-block px-3 py-2">
+                <span class="badge bg-red-lt w-100 text-center">
+                    <i class="ti ti-shield-check me-1"></i> Admin Panel
+                </span>
+            </div>
+
+            <div class="collapse navbar-collapse" id="admin-sidebar-menu">
+                <ul class="navbar-nav pt-lg-3">
+
+                    {# Dashboard #}
+                    <li class="nav-item">
+                        <a class="nav-link {% if app.request.attributes.get('_route') == 'admin_dashboard' %}active{% endif %}"
+                           href="{{ path('admin_dashboard') }}">
+                            <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                <i class="ti ti-dashboard"></i>
+                            </span>
+                            <span class="nav-link-title">Dashboard</span>
+                        </a>
+                    </li>
+
+                    {# User Management #}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {% if 'admin_users_' in app.request.attributes.get('_route', '') %}active{% endif %}"
+                           href="#navbar-users" data-bs-toggle="dropdown" data-bs-auto-close="false"
+                           role="button" aria-expanded="false">
+                            <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                <i class="ti ti-users"></i>
+                            </span>
+                            <span class="nav-link-title">User Management</span>
+                        </a>
+                        <div class="dropdown-menu">
+                            <a class="dropdown-item" href="{{ path('admin_users_index') }}">
+                                <i class="ti ti-list me-2"></i> All Users
+                            </a>
+                            <a class="dropdown-item" href="{{ path('admin_users_new') }}">
+                                <i class="ti ti-user-plus me-2"></i> Add User
+                            </a>
+                        </div>
+                    </li>
+
+                    {# Courses #}
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                <i class="ti ti-book"></i>
+                            </span>
+                            <span class="nav-link-title">Courses</span>
+                        </a>
+                    </li>
+
+                    {# Exercises & Quizzes #}
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                <i class="ti ti-puzzle"></i>
+                            </span>
+                            <span class="nav-link-title">Exercises & Quizzes</span>
+                        </a>
+                    </li>
+
+                    {# Forum #}
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                <i class="ti ti-messages"></i>
+                            </span>
+                            <span class="nav-link-title">Forum</span>
+                        </a>
+                    </li>
+
+                    {# Support #}
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                <i class="ti ti-lifebuoy"></i>
+                            </span>
+                            <span class="nav-link-title">Support Tickets</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item mt-auto">
+                        <div class="nav-link text-muted">
+                            <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                <i class="ti ti-settings"></i>
+                            </span>
+                            <span class="nav-link-title">Settings</span>
+                        </div>
+                    </li>
+
+                </ul>
+            </div>
+
+            {# Admin user menu at bottom of sidebar #}
+            <div class="d-none d-lg-block border-top p-3">
+                <div class="d-flex align-items-center">
+                    <span class="avatar avatar-sm bg-red-lt me-2">
+                        <i class="ti ti-shield"></i>
+                    </span>
+                    <div class="flex-fill">
+                        <div class="fw-bold text-white small">{{ app.user ? app.user.fullName : 'Admin' }}</div>
+                        <div class="text-muted small">{{ app.user ? app.user.email : '' }}</div>
+                    </div>
+                    <a href="{{ path('app_admin_logout') }}" class="text-muted ms-2" title="Logout">
+                        <i class="ti ti-logout"></i>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </aside>
+
+    {# ===== MAIN CONTENT ===== #}
+    <div class="page-wrapper">
+
+        {# Top navbar #}
+        <div class="navbar-expand-md">
+            <div class="collapse navbar-collapse" id="navbar-menu">
+                <div class="navbar navbar-light">
+                    <div class="container-xl">
+                        <div class="navbar-nav flex-row order-md-last">
+
+                            {# Notifications #}
+                            <div class="nav-item me-3">
+                                <a href="#" class="nav-link px-0">
+                                    <i class="ti ti-bell fs-3"></i>
+                                </a>
+                            </div>
+
+                            {# User dropdown #}
+                            <div class="nav-item dropdown">
+                                <a href="#" class="nav-link d-flex lh-1 text-reset p-0"
+                                   data-bs-toggle="dropdown" aria-label="Open user menu">
+                                    <span class="avatar avatar-sm bg-red-lt">
+                                        <i class="ti ti-shield"></i>
+                                    </span>
+                                    <div class="d-none d-xl-block ps-2">
+                                        <div>{{ app.user ? app.user.fullName : 'Admin' }}</div>
+                                        <div class="mt-1 small text-muted">Administrator</div>
+                                    </div>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                                    <a href="#" class="dropdown-item">
+                                        <i class="ti ti-user me-2"></i> Profile
+                                    </a>
+                                    <div class="dropdown-divider"></div>
+                                    <a href="{{ path('app_admin_logout') }}" class="dropdown-item text-danger">
+                                        <i class="ti ti-logout me-2"></i> Logout
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Page title / breadcrumb area #}
+                        <div class="d-flex">
+                            <div class="page-pretitle">Administration</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Page content #}
+        <div class="page-body">
+            <div class="container-xl">
+
+                {# Flash messages #}
+                {% for label, messages in app.flashes %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible mt-3" role="alert">
+                            <div class="d-flex">
+                                <div>
+                                    {% if label == 'success' %}<i class="ti ti-check alert-icon"></i>
+                                    {% elseif label == 'warning' %}<i class="ti ti-alert-triangle alert-icon"></i>
+                                    {% elseif label == 'danger' or label == 'error' %}<i class="ti ti-alert-circle alert-icon"></i>
+                                    {% else %}<i class="ti ti-info-circle alert-icon"></i>{% endif %}
+                                </div>
+                                <div>{{ message }}</div>
+                            </div>
+                            <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+
+                {# Page header #}
+                {% block page_header %}
+                    <div class="page-header d-print-none mt-3">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                {% block breadcrumb %}{% endblock %}
+                                <h2 class="page-title">
+                                    {% block page_title %}Dashboard{% endblock %}
+                                </h2>
+                            </div>
+                            {% block page_actions %}{% endblock %}
+                        </div>
+                    </div>
+                {% endblock %}
+
+                {% block body %}{% endblock %}
+
+            </div>
+        </div>
+
+        {# Footer #}
+        <footer class="footer footer-transparent d-print-none">
+            <div class="container-xl">
+                <div class="row text-center align-items-center flex-row-reverse">
+                    <div class="col-lg-auto ms-lg-auto">
+                        <ul class="list-inline list-inline-dots mb-0">
+                            <li class="list-inline-item">
+                                <span class="text-muted">LinguaLearn Admin &copy; {{ "now"|date("Y") }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+    </div>{# end page-wrapper #}
+</div>{# end wrapper #}
+
+<script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/js/tabler.min.js"></script>
+{% block javascripts %}{% endblock %}
+</body>
+</html>

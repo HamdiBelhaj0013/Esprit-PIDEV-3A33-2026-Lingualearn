@@ -1,0 +1,197 @@
+{% extends 'user/base.html.twig' %}
+
+{% block title %}My Dashboard{% endblock %}
+
+{% block page_title %}
+    <i class="ti ti-home me-2"></i> Welcome back, {{ user.firstName }}!
+{% endblock %}
+
+{% block body %}
+    <div class="row row-deck row-cards mt-2">
+
+        {# Premium banner for free users #}
+        {% if not user.isPremium %}
+            <div class="col-12">
+                <div class="card bg-yellow-lt border-yellow">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <i class="ti ti-crown fs-1 text-yellow me-3"></i>
+                            <div class="flex-fill">
+                                <h4 class="mb-1">Upgrade to Premium</h4>
+                                <p class="text-muted mb-0">
+                                    Unlock all courses, exercises, and mock tests.
+                                </p>
+                            </div>
+                            <a href="#" class="btn btn-warning ms-3">
+                                <i class="ti ti-crown me-1"></i> Upgrade Now
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        {# Stats cards #}
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="subheader">Courses Enrolled</div>
+                    </div>
+                    <div class="h1 mb-3">0</div>
+                    <div class="d-flex mb-2">
+                        <div class="text-muted">Start learning today</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="subheader">Words Learned</div>
+                    </div>
+                    <div class="h1 mb-3">
+                        {{ user.learningStats ? user.learningStats.wordsLearned : 0 }}
+                    </div>
+                    <div class="d-flex mb-2">
+                        <div class="text-muted">Keep it up!</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="subheader">Total XP</div>
+                    </div>
+                    <div class="h1 mb-3">
+                        {{ user.learningStats ? user.learningStats.totalXp : 0 }}
+                    </div>
+                    <div class="d-flex mb-2">
+                        <div class="text-muted">Experience points</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="subheader">Study Time</div>
+                    </div>
+                    <div class="h1 mb-3">
+                        {{ user.learningStats ? user.learningStats.totalMinutesStudied : 0 }} min
+                    </div>
+                    <div class="d-flex mb-2">
+                        <div class="text-muted">Total minutes</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Quick actions #}
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="ti ti-bolt me-2"></i>Quick Actions
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-6 col-md-3">
+                            <a href="#" class="btn btn-outline-primary w-100">
+                                <i class="ti ti-book d-block mb-1" style="font-size:1.5rem"></i>
+                                Browse Courses
+                            </a>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <a href="#" class="btn btn-outline-success w-100">
+                                <i class="ti ti-puzzle d-block mb-1" style="font-size:1.5rem"></i>
+                                Practice Now
+                            </a>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <a href="#" class="btn btn-outline-info w-100">
+                                <i class="ti ti-certificate d-block mb-1" style="font-size:1.5rem"></i>
+                                Take a Mock Test
+                            </a>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <a href="#" class="btn btn-outline-secondary w-100">
+                                <i class="ti ti-messages d-block mb-1" style="font-size:1.5rem"></i>
+                                Join Forum
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Subscription info #}
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="ti ti-crown me-2"></i>My Subscription
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        {% if user.isPremium %}
+                            <span class="badge bg-success me-2">Premium</span>
+                            <span class="text-muted">
+                                {{ user.subscriptionPlan }} plan
+                                {% if user.subscriptionExpiry %}
+                                    · Expires {{ user.subscriptionExpiry|date('M d, Y') }}
+                                {% endif %}
+                            </span>
+                        {% else %}
+                            <span class="badge bg-secondary me-2">Free</span>
+                            <span class="text-muted">Limited access</span>
+                        {% endif %}
+                    </div>
+                    {% if not user.isPremium %}
+                        <a href="#" class="btn btn-warning btn-sm">
+                            <i class="ti ti-crown me-1"></i> Upgrade to Premium
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {# Account info #}
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="ti ti-user me-2"></i>Account Info
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-2">
+                        <span class="text-muted">Name:</span>
+                        <strong class="ms-2">{{ user.fullName }}</strong>
+                    </div>
+                    <div class="mb-2">
+                        <span class="text-muted">Email:</span>
+                        <strong class="ms-2">{{ user.email }}</strong>
+                    </div>
+                    <div class="mb-2">
+                        <span class="text-muted">Member since:</span>
+                        <strong class="ms-2">{{ user.createdAt ? user.createdAt|date('M d, Y') : 'N/A' }}</strong>
+                    </div>
+                    <a href="#" class="btn btn-outline-secondary btn-sm mt-2">
+                        <i class="ti ti-pencil me-1"></i> Edit Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}

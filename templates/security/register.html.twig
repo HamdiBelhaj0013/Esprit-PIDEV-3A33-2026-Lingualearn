@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+    <title>Register - LinguaLearn</title>
+
+    {# Tabler CSS #}
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/css/tabler.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet"/>
+</head>
+<body class="d-flex flex-column">
+<div class="page page-center">
+    <div class="container container-tight py-4">
+        <div class="text-center mb-4">
+            <a href="/" class="navbar-brand navbar-brand-autodark">
+                <i class="ti ti-language fs-1 text-primary"></i>
+                <span class="ms-2 fs-2">LinguaLearn</span>
+            </a>
+        </div>
+
+        <div class="card card-md">
+            <div class="card-body">
+                <h2 class="h2 text-center mb-4">Create your account</h2>
+
+                {% if error %}
+                    <div class="alert alert-danger alert-dismissible" role="alert">
+                        <div class="d-flex">
+                            <div>
+                                <i class="ti ti-alert-circle icon alert-icon"></i>
+                            </div>
+                            <div>
+                                <h4 class="alert-title">Registration Error</h4>
+                                <div class="text-secondary">{{ error }}</div>
+                            </div>
+                        </div>
+                        <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+                    </div>
+                {% endif %}
+
+                <form method="post" action="{{ path('app_register') }}" autocomplete="off">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label" for="first_name">
+                                <i class="ti ti-user me-1"></i>First Name
+                            </label>
+                            <input
+                                type="text"
+                                name="first_name"
+                                id="first_name"
+                                class="form-control"
+                                placeholder="John"
+                                required
+                                autofocus
+                            >
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="last_name">
+                                <i class="ti ti-user me-1"></i>Last Name
+                            </label>
+                            <input
+                                type="text"
+                                name="last_name"
+                                id="last_name"
+                                class="form-control"
+                                placeholder="Doe"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="email">
+                            <i class="ti ti-mail me-1"></i>Email address
+                        </label>
+                        <input
+                            type="email"
+                            name="email"
+                            id="email"
+                            class="form-control"
+                            placeholder="your@email.com"
+                            autocomplete="email"
+                            required
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="password">
+                            <i class="ti ti-lock me-1"></i>Password
+                        </label>
+                        <input
+                            type="password"
+                            name="password"
+                            id="password"
+                            class="form-control"
+                            placeholder="At least 6 characters"
+                            autocomplete="new-password"
+                            required
+                            minlength="6"
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="confirm_password">
+                            <i class="ti ti-lock-check me-1"></i>Confirm Password
+                        </label>
+                        <input
+                            type="password"
+                            name="confirm_password"
+                            id="confirm_password"
+                            class="form-control"
+                            placeholder="Re-enter your password"
+                            autocomplete="new-password"
+                            required
+                            minlength="6"
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-check">
+                            <input type="checkbox" class="form-check-input" required>
+                            <span class="form-check-label">I agree to the <a href="#" tabindex="-1">terms and conditions</a></span>
+                        </label>
+                    </div>
+
+                    <div class="form-footer">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="ti ti-user-plus me-2"></i>Create Account
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="text-center text-muted mt-3">
+            Already have an account? <a href="{{ path('app_login') }}">Sign in</a>
+        </div>
+    </div>
+</div>
+
+{# Tabler JS #}
+<script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/js/tabler.min.js"></script>
+</body>
+</html>

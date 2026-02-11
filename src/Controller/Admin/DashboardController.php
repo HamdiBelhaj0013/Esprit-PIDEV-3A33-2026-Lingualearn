@@ -12,7 +12,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/admin')]
-//#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_ADMIN')]  // Enabled: Only admins can access this controller
 class DashboardController extends AbstractController
 {
     public function __construct(
@@ -89,7 +89,6 @@ class DashboardController extends AbstractController
         $systemHealth = $this->getSystemHealthMetrics();
 
         return $this->render('admin/dashboard/index.html.twig', [
-
             'userStats' => $userStats,
             'courseCount' => $courseCount,
             'lessonCount' => $lessonCount,

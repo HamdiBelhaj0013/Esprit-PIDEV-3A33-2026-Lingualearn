@@ -1,7 +1,8 @@
-# Security routes
-security_controllers:
-    resource: ../src/Controller/SecurityController.php
+# Main Application Controllers (Security, Registration, Setup, etc.)
+app_controllers:
+    resource: ../src/Controller/
     type: attribute
+    exclude: ../src/Controller/Admin/
 
 # Admin routes
 admin_controllers:

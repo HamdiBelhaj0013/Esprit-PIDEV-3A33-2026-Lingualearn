@@ -71,7 +71,7 @@ class UserFormType extends AbstractType
                         'max' => 4096,
                     ]),
                     new Assert\Regex([
-                        'pattern' => '/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{6,}$/',
+                        'pattern' => '/^(?=.*[A-Za-z])(?=.*\d).{6,}$/',
                         'message' => 'Password must contain at least one letter and one number.'
                     ]),
                 ],
@@ -90,7 +90,6 @@ class UserFormType extends AbstractType
                     ],
                     'attr' => ['class' => 'form-select'],
                 ])
-                // ROLES - REMOVED "Premium User" role
                 ->add('roles', ChoiceType::class, [
                     'label' => 'Roles',
                     'choices' => [
@@ -100,6 +99,7 @@ class UserFormType extends AbstractType
                     ],
                     'multiple' => true,
                     'expanded' => true,
+                    'by_reference' => false,
                     'attr' => ['class' => 'form-check'],
                     'constraints' => [
                         new Assert\Count([
@@ -108,7 +108,6 @@ class UserFormType extends AbstractType
                         ]),
                     ],
                 ])
-                // SUBSCRIPTION PLAN - Separate from roles
                 ->add('subscriptionPlan', ChoiceType::class, [
                     'label' => 'Subscription Plan',
                     'choices' => [
@@ -118,7 +117,6 @@ class UserFormType extends AbstractType
                     ],
                     'attr' => ['class' => 'form-select'],
                 ])
-                // SUBSCRIPTION EXPIRY - For premium plans
                 ->add('subscriptionExpiry', DateTimeType::class, [
                     'label' => 'Subscription Expires At',
                     'required' => false,
