@@ -31,24 +31,32 @@ class UserController extends AbstractController
         $page = max(1, $request->query->getInt('page', 1));
         $limit = 20;
 
-        $search = $request->query->get('search');
+        // Advanced search, filter and sort parameters
+        $filters = [
+            'search'           => trim($request->query->get('search', '')) ?: null,
+            'status'           => $request->query->get('status'),
+            'role'             => $request->query->get('role'),
+            'subscriptionPlan' => $request->query->get('subscriptionPlan'),
+            'isPremium'        => $request->query->get('isPremium') !== null ? filter_var($request->query->get('isPremium'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : null,
+            'sort'             => $request->query->get('sort'),
+            'direction'        => $request->query->get('direction'),
+        ];
 
-        if ($search) {
-            $users = $this->userService->searchUsers($search);
-            $totalUsers = count($users);
-        } else {
-            $users = $this->userService->getAllUsers($page, $limit);
-            $totalUsers = $this->userService->getTotalUsersCount();
-        }
+        // Remove empty filters from criteria for the query
+        $criteria = array_filter($filters, fn($v) => $v !== null && $v !== '');
+
+        // Use advanced DQL/QueryBuilder for search/filters/sort (NO HTML validation)
+        [$users, $totalUsers] = $this->userRepository->findAdvanced($criteria, $page, $limit);
 
         $totalPages = (int) ceil($totalUsers / $limit);
 
         return $this->render('user_management/index.html.twig', [
-            'users' => $users,
-            'currentPage' => $page,
+            'users'      => $users,
+            'currentPage'=> $page,
             'totalPages' => $totalPages,
             'totalUsers' => $totalUsers,
-            'search' => $search,
+            'search'     => $filters['search'] ?? '',
+            'filters'    => $filters, // Pass complete filters array with all keys
             'statistics' => $this->userService->getUserStatistics(),
         ]);
     }

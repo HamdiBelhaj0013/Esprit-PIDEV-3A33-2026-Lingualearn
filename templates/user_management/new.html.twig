@@ -50,14 +50,18 @@
                             <div class="mb-3">
                                 {{ form_label(form.firstName, null, {'label_attr': {'class': 'form-label required'}}) }}
                                 {{ form_widget(form.firstName, {'attr': {'class': 'form-control', 'placeholder': 'John'}}) }}
-                                {{ form_errors(form.firstName) }}
+                                <div class="invalid-feedback d-block">
+                                    {{ form_errors(form.firstName) }}
+                                </div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 {{ form_label(form.lastName, null, {'label_attr': {'class': 'form-label required'}}) }}
                                 {{ form_widget(form.lastName, {'attr': {'class': 'form-control', 'placeholder': 'Doe'}}) }}
-                                {{ form_errors(form.lastName) }}
+                                <div class="invalid-feedback d-block">
+                                    {{ form_errors(form.lastName) }}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -70,10 +74,12 @@
                             </span>
                             {{ form_widget(form.email, {'attr': {'class': 'form-control', 'placeholder': 'user@example.com'}}) }}
                         </div>
-                        {{ form_errors(form.email) }}
+                        <div class="invalid-feedback d-block">
+                            {{ form_errors(form.email) }}
+                        </div>
                     </div>
 
-                    {# Password Section (Only for new users) #}
+                    {# Password Section #}
                     {% if form.plainPassword is defined %}
                         <hr class="my-4">
                         <div class="mb-3">
@@ -90,8 +96,10 @@
                                         </span>
                                         {{ form_widget(form.plainPassword.first, {'attr': {'class': 'form-control', 'placeholder': '••••••••'}}) }}
                                     </div>
-                                    {{ form_errors(form.plainPassword.first) }}
-                                    <small class="form-hint">Minimum 6 characters</small>
+                                    <div class="invalid-feedback d-block">
+                                        {{ form_errors(form.plainPassword.first) }}
+                                    </div>
+                                    <small class="form-hint">Minimum 6 characters, at least one letter and one number</small>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -103,17 +111,25 @@
                                         </span>
                                         {{ form_widget(form.plainPassword.second, {'attr': {'class': 'form-control', 'placeholder': '••••••••'}}) }}
                                     </div>
-                                    {{ form_errors(form.plainPassword.second) }}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form_errors(form.plainPassword.second) }}
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                        <div class="invalid-feedback d-block">
+                            {{ form_errors(form.plainPassword) }}
+                        </div>
                     {% endif %}
 
-                    {# Admin Settings (Only for admins) #}
+                    {# Administrative Settings #}
                     {% if form.status is defined %}
                         <hr class="my-4">
                         <div class="mb-3">
-                            <h3 class="card-subtitle">Administrative Settings</h3>
+                            <h3 class="card-subtitle">
+                                <i class="ti ti-shield me-1"></i>
+                                Administrative Settings
+                            </h3>
                         </div>
 
                         <div class="row">
@@ -121,27 +137,142 @@
                                 <div class="mb-3">
                                     {{ form_label(form.status, null, {'label_attr': {'class': 'form-label'}}) }}
                                     {{ form_widget(form.status, {'attr': {'class': 'form-select'}}) }}
-                                    {{ form_errors(form.status) }}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form_errors(form.status) }}
+                                    </div>
+                                    <small class="form-hint">
+                                        Account status: Active, Suspended, or Deleted.
+                                    </small>
                                 </div>
                             </div>
                         </div>
 
+                        {# User Roles #}
                         {% if form.roles is defined %}
                             <div class="mb-3">
-                                {{ form_label(form.roles, null, {'label_attr': {'class': 'form-label'}}) }}
+                                {{ form_label(form.roles, 'User Roles', {'label_attr': {'class': 'form-label'}}) }}
                                 <div class="form-selectgroup">
                                     {% for child in form.roles %}
                                         <label class="form-selectgroup-item">
                                             {{ form_widget(child, {'attr': {'class': 'form-selectgroup-input'}}) }}
                                             <span class="form-selectgroup-label">
-                                                <i class="ti ti-{{ child.vars.label == 'Admin' ? 'shield-check' : (child.vars.label == 'Teacher' ? 'school' : (child.vars.label == 'Premium User' ? 'crown' : 'user')) }} me-1"></i>
+                                                {% if child.vars.label == 'Admin' %}
+                                                    <i class="ti ti-shield-check me-1"></i>
+                                                {% elseif child.vars.label == 'Teacher' %}
+                                                    <i class="ti ti-school me-1"></i>
+                                                {% else %}
+                                                    <i class="ti ti-user me-1"></i>
+                                                {% endif %}
                                                 {{ child.vars.label }}
                                             </span>
                                         </label>
                                     {% endfor %}
                                 </div>
-                                {{ form_errors(form.roles) }}
-                                <small class="form-hint">Select one or more roles for this user</small>
+                                <div class="invalid-feedback d-block">
+                                    {{ form_errors(form.roles) }}
+                                </div>
+                                <small class="form-hint">
+                                    Assign authorization roles. Control what actions users can perform.
+                                </small>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+
+                    {# Subscription Management - SEPARATE SECTION #}
+                    {% if form.subscriptionPlan is defined %}
+                        <hr class="my-4">
+                        <div class="mb-3">
+                            <h3 class="card-subtitle">
+                                <i class="ti ti-crown me-1 text-warning"></i>
+                                Subscription Management
+                            </h3>
+                        </div>
+
+                        <div class="alert alert-info mb-3">
+                            <div class="d-flex">
+                                <div>
+                                    <i class="ti ti-info-circle me-2"></i>
+                                </div>
+                                <div>
+                                    <strong>Note:</strong> Subscription determines access to premium features.
+                                    Expiration dates are automatically calculated based on the plan selected.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form_label(form.subscriptionPlan, null, {'label_attr': {'class': 'form-label'}}) }}
+                                    {{ form_widget(form.subscriptionPlan, {'attr': {'class': 'form-select', 'id': 'subscription-plan-select'}}) }}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form_errors(form.subscriptionPlan) }}
+                                    </div>
+                                    <small class="form-hint">
+                                        <strong>FREE:</strong> No premium features<br>
+                                        <strong>MONTHLY:</strong> Expires 1 month from now<br>
+                                        <strong>YEARLY:</strong> Expires 1 year from now
+                                    </small>
+                                </div>
+                            </div>
+
+                            {% if form.subscriptionExpiry is defined %}
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ form_label(form.subscriptionExpiry, 'Expiration Date', {'label_attr': {'class': 'form-label'}}) }}
+                                        <div class="input-group">
+                                            {{ form_widget(form.subscriptionExpiry, {'attr': {'class': 'form-control', 'id': 'subscription-expiry'}}) }}
+                                            <button class="btn btn-outline-secondary" type="button" id="calculate-expiry-btn" title="Recalculate expiration date">
+                                                <i class="ti ti-refresh"></i>
+                                            </button>
+                                        </div>
+                                        <div class="invalid-feedback d-block">
+                                            {{ form_errors(form.subscriptionExpiry) }}
+                                        </div>
+                                        <small class="form-hint" id="expiry-hint">
+                                            Automatically calculated. Click refresh to recalculate or edit manually.
+                                        </small>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        {# Current Status Display #}
+                        {% if user.id %}
+                            <div class="card card-sm">
+                                <div class="card-body">
+                                    <div class="row align-items-center">
+                                        <div class="col-auto">
+                                            {% if user.isPremium %}
+                                                <span class="bg-success text-white avatar">
+                                                    <i class="ti ti-crown"></i>
+                                                </span>
+                                            {% else %}
+                                                <span class="bg-secondary text-white avatar">
+                                                    <i class="ti ti-user"></i>
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col">
+                                            <div class="font-weight-medium">
+                                                Current Status:
+                                                {% if user.isPremium %}
+                                                    <span class="badge bg-success ms-1">Premium Active</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary ms-1">Free Plan</span>
+                                                {% endif %}
+                                            </div>
+                                            <div class="text-muted">
+                                                Plan: <strong>{{ user.subscriptionPlan }}</strong>
+                                                {% if user.subscriptionExpiry %}
+                                                    | Expires: <strong>{{ user.subscriptionExpiry|date('M d, Y H:i') }}</strong>
+                                                {% else %}
+                                                    | <span class="text-muted">No expiration</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         {% endif %}
                     {% endif %}
@@ -166,4 +297,113 @@
             </div>
         </div>
     </div>
+
+    {# JavaScript for automatic date calculation #}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const planSelect = document.getElementById('subscription-plan-select');
+            const expiryInput = document.getElementById('subscription-expiry');
+            const calculateBtn = document.getElementById('calculate-expiry-btn');
+            const expiryHint = document.getElementById('expiry-hint');
+
+            if (!planSelect || !expiryInput) return;
+
+            // Calculate expiration date based on plan
+            function calculateExpiryDate(plan) {
+                const now = new Date();
+
+                switch(plan) {
+                    case 'MONTHLY':
+                        now.setMonth(now.getMonth() + 1);
+                        break;
+                    case 'YEARLY':
+                        now.setFullYear(now.getFullYear() + 1);
+                        break;
+                    case 'FREE':
+                    default:
+                        return null;
+                }
+
+                return now;
+            }
+
+            // Format date for datetime-local input (YYYY-MM-DDTHH:MM)
+            function formatDateForInput(date) {
+                if (!date) return '';
+
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+
+                return `${year}-${month}-${day}T${hours}:${minutes}`;
+            }
+
+            // Update expiry date field
+            function updateExpiryDate() {
+                const selectedPlan = planSelect.value;
+                const expiryDate = calculateExpiryDate(selectedPlan);
+
+                if (expiryDate) {
+                    expiryInput.value = formatDateForInput(expiryDate);
+                    expiryInput.closest('.mb-3').style.opacity = '1';
+                    expiryInput.disabled = false;
+
+                    const readableDate = expiryDate.toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    expiryHint.innerHTML = `Auto-calculated to: <strong>${readableDate}</strong>. You can edit if needed.`;
+                } else {
+                    expiryInput.value = '';
+                    expiryInput.closest('.mb-3').style.opacity = '0.5';
+                    expiryInput.disabled = true;
+                    expiryHint.innerHTML = 'No expiration for FREE plan.';
+                }
+            }
+
+            // Event listeners
+            planSelect.addEventListener('change', updateExpiryDate);
+
+            if (calculateBtn) {
+                calculateBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    updateExpiryDate();
+                    this.querySelector('i').classList.add('ti-rotate');
+                    setTimeout(() => this.querySelector('i').classList.remove('ti-rotate'), 500);
+                });
+            }
+
+            // Auto-calculate on page load for new users
+            {% if not user.id or not user.subscriptionExpiry %}
+            updateExpiryDate();
+            {% else %}
+            // For existing users, update UI based on current plan
+            if (planSelect.value === 'FREE') {
+                expiryInput.closest('.mb-3').style.opacity = '0.5';
+                expiryInput.disabled = true;
+                expiryHint.innerHTML = 'No expiration for FREE plan.';
+            }
+            {% endif %}
+        });
+    </script>
+
+    <style>
+        .ti-rotate {
+            animation: rotate 0.5s linear;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .mb-3 {
+            transition: opacity 0.3s ease;
+        }
+    </style>
 {% endblock %}

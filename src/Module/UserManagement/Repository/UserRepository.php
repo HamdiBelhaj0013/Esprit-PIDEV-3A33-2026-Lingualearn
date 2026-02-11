@@ -174,6 +174,99 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     }
 
     /**
+     * Advanced user search, filter & sort for admin.
+     *
+     * Filters:
+     * - search: Name/email search.
+     * - status: 'active', 'suspended', 'deleted'.
+     * - role: User role (authorization, not subscription).
+     * - isPremium: Premium status (true/false, canonical for business).
+     * - subscriptionPlan: 'FREE', 'PREMIUM_MONTHLY', 'PREMIUM_YEARLY'.
+     * - sort: Sort field.
+     * - direction: ASC/DESC.
+     *
+     * @param array $criteria
+     * @param int $page
+     * @param int $limit
+     * @return array [User[], totalCount]
+     */
+    public function findAdvanced(array $criteria, int $page = 1, int $limit = 20): array
+    {
+        $qb = $this->createQueryBuilder('u');
+
+        // Search by name or email
+        if (!empty($criteria['search'])) {
+            $qb->andWhere(
+                $qb->expr()->orX(
+                    $qb->expr()->like('u.email', ':term'),
+                    $qb->expr()->like('u.firstName', ':term'),
+                    $qb->expr()->like('u.lastName', ':term')
+                )
+            )
+                ->setParameter('term', '%' . $criteria['search'] . '%');
+        }
+
+        // Filter by status
+        if (!empty($criteria['status'])) {
+            $qb->andWhere('u.status = :status')
+                ->setParameter('status', $criteria['status']);
+        }
+
+        // Filter by role (Doctrine array field stored as JSON)
+        if (!empty($criteria['role'])) {
+            // Use LIKE for JSON array field matching
+            $qb->andWhere('u.roles LIKE :role')
+                ->setParameter('role', '%"' . $criteria['role'] . '"%');
+        }
+
+        // Filter by premium status (true/false, canonical business logic)
+        if (isset($criteria['isPremium']) && $criteria['isPremium'] !== '') {
+            // Normalizes for values such as "0", "1", true, false, etc.
+            $value = is_string($criteria['isPremium']) ? ($criteria['isPremium'] === '1' ? true : false) : (bool) $criteria['isPremium'];
+            $qb->andWhere('u.isPremium = :isPremium')
+                ->setParameter('isPremium', $value);
+        }
+
+        // Filter by subscription plan
+        if (!empty($criteria['subscriptionPlan'])) {
+            $qb->andWhere('u.subscriptionPlan = :plan')
+                ->setParameter('plan', $criteria['subscriptionPlan']);
+        }
+
+        // Sort handling
+        $allowedSorts = [
+            'u.createdAt', 'u.firstName', 'u.lastName',
+            'u.email', 'u.status', 'u.isPremium', 'u.subscriptionPlan'
+        ];
+        $sortField = $criteria['sort'] ?? 'u.createdAt';
+        $direction = $criteria['direction'] ?? 'DESC';
+
+        if (!in_array($sortField, $allowedSorts, true)) {
+            $sortField = 'u.createdAt';
+        }
+        if (!in_array(strtoupper($direction), ['ASC', 'DESC'], true)) {
+            $direction = 'DESC';
+        }
+        $qb->orderBy($sortField, $direction);
+
+        // Pagination
+        $qb->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit);
+
+        $users = $qb->getQuery()->getResult();
+
+        // Clone for counting total (no pagination, no order)
+        $qbCount = clone $qb;
+        $qbCount->resetDQLPart('orderBy')
+            ->setFirstResult(null)
+            ->setMaxResults(null)
+            ->select('COUNT(u.id)');
+        $total = (int) $qbCount->getQuery()->getSingleScalarResult();
+
+        return [$users, $total];
+    }
+
+    /**
      * Get EntityManager for external queries
      *
      * @return \Doctrine\ORM\EntityManagerInterface

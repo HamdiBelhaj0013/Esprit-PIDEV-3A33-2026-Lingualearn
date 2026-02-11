@@ -96,14 +96,14 @@
                         </form>
                     {% endif %}
 
-                    {# Premium Actions #}
+                    {# Premium Actions - FIXED: Changed PREMIUM_MONTHLY/YEARLY to MONTHLY/YEARLY #}
                     {% if not user.isPremium %}
                         <form method="post" action="{{ path('admin_users_premium_upgrade', {id: user.id}) }}" class="mb-2">
                             <input type="hidden" name="_token" value="{{ csrf_token('premium' ~ user.id) }}">
                             <div class="mb-2">
                                 <select name="plan" class="form-select">
-                                    <option value="PREMIUM_MONTHLY">Monthly Premium ($9.99/mo)</option>
-                                    <option value="PREMIUM_YEARLY">Yearly Premium ($99/yr)</option>
+                                    <option value="MONTHLY">Monthly Premium ($9.99/mo)</option>
+                                    <option value="YEARLY">Yearly Premium ($99/yr)</option>
                                 </select>
                             </div>
                             <button type="submit" class="btn btn-info w-100">
@@ -183,7 +183,8 @@
                             <div class="datagrid-content">
                                 {% if user.isPremium %}
                                     <span class="badge bg-yellow">
-                                        <i class="ti ti-crown"></i> {{ user.subscriptionPlan|replace({'_': ' '}) }}
+                                        <i class="ti ti-crown"></i> 
+                                        {{ user.subscriptionPlan == 'MONTHLY' ? 'Monthly Premium' : 'Yearly Premium' }}
                                     </span>
                                 {% else %}
                                     <span class="badge bg-blue">FREE</span>
