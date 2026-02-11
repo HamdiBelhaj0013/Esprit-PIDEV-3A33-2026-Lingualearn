@@ -1,25 +1,31 @@
-<div class="modal modal-blur fade" id="confirmDeleteModal" tabindex="-1" role="dialog" aria-hidden="true">
+{# Delete Confirmation Modal #}
+<div class="modal modal-blur fade" id="deleteModal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
         <div class="modal-content">
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             <div class="modal-status bg-danger"></div>
             <div class="modal-body text-center py-4">
                 <i class="ti ti-alert-triangle icon mb-2 text-danger icon-lg"></i>
-                <h3>Êtes-vous sûr?</h3>
-                <div class="text-muted">Voulez-vous vraiment supprimer cet élément? Cette action est irréversible.</div>
+                <h3>Are you sure?</h3>
+                <div class="text-muted" id="deleteModalMessage">
+                    Do you really want to delete this item? This action cannot be undone.
+                </div>
             </div>
             <div class="modal-footer">
                 <div class="w-100">
                     <div class="row">
                         <div class="col">
                             <button type="button" class="btn w-100" data-bs-dismiss="modal">
-                                Annuler
+                                Cancel
                             </button>
                         </div>
                         <div class="col">
-                            <button type="submit" class="btn btn-danger w-100" id="confirmDeleteButton">
-                                Supprimer
-                            </button>
+                            <form method="POST" id="deleteForm">
+                                <input type="hidden" name="_token" id="deleteToken">
+                                <button type="submit" class="btn btn-danger w-100">
+                                    Delete
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -30,23 +36,24 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        var confirmDeleteModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
-        var deleteButtons = document.querySelectorAll('[data-bs-toggle="modal"][data-bs-target="#confirmDeleteModal"]');
-
-        deleteButtons.forEach(function(button) {
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-                var formId = this.dataset.formId;
-                var form = document.getElementById(formId);
-
-                if (form) {
-                    var confirmBtn = document.getElementById('confirmDeleteButton');
-                    confirmBtn.onclick = function() {
-                        form.submit();
-                    };
-                    confirmDeleteModal.show();
+        const deleteModal = document.getElementById('deleteModal');
+        if (deleteModal) {
+            deleteModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const deleteUrl = button.getAttribute('data-delete-url');
+                const itemName = button.getAttribute('data-item-name');
+                
+                const form = document.getElementById('deleteForm');
+                const message = document.getElementById('deleteModalMessage');
+                
+                if (deleteUrl) {
+                    form.action = deleteUrl;
+                }
+                
+                if (itemName) {
+                    message.textContent = `Do you really want to delete "${itemName}"? This action cannot be undone.`;
                 }
             });
-        });
+        }
     });
 </script>

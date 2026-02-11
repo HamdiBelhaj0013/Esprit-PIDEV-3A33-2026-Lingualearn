@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ajouter un statut{% endblock %}
+
+{% block body %}
+<h1>Ajouter un statut</h1>
+
+<form method="POST">
+    <label>Utilisateur ID : <input type="text" name="userId"></label><br>
+    <label>Leçon ID : <input type="text" name="lessonId"></label><br>
+    <label>Complété : <input type="checkbox" name="completed"></label><br>
+    <button type="submit">Ajouter</button>
+</form>
+
+<a href="{{ path('app_exercises_quizzes_user_lesson_status_list') }}">Retour à la liste</a>
+{% endblock %}

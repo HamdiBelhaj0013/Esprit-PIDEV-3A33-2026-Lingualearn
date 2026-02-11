@@ -76,93 +76,104 @@
             </div>
         {% endif %}
 
-        {# Enhanced User Statistics #}
-        <div class="col-sm-6 col-lg-3">
-            <div class="card stat-card border-0 bg-primary-lt">
+        {# Enhanced User Statistics with Trends #}
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="ti ti-users me-2 text-primary"></i>
+                        User Statistics
+                    </h3>
+                </div>
                 <div class="card-body">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                        <span class="text-primary metric-icon">
-                            <i class="ti ti-users"></i>
-                        </span>
-                        {% if userStats.totalTrend is defined %}
-                            <span class="badge bg-primary">
-                                <i class="ti ti-trending-{{ userStats.totalTrend >= 0 ? 'up' : 'down' }}"></i>
-                                {{ userStats.totalTrend|abs }}%
-                            </span>
-                        {% endif %}
+                    <div class="row g-3">
+                        <div class="col-sm-6 col-lg-3">
+                            <div class="card card-sm stat-card border-0 bg-primary-lt">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center justify-content-between mb-3">
+                                        <span class="text-primary metric-icon">
+                                            <i class="ti ti-users"></i>
+                                        </span>
+                                        {% if userStats.totalTrend is defined %}
+                                            <span class="badge bg-primary">
+                                                <i class="ti ti-trending-{{ userStats.totalTrend >= 0 ? 'up' : 'down' }}"></i>
+                                                {{ userStats.totalTrend|abs }}%
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="stat-value text-primary">
+                                        {{ userStats.total|number_format }}
+                                    </div>
+                                    <div class="stat-label">Total Users</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-lg-3">
+                            <div class="card card-sm stat-card border-0 bg-success-lt">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center justify-content-between mb-3">
+                                        <span class="text-success metric-icon">
+                                            <i class="ti ti-user-check"></i>
+                                        </span>
+                                        {% if userStats.total > 0 %}
+                                            <span class="badge bg-success">
+                                                {{ ((userStats.active / userStats.total) * 100)|number_format(0) }}%
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="stat-value text-success">
+                                        {{ userStats.active|number_format }}
+                                    </div>
+                                    <div class="stat-label">Active Users</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-lg-3">
+                            <div class="card card-sm stat-card border-0 bg-info-lt">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center justify-content-between mb-3">
+                                        <span class="text-info metric-icon">
+                                            <i class="ti ti-crown"></i>
+                                        </span>
+                                        {% if userStats.premiumRevenue is defined %}
+                                            <span class="badge bg-info">
+                                                ${{ userStats.premiumRevenue|number_format(0) }}
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="stat-value text-info">
+                                        {{ userStats.premium|number_format }}
+                                    </div>
+                                    <div class="stat-label">Premium Users</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-lg-3">
+                            <div class="card card-sm stat-card border-0 bg-warning-lt">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center justify-content-between mb-3">
+                                        <span class="text-warning metric-icon">
+                                            <i class="ti ti-user-off"></i>
+                                        </span>
+                                        {% if userStats.suspended > 0 %}
+                                            <span class="badge bg-warning">
+                                                <i class="ti ti-alert-triangle"></i>
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="stat-value text-warning">
+                                        {{ userStats.suspended|number_format }}
+                                    </div>
+                                    <div class="stat-label">Suspended Users</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="stat-value text-primary">
-                        {{ userStats.total|number_format }}
-                    </div>
-                    <div class="stat-label">Total Users</div>
                 </div>
             </div>
         </div>
 
-        <div class="col-sm-6 col-lg-3">
-            <div class="card stat-card border-0 bg-success-lt">
-                <div class="card-body">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                        <span class="text-success metric-icon">
-                            <i class="ti ti-user-check"></i>
-                        </span>
-                        {% if userStats.total > 0 %}
-                            <span class="badge bg-success">
-                                {{ ((userStats.active / userStats.total) * 100)|number_format(0) }}%
-                            </span>
-                        {% endif %}
-                    </div>
-                    <div class="stat-value text-success">
-                        {{ userStats.active|number_format }}
-                    </div>
-                    <div class="stat-label">Active Users</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-sm-6 col-lg-3">
-            <div class="card stat-card border-0 bg-info-lt">
-                <div class="card-body">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                        <span class="text-info metric-icon">
-                            <i class="ti ti-crown"></i>
-                        </span>
-                        {% if userStats.premiumRevenue is defined %}
-                            <span class="badge bg-info">
-                                ${{ userStats.premiumRevenue|number_format(0) }}
-                            </span>
-                        {% endif %}
-                    </div>
-                    <div class="stat-value text-info">
-                        {{ userStats.premium|number_format }}
-                    </div>
-                    <div class="stat-label">Premium Users</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-sm-6 col-lg-3">
-            <div class="card stat-card border-0 bg-warning-lt">
-                <div class="card-body">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                        <span class="text-warning metric-icon">
-                            <i class="ti ti-user-off"></i>
-                        </span>
-                        {% if userStats.suspended > 0 %}
-                            <span class="badge bg-warning">
-                                <i class="ti ti-alert-triangle"></i>
-                            </span>
-                        {% endif %}
-                    </div>
-                    <div class="stat-value text-warning">
-                        {{ userStats.suspended|number_format }}
-                    </div>
-                    <div class="stat-label">Suspended Users</div>
-                </div>
-            </div>
-        </div>
-
-        {# User Growth Chart #}
+        {# User Growth Chart - Full Width #}
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
@@ -189,7 +200,7 @@
             </div>
         </div>
 
-        {# Content Statistics #}
+        {# Content Statistics - Improved #}
         <div class="col-lg-8">
             <div class="card">
                 <div class="card-header">
@@ -200,8 +211,8 @@
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
-                        <div class="col-md-4">
-                            <div class="card stat-card border-0 bg-purple-lt">
+                        <div class="col-md-6">
+                            <div class="card card-sm stat-card border-0 bg-purple-lt">
                                 <div class="card-body text-center">
                                     <div class="metric-icon text-purple mb-2">
                                         <i class="ti ti-books"></i>
@@ -212,35 +223,15 @@
                                     <div class="stat-label mb-2">Total Courses</div>
                                     {% if courseStats is defined %}
                                         <div>
-                                            <span class="badge bg-success-lt">{{ courseStats.published }} Published</span>
-                                            <span class="badge bg-warning-lt">{{ courseStats.draft }} Draft</span>
+                                            <span class="badge bg-success-lt badge-status">{{ courseStats.published }} Published</span>
+                                            <span class="badge bg-warning-lt badge-status">{{ courseStats.draft }} Draft</span>
                                         </div>
                                     {% endif %}
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <div class="card stat-card border-0 bg-teal-lt">
-                                <div class="card-body text-center">
-                                    <div class="metric-icon text-teal mb-2">
-                                        <i class="ti ti-playlist"></i>
-                                    </div>
-                                    <div class="stat-value text-teal mb-1">
-                                        {{ lessonCount|number_format }}
-                                    </div>
-                                    <div class="stat-label mb-2">Total Lessons</div>
-                                    {% if courseCount > 0 %}
-                                        <div>
-                                            <span class="badge bg-teal-lt">
-                                                Avg {{ (lessonCount / courseCount)|number_format(1) }} per course
-                                            </span>
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card stat-card border-0 bg-lime-lt">
+                        <div class="col-md-6">
+                            <div class="card card-sm stat-card border-0 bg-lime-lt">
                                 <div class="card-body text-center">
                                     <div class="metric-icon text-lime mb-2">
                                         <i class="ti ti-pencil-check"></i>
@@ -249,6 +240,13 @@
                                         {{ exerciseCount|number_format }}
                                     </div>
                                     <div class="stat-label mb-2">Total Exercises</div>
+                                    {% if exerciseStats is defined %}
+                                        <div>
+                                            <span class="badge bg-lime-lt badge-status">
+                                                {{ exerciseStats.completionRate }}% completion
+                                            </span>
+                                        </div>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -257,7 +255,7 @@
                     {# Engagement Metrics #}
                     <div class="row g-3 mt-2">
                         <div class="col-md-6">
-                            <div class="card border-primary">
+                            <div class="card card-sm border-primary">
                                 <div class="card-body">
                                     <div class="d-flex align-items-center justify-content-between">
                                         <div>
@@ -283,7 +281,7 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="card border-success">
+                            <div class="card card-sm border-success">
                                 <div class="card-body">
                                     <div class="d-flex align-items-center justify-content-between">
                                         <div>
@@ -321,7 +319,7 @@
                         <div class="mt-4">
                             <div class="row g-2">
                                 <div class="col-6">
-                                    <div class="card bg-success-lt border-0">
+                                    <div class="card card-sm bg-success-lt border-0">
                                         <div class="card-body text-center">
                                             <div class="text-muted small">This Month</div>
                                             <div class="h3 mb-0 text-success">
@@ -331,7 +329,7 @@
                                     </div>
                                 </div>
                                 <div class="col-6">
-                                    <div class="card bg-azure-lt border-0">
+                                    <div class="card card-sm bg-azure-lt border-0">
                                         <div class="card-body text-center">
                                             <div class="text-muted small">Last Month</div>
                                             <div class="h3 mb-0">
@@ -366,7 +364,7 @@
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-6">
-                            <div class="card stat-card border-0 bg-orange-lt">
+                            <div class="card card-sm stat-card border-0 bg-orange-lt">
                                 <div class="card-body text-center">
                                     <div class="metric-icon text-orange mb-2">
                                         <i class="ti ti-messages"></i>
@@ -379,7 +377,7 @@
                             </div>
                         </div>
                         <div class="col-6">
-                            <div class="card stat-card border-0 bg-red-lt">
+                            <div class="card card-sm stat-card border-0 bg-red-lt">
                                 <div class="card-body text-center">
                                     <div class="metric-icon text-red mb-2">
                                         <i class="ti ti-message-2"></i>
