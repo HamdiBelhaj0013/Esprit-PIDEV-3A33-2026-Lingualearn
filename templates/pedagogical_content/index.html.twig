@@ -1,0 +1,102 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Admin · Contenu Pédagogique{% endblock %}
+
+{% block page_title %}Contenu Pédagogique{% endblock %}
+
+{% block breadcrumb %}
+    <ol class="breadcrumb breadcrumb-icons" aria-label="breadcrumbs">
+        <li class="breadcrumb-item">
+            <a href="{{ path('admin_dashboard') }}">
+                <i class="ti ti-home"></i> Tableau de bord
+            </a>
+        </li>
+        <li class="breadcrumb-item active">Contenu Pédagogique</li>
+    </ol>
+{% endblock %}
+
+{% block body %}
+<div class="row row-deck row-cards g-4">
+
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow-lg border-0 hover-scale bg-gradient-light">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="ti ti-world fs-1 text-primary"></i>
+                </div>
+                <h3 class="card-title mb-2">
+                    <a href="{{ path('admin_language_index') }}" class="text-primary fw-bold">
+                        Langues
+                    </a>
+                </h3>
+                <p class="text-muted small">Gérer les langues de la plateforme</p>
+                <span class="badge bg-primary badge-pill animate-bounce">Nouveau</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow-lg border-0 hover-scale bg-gradient-light">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="ti ti-book fs-1 text-success"></i>
+                </div>
+                <h3 class="card-title mb-2">
+                    <a href="{{ path('admin_course_index') }}" class="text-success fw-bold">
+                        Cours
+                    </a>
+                </h3>
+                <p class="text-muted small">Gérer les cours</p>
+                <span class="badge bg-success badge-pill animate-bounce">Populaire</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow-lg border-0 hover-scale bg-gradient-light">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="ti ti-file-text fs-1 text-warning"></i>
+                </div>
+                <h3 class="card-title mb-2">
+                    <a href="{{ path('admin_lesson_index') }}" class="text-warning fw-bold">
+                        Leçons
+                    </a>
+                </h3>
+                <p class="text-muted small">Gérer les leçons</p>
+                <span class="badge bg-warning badge-pill animate-bounce">Nouveau</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+/* Effet dynamique au survol */
+.hover-scale {
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.hover-scale:hover {
+    transform: translateY(-7px) scale(1.03);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+}
+
+/* Animation pour les badges */
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+.animate-bounce {
+    display: inline-block;
+    animation: bounce 1.2s infinite;
+}
+
+/* Background léger pour les cartes */
+.bg-gradient-light {
+    background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+    border-radius: 0.75rem;
+}
+</style>
+{% endblock %}

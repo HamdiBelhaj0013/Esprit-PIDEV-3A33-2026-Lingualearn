@@ -315,6 +315,15 @@
 
             <div class="collapse navbar-collapse" id="sidebar-menu">
                 <ul class="navbar-nav pt-lg-3">
+                <li class="nav-item">
+    <a class="nav-link" href="{{ path('admin_pedagogical_content_index') }}">
+        <span class="nav-link-icon d-md-none d-lg-inline-block">
+            <i class="ti ti-book"></i>
+        </span>
+        <span class="nav-link-title">Gestion Pédagogical</span>
+    </a>
+</li>
+
                     {# Dashboard #}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ path('admin_dashboard') }}">
@@ -554,3 +563,4 @@
 {% block javascripts %}{% endblock %}
 </body>
 </html>
+

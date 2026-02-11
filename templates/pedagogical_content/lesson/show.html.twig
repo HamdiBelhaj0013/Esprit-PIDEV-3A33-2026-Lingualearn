@@ -1,0 +1,129 @@
+﻿{% extends 'base.html.twig' %}
+
+{% block title %}Admin · {{ lesson.title }}{% endblock %}
+
+{% block page_title %}{{ lesson.title }}{% endblock %}
+
+{% block breadcrumb %}
+    <ol class="breadcrumb breadcrumb-icons" aria-label="breadcrumbs">
+        <li class="breadcrumb-item">
+            <a href="{{ path('admin_dashboard') }}">
+                <i class="ti ti-home"></i> Tableau de bord
+            </a>
+        </li>
+        <li class="breadcrumb-item">Contenu Pédagogique</li>
+        <li class="breadcrumb-item">
+            <a href="{{ path('admin_lesson_index') }}">Leçons</a>
+        </li>
+        <li class="breadcrumb-item active">{{ lesson.title }}</li>
+    </ol>
+{% endblock %}
+
+{% block page_actions %}
+    <div class="col-auto">
+        <div class="btn-group">
+            <a href="{{ path('admin_lesson_edit', {'id': lesson.id}) }}" class="btn btn-primary">
+                <i class="ti ti-edit"></i> Modifier
+            </a>
+            <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-form-id="deleteForm{{ lesson.id }}">
+                <i class="ti ti-trash"></i> Supprimer
+            </button>
+        </div>
+    </div>
+{% endblock %}
+
+{% block body %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <div class="mb-4">
+                    <h4 class="text-muted mb-2">Titre</h4>
+                    <p class="mb-0">{{ lesson.title }}</p>
+                </div>
+
+                <div class="mb-4">
+                    <h4 class="text-muted mb-2">Cours</h4>
+                    <p class="mb-0">
+                        {% if lesson.course %}
+                            <span class="badge bg-blue">{{ lesson.course.title }}</span>
+                        {% else %}
+                            <span class="text-muted">N/A</span>
+                        {% endif %}
+                    </p>
+                </div>
+
+                <div class="mb-4">
+                    <h4 class="text-muted mb-2">Contenu</h4>
+                    <div class="border p-3 rounded" style="max-height: 400px; overflow-y: auto;">
+                        {{ lesson.content|nl2br }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-4">
+                            <h4 class="text-muted mb-2">Récompense XP</h4>
+                            <p class="mb-0">
+                                <span class="badge bg-yellow">{{ lesson.xpReward }} XP</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {% if lesson.vocabularyData and lesson.vocabularyData|length > 0 %}
+                    <div class="mb-4">
+                        <h4 class="text-muted mb-2">Vocabulaire</h4>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Mot</th>
+                                        <th>Traduction</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for vocab in lesson.vocabularyData %}
+                                        <tr>
+                                            <td><strong>{{ vocab.word ?? 'N/A' }}</strong></td>
+                                            <td>{{ vocab.translation ?? 'N/A' }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                {% endif %}
+
+                {% if lesson.grammarData and lesson.grammarData|length > 0 %}
+                    <div class="mb-4">
+                        <h4 class="text-muted mb-2">Grammaire</h4>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Règle</th>
+                                        <th>Exemple</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for grammar in lesson.grammarData %}
+                                        <tr>
+                                            <td><strong>{{ grammar.rule ?? 'N/A' }}</strong></td>
+                                            <td>{{ grammar.example ?? 'N/A' }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<form method="post" action="{{ path('admin_lesson_delete', {'id': lesson.id}) }}" style="display:none;" id="deleteForm{{ lesson.id }}">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ lesson.id) }}">
+</form>
+{% endblock %}

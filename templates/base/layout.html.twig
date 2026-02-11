@@ -1,4 +1,4 @@
-{% extends 'base.html.twig' %}
+% extends 'base.html.twig' %}
 
 {% block body %}
     <div class="page">
@@ -126,6 +126,45 @@
                                 </span>
                                     <span class="nav-link-title">Admin Panel</span>
                                 </a>
+                            </li>
+
+                            {# Pedagogical Content Module #}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#navbar-pedagogical" data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="false">
+                                    <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                        <i class="ti ti-book"></i>
+                                    </span>
+                                    <span class="nav-link-title">Pedagogical Content</span>
+                                </a>
+                                <div class="dropdown-menu">
+                                    <a class="dropdown-item" href="{{ path('admin_language_index') }}">
+                                        <i class="ti ti-world me-2"></i> Languages
+                                    </a>
+                                    <a class="dropdown-item" href="{{ path('admin_course_index') }}">
+                                        <i class="ti ti-book-2 me-2"></i> Courses
+                                    </a>
+                                    <a class="dropdown-item" href="{{ path('admin_lesson_index') }}">
+                                        <i class="ti ti-notebook me-2"></i> Lessons
+                                    </a>
+                                </div>
+                            </li>
+
+                            {# User Management #}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#navbar-users" data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="false">
+                                    <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                        <i class="ti ti-users"></i>
+                                    </span>
+                                    <span class="nav-link-title">User Management</span>
+                                </a>
+                                <div class="dropdown-menu">
+                                    <a class="dropdown-item" href="{{ path('admin_users_index') }}">
+                                        <i class="ti ti-list me-2"></i> All Users
+                                    </a>
+                                    <a class="dropdown-item" href="{{ path('admin_users_new') }}">
+                                        <i class="ti ti-user-plus me-2"></i> Create User
+                                    </a>
+                                </div>
                             </li>
                         {% endif %}
                     </ul>

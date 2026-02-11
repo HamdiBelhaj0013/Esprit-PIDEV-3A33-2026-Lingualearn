@@ -5,20 +5,20 @@
             <div class="modal-status bg-danger"></div>
             <div class="modal-body text-center py-4">
                 <i class="ti ti-alert-triangle icon mb-2 text-danger icon-lg"></i>
-                <h3>Are you sure?</h3>
-                <div class="text-muted">Do you really want to delete this item? What you've done cannot be undone.</div>
+                <h3>Êtes-vous sûr?</h3>
+                <div class="text-muted">Voulez-vous vraiment supprimer cet élément? Cette action est irréversible.</div>
             </div>
             <div class="modal-footer">
                 <div class="w-100">
                     <div class="row">
                         <div class="col">
                             <button type="button" class="btn w-100" data-bs-dismiss="modal">
-                                Cancel
+                                Annuler
                             </button>
                         </div>
                         <div class="col">
-                            <button type="submit" form="deleteForm" class="btn btn-danger w-100" id="confirmDeleteButton">
-                                Delete
+                            <button type="submit" class="btn btn-danger w-100" id="confirmDeleteButton">
+                                Supprimer
                             </button>
                         </div>
                     </div>
@@ -30,14 +30,23 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        var confirmDeleteModal = document.getElementById('confirmDeleteModal');
-        confirmDeleteModal.addEventListener('show.bs.modal', function (event) {
-            var button = event.relatedTarget; // Button that triggered the modal
-            var form = button.closest('form'); // Find the form associated with the button
-            var confirmButton = confirmDeleteModal.querySelector('#confirmDeleteButton');
+        var confirmDeleteModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+        var deleteButtons = document.querySelectorAll('[data-bs-toggle="modal"][data-bs-target="#confirmDeleteModal"]');
 
-            // Set the form action on the modal's confirm button
-            confirmButton.setAttribute('form', form.id);
+        deleteButtons.forEach(function(button) {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                var formId = this.dataset.formId;
+                var form = document.getElementById(formId);
+
+                if (form) {
+                    var confirmBtn = document.getElementById('confirmDeleteButton');
+                    confirmBtn.onclick = function() {
+                        form.submit();
+                    };
+                    confirmDeleteModal.show();
+                }
+            });
         });
     });
 </script>

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Module\PedagogicalContent\Repository;
 
 use App\Module\PedagogicalContent\Entity\Lesson;
@@ -17,10 +19,15 @@ class LessonRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return int Returns the total count of Lesson entities
+     * @return Lesson[] Returns an array of Lesson objects for a course
      */
-    public function countAll(): int
+    public function findByCourse(int $courseId): array
     {
-        return $this->count([]);
+        return $this->createQueryBuilder('l')
+            ->andWhere('l.course = :courseId')
+            ->setParameter('courseId', $courseId)
+            ->orderBy('l.id', 'ASC')
+            ->getQuery()
+            ->getResult();
     }
 }
