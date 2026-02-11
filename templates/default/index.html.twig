@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Welcome!{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <h1>Welcome to Lingualearn!</h1>
+        <p>This is your homepage. Feel free to customize it.</p>
+        <p>
+            {% if app.user %}
+                Hello {{ app.user.userIdentifier }}! You are logged in.
+                <a href="{{ path('app_logout') }}">Logout</a>
+            {% else %}
+                <a href="{{ path('app_login') }}">Login</a> or <a href="#">Register</a>
+            {% endif %}
+        </p>
+        <p>
+            {% if is_granted('ROLE_ADMIN') %}
+                <a href="{{ path('admin_dashboard') }}">Go to Admin Dashboard</a>
+            {% endif %}
+        </p>
+    </div>
+{% endblock %}
