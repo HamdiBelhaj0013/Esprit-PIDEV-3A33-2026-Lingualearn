@@ -111,21 +111,36 @@
                             </a>
                             <a class="dropdown-item" href="{{ path('quiz_new') }}">
                                 <i class="ti ti-plus me-2"></i> Create Quiz
+                            </a>
                             <a class="dropdown-item" href="{{ path('app_exercises_quizzes_user_lesson_status_list') }}">
-    <i class="ti ti-chart-line me-2"></i> User Progress
-</a>
-
+                                <i class="ti ti-chart-line me-2"></i> User Progress
+                            </a>
                         </div>
                     </li>
 
-                    {# Mock Tests #}
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
+                    {# International Tests #}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#navbar-tests" data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="false">
                             <span class="nav-link-icon d-md-none d-lg-inline-block">
                                 <i class="ti ti-certificate"></i>
                             </span>
-                            <span class="nav-link-title">Mock Tests</span>
+                            <span class="nav-link-title">International Tests</span>
                         </a>
+                        <div class="dropdown-menu">
+                            <a class="dropdown-item" href="{{ path('mocktest_index') }}">
+                                <i class="ti ti-file-text me-2"></i> Mock Tests
+                            </a>
+                            <a class="dropdown-item" href="{{ path('testquestion_index') }}">
+                                <i class="ti ti-help me-2"></i> Test Questions
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{{ path('mocktest_new') }}">
+                                <i class="ti ti-plus me-2"></i> Create Mock Test
+                            </a>
+                            <a class="dropdown-item" href="{{ path('testquestion_new') }}">
+                                <i class="ti ti-plus me-2"></i> Create Question
+                            </a>
+                        </div>
                     </li>
 
                     {# Forum #}

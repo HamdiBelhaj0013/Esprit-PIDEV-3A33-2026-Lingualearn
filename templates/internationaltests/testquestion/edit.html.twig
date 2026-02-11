@@ -1,0 +1,115 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Test Question - {{ parent() }}{% endblock %}
+
+{% block page_title %}
+    <i class="ti ti-help me-2"></i> Edit Test Question
+{% endblock %}
+
+{% block breadcrumb %}
+    <ol class="breadcrumb breadcrumb-arrows" aria-label="breadcrumbs">
+        <li class="breadcrumb-item"><a href="{{ path('testquestion_index') }}">Test Questions</a></li>
+        <li class="breadcrumb-item"><a href="{{ path('testquestion_show', {id: testQuestion.id}) }}">Question #{{ testQuestion.id }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Edit</li>
+    </ol>
+{% endblock %}
+
+{% block body %}
+    <div class="row">
+        <div class="col-md-10 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Edit Question Information</h3>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form) }}
+                        <div class="mb-3">
+                            {{ form_label(form.mockTest, null, {'label_attr': {'class': 'form-label required'}}) }}
+                            {{ form_widget(form.mockTest, {'attr': {'class': 'form-select'}}) }}
+                            {{ form_errors(form.mockTest) }}
+                            <small class="form-hint">Select the mock test this question belongs to</small>
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form_label(form.sectionCategory, null, {'label_attr': {'class': 'form-label required'}}) }}
+                            {{ form_widget(form.sectionCategory, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.sectionCategory) }}
+                            <small class="form-hint">Category or section of the test (e.g., Reading, Listening, etc.)</small>
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form_label(form.questionText, null, {'label_attr': {'class': 'form-label required'}}) }}
+                            {{ form_widget(form.questionText, {'attr': {'class': 'form-control', 'rows': 4}}) }}
+                            {{ form_errors(form.questionText) }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form_label(form.options, null, {'label_attr': {'class': 'form-label required'}}) }}
+                            {{ form_widget(form.options, {'attr': {'class': 'form-control', 'rows': 6}}) }}
+                            {{ form_errors(form.options) }}
+                            <small class="form-hint">Enter options as a JSON array. Example: ["Option A", "Option B", "Option C", "Option D"]</small>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    {{ form_label(form.correctAnswer, null, {'label_attr': {'class': 'form-label required'}}) }}
+                                    {{ form_widget(form.correctAnswer, {'attr': {'class': 'form-control'}}) }}
+                                    {{ form_errors(form.correctAnswer) }}
+                                    <small class="form-hint">The correct answer for this question</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form_label(form.points, null, {'label_attr': {'class': 'form-label required'}}) }}
+                                    {{ form_widget(form.points, {'attr': {'class': 'form-control'}}) }}
+                                    {{ form_errors(form.points) }}
+                                    <small class="form-hint">Points for this question</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer text-end">
+                            <div class="d-flex">
+                                <a href="{{ path('testquestion_show', {id: testQuestion.id}) }}" class="btn btn-link">Cancel</a>
+                                <button type="submit" class="btn btn-primary ms-auto">
+                                    <i class="ti ti-device-floppy"></i>
+                                    Update Question
+                                </button>
+                            </div>
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+    // Helper to format JSON in the options field
+    document.addEventListener('DOMContentLoaded', function() {
+        const optionsField = document.querySelector('textarea[name*="[options]"]');
+        if (optionsField) {
+            // Format on load
+            try {
+                const parsed = JSON.parse(optionsField.value);
+                optionsField.value = JSON.stringify(parsed, null, 2);
+            } catch (e) {
+                // Invalid JSON, don't format
+            }
+            
+            // Format on blur
+            optionsField.addEventListener('blur', function() {
+                try {
+                    const parsed = JSON.parse(this.value);
+                    this.value = JSON.stringify(parsed, null, 2);
+                } catch (e) {
+                    // Invalid JSON, don't format
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
+
