@@ -2,8 +2,8 @@
 
 {% block title %}Gestion des Réponses - Forum{% endblock %}
 
-{% block content %}
-<div class="container-fluid mt-5">
+{% block body %}
+    <div class="container-fluid mt-5">
     <div class="row mb-4">
         <div class="col-md-6">
             <h1><i class="ti ti-messages"></i> Gestion des Réponses du Forum</h1>
@@ -63,13 +63,13 @@
             <form method="GET" class="row g-3">
                 <div class="col-md-3">
                     <label class="form-label">Mot-clé</label>
-                    <input type="text" name="keyword" class="form-control" placeholder="Rechercher..." 
+                    <input type="text" name="keyword" class="form-control" placeholder="Rechercher..."
                            value="{{ filters.keyword ?? '' }}">
                 </div>
 
                 <div class="col-md-2">
                     <label class="form-label">ID Auteur</label>
-                    <input type="number" name="authorId" class="form-control" placeholder="ID Auteur" 
+                    <input type="number" name="authorId" class="form-control" placeholder="ID Auteur"
                            value="{{ filters.authorId ?? '' }}">
                 </div>
 
@@ -238,28 +238,28 @@
                             </td>
                             <td>
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input toggle-status" type="checkbox" 
+                                    <input class="form-check-input toggle-status" type="checkbox"
                                            {% if reply.isActive %}checked{% endif %}
-                                           data-reply-id="{{ reply.id }}" 
+                                           data-reply-id="{{ reply.id }}"
                                            data-url="{{ path('admin_forum_reply_toggle_status', {id: reply.id}) }}">
                                 </div>
                             </td>
                             <td>
                                 <div class="btn-group btn-group-sm" role="group">
                                     {% if not reply.isBestAnswer %}
-                                    <button type="button" class="btn btn-success mark-best-answer" 
-                                            data-reply-id="{{ reply.id }}" 
-                                            data-url="{{ path('admin_forum_reply_mark_best_answer', {id: reply.id}) }}" 
+                                    <button type="button" class="btn btn-success mark-best-answer"
+                                            data-reply-id="{{ reply.id }}"
+                                            data-url="{{ path('admin_forum_reply_mark_best_answer', {id: reply.id}) }}"
                                             title="Marquer comme meilleure réponse">
                                         <i class="ti ti-star"></i>
                                     </button>
                                     {% endif %}
-                                    <a href="{{ path('admin_forum_reply_edit', {id: reply.id}) }}" 
+                                    <a href="{{ path('admin_forum_reply_edit', {id: reply.id}) }}"
                                        class="btn btn-warning" title="Modifier">
                                         <i class="ti ti-pencil"></i>
                                     </a>
-                                    <button type="button" class="btn btn-danger delete-reply" 
-                                            data-reply-id="{{ reply.id }}" data-url="{{ path('admin_forum_reply_delete', {id: reply.id}) }}" 
+                                    <button type="button" class="btn btn-danger delete-reply"
+                                            data-reply-id="{{ reply.id }}" data-url="{{ path('admin_forum_reply_delete', {id: reply.id}) }}"
                                             title="Supprimer">
                                         <i class="ti ti-trash"></i>
                                     </button>
@@ -390,7 +390,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectedIds = Array.from(checkboxes)
             .filter(cb => cb.checked)
             .map(cb => cb.value);
-        
+
         selectedIds.forEach(id => {
             const input = document.createElement('input');
             input.type = 'hidden';

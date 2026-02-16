@@ -1,9 +1,9 @@
-{% extends 'base.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
-{% block title %}Détails du Post #{{ post.id }} - Forum{% endblock %}
+{% block title %}{% block page_title %}Post #{{ post.id }}{% endblock %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-5">
+
     <div class="row mb-4">
         <div class="col-md-8">
             <h1>{{ post.title }}</h1>
@@ -138,5 +138,5 @@
             </div>
         </div>
     </div>
-</div>
+    </div>
 {% endblock %}

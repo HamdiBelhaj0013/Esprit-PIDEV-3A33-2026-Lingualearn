@@ -1,6 +1,6 @@
-ï»¿{% extends 'base.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
-{% block title %}Admin Â· {{ lesson.title }}{% endblock %}
+{% block title %}Admin · {{ lesson.title }}{% endblock %}
 
 {% block page_title %}{{ lesson.title }}{% endblock %}
 
@@ -11,9 +11,9 @@
                 <i class="ti ti-home"></i> Tableau de bord
             </a>
         </li>
-        <li class="breadcrumb-item">Contenu PÃ©dagogique</li>
+        <li class="breadcrumb-item">Contenu Pédagogique</li>
         <li class="breadcrumb-item">
-            <a href="{{ path('admin_lesson_index') }}">LeÃ§ons</a>
+            <a href="{{ path('admin_lesson_index') }}">Leçons</a>
         </li>
         <li class="breadcrumb-item active">{{ lesson.title }}</li>
     </ol>
@@ -32,7 +32,7 @@
     </div>
 {% endblock %}
 
-{% block body %}
+{% block content %}
 <div class="row">
     <div class="col-md-8">
         <div class="card">
@@ -63,7 +63,7 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="mb-4">
-                            <h4 class="text-muted mb-2">RÃ©compense XP</h4>
+                            <h4 class="text-muted mb-2">Récompense XP</h4>
                             <p class="mb-0">
                                 <span class="badge bg-yellow">{{ lesson.xpReward }} XP</span>
                             </p>
@@ -102,7 +102,7 @@
                             <table class="table table-sm table-striped">
                                 <thead>
                                     <tr>
-                                        <th>RÃ¨gle</th>
+                                        <th>Règle</th>
                                         <th>Exemple</th>
                                     </tr>
                                 </thead>

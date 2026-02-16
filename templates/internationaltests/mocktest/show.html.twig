@@ -1,4 +1,4 @@
-{% extends 'base.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
 {% block title %}{{ mockTest.title }} - {{ parent() }}{% endblock %}
 
@@ -19,7 +19,7 @@
     </div>
 {% endblock %}
 
-{% block body %}
+{% block content %}
     <div class="row">
         {# Main Information Card #}
         <div class="col-md-8">
@@ -327,3 +327,4 @@
         </div>
     </div>
 {% endblock %}
+

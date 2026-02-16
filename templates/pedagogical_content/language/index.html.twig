@@ -1,6 +1,6 @@
-ï»¿{% extends 'base.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
-{% block title %}Admin Â· Langues{% endblock %}
+{% block title %}Admin · Langues{% endblock %}
 
 {% block page_title %}
     <i class="ti ti-language text-primary me-2"></i> Langues
@@ -14,7 +14,7 @@
         </a>
     </li>
     <li class="breadcrumb-item">
-        <a href="{{ path('admin_pedagogical_content_index') }}" style="color: #206bc4; text-decoration: none;">Contenu PÃ©dagogique</a>
+        <a href="{{ path('admin_pedagogical_content_index') }}" style="color: #206bc4; text-decoration: none;">Contenu Pédagogique</a>
     </li>
     <li class="breadcrumb-item active" style="color: #206bc4;">Langues</li>
 </ol>
@@ -23,12 +23,12 @@
 {% block page_actions %}
 <div class="col-auto">
     <a href="{{ path('admin_language_new') }}" class="btn btn-primary shadow-sm" style="border-radius: 8px; font-weight: 600;">
-        <i class="ti ti-plus me-1"></i> CrÃ©er une langue
+        <i class="ti ti-plus me-1"></i> Créer une langue
     </a>
 </div>
 {% endblock %}
 
-{% block body %}
+{% block content %}
 <div class="row g-4">
 
     <!-- Formulaire de recherche -->
@@ -49,8 +49,8 @@
                         </label>
                         <select name="enabled" id="enabledFilter" class="form-select form-select-sm" style="border-radius: 8px;">
                             <option value="">-- Tous --</option>
-                            <option value="1" {% if enabled == '1' %}selected{% endif %}>ActivÃ©es</option>
-                            <option value="0" {% if enabled == '0' %}selected{% endif %}>DÃ©sactivÃ©es</option>
+                            <option value="1" {% if enabled == '1' %}selected{% endif %}>Activées</option>
+                            <option value="0" {% if enabled == '0' %}selected{% endif %}>Désactivées</option>
                         </select>
                     </div>
                     <div class="col-md-2">
@@ -63,8 +63,8 @@
                     <div class="col-md-1">
                         <label class="form-label fw-bold text-secondary small text-uppercase">Ordre</label>
                         <select name="order" id="orderSelect" class="form-select form-select-sm" style="border-radius: 8px;">
-                            <option value="ASC" {% if order == 'ASC' %}selected{% endif %}>â†‘</option>
-                            <option value="DESC" {% if order == 'DESC' %}selected{% endif %}>â†“</option>
+                            <option value="ASC" {% if order == 'ASC' %}selected{% endif %}>?</option>
+                            <option value="DESC" {% if order == 'DESC' %}selected{% endif %}>?</option>
                         </select>
                     </div>
                     <div class="col-md-2 d-flex gap-2">
@@ -151,3 +151,4 @@ attachToggleEvents();
 </style>
 {% endblock %}
 {% endblock %}
+

@@ -20,7 +20,8 @@
 <div class="page page-center">
     <div class="container container-tight py-4">
         <div class="text-center mb-4">
-            <a href="{{ path('admin_dashboard') }}" class="navbar-brand navbar-brand-autodark">
+            {# FIXED: Changed from admin_dashboard to homepage - prevents error when not logged in #}
+            <a href="{{ path('app_homepage') }}" class="navbar-brand navbar-brand-autodark">
                 <i class="ti ti-shield-lock fs-1 text-white"></i>
                 <span class="ms-2 fs-2 text-white">LinguaLearn Admin</span>
             </a>
@@ -32,6 +33,31 @@
                     <i class="ti ti-user-shield text-primary"></i>
                     <br>Admin Login
                 </h2>
+
+                {# Show flash messages from SecurityController #}
+                {% for message in app.flashes('error') %}
+                    <div class="alert alert-danger alert-dismissible" role="alert">
+                        <div class="d-flex">
+                            <div>
+                                <i class="ti ti-alert-circle icon alert-icon"></i>
+                            </div>
+                            <div>{{ message }}</div>
+                        </div>
+                        <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+                    </div>
+                {% endfor %}
+
+                {% for message in app.flashes('warning') %}
+                    <div class="alert alert-warning alert-dismissible" role="alert">
+                        <div class="d-flex">
+                            <div>
+                                <i class="ti ti-alert-triangle icon alert-icon"></i>
+                            </div>
+                            <div>{{ message }}</div>
+                        </div>
+                        <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+                    </div>
+                {% endfor %}
 
                 {% if error %}
                     <div class="alert alert-danger alert-dismissible" role="alert">
@@ -117,6 +143,12 @@
             <small>
                 <i class="ti ti-lock me-1"></i>
                 Secure admin access only
+            </small>
+        </div>
+
+        <div class="text-center mt-2">
+            <small class="text-white">
+                Not an admin? <a href="{{ path('app_login') }}" class="text-white text-decoration-underline">User Login</a>
             </small>
         </div>
     </div>

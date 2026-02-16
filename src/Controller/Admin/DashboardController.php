@@ -12,7 +12,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/admin')]
-#[IsGranted('ROLE_ADMIN')]  // Enabled: Only admins can access this controller
+#[IsGranted('ROLE_ADMIN')]
 class DashboardController extends AbstractController
 {
     public function __construct(
@@ -45,7 +45,7 @@ class DashboardController extends AbstractController
 
         // Content Statistics - Use dynamic repository lookup
         $courseCount = $this->getEntityCount('App\Module\PedagogicalContent\Entity\Course') ?? 0;
-        $exerciseCount = $this->getEntityCount('App\Module\ExercisesQuizzes\Entity\Exercice') ?? 0;
+        $exerciseCount = $this->getEntityCount('App\Module\ExercisesQuizzes\Entity\Exercise') ?? 0;
 
         // Course Statistics
         $courseStats = [
@@ -215,7 +215,7 @@ class DashboardController extends AbstractController
     private function getForumStatistics(): array
     {
         try {
-            $forumPostRepo = $this->entityManager->getRepository('App\Entity\ForumPost');
+            $forumPostRepo = $this->entityManager->getRepository('App\Module\Forum\Entity\ForumPost');
             $today = new \DateTime('today');
 
             $qb = $forumPostRepo->createQueryBuilder('fp');

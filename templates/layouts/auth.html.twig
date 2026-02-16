@@ -1,0 +1,33 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{% block page_title %}Welcome{% endblock %}{% endblock %}
+
+{% block body %}
+<div class="page page-center">
+    <div class="container container-tight py-4">
+        <div class="text-center mb-4">
+            <a href="/" class="navbar-brand navbar-brand-autodark">
+                <i class="ti ti-language fs-1 text-primary"></i>
+                <span class="ms-2 h1">LinguaLearn</span>
+            </a>
+        </div>
+
+        {# Flash Messages #}
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        {# Main Content - USE 'content' BLOCK #}
+        {% block content %}{% endblock %}
+
+        <div class="text-center text-muted mt-3">
+            <small>&copy; {{ 'now'|date('Y') }} LinguaLearn. All rights reserved.</small>
+        </div>
+    </div>
+</div>
+{% endblock %}

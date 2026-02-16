@@ -1,4 +1,4 @@
-{% extends 'base/layout.html.twig' %}
+{% extends 'layouts/user.html.twig' %}
 
 {% block title %}Modifier réclamation #{{ reclamation.id }} - Support{% endblock %}
 
@@ -6,7 +6,7 @@
     <i class="ti ti-edit me-2"></i> Modifier la réclamation #{{ reclamation.id }}
 {% endblock %}
 
-{% block body %}
+{% block content %}
 <div class="row">
     <div class="col-lg-8">
         <div class="card">
@@ -119,3 +119,4 @@
     </div>
 </div>
 {% endblock %}
+

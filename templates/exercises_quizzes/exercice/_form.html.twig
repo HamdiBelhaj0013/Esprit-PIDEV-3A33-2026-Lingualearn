@@ -1,9 +1,9 @@
 {# templates/exercises_quizzes/exercice/_form.html.twig #}
-{% extends 'base.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
 {% block title %}{{ is_edit ? 'Modifier' : 'Créer' }} un Exercice{% endblock %}
 
-{% block body %}
+{% block content %}
 <div class="row">
     <div class="col-lg-8 mx-auto">
         <div class="card">
@@ -63,3 +63,4 @@
     </div>
 </div>
 {% endblock %}
+

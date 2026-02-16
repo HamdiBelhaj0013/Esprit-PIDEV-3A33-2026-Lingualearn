@@ -1,6 +1,6 @@
-ï»¿{% extends 'base.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
-{% block title %}Admin Â· Modifier le cours{% endblock %}
+{% block title %}Admin · Modifier le cours{% endblock %}
 
 {% block page_title %}Modifier le cours{% endblock %}
 
@@ -11,7 +11,7 @@
                 <i class="ti ti-home"></i> Tableau de bord
             </a>
         </li>
-        <li class="breadcrumb-item">Contenu PÃ©dagogique</li>
+        <li class="breadcrumb-item">Contenu Pédagogique</li>
         <li class="breadcrumb-item">
             <a href="{{ path('admin_course_index') }}">Cours</a>
         </li>
@@ -19,7 +19,7 @@
     </ol>
 {% endblock %}
 
-{% block body %}
+{% block content %}
 <div class="row">
     <div class="col-md-8">
         <div class="card">
@@ -27,7 +27,7 @@
                 {{ form_start(form, {'attr': {'class': 'form-horizontal', 'novalidate': 'novalidate'}}) }}
                     <div class="mb-3">
                         {{ form_label(form.title, 'Titre du cours', {'label_attr': {'class': 'form-label'}}) }}
-                        {{ form_widget(form.title, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Espagnol pour dÃ©butants'}}) }}
+                        {{ form_widget(form.title, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Espagnol pour débutants'}}) }}
                         {{ form_errors(form.title) }}
                     </div>
 

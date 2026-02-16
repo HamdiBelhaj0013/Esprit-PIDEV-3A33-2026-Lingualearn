@@ -1,4 +1,4 @@
-{% extends 'admin/base.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
 {% block title %}{{ user.fullName }} - User Details - {{ parent() }}{% endblock %}
 
@@ -28,7 +28,7 @@
     </div>
 {% endblock %}
 
-{% block body %}
+{% block content %}
     <div class="row row-deck row-cards">
         {# User Profile Card #}
         <div class="col-md-4">
@@ -289,3 +289,4 @@
         </div>
     </div>
 {% endblock %}
+

@@ -1,9 +1,9 @@
-{% extends 'base.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
-{% block title %}Modifier un Post - Forum{% endblock %}
+{% block title %}{% block page_title %}Edit Post{% endblock %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-5">
+
     <div class="row mb-4">
         <div class="col-md-8">
             <h1><i class="bi bi-pencil-square"></i> Modifier le Post #{{ post.id }}</h1>
@@ -129,5 +129,5 @@
             </div>
         </div>
     </div>
-</div>
+    </div>
 {% endblock %}

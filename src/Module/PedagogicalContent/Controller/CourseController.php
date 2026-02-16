@@ -58,7 +58,7 @@ class CourseController extends AbstractController
         // Tri
         $validSortFields = ['title', 'level', 'status'];
         $validOrder = strtoupper($order) === 'DESC' ? 'DESC' : 'ASC';
-        
+
         if (in_array($sort, $validSortFields)) {
             $queryBuilder->orderBy('c.' . $sort, $validOrder);
         } else {

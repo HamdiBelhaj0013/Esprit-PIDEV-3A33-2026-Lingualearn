@@ -1,8 +1,8 @@
-ï»¿{% extends 'base.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
-{% block title %}Admin Â· CrÃ©er un cours{% endblock %}
+{% block title %}Admin · Créer un cours{% endblock %}
 
-{% block page_title %}CrÃ©er un cours{% endblock %}
+{% block page_title %}Créer un cours{% endblock %}
 
 {% block breadcrumb %}
     <ol class="breadcrumb breadcrumb-icons" aria-label="breadcrumbs">
@@ -11,15 +11,15 @@
                 <i class="ti ti-home"></i> Tableau de bord
             </a>
         </li>
-        <li class="breadcrumb-item">Contenu PÃ©dagogique</li>
+        <li class="breadcrumb-item">Contenu Pédagogique</li>
         <li class="breadcrumb-item">
             <a href="{{ path('admin_course_index') }}">Cours</a>
         </li>
-        <li class="breadcrumb-item active">CrÃ©er un cours</li>
+        <li class="breadcrumb-item active">Créer un cours</li>
     </ol>
 {% endblock %}
 
-{% block body %}
+{% block content %}
 <div class="row">
     <div class="col-md-8">
         <div class="card">
@@ -27,7 +27,7 @@
                 {{ form_start(form, {'attr': {'class': 'form-horizontal', 'novalidate': 'novalidate'}}) }}
                     <div class="mb-3">
                         {{ form_label(form.title, 'Titre du cours', {'label_attr': {'class': 'form-label'}}) }}
-                        {{ form_widget(form.title, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Espagnol pour dÃ©butants'}}) }}
+                        {{ form_widget(form.title, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Espagnol pour débutants'}}) }}
                         {{ form_errors(form.title) }}
                     </div>
 
@@ -51,7 +51,7 @@
 
                     <div class="form-footer">
                         <button type="submit" class="btn btn-primary">
-                            <i class="ti ti-check"></i> CrÃ©er le cours
+                            <i class="ti ti-check"></i> Créer le cours
                         </button>
                         <a href="{{ path('admin_course_index') }}" class="btn btn-secondary">
                             <i class="ti ti-arrow-left"></i> Retour

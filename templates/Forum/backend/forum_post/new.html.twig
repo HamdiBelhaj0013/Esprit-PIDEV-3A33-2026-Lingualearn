@@ -1,9 +1,9 @@
-{% extends 'base.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
-{% block title %}Créer un Post - Forum{% endblock %}
+{% block title %}{% block page_title %}New Post{% endblock %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-5">
+
     <div class="row mb-4">
         <div class="col-md-8">
             <h1><i class="ti ti-plus-circle"></i> Créer un nouveau Post</h1>
@@ -117,5 +117,5 @@
             </div>
         </div>
     </div>
-</div>
+    </div>
 {% endblock %}

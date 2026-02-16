@@ -1,4 +1,4 @@
-{% extends 'base.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
 {% block title %}{{ quiz.title }}{% endblock %}
 
@@ -29,7 +29,7 @@
     </div>
 {% endblock %}
 
-{% block body %}
+{% block content %}
 <div class="row row-deck row-cards">
     {# Quiz Info Card #}
     <div class="col-lg-8">

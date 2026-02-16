@@ -1,8 +1,8 @@
-ï»¿{% extends 'base.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
-{% block title %}Admin Â· Modifier la leÃ§on{% endblock %}
+{% block title %}Admin · Modifier la leçon{% endblock %}
 
-{% block page_title %}Modifier la leÃ§on{% endblock %}
+{% block page_title %}Modifier la leçon{% endblock %}
 
 {% block breadcrumb %}
     <ol class="breadcrumb breadcrumb-icons" aria-label="breadcrumbs">
@@ -11,15 +11,15 @@
                 <i class="ti ti-home"></i> Tableau de bord
             </a>
         </li>
-        <li class="breadcrumb-item">Contenu PÃ©dagogique</li>
+        <li class="breadcrumb-item">Contenu Pédagogique</li>
         <li class="breadcrumb-item">
-            <a href="{{ path('admin_lesson_index') }}">LeÃ§ons</a>
+            <a href="{{ path('admin_lesson_index') }}">Leçons</a>
         </li>
         <li class="breadcrumb-item active">{{ lesson.title }}</li>
     </ol>
 {% endblock %}
 
-{% block body %}
+{% block content %}
 <div class="row">
     <div class="col-md-8">
         <div class="card">
@@ -27,39 +27,39 @@
                 {{ form_start(form, {'attr': {'class': 'form-horizontal', 'novalidate': 'novalidate'}}) }}
                     <div class="mb-3">
                         {{ form_label(form.title, 'Titre', {'label_attr': {'class': 'form-label'}}) }}
-                        {{ form_widget(form.title, {'attr': {'class': 'form-control', 'placeholder': 'Titre de la leÃ§on'}}) }}
+                        {{ form_widget(form.title, {'attr': {'class': 'form-control', 'placeholder': 'Titre de la leçon'}}) }}
                         {{ form_errors(form.title) }}
                     </div>
 
                     <div class="mb-3">
                         {{ form_label(form.content, 'Contenu', {'label_attr': {'class': 'form-label'}}) }}
-                        {{ form_widget(form.content, {'attr': {'class': 'form-control', 'rows': '8', 'placeholder': 'Contenu principal de la leÃ§on'}}) }}
+                        {{ form_widget(form.content, {'attr': {'class': 'form-control', 'rows': '8', 'placeholder': 'Contenu principal de la leçon'}}) }}
                         {{ form_errors(form.content) }}
                     </div>
 
                     <div class="mb-3">
-                        {{ form_label(form.course, 'Cours associÃ©', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_label(form.course, 'Cours associé', {'label_attr': {'class': 'form-label'}}) }}
                         {{ form_widget(form.course, {'attr': {'class': 'form-select'}}) }}
                         {{ form_errors(form.course) }}
                     </div>
 
                     <div class="mb-3">
-                        {{ form_label(form.xpReward, 'RÃ©compense XP', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_label(form.xpReward, 'Récompense XP', {'label_attr': {'class': 'form-label'}}) }}
                         {{ form_widget(form.xpReward, {'attr': {'class': 'form-control', 'type': 'number', 'min': '0'}}) }}
                         {{ form_errors(form.xpReward) }}
                     </div>
 
                     <div class="mb-3">
-                        {{ form_label(form.vocabularyData, 'DonnÃ©es de vocabulaire (JSON)', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_label(form.vocabularyData, 'Données de vocabulaire (JSON)', {'label_attr': {'class': 'form-label'}}) }}
                         {{ form_widget(form.vocabularyData, {'attr': {'class': 'form-control', 'rows': '5', 'placeholder': '[{"word": "hello", "translation": "bonjour"}]'}}) }}
                         <small class="form-text text-muted">Format: [{"word": "mot", "translation": "traduction"}]</small>
                         {{ form_errors(form.vocabularyData) }}
                     </div>
 
                     <div class="mb-3">
-                        {{ form_label(form.grammarData, 'DonnÃ©es de grammaire (JSON)', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_label(form.grammarData, 'Données de grammaire (JSON)', {'label_attr': {'class': 'form-label'}}) }}
                         {{ form_widget(form.grammarData, {'attr': {'class': 'form-control', 'rows': '5', 'placeholder': '[{"rule": "nom", "example": "Je m\'appelle Jean"}]'}}) }}
-                        <small class="form-text text-muted">Format: [{"rule": "rÃ¨gle", "example": "exemple"}]</small>
+                        <small class="form-text text-muted">Format: [{"rule": "règle", "example": "exemple"}]</small>
                         {{ form_errors(form.grammarData) }}
                     </div>
 

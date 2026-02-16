@@ -1,8 +1,8 @@
-{% extends 'base.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
 {% block title %}Modifier le statut{% endblock %}
 
-{% block body %}
+{% block content %}
 <h1>Modifier le statut</h1>
 
 <form method="POST">
@@ -14,3 +14,4 @@
 
 <a href="{{ path('app_exercises_quizzes_user_lesson_status_list') }}">Retour à la liste</a>
 {% endblock %}
+

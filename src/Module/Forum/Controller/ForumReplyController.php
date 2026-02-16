@@ -67,7 +67,7 @@ class ForumReplyController extends AbstractController
     public function new(Request $request): Response
     {
         $reply = new ForumReply();
-        
+
         $postId = $request->query->get('postId');
         if ($postId) {
             $post = $this->postRepository->find($postId);
@@ -98,7 +98,7 @@ class ForumReplyController extends AbstractController
     public function searchAjax(Request $request): JsonResponse
     {
         $keyword = $request->query->get('keyword', '');
-        
+
         if (strlen($keyword) < 2) {
             return $this->json([
                 'success' => false,
@@ -184,7 +184,7 @@ class ForumReplyController extends AbstractController
         $replies = $this->repository->findAll();
 
         $csv = "ID;Post;Auteur ID;Contenu;Date de réponse;Statut;Meilleure réponse\n";
-        
+
         foreach ($replies as $reply) {
             $csv .= sprintf(
                 "%d;%s;%d;%s;%s;%s;%s\n",

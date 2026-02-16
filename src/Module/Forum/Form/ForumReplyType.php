@@ -11,6 +11,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Symfony\Component\Validator\Constraints as Assert;
 
 class ForumReplyType extends AbstractType
 {
@@ -24,6 +25,17 @@ class ForumReplyType extends AbstractType
                     'class' => 'form-control',
                     'placeholder' => 'Écrivez votre réponse...',
                     'rows' => 6
+                ],
+                'constraints' => [
+                    new Assert\NotBlank([
+                        'message' => 'Le contenu ne peut pas être vide'
+                    ]),
+                    new Assert\Length([
+                        'min' => 10,
+                        'max' => 5000,
+                        'minMessage' => 'La réponse doit contenir au moins {{ limit }} caractères',
+                        'maxMessage' => 'La réponse ne peut pas dépasser {{ limit }} caractères'
+                    ])
                 ]
             ])
             ->add('post', EntityType::class, [
@@ -34,14 +46,23 @@ class ForumReplyType extends AbstractType
                     'class' => 'form-select'
                 ],
                 'required' => true,
-                'disabled' => true  // ✅ DÉSACTIVER LE CHAMP
+                'disabled' => true  // Empêche la modification du post parent
             ])
             ->add('authorId', IntegerType::class, [
                 'label' => 'ID Auteur',
                 'required' => true,
                 'attr' => [
                     'class' => 'form-control',
-                    'placeholder' => 'ID de l\'auteur'
+                    'placeholder' => 'ID de l\'auteur',
+                    'readonly' => true  // L'auteur ne devrait pas être modifiable
+                ],
+                'constraints' => [
+                    new Assert\NotBlank([
+                        'message' => 'L\'ID de l\'auteur est requis'
+                    ]),
+                    new Assert\Positive([
+                        'message' => 'L\'ID de l\'auteur doit être un nombre positif'
+                    ])
                 ]
             ])
             ->add('isActive', CheckboxType::class, [
@@ -49,14 +70,16 @@ class ForumReplyType extends AbstractType
                 'required' => false,
                 'attr' => [
                     'class' => 'form-check-input'
-                ]
+                ],
+                'help' => 'Décochez pour masquer cette réponse'
             ])
             ->add('isBestAnswer', CheckboxType::class, [
                 'label' => 'Marquer comme meilleure réponse',
                 'required' => false,
                 'attr' => [
                     'class' => 'form-check-input'
-                ]
+                ],
+                'help' => 'Une seule réponse peut être marquée comme meilleure réponse'
             ]);
     }
 

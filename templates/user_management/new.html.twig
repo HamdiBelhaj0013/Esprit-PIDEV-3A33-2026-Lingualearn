@@ -1,4 +1,4 @@
-{% extends 'admin/base.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
 {% block title %}{{ user.id ? 'Edit User' : 'Create New User' }} - {{ parent() }}{% endblock %}
 
@@ -28,7 +28,7 @@
     </div>
 {% endblock %}
 
-{% block body %}
+{% block content %}
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card">
@@ -407,3 +407,4 @@
         }
     </style>
 {% endblock %}
+

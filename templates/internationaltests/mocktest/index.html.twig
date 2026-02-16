@@ -1,4 +1,4 @@
-{% extends 'base.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
 {% block title %}Mock Tests - {{ parent() }}{% endblock %}
 
@@ -15,7 +15,7 @@
     </div>
 {% endblock %}
 
-{% block body %}
+{% block content %}
     {# Statistics Cards #}
     <div class="row row-cards mb-3">
         <div class="col-sm-6 col-lg-3">
@@ -566,3 +566,4 @@
         });
     </script>
 {% endblock %}
+

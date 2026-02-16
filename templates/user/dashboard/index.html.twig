@@ -1,4 +1,4 @@
-{% extends 'user/base.html.twig' %}
+{% extends 'layouts/user.html.twig' %}
 
 {% block title %}My Dashboard{% endblock %}
 
@@ -6,7 +6,7 @@
     <i class="ti ti-home me-2"></i> Welcome back, {{ user.firstName }}!
 {% endblock %}
 
-{% block body %}
+{% block content %}
     <div class="row row-deck row-cards mt-2">
 
         {# Premium banner for free users #}
@@ -195,3 +195,4 @@
 
     </div>
 {% endblock %}
+

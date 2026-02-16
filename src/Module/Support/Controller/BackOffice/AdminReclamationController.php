@@ -16,11 +16,11 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route('/admin/support/reclamations')]
 class AdminReclamationController extends AbstractController
 {
-    #[Route('/', name: 'admin_reclamation_index', methods: ['GET'])]
+    #[Route('/', name: 'app_support_back_reclamation_index', methods: ['GET'])]
     public function index(ReclamationService $reclamationService, Request $request): Response
     {
         $status = $request->query->get('status');
-        $reclamations = $status 
+        $reclamations = $status
             ? $reclamationService->findByStatus($status)
             : $reclamationService->findAll();
 
@@ -32,20 +32,20 @@ class AdminReclamationController extends AbstractController
 
     #[Route('/{id}', name: 'admin_reclamation_show', methods: ['GET', 'POST'])]
     public function show(
-        Reclamation $reclamation, 
-        Request $request, 
+        Reclamation $reclamation,
+        Request $request,
         ReclamationService $reclamationService,
         EntityManagerInterface $entityManager
     ): Response {
         $response = new SupportResponse();
         $response->setAuthor($this->getUser());
-        
+
         $form = $this->createForm(SupportResponseType::class, $response);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $reclamationService->addResponse($reclamation, $response);
-            
+
             // Mettre à jour le statut si spécifié
             $newStatus = $form->get('status')->getData();
             if ($newStatus) {
@@ -72,6 +72,6 @@ class AdminReclamationController extends AbstractController
             $this->addFlash('success', 'Réclamation supprimée avec succès.');
         }
 
-        return $this->redirectToRoute('admin_reclamation_index');
+        return $this->redirectToRoute('app_support_back_reclamation_index');
     }
 }

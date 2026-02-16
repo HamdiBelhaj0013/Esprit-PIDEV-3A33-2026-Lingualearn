@@ -1,4 +1,4 @@
-{% extends 'admin/base.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
 {% block title %}Users Management - {{ parent() }}{% endblock %}
 {% block page_title %}
@@ -12,7 +12,7 @@
         </a>
     </div>
 {% endblock %}
-{% block body %}
+{% block content %}
     <div class="card mb-3">
         <div class="card-body">
             <form method="get" action="{{ path('admin_users_index') }}">
@@ -196,3 +196,4 @@
         {% endif %}
     </div>
 {% endblock %}
+

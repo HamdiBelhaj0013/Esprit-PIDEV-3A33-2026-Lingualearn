@@ -1,9 +1,9 @@
-ï»¿{% extends 'base.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
-{% block title %}Admin Â· LeÃ§ons{% endblock %}
+{% block title %}Admin · Leçons{% endblock %}
 
 {% block page_title %}
-    <i class="ti ti-notebook text-primary me-2"></i> LeÃ§ons
+    <i class="ti ti-notebook text-primary me-2"></i> Leçons
 {% endblock %}
 
 {% block breadcrumb %}
@@ -14,21 +14,21 @@
         </a>
     </li>
     <li class="breadcrumb-item">
-        <a href="{{ path('admin_pedagogical_content_index') }}" style="color: #206bc4; text-decoration: none;">Contenu PÃ©dagogique</a>
+        <a href="{{ path('admin_pedagogical_content_index') }}" style="color: #206bc4; text-decoration: none;">Contenu Pédagogique</a>
     </li>
-    <li class="breadcrumb-item active" style="color: #206bc4;">LeÃ§ons</li>
+    <li class="breadcrumb-item active" style="color: #206bc4;">Leçons</li>
 </ol>
 {% endblock %}
 
 {% block page_actions %}
 <div class="col-auto">
     <a href="{{ path('admin_lesson_new') }}" class="btn btn-primary shadow-sm" style="border-radius: 8px; font-weight: 600;">
-        <i class="ti ti-plus me-1"></i> CrÃ©er une leÃ§on
+        <i class="ti ti-plus me-1"></i> Créer une leçon
     </a>
 </div>
 {% endblock %}
 
-{% block body %}
+{% block content %}
 <div class="row g-4">
 
     <!-- Formulaire de recherche et filtrage -->
@@ -60,7 +60,7 @@
                         </label>
                         <select name="sort" id="sortSelect" class="form-select form-select-sm" style="border-radius: 8px;">
                             <option value="title" {% if sort == 'title' %}selected{% endif %}>Titre</option>
-                            <option value="xpReward" {% if sort == 'xpReward' %}selected{% endif %}>RÃ©compense XP</option>
+                            <option value="xpReward" {% if sort == 'xpReward' %}selected{% endif %}>Récompense XP</option>
                         </select>
                     </div>
                     <div class="col-md-2">
@@ -68,8 +68,8 @@
                             <i class="ti ti-arrow-up-down"></i> Ordre
                         </label>
                         <select name="order" id="orderSelect" class="form-select form-select-sm" style="border-radius: 8px;">
-                            <option value="ASC" {% if order == 'ASC' %}selected{% endif %}>Croissant â†‘</option>
-                            <option value="DESC" {% if order == 'DESC' %}selected{% endif %}>DÃ©croissant â†“</option>
+                            <option value="ASC" {% if order == 'ASC' %}selected{% endif %}>Croissant ?</option>
+                            <option value="DESC" {% if order == 'DESC' %}selected{% endif %}>Décroissant ?</option>
                         </select>
                     </div>
                     <div class="col-md-1 d-flex gap-2">
@@ -83,7 +83,7 @@
                 </form>
 
                 <div id="searchInfo" class="mt-2 small text-secondary" style="display: none;">
-                    RÃ©sultats pour: <strong id="searchInfoText"></strong>
+                    Résultats pour: <strong id="searchInfoText"></strong>
                 </div>
             </div>
         </div>
@@ -131,7 +131,7 @@ function performSearch() {
     lessonTableContainer.style.opacity = '0.5';
 
     fetch('{{ path('admin_lesson_index') }}?' + params.toString(), { headers: { 'X-Requested-With':'XMLHttpRequest' } })
-        .then(r => r.ok ? r.json() : Promise.reject('Erreur rÃ©seau'))
+        .then(r => r.ok ? r.json() : Promise.reject('Erreur réseau'))
         .then(data => {
             lessonTableContainer.innerHTML = data.html;
             lessonTableContainer.style.transition = 'opacity 0.3s ease';
@@ -140,7 +140,7 @@ function performSearch() {
 
             if (searchValue) {
                 searchInfo.style.display = 'block';
-                searchInfoText.textContent = `"${searchValue}" (${data.count} rÃ©sultat${data.count !== 1 ? 's' : ''})`;
+                searchInfoText.textContent = `"${searchValue}" (${data.count} résultat${data.count !== 1 ? 's' : ''})`;
             } else { searchInfo.style.display = 'none'; }
 
             attachToggleEvents();
@@ -184,3 +184,4 @@ attachToggleEvents();
 .table-hover tbody tr:hover { background-color: #f0f8ff; transition: 0.2s; }
 </style>
 {% endblock %}
+

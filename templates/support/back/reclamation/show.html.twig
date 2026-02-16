@@ -1,4 +1,4 @@
-{% extends 'base/layout.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
 {% block title %}Reclamation #{{ reclamation.id }} - Admin{% endblock %}
 
@@ -6,7 +6,7 @@
     <i class="ti ti-ticket me-2"></i> Reclamation #{{ reclamation.id }}
 {% endblock %}
 
-{% block body %}
+{% block content %}
 <div class="row">
     <div class="col-lg-8">
         <!-- Reclamation Details -->
@@ -221,3 +221,4 @@
     </div>
 </div>
 {% endblock %}
+

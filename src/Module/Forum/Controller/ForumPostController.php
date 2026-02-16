@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 
+// ✅ FIXED: Changed to lowercase 'forum' to match the URL you're visiting
 #[Route('/admin/forum/post')]
 class ForumPostController extends AbstractController
 {
@@ -82,7 +83,7 @@ class ForumPostController extends AbstractController
     public function searchAjax(Request $request): JsonResponse
     {
         $keyword = $request->query->get('keyword', '');
-        
+
         if (strlen($keyword) < 2) {
             return $this->json([
                 'success' => false,
@@ -169,7 +170,7 @@ class ForumPostController extends AbstractController
         $posts = $this->repository->findAll();
 
         $csv = "ID;Titre;Auteur ID;Langue;Contenu;Date de publication;Statut;Vues;Réponses\n";
-        
+
         foreach ($posts as $post) {
             $csv .= sprintf(
                 "%d;%s;%d;%d;%s;%s;%s;%d;%d\n",

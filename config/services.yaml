@@ -42,3 +42,17 @@ services:
     App\Module\Support\Controller\:
         resource: '../src/Module/Support/Controller'
         tags: ['controller.service_arguments']
+
+    # Security - Login Success Handler for role-based redirects
+    App\Security\LoginSuccessHandler:
+        arguments:
+            $urlGenerator: '@router'
+
+    # Security - Admin Access Event Subscriber (prevents unauthorized admin access)
+    # DISABLED - File renamed to .DISABLED
+    # App\EventSubscriber\AdminAccessSubscriber:
+    #     arguments:
+    #         $security: '@security.helper'
+    #         $urlGenerator: '@router'
+    #     tags:
+    #         - { name: kernel.event_subscriber }

@@ -1,8 +1,8 @@
-{% extends 'base.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
 {% block title %}Statut utilisateur #{{ status.id }}{% endblock %}
 
-{% block body %}
+{% block content %}
 <h1>Statut utilisateur #{{ status.id }}</h1>
 
 <p><strong>Utilisateur :</strong> {{ status.user.username|default('—') }}</p>
@@ -17,3 +17,4 @@
 </form>
 <a href="{{ path('app_exercises_quizzes_user_lesson_status_list') }}">Retour à la liste</a>
 {% endblock %}
+

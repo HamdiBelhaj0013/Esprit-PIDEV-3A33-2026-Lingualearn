@@ -1,8 +1,8 @@
-ï»¿{% extends 'base.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
-{% block title %}Admin Â· CrÃ©er une langue{% endblock %}
+{% block title %}Admin · Créer une langue{% endblock %}
 
-{% block page_title %}CrÃ©er une langue{% endblock %}
+{% block page_title %}Créer une langue{% endblock %}
 
 {% block breadcrumb %}
     <ol class="breadcrumb breadcrumb-icons" aria-label="breadcrumbs">
@@ -11,15 +11,15 @@
                 <i class="ti ti-home"></i> Tableau de bord
             </a>
         </li>
-        <li class="breadcrumb-item">Contenu PÃ©dagogique</li>
+        <li class="breadcrumb-item">Contenu Pédagogique</li>
         <li class="breadcrumb-item">
             <a href="{{ path('admin_language_index') }}">Langues</a>
         </li>
-        <li class="breadcrumb-item active">CrÃ©er une langue</li>
+        <li class="breadcrumb-item active">Créer une langue</li>
     </ol>
 {% endblock %}
 
-{% block body %}
+{% block content %}
 <div class="row">
     <div class="col-md-8">
         <div class="card">
@@ -27,14 +27,14 @@
                 {{ form_start(form, {'attr': {'class': 'form-horizontal', 'novalidate': 'novalidate'}}) }}
                     <div class="mb-3">
                         {{ form_label(form.name, 'Nom de la langue', {'label_attr': {'class': 'form-label'}}) }}
-                        {{ form_widget(form.name, {'attr': {'class': 'form-control', 'placeholder': 'Ex: FranÃ§ais'}}) }}
+                        {{ form_widget(form.name, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Français'}}) }}
                         {{ form_errors(form.name) }}
                     </div>
 
                     <div class="mb-3">
                         {{ form_label(form.code, 'Code de la langue (ISO 639-1)', {'label_attr': {'class': 'form-label'}}) }}
                         {{ form_widget(form.code, {'attr': {'class': 'form-control', 'placeholder': 'Ex: fr'}}) }}
-                        <small class="form-text text-muted">Code ISO Ã  2 caractÃ¨res (ex: fr, en, es, de)</small>
+                        <small class="form-text text-muted">Code ISO à 2 caractères (ex: fr, en, es, de)</small>
                         {{ form_errors(form.code) }}
                     </div>
 
@@ -48,14 +48,14 @@
                     <div class="mb-3">
                         <div class="form-check">
                             {{ form_widget(form.isEnabled, {'attr': {'class': 'form-check-input'}}) }}
-                            {{ form_label(form.isEnabled, 'Langue activÃ©e', {'label_attr': {'class': 'form-check-label'}}) }}
+                            {{ form_label(form.isEnabled, 'Langue activée', {'label_attr': {'class': 'form-check-label'}}) }}
                         </div>
                         {{ form_errors(form.isEnabled) }}
                     </div>
 
                     <div class="form-footer">
                         <button type="submit" class="btn btn-primary">
-                            <i class="ti ti-check"></i> CrÃ©er la langue
+                            <i class="ti ti-check"></i> Créer la langue
                         </button>
                         <a href="{{ path('admin_language_index') }}" class="btn btn-secondary">
                             <i class="ti ti-arrow-left"></i> Retour

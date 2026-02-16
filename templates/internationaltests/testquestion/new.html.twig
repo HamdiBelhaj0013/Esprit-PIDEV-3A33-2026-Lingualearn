@@ -1,4 +1,4 @@
-{% extends 'base.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
 {% block title %}Create Test Question - {{ parent() }}{% endblock %}
 
@@ -13,7 +13,7 @@
     </ol>
 {% endblock %}
 
-{% block body %}
+{% block content %}
     <div class="row">
         <div class="col-md-10 mx-auto">
             <div class="card">
@@ -102,4 +102,5 @@
     });
 </script>
 {% endblock %}
+
 

@@ -14,7 +14,7 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route('/admin/support/faq')]
 class AdminFAQController extends AbstractController
 {
-    #[Route('/', name: 'admin_faq_index', methods: ['GET'])]
+    #[Route('/', name: 'app_support_back_faq_index', methods: ['GET'])]
     public function index(FAQService $faqService, Request $request): Response
     {
         $search = $request->query->get('search');
@@ -41,7 +41,7 @@ class AdminFAQController extends AbstractController
         ]);
     }
 
-    #[Route('/new', name: 'admin_faq_new', methods: ['GET', 'POST'])]
+    #[Route('/new', name: 'app_support_back_faq_new', methods: ['GET', 'POST'])]
     public function new(Request $request, FAQService $faqService): Response
     {
         $faq = new FAQ();
@@ -51,7 +51,7 @@ class AdminFAQController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $faqService->create($faq);
             $this->addFlash('success', 'FAQ créée avec succès.');
-            return $this->redirectToRoute('admin_faq_index');
+            return $this->redirectToRoute('app_support_back_faq_index');
         }
 
         return $this->render('support/back/faq/new.html.twig', [
@@ -59,7 +59,7 @@ class AdminFAQController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'admin_faq_edit', methods: ['GET', 'POST'])]
+    #[Route('/{id}/edit', name: 'app_support_back_faq_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, FAQ $faq, FAQService $faqService): Response
     {
         $form = $this->createForm(FAQType::class, $faq);
@@ -68,7 +68,7 @@ class AdminFAQController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $faqService->update($faq);
             $this->addFlash('success', 'FAQ mise à jour avec succès.');
-            return $this->redirectToRoute('admin_faq_index');
+            return $this->redirectToRoute('app_support_back_faq_index');
         }
 
         return $this->render('support/back/faq/edit.html.twig', [
@@ -77,7 +77,7 @@ class AdminFAQController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/delete', name: 'admin_faq_delete', methods: ['POST'])]
+    #[Route('/{id}/delete', name: 'app_support_back_faq_delete', methods: ['POST'])]
     public function delete(Request $request, FAQ $faq, FAQService $faqService): Response
     {
         if ($this->isCsrfTokenValid('delete'.$faq->getId(), $request->request->get('_token'))) {
@@ -85,6 +85,6 @@ class AdminFAQController extends AbstractController
             $this->addFlash('success', 'FAQ supprimée avec succès.');
         }
 
-        return $this->redirectToRoute('admin_faq_index');
+        return $this->redirectToRoute('app_support_back_faq_index');
     }
 }

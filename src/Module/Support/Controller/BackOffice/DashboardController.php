@@ -13,11 +13,11 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 //#[IsGranted('ROLE_ADMIN')]
 class DashboardController extends AbstractController
 {
-    #[Route('/dashboard', name: 'admin_support_dashboard')]
+    #[Route('/dashboard', name: 'app_support_back_dashboard_index')]
     public function index(ReclamationService $reclamationService): Response
     {
         $stats = $reclamationService->getStatistics();
-        
+
         return $this->render('support/back/dashboard/index.html.twig', [
             'stats' => $stats,
         ]);

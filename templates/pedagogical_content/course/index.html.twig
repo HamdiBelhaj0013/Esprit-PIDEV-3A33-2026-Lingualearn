@@ -1,6 +1,6 @@
-ï»¿{% extends 'base.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
-{% block title %}Admin Â· Cours{% endblock %}
+{% block title %}Admin · Cours{% endblock %}
 
 {% block page_title %}
     <i class="ti ti-graduation-cap text-primary me-2"></i> Cours
@@ -14,7 +14,7 @@
         </a>
     </li>
     <li class="breadcrumb-item">
-        <a href="{{ path('admin_pedagogical_content_index') }}" style="color: #206bc4; text-decoration: none;">Contenu PÃ©dagogique</a>
+        <a href="{{ path('admin_pedagogical_content_index') }}" style="color: #206bc4; text-decoration: none;">Contenu Pédagogique</a>
     </li>
     <li class="breadcrumb-item active" style="color: #206bc4;">Cours</li>
 </ol>
@@ -23,12 +23,12 @@
 {% block page_actions %}
 <div class="col-auto">
     <a href="{{ path('admin_course_new') }}" class="btn btn-primary shadow-sm" style="border-radius: 8px; font-weight: 600;">
-        <i class="ti ti-plus me-1"></i> CrÃ©er un cours
+        <i class="ti ti-plus me-1"></i> Créer un cours
     </a>
 </div>
 {% endblock %}
 
-{% block body %}
+{% block content %}
 <div class="row g-4">
 
     <!-- Formulaire de recherche -->
@@ -60,9 +60,9 @@
                         </label>
                         <select name="level" id="levelFilter" class="form-select form-select-sm" style="border-radius: 8px;">
                             <option value="">-- Tous --</option>
-                            <option value="beginner" {% if level == 'beginner' %}selected{% endif %}>DÃ©butant</option>
-                            <option value="intermediate" {% if level == 'intermediate' %}selected{% endif %}>IntermÃ©diaire</option>
-                            <option value="advanced" {% if level == 'advanced' %}selected{% endif %}>AvancÃ©</option>
+                            <option value="beginner" {% if level == 'beginner' %}selected{% endif %}>Débutant</option>
+                            <option value="intermediate" {% if level == 'intermediate' %}selected{% endif %}>Intermédiaire</option>
+                            <option value="advanced" {% if level == 'advanced' %}selected{% endif %}>Avancé</option>
                         </select>
                     </div>
                     <div class="col-md-2">
@@ -71,9 +71,9 @@
                         </label>
                         <select name="status" id="statusFilter" class="form-select form-select-sm" style="border-radius: 8px;">
                             <option value="">-- Tous --</option>
-                            <option value="published" {% if status == 'published' %}selected{% endif %}>PubliÃ©</option>
+                            <option value="published" {% if status == 'published' %}selected{% endif %}>Publié</option>
                             <option value="draft" {% if status == 'draft' %}selected{% endif %}>Brouillon</option>
-                            <option value="archived" {% if status == 'archived' %}selected{% endif %}>ArchivÃ©</option>
+                            <option value="archived" {% if status == 'archived' %}selected{% endif %}>Archivé</option>
                         </select>
                     </div>
                     <div class="col-md-1">
@@ -87,8 +87,8 @@
                     <div class="col-md-1">
                         <label class="form-label fw-bold text-secondary small text-uppercase">Ordre</label>
                         <select name="order" id="orderSelect" class="form-select form-select-sm" style="border-radius: 8px;">
-                            <option value="ASC" {% if order == 'ASC' %}selected{% endif %}>â†‘</option>
-                            <option value="DESC" {% if order == 'DESC' %}selected{% endif %}>â†“</option>
+                            <option value="ASC" {% if order == 'ASC' %}selected{% endif %}>?</option>
+                            <option value="DESC" {% if order == 'DESC' %}selected{% endif %}>?</option>
                         </select>
                     </div>
                     <div class="col-md-1 d-flex gap-2">
@@ -122,7 +122,7 @@
 </div>
 
 <script>
-// scripts inchangÃ©s
+// scripts inchangés
 const filterForm = document.getElementById('filterForm');
 const searchInput = document.getElementById('searchInput');
 const languageFilter = document.getElementById('languageFilter');
@@ -157,7 +157,7 @@ function attachToggleEvents() {
     });
 }
 function toggleStatus(id, checked) {
-    const msg = checked ? 'Cours publiÃ©' : 'Cours en brouillon';
+    const msg = checked ? 'Cours publié' : 'Cours en brouillon';
     console.log(msg);
 }
 attachToggleEvents();
@@ -172,3 +172,4 @@ attachToggleEvents();
 </style>
 {% endblock %}
 {% endblock %}
+

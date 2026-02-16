@@ -1,4 +1,4 @@
-{% extends 'admin/base.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
 {% block title %}Dashboard{% endblock %}
 
@@ -63,7 +63,7 @@
     </div>
 {% endblock %}
 
-{% block body %}
+{% block content %}
     <div class="row row-deck row-cards mt-2">
 
         {# Date Range Display #}
@@ -593,3 +593,4 @@
         });
     </script>
 {% endblock %}
+

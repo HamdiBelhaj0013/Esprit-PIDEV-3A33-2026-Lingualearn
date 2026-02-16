@@ -1,4 +1,4 @@
-{% extends 'base.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
 {% block title %}Question #{{ testQuestion.id }} - {{ parent() }}{% endblock %}
 
@@ -34,7 +34,7 @@
     </div>
 {% endblock %}
 
-{% block body %}
+{% block content %}
     <div class="row">
         <div class="col-md-8">
             {# Question Details #}
@@ -142,4 +142,5 @@
         </div>
     </div>
 {% endblock %}
+
 

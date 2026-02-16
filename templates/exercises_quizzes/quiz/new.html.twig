@@ -1,4 +1,4 @@
-{% extends 'base.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
 {% block title %}Create Quiz{% endblock %}
 {% block page_title %}Create New Quiz{% endblock %}
@@ -11,7 +11,7 @@
 </ol>
 {% endblock %}
 
-{% block body %}
+{% block content %}
 <div class="row">
     <div class="col-lg-8 mx-auto">
         <form method="post" action="{{ path('quiz_new') }}">
@@ -46,3 +46,4 @@
     </div>
 </div>
 {% endblock %}
+
