@@ -1,24 +1,513 @@
-{% extends 'layouts/user.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
-{% block title %}Welcome!{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block admin_styles %}
+    <style>
+        .ll-stat-card .ll-stat-badge {
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+        }
+        .ll-chart-container {
+            position: relative;
+            height: 300px;
+        }
+        .ll-activity-item {
+            border-left: 3px solid #e5e7eb;
+            padding-left: 1rem;
+            margin-bottom: 1rem;
+            transition: var(--ll-transition);
+        }
+        .ll-activity-item:hover {
+            border-left-color: var(--ll-primary);
+            background: #f8fafc;
+            padding-left: 1.25rem;
+            border-radius: 0 8px 8px 0;
+        }
+    </style>
+{% endblock %}
+
+{% block page_actions %}
+    <button type="button" class="btn btn-ghost-primary btn-sm" id="refreshDashboard">
+        <i class="ti ti-refresh me-1"></i> Refresh
+    </button>
+    <button type="button" class="btn btn-ghost-primary btn-sm" data-bs-toggle="modal" data-bs-target="#dateRangeModal">
+        <i class="ti ti-calendar me-1"></i> Date Range
+    </button>
+    <a href="{{ path('admin_dashboard_export') }}" class="btn btn-ll-primary btn-sm">
+        <i class="ti ti-download me-1"></i> Export
+    </a>
+{% endblock %}
 
 {% block content %}
-    <div class="container mt-5">
-        <h1>Welcome to Lingualearn!</h1>
-        <p>This is your homepage. Feel free to customize it.</p>
-        <p>
-            {% if app.user %}
-                Hello {{ app.user.userIdentifier }}! You are logged in.
-                <a href="{{ path('app_logout') }}">Logout</a>
-            {% else %}
-                <a href="{{ path('app_login') }}">Login</a> or <a href="#">Register</a>
-            {% endif %}
-        </p>
-        <p>
-            {% if is_granted('ROLE_ADMIN') %}
-                <a href="{{ path('admin_dashboard') }}">Go to Admin Dashboard</a>
-            {% endif %}
-        </p>
+    <div class="row row-deck row-cards mt-2">
+
+        {# Date Range Display #}
+        {% if dateRange is defined %}
+            <div class="col-12">
+                <div class="alert alert-info ll-alert">
+                    <i class="ti ti-info-circle me-1"></i>
+                    Showing data from <strong>{{ dateRange.start|date('M d, Y') }}</strong> to <strong>{{ dateRange.end|date('M d, Y') }}</strong>
+                </div>
+            </div>
+        {% endif %}
+
+        {# ── USER STATISTICS ── #}
+        <div class="col-sm-6 col-lg-3">
+            <div class="card ll-stat-card bg-primary-lt">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <span class="text-primary ll-stat-icon"><i class="ti ti-users"></i></span>
+                        {% if userStats.totalTrend is defined %}
+                            <span class="ll-stat-badge bg-primary text-white">
+                                <i class="ti ti-trending-{{ userStats.totalTrend >= 0 ? 'up' : 'down' }}"></i>
+                                {{ userStats.totalTrend|abs }}%
+                            </span>
+                        {% endif %}
+                    </div>
+                    <div class="ll-stat-value text-primary">{{ userStats.total|number_format }}</div>
+                    <div class="ll-stat-label">Total Users</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="card ll-stat-card bg-success-lt">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <span class="text-success ll-stat-icon"><i class="ti ti-user-check"></i></span>
+                        {% if userStats.total > 0 %}
+                            <span class="ll-stat-badge bg-success text-white">
+                                {{ ((userStats.active / userStats.total) * 100)|number_format(0) }}%
+                            </span>
+                        {% endif %}
+                    </div>
+                    <div class="ll-stat-value text-success">{{ userStats.active|number_format }}</div>
+                    <div class="ll-stat-label">Active Users</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="card ll-stat-card bg-info-lt">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <span class="text-info ll-stat-icon"><i class="ti ti-crown"></i></span>
+                        {% if userStats.premiumRevenue is defined %}
+                            <span class="ll-stat-badge bg-info text-white">
+                                ${{ userStats.premiumRevenue|number_format(0) }}
+                            </span>
+                        {% endif %}
+                    </div>
+                    <div class="ll-stat-value text-info">{{ userStats.premium|number_format }}</div>
+                    <div class="ll-stat-label">Premium Users</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="card ll-stat-card bg-warning-lt">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <span class="text-warning ll-stat-icon"><i class="ti ti-user-off"></i></span>
+                        {% if userStats.suspended > 0 %}
+                            <span class="ll-stat-badge bg-warning text-white">
+                                <i class="ti ti-alert-triangle"></i>
+                            </span>
+                        {% endif %}
+                    </div>
+                    <div class="ll-stat-value text-warning">{{ userStats.suspended|number_format }}</div>
+                    <div class="ll-stat-label">Suspended</div>
+                </div>
+            </div>
+        </div>
+
+        {# ── USER GROWTH CHART ── #}
+        <div class="col-12">
+            <div class="card ll-card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="ti ti-chart-line me-2 text-primary"></i> User Growth
+                    </h3>
+                    <div class="card-actions">
+                        <div class="btn-group btn-group-sm" role="group">
+                            <input type="radio" class="btn-check" name="user-growth-period" id="period-7d" checked>
+                            <label for="period-7d" class="btn">7D</label>
+                            <input type="radio" class="btn-check" name="user-growth-period" id="period-30d">
+                            <label for="period-30d" class="btn">30D</label>
+                            <input type="radio" class="btn-check" name="user-growth-period" id="period-90d">
+                            <label for="period-90d" class="btn">90D</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="ll-chart-container" style="height: 350px;">
+                        <canvas id="userGrowthChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# ── CONTENT OVERVIEW ── #}
+        <div class="col-lg-8">
+            <div class="card ll-card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="ti ti-books me-2 text-primary"></i> Content Overview
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="card ll-stat-card bg-purple-lt border-0">
+                                <div class="card-body text-center">
+                                    <div class="ll-stat-icon text-purple mb-2"><i class="ti ti-books"></i></div>
+                                    <div class="ll-stat-value text-purple mb-1">{{ courseCount|number_format }}</div>
+                                    <div class="ll-stat-label mb-2">Total Courses</div>
+                                    {% if courseStats is defined %}
+                                        <div>
+                                            <span class="ll-badge bg-success-lt text-success">{{ courseStats.published }} Published</span>
+                                            <span class="ll-badge bg-warning-lt text-warning">{{ courseStats.draft }} Draft</span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card ll-stat-card bg-lime-lt border-0">
+                                <div class="card-body text-center">
+                                    <div class="ll-stat-icon text-lime mb-2"><i class="ti ti-pencil-check"></i></div>
+                                    <div class="ll-stat-value text-lime mb-1">{{ exerciseCount|number_format }}</div>
+                                    <div class="ll-stat-label mb-2">Total Exercises</div>
+                                    {% if exerciseStats is defined %}
+                                        <span class="ll-badge bg-lime-lt text-lime">{{ exerciseStats.completionRate }}% completion</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-6">
+                            <div class="card card-sm border-0" style="border-left: 3px solid var(--ll-primary) !important;">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <div class="ll-stat-label mb-1">Avg Course Rating</div>
+                                            <div class="h2 mb-0">
+                                                {% if averageRating is defined and averageRating %}
+                                                    {{ averageRating|number_format(1) }}
+                                                    <span class="text-warning fs-4">
+                                                        {% for i in 1..5 %}
+                                                            <i class="ti ti-star{{ i <= averageRating|round ? '-filled' : '' }}"></i>
+                                                        {% endfor %}
+                                                    </span>
+                                                {% else %}
+                                                    <span class="text-muted fs-4">N/A</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card card-sm border-0" style="border-left: 3px solid var(--ll-success) !important;">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <div class="ll-stat-label mb-1">Total Enrollments</div>
+                                            <div class="h2 mb-0 text-success">
+                                                {{ totalEnrollments|default(0)|number_format }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# ── REVENUE OVERVIEW ── #}
+        <div class="col-lg-4">
+            <div class="card ll-card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="ti ti-wallet me-2 text-success"></i> Revenue
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="ll-chart-container" style="height: 200px;">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                    {% if revenueStats is defined %}
+                        <div class="mt-4">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <div class="card card-sm bg-success-lt border-0">
+                                        <div class="card-body text-center py-2">
+                                            <div class="text-muted small">This Month</div>
+                                            <div class="h3 mb-0 text-success">${{ revenueStats.thisMonth|number_format(0) }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="card card-sm bg-azure-lt border-0">
+                                        <div class="card-body text-center py-2">
+                                            <div class="text-muted small">Last Month</div>
+                                            <div class="h3 mb-0">${{ revenueStats.lastMonth|number_format(0) }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-3 text-center">
+                                <div class="text-muted small mb-1">Growth</div>
+                                <div class="h2 mb-0 {{ revenueStats.growth >= 0 ? 'text-success' : 'text-danger' }}">
+                                    <i class="ti ti-trending-{{ revenueStats.growth >= 0 ? 'up' : 'down' }}"></i>
+                                    {{ revenueStats.growth >= 0 ? '+' : '' }}{{ revenueStats.growth }}%
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {# ── COMMUNITY ENGAGEMENT ── #}
+        <div class="col-md-6">
+            <div class="card ll-card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="ti ti-messages me-2 text-orange"></i> Community
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="card ll-stat-card bg-orange-lt border-0">
+                                <div class="card-body text-center">
+                                    <div class="ll-stat-icon text-orange mb-2"><i class="ti ti-messages"></i></div>
+                                    <div class="ll-stat-value text-orange mb-1">{{ forumPostCount|number_format }}</div>
+                                    <div class="ll-stat-label">Forum Posts</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="card ll-stat-card bg-red-lt border-0">
+                                <div class="card-body text-center">
+                                    <div class="ll-stat-icon text-red mb-2"><i class="ti ti-message-2"></i></div>
+                                    <div class="ll-stat-value text-red mb-1">{{ forumReplyCount|number_format }}</div>
+                                    <div class="ll-stat-label">Replies</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% if forumStats is defined %}
+                        <div class="mt-4">
+                            <div class="list-group list-group-flush">
+                                <div class="list-group-item d-flex justify-content-between align-items-center px-0 border-0">
+                                    <span class="text-muted small"><i class="ti ti-activity me-2"></i>Today's Activity</span>
+                                    <span class="ll-badge bg-primary-lt text-primary">{{ forumStats.todayPosts }} posts</span>
+                                </div>
+                                <div class="list-group-item d-flex justify-content-between align-items-center px-0 border-0">
+                                    <span class="text-muted small"><i class="ti ti-trophy me-2"></i>Most Active</span>
+                                    <strong class="small">{{ forumStats.mostActiveUser|default('N/A') }}</strong>
+                                </div>
+                                <div class="list-group-item d-flex justify-content-between align-items-center px-0 border-0">
+                                    <span class="text-muted small"><i class="ti ti-clock me-2"></i>Avg Response</span>
+                                    <span class="ll-badge bg-success-lt text-success">{{ forumStats.avgResponseTime|default('N/A') }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {# ── RECENT REGISTRATIONS ── #}
+        <div class="col-md-6">
+            <div class="card ll-card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="ti ti-user-plus me-2 text-success"></i> Recent Registrations
+                    </h3>
+                </div>
+                <div class="card-body">
+                    {% if recentRegistrations is defined and recentRegistrations|length > 0 %}
+                        <div class="list-group list-group-flush">
+                            {% for user in recentRegistrations|slice(0, 5) %}
+                                <div class="list-group-item px-0 border-0">
+                                    <div class="row align-items-center">
+                                        <div class="col-auto">
+                                            <span class="avatar avatar-sm"
+                                                  style="background: {{ ['#2563eb', '#7c3aed', '#10b981', '#f59e0b', '#ef4444'][loop.index0 % 5] }}; color: #fff; font-weight: 600;">
+                                                {{ user.fullName|first|upper }}
+                                            </span>
+                                        </div>
+                                        <div class="col">
+                                            <div class="fw-bold small">{{ user.fullName }}</div>
+                                            <div class="text-muted" style="font-size: 0.75rem;">{{ user.email }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <div class="text-muted" style="font-size: 0.75rem;">
+                                                <i class="ti ti-clock"></i> {{ user.createdAt|date('M d, H:i') }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="ll-empty-state">
+                            <i class="ti ti-user-off d-block"></i>
+                            <p class="text-muted mb-0">No recent registrations</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    {# Date Range Modal #}
+    <div class="modal modal-blur fade" id="dateRangeModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+            <div class="modal-content" style="border-radius: 12px; border: none;">
+                <div class="modal-header" style="border-bottom: 1px solid #f1f5f9;">
+                    <h5 class="modal-title fw-bold">Select Date Range</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="get" action="{{ path('admin_dashboard') }}">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Start Date</label>
+                            <input type="date" class="form-control" name="start_date" style="border-radius: 8px;"
+                                   value="{{ dateRange.start|default('now')|date('Y-m-d') }}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">End Date</label>
+                            <input type="date" class="form-control" name="end_date" style="border-radius: 8px;"
+                                   value="{{ dateRange.end|default('now')|date('Y-m-d') }}">
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="border-top: 1px solid #f1f5f9;">
+                        <button type="button" class="btn me-auto" data-bs-dismiss="modal" style="border-radius: 8px;">Cancel</button>
+                        <button type="submit" class="btn btn-ll-primary" style="border-radius: 8px;">Apply</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 {% endblock %}
 
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chartDefaults = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#0f172a',
+                        titleFont: { weight: '600' },
+                        padding: 12,
+                        cornerRadius: 8,
+                        displayColors: false
+                    }
+                }
+            };
+
+            // User Growth Chart
+            {% if userGrowthData is defined %}
+            const userGrowthCtx = document.getElementById('userGrowthChart');
+            if (userGrowthCtx) {
+                new Chart(userGrowthCtx, {
+                    type: 'line',
+                    data: {
+                        labels: {{ userGrowthData.labels|json_encode|raw }},
+                        datasets: [{
+                            label: 'New Users',
+                            data: {{ userGrowthData.data|json_encode|raw }},
+                            borderColor: '#2563eb',
+                            backgroundColor: 'rgba(37, 99, 235, 0.06)',
+                            tension: 0.4,
+                            fill: true,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            pointBackgroundColor: '#2563eb',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            borderWidth: 2.5
+                        }]
+                    },
+                    options: {
+                        ...chartDefaults,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { precision: 0, color: '#94a3b8', font: { size: 11 } },
+                                grid: { color: 'rgba(0, 0, 0, 0.04)', drawBorder: false }
+                            },
+                            x: {
+                                ticks: { color: '#94a3b8', font: { size: 11 } },
+                                grid: { display: false }
+                            }
+                        }
+                    }
+                });
+            }
+            {% endif %}
+
+            // Revenue Chart
+            {% if revenueData is defined %}
+            const revenueCtx = document.getElementById('revenueChart');
+            if (revenueCtx) {
+                new Chart(revenueCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: {{ revenueData.labels|json_encode|raw }},
+                        datasets: [{
+                            data: {{ revenueData.data|json_encode|raw }},
+                            backgroundColor: ['#2563eb', '#7c3aed', '#10b981'],
+                            borderWidth: 0,
+                            spacing: 2
+                        }]
+                    },
+                    options: {
+                        ...chartDefaults,
+                        plugins: {
+                            ...chartDefaults.plugins,
+                            legend: {
+                                position: 'bottom',
+                                labels: { padding: 12, usePointStyle: true, pointStyle: 'circle', font: { size: 11 } }
+                            }
+                        },
+                        cutout: '72%'
+                    }
+                });
+            }
+            {% endif %}
+
+            // Refresh
+            document.getElementById('refreshDashboard')?.addEventListener('click', () => location.reload());
+
+            // Period Selection
+            document.querySelectorAll('input[name="user-growth-period"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    const period = this.id.replace('period-', '');
+                    fetch(`{{ path('admin_dashboard_chart_data') }}?period=${period}`)
+                        .then(r => r.json())
+                        .then(data => console.log('Chart updated:', period))
+                        .catch(err => console.error('Error:', err));
+                });
+            });
+        });
+    </script>
+{% endblock %}

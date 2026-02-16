@@ -10,6 +10,87 @@
     <link href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/css/tabler.min.css" rel="stylesheet"/>
     <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet"/>
 
+    {# AOS - Animate On Scroll #}
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    {# LinguaLearn Enhanced Design System #}
+    <style>
+        :root {
+            /* Brand Colors */
+            --ll-primary: #667eea;
+            --ll-primary-dark: #5a67d8;
+            --ll-primary-light: #dbeafe;
+            --ll-accent: #f59e0b;
+            --ll-success: #10b981;
+            --ll-danger: #ef4444;
+            --ll-warning: #f59e0b;
+
+            /* Sidebar Colors */
+            --ll-sidebar-bg: #0f172a;
+            --ll-sidebar-hover: #1e293b;
+            --ll-sidebar-active: rgba(102, 126, 234, 0.15);
+            --ll-sidebar-text: #94a3b8;
+            --ll-sidebar-text-active: #ffffff;
+
+            /* Enhanced Shadows */
+            --ll-card-shadow: 0 2px 4px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+            --ll-card-shadow-hover: 0 10px 20px -5px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04);
+            --ll-shadow-glow: 0 0 20px rgba(102, 126, 234, 0.3);
+
+            /* Gradients */
+            --ll-gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --ll-gradient-success: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            --ll-gradient-warning: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            --ll-gradient-danger: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+
+            /* Layout */
+            --ll-radius: 12px;
+            --ll-radius-sm: 8px;
+            --ll-radius-lg: 16px;
+            --ll-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --ll-transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Base Styles */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+            background: #f8fafc;
+        }
+
+        /* Smooth Scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Selection Color */
+        ::selection {
+            background: rgba(102, 126, 234, 0.2);
+            color: inherit;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+
+    {# Premium UI CSS - Load after base styles #}
+    <link rel="stylesheet" href="{{ asset('css/premium-ui.css') }}">
+
     {% block stylesheets %}{% endblock %}
 </head>
 <body class="antialiased">
@@ -17,6 +98,25 @@
 
 {# Tabler JavaScript #}
 <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/js/tabler.min.js"></script>
+
+{# AOS - Animate On Scroll #}
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+    // Initialize AOS
+    AOS.init({
+        duration: 800,
+        easing: 'ease-out-cubic',
+        once: true,
+        offset: 50,
+        delay: 0
+    });
+
+    // Refresh AOS on dynamic content load
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(() => AOS.refresh(), 100);
+    });
+</script>
+
 {% block javascripts %}{% endblock %}
 </body>
 </html>

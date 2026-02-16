@@ -1,31 +1,32 @@
-{# Delete Confirmation Modal #}
-<div class="modal modal-blur fade" id="deleteModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+{# Delete Confirmation Modal - Compatible with Bootstrap 5 and Tabler #}
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 12px; border: none; overflow: hidden;">
             <div class="modal-status bg-danger"></div>
+            <div class="modal-header border-0 pb-0">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
             <div class="modal-body text-center py-4">
-                <i class="ti ti-alert-triangle icon mb-2 text-danger icon-lg"></i>
-                <h3>Are you sure?</h3>
-                <div class="text-muted" id="deleteModalMessage">
-                    Do you really want to delete this item? This action cannot be undone.
+                <div class="mb-3" style="width: 56px; height: 56px; background: #fef2f2; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin: 0 auto;">
+                    <i class="ti ti-alert-triangle" style="font-size: 1.75rem; color: #ef4444;"></i>
+                </div>
+                <h3 class="mb-2" style="font-weight: 700; color: #0f172a;">Êtes-vous sûr?</h3>
+                <div class="text-muted" style="font-size: 0.9rem;">
+                    Voulez-vous vraiment supprimer cet élément? Cette action est irréversible.
                 </div>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer border-0 pt-0">
                 <div class="w-100">
-                    <div class="row">
+                    <div class="row g-2">
                         <div class="col">
-                            <button type="button" class="btn w-100" data-bs-dismiss="modal">
-                                Cancel
+                            <button type="button" class="btn btn-secondary w-100" data-bs-dismiss="modal" style="border-radius: 8px;">
+                                <i class="ti ti-x me-1"></i> Annuler
                             </button>
                         </div>
                         <div class="col">
-                            <form method="POST" id="deleteForm">
-                                <input type="hidden" name="_token" id="deleteToken">
-                                <button type="submit" class="btn btn-danger w-100">
-                                    Delete
-                                </button>
-                            </form>
+                            <button type="button" class="btn btn-danger w-100" id="confirmDeleteBtn" style="border-radius: 8px;">
+                                <i class="ti ti-trash me-1"></i> Supprimer
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -35,25 +36,76 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const deleteModal = document.getElementById('deleteModal');
-        if (deleteModal) {
-            deleteModal.addEventListener('show.bs.modal', function(event) {
+    (function() {
+        'use strict';
+
+        // Wait for DOM to be ready
+        document.addEventListener('DOMContentLoaded', function() {
+            const confirmDeleteModal = document.getElementById('confirmDeleteModal');
+            const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+            let formToSubmit = null;
+
+            if (!confirmDeleteModal || !confirmDeleteBtn) {
+                console.warn('Delete modal elements not found');
+                return;
+            }
+
+            // Listen for modal show event
+            confirmDeleteModal.addEventListener('show.bs.modal', function(event) {
+                // Button that triggered the modal
                 const button = event.relatedTarget;
-                const deleteUrl = button.getAttribute('data-delete-url');
-                const itemName = button.getAttribute('data-item-name');
-                
-                const form = document.getElementById('deleteForm');
-                const message = document.getElementById('deleteModalMessage');
-                
-                if (deleteUrl) {
-                    form.action = deleteUrl;
+
+                if (!button) {
+                    console.warn('No button found that triggered the modal');
+                    return;
                 }
-                
-                if (itemName) {
-                    message.textContent = `Do you really want to delete "${itemName}"? This action cannot be undone.`;
+
+                // Get the form ID from the button's data attribute
+                const formId = button.getAttribute('data-form-id');
+
+                if (formId) {
+                    formToSubmit = document.getElementById(formId);
+
+                    if (!formToSubmit) {
+                        console.error('Form not found with ID:', formId);
+                    }
+                } else {
+                    console.warn('No data-form-id attribute found on button');
                 }
             });
-        }
-    });
+
+            // Handle confirm button click
+            confirmDeleteBtn.addEventListener('click', function() {
+                if (formToSubmit) {
+                    // Submit the form
+                    formToSubmit.submit();
+                } else {
+                    console.error('No form to submit');
+                }
+            });
+
+            // Reset formToSubmit when modal is hidden
+            confirmDeleteModal.addEventListener('hidden.bs.modal', function() {
+                formToSubmit = null;
+            });
+        });
+    })();
 </script>
+
+<style>
+    .modal-status {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+    }
+
+    .modal-content {
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    .btn-close:focus {
+        box-shadow: none;
+    }
+</style>

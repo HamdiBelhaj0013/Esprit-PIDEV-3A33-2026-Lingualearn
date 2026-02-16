@@ -2,32 +2,126 @@
 
 {% block title %}{% block page_title %}Welcome{% endblock %}{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .ll-auth-page {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+        .ll-auth-page::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(ellipse at 30% 50%, rgba(37, 99, 235, 0.08) 0%, transparent 60%),
+            radial-gradient(ellipse at 70% 20%, rgba(124, 58, 237, 0.06) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        .ll-auth-container {
+            position: relative;
+            z-index: 1;
+        }
+        .ll-auth-logo .ll-logo-icon {
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, var(--ll-primary), #7c3aed);
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #fff;
+        }
+        .ll-auth-logo .ll-logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: -0.02em;
+        }
+        .ll-auth-card {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+        }
+        .ll-auth-card .card-body {
+            padding: 2rem;
+        }
+        .ll-auth-card .form-label {
+            font-weight: 600;
+            font-size: 0.8125rem;
+            color: #374151;
+        }
+        .ll-auth-card .form-control {
+            border-radius: 8px;
+            border: 1.5px solid #e5e7eb;
+            padding: 0.625rem 0.875rem;
+            font-size: 0.9375rem;
+            transition: var(--ll-transition);
+        }
+        .ll-auth-card .form-control:focus {
+            border-color: var(--ll-primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        .ll-auth-card .btn-primary {
+            background: var(--ll-primary);
+            border-color: var(--ll-primary);
+            border-radius: 8px;
+            padding: 0.625rem;
+            font-weight: 600;
+            font-size: 0.9375rem;
+            transition: var(--ll-transition);
+        }
+        .ll-auth-card .btn-primary:hover {
+            background: var(--ll-primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+        .ll-auth-footer {
+            color: rgba(148, 163, 184, 0.6);
+            font-size: 0.8125rem;
+        }
+    </style>
+{% endblock %}
+
 {% block body %}
-<div class="page page-center">
-    <div class="container container-tight py-4">
-        <div class="text-center mb-4">
-            <a href="/" class="navbar-brand navbar-brand-autodark">
-                <i class="ti ti-language fs-1 text-primary"></i>
-                <span class="ms-2 h1">LinguaLearn</span>
-            </a>
-        </div>
+    <div class="ll-auth-page d-flex align-items-center">
+        <div class="container container-tight py-4 ll-auth-container">
 
-        {# Flash Messages #}
-        {% for label, messages in app.flashes %}
-            {% for message in messages %}
-                <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
+            {# Logo #}
+            <div class="text-center mb-4 ll-auth-logo">
+                <a href="/" class="text-decoration-none d-inline-flex align-items-center gap-2">
+                    <span class="ll-logo-icon"><i class="ti ti-language"></i></span>
+                    <span class="ll-logo-text">LinguaLearn</span>
+                </a>
+            </div>
+
+            {# Flash Messages #}
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible fade show" role="alert"
+                         style="border-radius: 10px; border: none;">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
             {% endfor %}
-        {% endfor %}
 
-        {# Main Content - USE 'content' BLOCK #}
-        {% block content %}{% endblock %}
+            {# Main Content #}
+            <div class="ll-auth-card card">
+                <div class="card-body">
+                    {% block content %}{% endblock %}
+                </div>
+            </div>
 
-        <div class="text-center text-muted mt-3">
-            <small>&copy; {{ 'now'|date('Y') }} LinguaLearn. All rights reserved.</small>
+            <div class="text-center mt-4 ll-auth-footer">
+                &copy; {{ 'now'|date('Y') }} LinguaLearn. All rights reserved.
+            </div>
         </div>
     </div>
-</div>
 {% endblock %}

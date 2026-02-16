@@ -2,141 +2,205 @@
 
 {% block title %}{% block page_title %}Post #{{ post.id }}{% endblock %}{% endblock %}
 
+{% block page_actions %}
+    <a href="{{ path('admin_forum_post_edit', {id: post.id}) }}" class="btn btn-warning">
+        <i class="ti ti-pencil me-1"></i> Edit Post
+    </a>
+    <a href="{{ path('admin_forum_post_index') }}" class="btn btn-outline-secondary">
+        <i class="ti ti-arrow-left me-1"></i> Back to Posts
+    </a>
+{% endblock %}
+
 {% block content %}
 
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h1>{{ post.title }}</h1>
-            <p class="text-muted">
-                <i class="bi bi-person-circle"></i> Auteur: {{ post.authorId }}
-                | <i class="bi bi-calendar"></i> {{ post.postedAt|date('d/m/Y H:i') }}
-            </p>
-        </div>
-        <div class="col-md-4 text-end">
-            <a href="{{ path('admin_forum_post_edit', {id: post.id}) }}" class="btn btn-warning">
-                <i class="bi bi-pencil"></i> Modifier
-            </a>
-            <a href="{{ path('admin_forum_post_index') }}" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Retour
-            </a>
-        </div>
-    </div>
-
     <div class="row">
-        <div class="col-md-8">
-            <!-- Contenu du Post -->
+
+        {# ===== MAIN COLUMN ===== #}
+        <div class="col-lg-8">
+
+            {# Post content #}
             <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Contenu du Post</h5>
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="ti ti-message-square me-2"></i> Post Content
+                    </h3>
                 </div>
                 <div class="card-body">
-                    <p class="card-text lh-lg">{{ post.content|nl2br }}</p>
+                    <h2 class="mb-3">{{ post.title }}</h2>
+                    <div class="text-muted small mb-4 d-flex align-items-center gap-3 flex-wrap">
+                        <span><i class="ti ti-user me-1"></i>Author #{{ post.authorId }}</span>
+                        <span><i class="ti ti-calendar me-1"></i>{{ post.postedAt|date('d M Y · H:i') }}</span>
+                        <span><i class="ti ti-eye me-1"></i>{{ post.viewCount }} views</span>
+                    </div>
+                    <div class="text-body lh-lg">{{ post.content|nl2br }}</div>
                 </div>
             </div>
 
-            <!-- Réponses -->
+            {# Replies #}
             <div class="card">
-                <div class="card-header bg-secondary text-white">
-                    <h5 class="mb-0">
-                        <i class="bi bi-chat-dots"></i> Réponses ({{ post.replies|length }})
-                    </h5>
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <h3 class="card-title mb-0">
+                        <i class="ti ti-messages me-2"></i>
+                        Replies
+                        <span class="badge bg-secondary-lt ms-2">{{ post.replies|length }}</span>
+                    </h3>
+                    <a href="{{ path('admin_forum_reply_new', {postId: post.id}) }}" class="btn btn-sm btn-success">
+                        <i class="ti ti-plus me-1"></i> Add Reply
+                    </a>
                 </div>
                 <div class="card-body">
                     {% if post.replies|length > 0 %}
                         {% for reply in post.replies %}
-                            <div class="border-bottom pb-3 mb-3">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <p class="mb-1">
-                                            <strong>Auteur ID:</strong> {{ reply.authorId }}
+                            <div class="d-flex gap-3 {{ not loop.last ? 'border-bottom pb-3 mb-3' }}">
+                                <span class="avatar avatar-sm bg-blue-lt text-blue flex-shrink-0">
+                                    <i class="ti ti-user"></i>
+                                </span>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center justify-content-between mb-1 flex-wrap gap-2">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="fw-medium">Author #{{ reply.authorId }}</span>
                                             {% if reply.isBestAnswer %}
-                                                <span class="badge bg-success">
-                                                    <i class="bi bi-star-fill"></i> Meilleure réponse
+                                                <span class="badge bg-success-lt">
+                                                    <i class="ti ti-star-filled me-1"></i>Best Answer
                                                 </span>
                                             {% endif %}
                                             {% if not reply.isActive %}
-                                                <span class="badge bg-danger">Inactif</span>
+                                                <span class="badge bg-danger-lt">
+                                                    <i class="ti ti-eye-off me-1"></i>Inactive
+                                                </span>
                                             {% endif %}
-                                        </p>
-                                        <p class="mb-0">{{ reply.content|nl2br }}</p>
+                                        </div>
+                                        <small class="text-muted">{{ reply.repliedAt|date('Y-m-d H:i') }}</small>
                                     </div>
+                                    <p class="text-muted mb-0 lh-base">{{ reply.content|nl2br }}</p>
                                 </div>
-                                <small class="text-muted">{{ reply.repliedAt|date('Y-m-d H:i:s') }}</small>
                             </div>
                         {% endfor %}
                     {% else %}
-                        <p class="text-muted text-center py-4">
-                            <i class="bi bi-inbox"></i> Aucune réponse pour ce post.
-                        </p>
+                        <div class="text-center text-muted py-5">
+                            <i class="ti ti-message-off fs-1 d-block mb-2"></i>
+                            No replies yet for this post.
+                        </div>
                     {% endif %}
                 </div>
             </div>
+
         </div>
 
-        <!-- Informations -->
-        <div class="col-md-4">
+        {# ===== SIDEBAR ===== #}
+        <div class="col-lg-4">
+
             <div class="card mb-3">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informations</h5>
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="ti ti-info-circle me-2"></i> Post Details
+                    </h3>
                 </div>
                 <div class="card-body">
-                    <dl class="row">
-                        <dt class="col-sm-6">ID:</dt>
-                        <dd class="col-sm-6"><strong>#{{ post.id }}</strong></dd>
+                    <dl class="row mb-0">
+                        <dt class="col-6 text-muted">ID</dt>
+                        <dd class="col-6 fw-medium">#{{ post.id }}</dd>
 
-                        <dt class="col-sm-6">Auteur:</dt>
-                        <dd class="col-sm-6">{{ post.authorId }}</dd>
+                        <dt class="col-6 text-muted">Author</dt>
+                        <dd class="col-6">
+                            <span class="text-muted"><i class="ti ti-user me-1"></i>#{{ post.authorId }}</span>
+                        </dd>
 
-                        <dt class="col-sm-6">Langue:</dt>
-                        <dd class="col-sm-6">
+                        <dt class="col-6 text-muted">Language</dt>
+                        <dd class="col-6">
                             {% if post.platformLanguageId == 1 %}
-                                <span class="badge bg-info">Français</span>
+                                <span class="badge bg-blue-lt">French</span>
                             {% elseif post.platformLanguageId == 2 %}
-                                <span class="badge bg-warning">Anglais</span>
+                                <span class="badge bg-yellow-lt">English</span>
                             {% elseif post.platformLanguageId == 3 %}
-                                <span class="badge bg-success">Arabe</span>
+                                <span class="badge bg-green-lt">Arabic</span>
                             {% elseif post.platformLanguageId == 4 %}
-                                <span class="badge bg-danger">Espagnol</span>
+                                <span class="badge bg-red-lt">Spanish</span>
                             {% elseif post.platformLanguageId == 5 %}
-                                <span class="badge bg-secondary">Allemand</span>
-                            {% endif %}
-                        </dd>
-
-                        <dt class="col-sm-6">Vues:</dt>
-                        <dd class="col-sm-6"><span class="badge bg-info">{{ post.viewCount }}</span></dd>
-
-                        <dt class="col-sm-6">Réponses:</dt>
-                        <dd class="col-sm-6"><span class="badge bg-secondary">{{ post.replyCount }}</span></dd>
-
-                        <dt class="col-sm-6">Statut:</dt>
-                        <dd class="col-sm-6">
-                            {% if post.isActive %}
-                                <span class="badge bg-success"><i class="bi bi-check-circle"></i> Actif</span>
+                                <span class="badge bg-purple-lt">German</span>
                             {% else %}
-                                <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Inactif</span>
+                                <span class="badge bg-secondary-lt">Lang #{{ post.platformLanguageId }}</span>
                             {% endif %}
                         </dd>
 
-                        <dt class="col-sm-6">Créé le:</dt>
-                        <dd class="col-sm-6"><small>{{ post.postedAt|date('Y-m-d H:i:s') }}</small></dd>
+                        <dt class="col-6 text-muted">Views</dt>
+                        <dd class="col-6">
+                            <span class="badge bg-blue-lt">
+                                <i class="ti ti-eye me-1"></i>{{ post.viewCount }}
+                            </span>
+                        </dd>
+
+                        <dt class="col-6 text-muted">Replies</dt>
+                        <dd class="col-6">
+                            <span class="badge bg-secondary-lt">
+                                <i class="ti ti-message-circle me-1"></i>{{ post.replyCount }}
+                            </span>
+                        </dd>
+
+                        <dt class="col-6 text-muted">Status</dt>
+                        <dd class="col-6">
+                            {% if post.isActive %}
+                                <span class="badge bg-success-lt">
+                                    <i class="ti ti-circle-check me-1"></i>Active
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger-lt">
+                                    <i class="ti ti-circle-x me-1"></i>Inactive
+                                </span>
+                            {% endif %}
+                        </dd>
+
+                        <dt class="col-6 text-muted">Created</dt>
+                        <dd class="col-6">
+                            <small class="text-muted">{{ post.postedAt|date('Y-m-d H:i') }}</small>
+                        </dd>
                     </dl>
                 </div>
             </div>
 
-            <div class="card">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">Actions</h5>
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="ti ti-bolt me-2"></i> Actions
+                    </h3>
                 </div>
                 <div class="card-body d-grid gap-2">
                     <a href="{{ path('admin_forum_post_edit', {id: post.id}) }}" class="btn btn-warning">
-                        <i class="bi bi-pencil"></i> Modifier
+                        <i class="ti ti-pencil me-1"></i> Edit Post
                     </a>
                     <a href="{{ path('admin_forum_reply_new', {postId: post.id}) }}" class="btn btn-success">
-                        <i class="bi bi-reply"></i> Ajouter une réponse
+                        <i class="ti ti-message-plus me-1"></i> Add Reply
+                    </a>
+                    <a href="{{ path('admin_forum_post_index') }}" class="btn btn-outline-secondary">
+                        <i class="ti ti-list me-1"></i> All Posts
+                    </a>
+                    <a href="{{ path('admin_forum_index') }}" class="btn btn-outline-secondary">
+                        <i class="ti ti-layout-dashboard me-1"></i> Forum Overview
                     </a>
                 </div>
             </div>
+
+            <div class="card border-danger">
+                <div class="card-header bg-danger-lt">
+                    <h3 class="card-title text-danger">
+                        <i class="ti ti-alert-triangle me-2"></i> Danger Zone
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small">Permanently delete this post and all its replies. This cannot be undone.</p>
+                    <form method="post"
+                          action="{{ path('admin_forum_post_delete', {id: post.id}) }}"
+                          onsubmit="return confirm('Delete post #{{ post.id }}? All replies will also be removed. This cannot be undone.');">
+                        <input type="hidden" name="_method" value="DELETE">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ post.id) }}">
+                        <button type="submit" class="btn btn-danger btn-sm w-100">
+                            <i class="ti ti-trash me-1"></i> Delete Post
+                        </button>
+                    </form>
+                </div>
+            </div>
+
         </div>
     </div>
-    </div>
+
 {% endblock %}

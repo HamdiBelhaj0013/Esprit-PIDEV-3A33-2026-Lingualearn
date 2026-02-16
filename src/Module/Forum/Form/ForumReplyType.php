@@ -19,67 +19,61 @@ class ForumReplyType extends AbstractType
     {
         $builder
             ->add('content', TextareaType::class, [
-                'label' => 'Votre réponse',
+                'label' => 'Your Reply',
                 'required' => true,
                 'attr' => [
                     'class' => 'form-control',
-                    'placeholder' => 'Écrivez votre réponse...',
+                    'placeholder' => 'Write your reply...',
                     'rows' => 6
                 ],
                 'constraints' => [
                     new Assert\NotBlank([
-                        'message' => 'Le contenu ne peut pas être vide'
+                        'message' => 'Content cannot be empty'
                     ]),
                     new Assert\Length([
                         'min' => 10,
                         'max' => 5000,
-                        'minMessage' => 'La réponse doit contenir au moins {{ limit }} caractères',
-                        'maxMessage' => 'La réponse ne peut pas dépasser {{ limit }} caractères'
+                        'minMessage' => 'Reply must be at least {{ limit }} characters',
+                        'maxMessage' => 'Reply cannot exceed {{ limit }} characters'
                     ])
                 ]
             ])
             ->add('post', EntityType::class, [
                 'class' => ForumPost::class,
                 'choice_label' => 'title',
-                'label' => 'Post parent',
+                'label' => 'Parent Post',
                 'attr' => [
                     'class' => 'form-select'
                 ],
                 'required' => true,
-                'disabled' => true  // Empêche la modification du post parent
-            ])
-            ->add('authorId', IntegerType::class, [
-                'label' => 'ID Auteur',
-                'required' => true,
-                'attr' => [
-                    'class' => 'form-control',
-                    'placeholder' => 'ID de l\'auteur',
-                    'readonly' => true  // L'auteur ne devrait pas être modifiable
-                ],
+                'placeholder' => '— Select a post to reply to —',
                 'constraints' => [
                     new Assert\NotBlank([
-                        'message' => 'L\'ID de l\'auteur est requis'
-                    ]),
-                    new Assert\Positive([
-                        'message' => 'L\'ID de l\'auteur doit être un nombre positif'
+                        'message' => 'Please select a post to reply to'
                     ])
                 ]
             ])
+            ->add('authorId', IntegerType::class, [
+                // Controller sets this automatically
+                'required' => false,
+                'mapped' => true,
+                'attr' => [
+                    'class' => 'd-none'
+                ]
+            ])
             ->add('isActive', CheckboxType::class, [
-                'label' => 'Réponse active ?',
+                'label' => 'Active Reply?',
                 'required' => false,
                 'attr' => [
                     'class' => 'form-check-input'
-                ],
-                'help' => 'Décochez pour masquer cette réponse'
+                ]
             ])
             ->add('isBestAnswer', CheckboxType::class, [
-                'label' => 'Marquer comme meilleure réponse',
+                'label' => 'Mark as Best Answer',
                 'required' => false,
                 'attr' => [
                     'class' => 'form-check-input'
-                ],
-                'help' => 'Une seule réponse peut être marquée comme meilleure réponse'
+                ]
             ]);
     }
 

@@ -97,13 +97,13 @@
             </div>
             <div class="card-body">
                 <div class="d-grid gap-2">
-                    <a href="{{ path('admin_reclamation_index') }}" class="btn btn-outline-primary">
+                    <a href="{{ path('app_reclamation_index') }}" class="btn btn-outline-primary">
                         <i class="ti ti-ticket me-2"></i> Manage Tickets
                     </a>
-                    <a href="{{ path('admin_faq_index') }}" class="btn btn-outline-primary">
+                    <a href="{{ path('app_faq_index') }}" class="btn btn-outline-primary">
                         <i class="ti ti-help me-2"></i> Manage FAQ
                     </a>
-                    <a href="{{ path('admin_faq_new') }}" class="btn btn-outline-primary">
+                    <a href="{{ path('app_faq_new') }}" class="btn btn-outline-success">
                         <i class="ti ti-plus me-2"></i> Create New FAQ
                     </a>
                 </div>
@@ -118,27 +118,27 @@
             </div>
             <div class="card-body">
                 <div class="space-y">
-                    <div class="d-flex align-items-center">
-                        <div class="badge badge-yellow"></div>
-                        <div class="ms-3">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="badge bg-yellow me-3"></div>
+                        <div>
                             <strong>{{ stats.pending }}</strong> tickets waiting for response
                         </div>
                     </div>
-                    <div class="d-flex align-items-center">
-                        <div class="badge badge-blue"></div>
-                        <div class="ms-3">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="badge bg-blue me-3"></div>
+                        <div>
                             <strong>{{ stats.in_progress }}</strong> tickets being processed
                         </div>
                     </div>
-                    <div class="d-flex align-items-center">
-                        <div class="badge badge-green"></div>
-                        <div class="ms-3">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="badge bg-green me-3"></div>
+                        <div>
                             <strong>{{ stats.resolved }}</strong> tickets resolved
                         </div>
                     </div>
                     <div class="d-flex align-items-center">
-                        <div class="badge badge-secondary"></div>
-                        <div class="ms-3">
+                        <div class="badge bg-secondary me-3"></div>
+                        <div>
                             <strong>{{ stats.closed }}</strong> tickets closed
                         </div>
                     </div>
@@ -148,4 +148,3 @@
     </div>
 </div>
 {% endblock %}
-

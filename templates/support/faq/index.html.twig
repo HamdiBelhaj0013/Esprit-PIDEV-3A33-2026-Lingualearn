@@ -1,9 +1,20 @@
 {% extends 'layouts/admin.html.twig' %}
 
-{% block title %}FAQ Management - Admin{% endblock %}
+{% block title %}
+    {% if is_granted('ROLE_ADMIN') %}
+        FAQ Management - Admin
+    {% else %}
+        FAQ - Frequently Asked Questions
+    {% endif %}
+{% endblock %}
 
 {% block page_title %}
-    <i class="ti ti-help me-2"></i> FAQ Management
+    <i class="ti ti-help me-2"></i> 
+    {% if is_granted('ROLE_ADMIN') %}
+        FAQ Management
+    {% else %}
+        Frequently Asked Questions
+    {% endif %}
 {% endblock %}
 
 {% block content %}
@@ -13,7 +24,7 @@
         <div class="card mb-3">
             <div class="card-body">
                 <form method="get" class="row g-3 align-items-end">
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <div class="input-icon">
                             <span class="input-icon-addon">
                                 <i class="ti ti-search"></i>
@@ -54,11 +65,13 @@
                         </button>
                     </div>
                     
-                    <div class="col-md-2 text-end">
-                        <a href="{{ path('admin_faq_new') }}" class="btn btn-success w-100">
-                            <i class="ti ti-plus"></i> New FAQ
+                    {% if is_granted('ROLE_ADMIN') %}
+                    <div class="col-md-1 text-end">
+                        <a href="{{ path('app_faq_new') }}" class="btn btn-success w-100">
+                            <i class="ti ti-plus"></i>
                         </a>
                     </div>
+                    {% endif %}
                 </form>
             </div>
         </div>
@@ -83,87 +96,78 @@
             </div>
             <div class="card-body">
                 {% if faqs|length > 0 %}
-                    <div class="table-responsive">
-                        <table class="table table-vcenter table-hover">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Question</th>
-                                    <th>Subject</th>
-                                    <th>Category</th>
-                                    <th>Created</th>
-                                    <th style="width: 1%; white-space: nowrap;">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for faq in faqs %}
-                                <tr>
-                                    <td>
-                                        <strong>#{{ faq.id }}</strong>
-                                    </td>
-                                    <td>
-                                        <div class="text-truncate" style="max-width: 300px;">
+                    <div class="accordion" id="faqAccordion">
+                        {% for faq in faqs %}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="heading{{ faq.id }}">
+                                <button class="accordion-button collapsed" type="button" 
+                                        data-bs-toggle="collapse" 
+                                        data-bs-target="#collapse{{ faq.id }}" 
+                                        aria-expanded="false" 
+                                        aria-controls="collapse{{ faq.id }}">
+                                    <div class="d-flex justify-content-between align-items-center w-100 me-3">
+                                        <div>
+                                            {% if is_granted('ROLE_ADMIN') %}
+                                                <strong class="text-muted me-2">#{{ faq.id }}</strong>
+                                            {% endif %}
                                             {{ faq.question }}
                                         </div>
-                                    </td>
-                                    <td>
-                                        {% if faq.subject %}
-                                            {% if faq.subject == 'payment' %}
-                                                <span class="badge bg-primary">Payment</span>
-                                            {% elseif faq.subject == 'technical' %}
-                                                <span class="badge bg-info">Technical</span>
-                                            {% elseif faq.subject == 'content' %}
-                                                <span class="badge bg-warning">Content</span>
-                                            {% elseif faq.subject == 'premium' %}
-                                                <span class="badge bg-danger">Premium</span>
-                                            {% elseif faq.subject == 'account' %}
-                                                <span class="badge bg-success">Account</span>
-                                            {% else %}
-                                                <span class="badge bg-secondary">{{ faq.subject }}</span>
+                                        <div>
+                                            {% if faq.subject %}
+                                                {% if faq.subject == 'payment' %}
+                                                    <span class="badge bg-primary">Payment</span>
+                                                {% elseif faq.subject == 'technical' %}
+                                                    <span class="badge bg-info">Technical</span>
+                                                {% elseif faq.subject == 'content' %}
+                                                    <span class="badge bg-warning">Content</span>
+                                                {% elseif faq.subject == 'premium' %}
+                                                    <span class="badge bg-danger">Premium</span>
+                                                {% elseif faq.subject == 'account' %}
+                                                    <span class="badge bg-success">Account</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">{{ faq.subject }}</span>
+                                                {% endif %}
                                             {% endif %}
-                                        {% else %}
-                                            <span class="text-muted">-</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if faq.category %}
-                                            {% if faq.category == 'general' %}
-                                                General
-                                            {% elseif faq.category == 'technical' %}
-                                                Technical
-                                            {% elseif faq.category == 'pedagogical' %}
-                                                Pedagogical
-                                            {% elseif faq.category == 'billing' %}
-                                                Billing
-                                            {% else %}
-                                                {{ faq.category }}
-                                            {% endif %}
-                                        {% else %}
-                                            <span class="text-muted">-</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {{ faq.submittedAt|date('d/m/Y') }}
-                                    </td>
-                                    <td style="white-space: nowrap;">
-                                        <a href="{{ path('admin_faq_edit', {'id': faq.id}) }}"
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapse{{ faq.id }}" 
+                                 class="accordion-collapse collapse" 
+                                 aria-labelledby="heading{{ faq.id }}" 
+                                 data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    <div class="mb-3">
+                                        {{ faq.answer|nl2br }}
+                                    </div>
+                                    
+                                    {% if is_granted('ROLE_ADMIN') %}
+                                    <div class="d-flex gap-2 border-top pt-3">
+                                        <a href="{{ path('app_faq_edit', {'id': faq.id}) }}"
                                            class="btn btn-sm btn-warning">
-                                            <i class="ti ti-edit"></i>
+                                            <i class="ti ti-edit"></i> Edit
                                         </a>
                                         <form method="post"
-                                              action="{{ path('admin_faq_delete', {'id': faq.id}) }}"
+                                              action="{{ path('app_faq_delete', {'id': faq.id}) }}"
                                               class="d-inline">
                                             <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ faq.id) }}">
                                             <button type="submit" class="btn btn-sm btn-danger"
                                                     onclick="return confirm('Are you sure?')">
-                                                <i class="ti ti-trash"></i>
+                                                <i class="ti ti-trash"></i> Delete
                                             </button>
                                         </form>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                                        <div class="ms-auto text-muted small">
+                                            Created: {{ faq.submittedAt|date('d/m/Y') }}
+                                            {% if faq.category %}
+                                                | Category: {{ faq.category|capitalize }}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
                     </div>
 
                     <!-- Pagination -->
@@ -171,19 +175,19 @@
                     <div class="d-flex justify-content-center mt-3">
                         <ul class="pagination">
                             <li class="page-item {% if page <= 1 %}disabled{% endif %}">
-                                <a class="page-link" href="{{ path('admin_faq_index', app.request.query.all|merge({'page': page - 1})) }}">
+                                <a class="page-link" href="{{ path('app_faq_index', app.request.query.all|merge({'page': page - 1})) }}">
                                     <i class="ti ti-chevron-left"></i>
                                 </a>
                             </li>
                             
                             {% for p in 1..pages %}
                                 <li class="page-item {% if p == page %}active{% endif %}">
-                                    <a class="page-link" href="{{ path('admin_faq_index', app.request.query.all|merge({'page': p})) }}">{{ p }}</a>
+                                    <a class="page-link" href="{{ path('app_faq_index', app.request.query.all|merge({'page': p})) }}">{{ p }}</a>
                                 </li>
                             {% endfor %}
                             
                             <li class="page-item {% if page >= pages %}disabled{% endif %}">
-                                <a class="page-link" href="{{ path('admin_faq_index', app.request.query.all|merge({'page': page + 1})) }}">
+                                <a class="page-link" href="{{ path('app_faq_index', app.request.query.all|merge({'page': page + 1})) }}">
                                     <i class="ti ti-chevron-right"></i>
                                 </a>
                             </li>
@@ -200,18 +204,24 @@
                             {% if search or selected_subject %}
                                 No results for your search.
                             {% else %}
-                                Start by creating a new FAQ to help your users.
+                                {% if is_granted('ROLE_ADMIN') %}
+                                    Start by creating a new FAQ to help your users.
+                                {% else %}
+                                    Check back later for helpful answers.
+                                {% endif %}
                             {% endif %}
                         </p>
                         <div class="empty-action">
                             {% if search or selected_subject %}
-                            <a href="{{ path('admin_faq_index') }}" class="btn btn-outline-primary me-2">
+                            <a href="{{ path('app_faq_index') }}" class="btn btn-outline-primary me-2">
                                 <i class="ti ti-arrow-back"></i> Clear filters
                             </a>
                             {% endif %}
-                            <a href="{{ path('admin_faq_new') }}" class="btn btn-primary">
-                                <i class="ti ti-plus"></i> Create First FAQ
-                            </a>
+                            {% if is_granted('ROLE_ADMIN') %}
+                                <a href="{{ path('app_faq_new') }}" class="btn btn-primary">
+                                    <i class="ti ti-plus"></i> Create First FAQ
+                                </a>
+                            {% endif %}
                         </div>
                     </div>
                 {% endif %}
@@ -220,4 +230,3 @@
     </div>
 </div>
 {% endblock %}
-

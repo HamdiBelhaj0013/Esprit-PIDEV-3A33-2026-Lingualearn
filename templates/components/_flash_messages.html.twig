@@ -1,25 +1,106 @@
 <div class="container-xl mt-3">
     {% for label, messages in app.flashes %}
         {% for message in messages %}
-            <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible" role="alert">
-                <div class="d-flex">
-                    <div>
+            <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible toast-premium toast-{{ label == 'error' ? 'danger' : label }}"
+                 role="alert"
+                 data-aos="fade-down"
+                 data-aos-duration="400"
+                 style="position: relative; border-radius: 12px; border: none; overflow: hidden; box-shadow: var(--shadow-lg);">
+
+                {# Colored border accent #}
+                <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+                    background: {% if label == 'success' %}var(--gradient-success){% elseif label == 'error' or label == 'danger' %}var(--gradient-danger){% elseif label == 'warning' %}var(--gradient-warning){% else %}var(--gradient-primary){% endif %};"></div>
+
+                <div class="d-flex align-items-center" style="padding-left: 1rem;">
+                    <div class="me-3" style="font-size: 1.5rem;">
                         {% if label == 'success' %}
-                            <i class="ti ti-check icon alert-icon"></i>
+                            <i class="ti ti-circle-check" style="color: #10b981;"></i>
                         {% elseif label == 'error' or label == 'danger' %}
-                            <i class="ti ti-alert-circle icon alert-icon"></i>
+                            <i class="ti ti-circle-x" style="color: #ef4444;"></i>
                         {% elseif label == 'warning' %}
-                            <i class="ti ti-alert-triangle icon alert-icon"></i>
+                            <i class="ti ti-alert-triangle" style="color: #f59e0b;"></i>
                         {% else %}
-                            <i class="ti ti-info-circle icon alert-icon"></i>
+                            <i class="ti ti-info-circle" style="color: #3b82f6;"></i>
                         {% endif %}
                     </div>
-                    <div>
-                        {{ message }}
+                    <div class="flex-fill">
+                        <div class="fw-bold mb-1">
+                            {% if label == 'success' %}
+                                Success!
+                            {% elseif label == 'error' or label == 'danger' %}
+                                Error
+                            {% elseif label == 'warning' %}
+                                Warning
+                            {% else %}
+                                Info
+                            {% endif %}
+                        </div>
+                        <div>{{ message }}</div>
                     </div>
                 </div>
-                <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+
+                <button class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="close"
+                        style="position: absolute; top: 0.75rem; right: 0.75rem;"></button>
             </div>
         {% endfor %}
     {% endfor %}
 </div>
+
+{# Auto-dismiss flash messages after 5 seconds #}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const alerts = document.querySelectorAll('.alert-dismissible');
+        alerts.forEach(alert => {
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            }, 5000);
+        });
+    });
+</script>
+
+<style>
+    /* Enhanced alert animations */
+    .alert-dismissible {
+        animation: slideInDown 0.4s ease-out;
+    }
+
+    .alert-dismissible.fade.show {
+        animation: slideInDown 0.4s ease-out;
+    }
+
+    .alert-dismissible:not(.show) {
+        animation: slideOutUp 0.3s ease-in;
+    }
+
+    @keyframes slideInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes slideOutUp {
+        from {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        to {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+    }
+
+    /* Hover effect on alerts */
+    .alert-dismissible:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-xl) !important;
+    }
+</style>

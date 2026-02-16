@@ -7,6 +7,7 @@ use App\Module\Forum\Entity\ForumPost;
 use App\Module\Forum\Form\ForumReplyType;
 use App\Module\Forum\Repository\ForumReplyRepository;
 use App\Module\Forum\Repository\ForumPostRepository;
+use App\Module\UserManagement\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,58 +20,67 @@ class ForumReplyController extends AbstractController
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private ForumReplyRepository $repository,
-        private ForumPostRepository $postRepository
+        private ForumReplyRepository   $repository,
+        private ForumPostRepository    $postRepository,
+        private UserRepository         $userRepository,
     ) {}
 
-    /**
-     * ⭐ INDEX
-     */
+    // ─────────────────────────────────────────────────────────────────────────
+    // INDEX
+    // ─────────────────────────────────────────────────────────────────────────
     #[Route('/', name: 'admin_forum_reply_index', methods: ['GET'])]
     public function index(Request $request): Response
     {
         $filters = [
-            'keyword' => $request->query->get('keyword'),
-            'authorId' => $request->query->get('authorId'),
-            'postId' => $request->query->get('postId'),
-            'isActive' => $request->query->get('isActive'),
-            'isBestAnswer' => $request->query->get('isBestAnswer'),
-            'sortField' => $request->query->get('sortField', 'repliedAt'),
-            'sortOrder' => $request->query->get('sortOrder', 'DESC'),
+            'keyword'     => $request->query->get('keyword'),
+            'authorId'    => $request->query->get('authorId'),
+            'postId'      => $request->query->get('postId'),
+            'isActive'    => $request->query->get('isActive'),
+            'isBestAnswer'=> $request->query->get('isBestAnswer'),
+            'sortField'   => $request->query->get('sortField', 'repliedAt'),
+            'sortOrder'   => $request->query->get('sortOrder', 'DESC'),
         ];
 
-        $page = max(1, $request->query->getInt('page', 1));
+        $page  = max(1, $request->query->getInt('page', 1));
         $limit = 10;
 
-        $replies = $this->repository->findWithPagination($page, $limit, $filters);
+        $replies      = $this->repository->findWithPagination($page, $limit, $filters);
         $totalReplies = $this->repository->countByFilters($filters);
-        $totalPages = ceil($totalReplies / $limit);
-
-        $stats = $this->repository->getStatistics();
-        $posts = $this->postRepository->findAll();
+        $totalPages   = ceil($totalReplies / $limit);
+        $stats        = $this->repository->getStatistics();
+        $posts        = $this->postRepository->findAll();
+        $users        = $this->userRepository->findBy(['status' => 'active'], ['lastName' => 'ASC']);
 
         return $this->render('Forum/backend/forum_reply/index.html.twig', [
-            'replies' => $replies,
-            'posts' => $posts,
-            'currentPage' => $page,
-            'totalPages' => $totalPages,
+            'replies'      => $replies,
+            'posts'        => $posts,
+            'users'        => $users,
+            'currentPage'  => $page,
+            'totalPages'   => $totalPages,
             'totalReplies' => $totalReplies,
-            'filters' => $filters,
-            'stats' => $stats,
+            'filters'      => $filters,
+            'stats'        => $stats,
         ]);
     }
 
-    /**
-     * ⭐ NEW - DOIT ÊTRE AVANT /{id}
-     */
+    // ─────────────────────────────────────────────────────────────────────────
+    // NEW  (must stay before /{id})
+    // ─────────────────────────────────────────────────────────────────────────
     #[Route('/new', name: 'admin_forum_reply_new', methods: ['GET', 'POST'])]
     public function new(Request $request): Response
     {
         $reply = new ForumReply();
 
-        $postId = $request->query->get('postId');
-        if ($postId) {
-            $post = $this->postRepository->find($postId);
+        // Automatically set the author to the currently logged-in user
+        $currentUser = $this->getUser();
+        if ($currentUser) {
+            $reply->setAuthorId($currentUser->getId());
+        }
+
+        // Pre-select post if coming from a post page (but admin can still change it)
+        $preselectedPostId = $request->query->get('postId');
+        if ($preselectedPostId) {
+            $post = $this->postRepository->find($preselectedPostId);
             if ($post) {
                 $reply->setPost($post);
             }
@@ -80,121 +90,120 @@ class ForumReplyController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Ensure author is set
+            if (!$reply->getAuthorId() && $currentUser) {
+                $reply->setAuthorId($currentUser->getId());
+            }
+
             $this->repository->save($reply, true);
-            $this->addFlash('success', 'La réponse a été créée avec succès !');
+            $this->addFlash('success', 'Reply created successfully!');
             return $this->redirectToRoute('admin_forum_reply_index');
         }
 
+        // Always get all posts for the dropdown
+        $posts = $this->postRepository->findAll();
+
         return $this->render('Forum/backend/forum_reply/new.html.twig', [
-            'reply' => $reply,
-            'form' => $form,
+            'reply'       => $reply,
+            'form'        => $form,
+            'currentUser' => $currentUser,
+            'posts'       => $posts,
         ]);
     }
 
-    /**
-     * ⭐ SEARCH/AJAX - DOIT ÊTRE AVANT /{id}
-     */
+    // ─────────────────────────────────────────────────────────────────────────
+    // SEARCH / AJAX  (must stay before /{id})
+    // ─────────────────────────────────────────────────────────────────────────
     #[Route('/search/ajax', name: 'admin_forum_reply_search_ajax', methods: ['GET'])]
     public function searchAjax(Request $request): JsonResponse
     {
         $keyword = $request->query->get('keyword', '');
 
         if (strlen($keyword) < 2) {
-            return $this->json([
-                'success' => false,
-                'message' => 'Veuillez entrer au moins 2 caractères'
-            ]);
+            return $this->json(['success' => false, 'message' => 'Please enter at least 2 characters']);
         }
 
         $replies = $this->repository->searchByKeyword($keyword);
 
-        $results = array_map(function($reply) {
-            return [
-                'id' => $reply->getId(),
-                'content' => substr($reply->getContent(), 0, 100) . '...',
-                'postTitle' => $reply->getPost()->getTitle(),
-                'authorId' => $reply->getAuthorId(),
-                'repliedAt' => $reply->getRepliedAt()->format('Y-m-d H:i'),
-                'isActive' => $reply->isActive(),
-                'isBestAnswer' => $reply->isBestAnswer(),
-            ];
-        }, $replies);
+        $results = array_map(fn($reply) => [
+            'id'          => $reply->getId(),
+            'content'     => substr($reply->getContent(), 0, 100) . '...',
+            'postTitle'   => $reply->getPost()->getTitle(),
+            'authorId'    => $reply->getAuthorId(),
+            'repliedAt'   => $reply->getRepliedAt()->format('Y-m-d H:i'),
+            'isActive'    => $reply->isActive(),
+            'isBestAnswer'=> $reply->isBestAnswer(),
+        ], $replies);
 
-        return $this->json([
-            'success' => true,
-            'results' => $results,
-            'count' => count($results)
-        ]);
+        return $this->json(['success' => true, 'results' => $results, 'count' => count($results)]);
     }
 
-    /**
-     * ⭐ BULK ACTION - DOIT ÊTRE AVANT /{id}
-     */
+    // ─────────────────────────────────────────────────────────────────────────
+    // BULK ACTION  (must stay before /{id})
+    // ─────────────────────────────────────────────────────────────────────────
     #[Route('/bulk/action', name: 'admin_forum_reply_bulk_action', methods: ['POST'])]
     public function bulkAction(Request $request): Response
     {
-        $action = $request->request->get('action');
+        $action   = $request->request->get('action');
         $replyIds = $request->request->all('reply_ids');
 
         if (empty($replyIds)) {
-            $this->addFlash('error', 'Aucune réponse sélectionnée');
+            $this->addFlash('error', 'No replies selected.');
             return $this->redirectToRoute('admin_forum_reply_index');
         }
 
         $replies = $this->repository->findBy(['id' => $replyIds]);
 
-        switch ($action) {
-            case 'delete':
-                foreach ($replies as $reply) {
-                    $this->repository->remove($reply);
-                }
+        match ($action) {
+            'delete' => (function () use ($replies) {
+                foreach ($replies as $r) { $this->repository->remove($r); }
                 $this->entityManager->flush();
-                $this->addFlash('success', count($replies) . ' réponse(s) supprimée(s)');
-                break;
-
-            case 'activate':
-                foreach ($replies as $reply) {
-                    $reply->setIsActive(true);
-                }
+                $this->addFlash('success', count($replies) . ' reply/replies deleted.');
+            })(),
+            'activate' => (function () use ($replies) {
+                foreach ($replies as $r) { $r->setIsActive(true); }
                 $this->entityManager->flush();
-                $this->addFlash('success', count($replies) . ' réponse(s) activée(s)');
-                break;
-
-            case 'deactivate':
-                foreach ($replies as $reply) {
-                    $reply->setIsActive(false);
-                }
+                $this->addFlash('success', count($replies) . ' reply/replies activated.');
+            })(),
+            'deactivate' => (function () use ($replies) {
+                foreach ($replies as $r) { $r->setIsActive(false); }
                 $this->entityManager->flush();
-                $this->addFlash('success', count($replies) . ' réponse(s) désactivée(s)');
-                break;
-
-            default:
-                $this->addFlash('error', 'Action non reconnue');
-        }
+                $this->addFlash('success', count($replies) . ' reply/replies deactivated.');
+            })(),
+            default => $this->addFlash('error', 'Unknown action.'),
+        };
 
         return $this->redirectToRoute('admin_forum_reply_index');
     }
 
-    /**
-     * ⭐ EXPORT CSV - DOIT ÊTRE AVANT /{id}
-     */
+    // ─────────────────────────────────────────────────────────────────────────
+    // EXPORT CSV  (must stay before /{id})
+    // ─────────────────────────────────────────────────────────────────────────
     #[Route('/export/csv', name: 'admin_forum_reply_export_csv', methods: ['GET'])]
     public function exportCsv(): Response
     {
         $replies = $this->repository->findAll();
 
-        $csv = "ID;Post;Auteur ID;Contenu;Date de réponse;Statut;Meilleure réponse\n";
+        // Build a name lookup from users so CSV shows real names
+        $users    = $this->userRepository->findAll();
+        $userMap  = [];
+        foreach ($users as $u) {
+            $userMap[$u->getId()] = trim($u->getFirstName() . ' ' . $u->getLastName());
+        }
+
+        $csv = "ID;Post;Author;Content;Date;Status;Best Answer\n";
 
         foreach ($replies as $reply) {
+            $authorLabel = $userMap[$reply->getAuthorId()] ?? 'User #' . $reply->getAuthorId();
             $csv .= sprintf(
-                "%d;%s;%d;%s;%s;%s;%s\n",
+                "%d;%s;%s;%s;%s;%s;%s\n",
                 $reply->getId(),
                 str_replace(';', ',', $reply->getPost()->getTitle()),
-                $reply->getAuthorId(),
+                $authorLabel,
                 str_replace([';', "\n", "\r"], [',', ' ', ' '], substr($reply->getContent(), 0, 100)),
                 $reply->getRepliedAt()->format('Y-m-d H:i:s'),
-                $reply->isActive() ? 'Actif' : 'Inactif',
-                $reply->isBestAnswer() ? 'Oui' : 'Non'
+                $reply->isActive()    ? 'Active'     : 'Inactive',
+                $reply->isBestAnswer() ? 'Yes'        : 'No'
             );
         }
 
@@ -205,9 +214,9 @@ class ForumReplyController extends AbstractController
         return $response;
     }
 
-    /**
-     * ⭐ EDIT
-     */
+    // ─────────────────────────────────────────────────────────────────────────
+    // EDIT
+    // ─────────────────────────────────────────────────────────────────────────
     #[Route('/{id}/edit', name: 'admin_forum_reply_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, ForumReply $reply): Response
     {
@@ -216,97 +225,88 @@ class ForumReplyController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $this->entityManager->flush();
-            $this->addFlash('success', 'La réponse a été modifiée avec succès !');
+            $this->addFlash('success', 'Reply updated successfully!');
             return $this->redirectToRoute('admin_forum_reply_index');
         }
 
+        // Get the author user object for display
+        $author = $this->userRepository->find($reply->getAuthorId());
+
         return $this->render('Forum/backend/forum_reply/edit.html.twig', [
-            'reply' => $reply,
-            'form' => $form,
+            'reply'  => $reply,
+            'form'   => $form,
+            'author' => $author,
         ]);
     }
 
-    /**
-     * ⭐ DELETE
-     */
+    // ─────────────────────────────────────────────────────────────────────────
+    // DELETE
+    // ─────────────────────────────────────────────────────────────────────────
     #[Route('/{id}', name: 'admin_forum_reply_delete', methods: ['POST'])]
     public function delete(Request $request, ForumReply $reply): Response
     {
         if ($this->isCsrfTokenValid('delete' . $reply->getId(), $request->request->get('_token'))) {
             $this->repository->remove($reply, true);
-            $this->addFlash('success', 'La réponse a été supprimée avec succès !');
+            $this->addFlash('success', 'Reply deleted successfully!');
         }
 
         return $this->redirectToRoute('admin_forum_reply_index');
     }
 
-    /**
-     * ⭐ TOGGLE STATUS
-     */
+    // ─────────────────────────────────────────────────────────────────────────
+    // TOGGLE STATUS
+    // ─────────────────────────────────────────────────────────────────────────
     #[Route('/{id}/toggle-status', name: 'admin_forum_reply_toggle_status', methods: ['POST'])]
     public function toggleStatus(ForumReply $reply): JsonResponse
     {
         try {
             $this->repository->toggleStatus($reply);
-
             return $this->json([
-                'success' => true,
+                'success'  => true,
                 'isActive' => $reply->isActive(),
-                'message' => $reply->isActive() ? 'Réponse activée' : 'Réponse désactivée'
+                'message'  => $reply->isActive() ? 'Reply activated' : 'Reply deactivated',
             ]);
         } catch (\Exception $e) {
-            return $this->json([
-                'success' => false,
-                'message' => 'Erreur lors du changement de statut'
-            ], 500);
+            return $this->json(['success' => false, 'message' => 'Could not change status.'], 500);
         }
     }
 
-    /**
-     * ⭐ MARK BEST ANSWER
-     */
+    // ─────────────────────────────────────────────────────────────────────────
+    // MARK BEST ANSWER
+    // ─────────────────────────────────────────────────────────────────────────
     #[Route('/{id}/mark-best-answer', name: 'admin_forum_reply_mark_best_answer', methods: ['POST'])]
     public function markBestAnswer(ForumReply $reply): JsonResponse
     {
         try {
             $this->repository->markAsBestAnswer($reply);
-
-            return $this->json([
-                'success' => true,
-                'message' => 'Marquée comme meilleure réponse'
-            ]);
+            return $this->json(['success' => true, 'message' => 'Marked as best answer.']);
         } catch (\Exception $e) {
-            return $this->json([
-                'success' => false,
-                'message' => 'Erreur lors du marquage'
-            ], 500);
+            return $this->json(['success' => false, 'message' => 'Could not mark as best answer.'], 500);
         }
     }
 
-    /**
-     * ⭐ GET REPLIES BY POST - DOIT ÊTRE AVANT /{id}
-     */
+    // ─────────────────────────────────────────────────────────────────────────
+    // GET REPLIES BY POST  (must stay before /{id})
+    // ─────────────────────────────────────────────────────────────────────────
     #[Route('/post/{id}/replies', name: 'admin_forum_reply_by_post', methods: ['GET'])]
     public function getRepliesByPost(ForumPost $post): JsonResponse
     {
         $replies = $this->repository->findByPost($post, false);
 
-        $results = array_map(function($reply) {
-            return [
-                'id' => $reply->getId(),
-                'content' => $reply->getContent(),
-                'authorId' => $reply->getAuthorId(),
-                'repliedAt' => $reply->getRepliedAt()->format('Y-m-d H:i'),
-                'isActive' => $reply->isActive(),
-                'isBestAnswer' => $reply->isBestAnswer(),
-            ];
-        }, $replies);
+        $results = array_map(fn($reply) => [
+            'id'          => $reply->getId(),
+            'content'     => $reply->getContent(),
+            'authorId'    => $reply->getAuthorId(),
+            'repliedAt'   => $reply->getRepliedAt()->format('Y-m-d H:i'),
+            'isActive'    => $reply->isActive(),
+            'isBestAnswer'=> $reply->isBestAnswer(),
+        ], $replies);
 
         return $this->json([
-            'success' => true,
+            'success'   => true,
             'postTitle' => $post->getTitle(),
-            'replies' => $results,
-            'count' => count($results)
+            'replies'   => $results,
+            'count'     => count($results),
         ]);
     }
 }

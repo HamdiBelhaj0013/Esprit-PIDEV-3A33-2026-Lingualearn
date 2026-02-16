@@ -1,133 +1,200 @@
 {% extends 'layouts/admin.html.twig' %}
 
-{% block title %}{% block page_title %}Edit Post{% endblock %}{% endblock %}
+{% block title %}{% block page_title %}Edit Post #{{ post.id }}{% endblock %}{% endblock %}
+
+{% block page_actions %}
+    <a href="{{ path('admin_forum_post_show', {id: post.id}) }}" class="btn btn-outline-secondary">
+        <i class="ti ti-eye me-1"></i> View Post
+    </a>
+    <a href="{{ path('admin_forum_post_index') }}" class="btn btn-outline-secondary">
+        <i class="ti ti-arrow-left me-1"></i> Back to Posts
+    </a>
+{% endblock %}
 
 {% block content %}
 
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h1><i class="bi bi-pencil-square"></i> Modifier le Post #{{ post.id }}</h1>
-        </div>
-        <div class="col-md-4 text-end">
-            <a href="{{ path('admin_forum_post_index') }}" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Retour à la liste
-            </a>
-        </div>
-    </div>
-
     <div class="row">
-        <div class="col-md-8">
+
+        {# ===== FORM COLUMN ===== #}
+        <div class="col-lg-8">
             <div class="card">
-                <div class="card-header bg-warning text-dark">
-                    <h5 class="mb-0"><i class="bi bi-form-check"></i> Formulaire de modification</h5>
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="ti ti-pencil me-2"></i> Edit Post
+                    </h3>
                 </div>
                 <div class="card-body">
+
                     {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': true}}) }}
 
+                    {# Title #}
                     <div class="mb-3">
-                        {{ form_label(form.title, 'Titre du Post') }}
-                        {{ form_widget(form.title, {'attr': {'class': 'form-control' ~ (form.title.vars.errors|length > 0 ? ' is-invalid' : ''), 'placeholder': 'Entrez le titre...'}}) }}
+                        <label class="form-label required">{{ form.title.vars.label }}</label>
+                        {{ form_widget(form.title, {
+                            'attr': {
+                                'class': 'form-control' ~ (form.title.vars.errors|length > 0 ? ' is-invalid' : ''),
+                                'placeholder': 'Enter a clear, descriptive title…'
+                            }
+                        }) }}
                         {% if form.title.vars.errors|length > 0 %}
                             <div class="invalid-feedback d-block">
-                                {% for error in form.title.vars.errors %}
-                                    {{ error.message }}
-                                {% endfor %}
+                                {% for error in form.title.vars.errors %}{{ error.message }}{% endfor %}
                             </div>
                         {% endif %}
-                        <small class="form-text text-muted">{{ form.title.vars.help }}</small>
+                        {% if form.title.vars.help %}
+                            <small class="form-hint">{{ form.title.vars.help }}</small>
+                        {% endif %}
                     </div>
 
+                    {# Content #}
                     <div class="mb-3">
-                        {{ form_label(form.content, 'Contenu') }}
-                        {{ form_widget(form.content, {'attr': {'class': 'form-control' ~ (form.content.vars.errors|length > 0 ? ' is-invalid' : ''), 'placeholder': 'Écrivez votre message...'}}) }}
+                        <label class="form-label required">{{ form.content.vars.label }}</label>
+                        {{ form_widget(form.content, {
+                            'attr': {
+                                'class': 'form-control' ~ (form.content.vars.errors|length > 0 ? ' is-invalid' : ''),
+                                'placeholder': 'Write your post content here…',
+                                'rows': '8'
+                            }
+                        }) }}
                         {% if form.content.vars.errors|length > 0 %}
                             <div class="invalid-feedback d-block">
-                                {% for error in form.content.vars.errors %}
-                                    {{ error.message }}
-                                {% endfor %}
+                                {% for error in form.content.vars.errors %}{{ error.message }}{% endfor %}
                             </div>
                         {% endif %}
-                        <small class="form-text text-muted">{{ form.content.vars.help }}</small>
+                        {% if form.content.vars.help %}
+                            <small class="form-hint">{{ form.content.vars.help }}</small>
+                        {% endif %}
                     </div>
 
+                    {# Author + Language #}
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            {{ form_label(form.authorId, 'ID Auteur') }}
-                            {{ form_widget(form.authorId, {'attr': {'class': 'form-control' ~ (form.authorId.vars.errors|length > 0 ? ' is-invalid' : ''), 'placeholder': 'ID de l\'auteur'}}) }}
+                            <label class="form-label required">{{ form.authorId.vars.label }}</label>
+                            {{ form_widget(form.authorId, {
+                                'attr': {
+                                    'class': 'form-control' ~ (form.authorId.vars.errors|length > 0 ? ' is-invalid' : ''),
+                                    'placeholder': 'Author user ID'
+                                }
+                            }) }}
                             {% if form.authorId.vars.errors|length > 0 %}
                                 <div class="invalid-feedback d-block">
-                                    {% for error in form.authorId.vars.errors %}
-                                        {{ error.message }}
-                                    {% endfor %}
+                                    {% for error in form.authorId.vars.errors %}{{ error.message }}{% endfor %}
                                 </div>
                             {% endif %}
-                            <small class="form-text text-muted">{{ form.authorId.vars.help }}</small>
+                            {% if form.authorId.vars.help %}
+                                <small class="form-hint">{{ form.authorId.vars.help }}</small>
+                            {% endif %}
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            {{ form_label(form.platformLanguageId, 'Langue de la plateforme') }}
-                            {{ form_widget(form.platformLanguageId, {'attr': {'class': 'form-select' ~ (form.platformLanguageId.vars.errors|length > 0 ? ' is-invalid' : '')}}) }}
+                            <label class="form-label required">{{ form.platformLanguageId.vars.label }}</label>
+                            {{ form_widget(form.platformLanguageId, {
+                                'attr': {
+                                    'class': 'form-select' ~ (form.platformLanguageId.vars.errors|length > 0 ? ' is-invalid' : '')
+                                }
+                            }) }}
                             {% if form.platformLanguageId.vars.errors|length > 0 %}
                                 <div class="invalid-feedback d-block">
-                                    {% for error in form.platformLanguageId.vars.errors %}
-                                        {{ error.message }}
-                                    {% endfor %}
+                                    {% for error in form.platformLanguageId.vars.errors %}{{ error.message }}{% endfor %}
                                 </div>
                             {% endif %}
                         </div>
                     </div>
 
-                    <div class="mb-3 form-check">
-                        {{ form_widget(form.isActive, {'attr': {'class': 'form-check-input'}}) }}
-                        {{ form_label(form.isActive, 'Post actif ?', {'label_attr': {'class': 'form-check-label'}}) }}
-                        <small class="form-text text-muted d-block">{{ form.isActive.vars.help }}</small>
+                    {# Active toggle #}
+                    <div class="mb-4">
+                        <label class="form-check form-switch">
+                            {{ form_widget(form.isActive, {'attr': {'class': 'form-check-input'}}) }}
+                            <span class="form-check-label">{{ form.isActive.vars.label }}</span>
+                        </label>
+                        {% if form.isActive.vars.help %}
+                            <small class="form-hint d-block">{{ form.isActive.vars.help }}</small>
+                        {% endif %}
                     </div>
 
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <a href="{{ path('admin_forum_post_index') }}" class="btn btn-secondary">
-                            <i class="bi bi-x-lg"></i> Annuler
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{{ path('admin_forum_post_show', {id: post.id}) }}" class="btn btn-outline-secondary">
+                            <i class="ti ti-x me-1"></i> Cancel
                         </a>
                         <button type="submit" class="btn btn-warning">
-                            <i class="bi bi-check-lg"></i> Mettre à jour
+                            <i class="ti ti-device-floppy me-1"></i> Save Changes
                         </button>
                     </div>
 
                     {{ form_end(form) }}
+
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informations</h5>
+        {# ===== SIDEBAR ===== #}
+        <div class="col-lg-4">
+
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="ti ti-info-circle me-2"></i> Post Details
+                    </h3>
                 </div>
                 <div class="card-body">
-                    <dl class="row">
-                        <dt class="col-sm-8">ID:</dt>
-                        <dd class="col-sm-4"><strong>#{{ post.id }}</strong></dd>
+                    <dl class="row mb-0">
+                        <dt class="col-6 text-muted">ID</dt>
+                        <dd class="col-6 fw-medium">#{{ post.id }}</dd>
 
-                        <dt class="col-sm-8">Créé le:</dt>
-                        <dd class="col-sm-4"><small>{{ post.postedAt|date('Y-m-d H:i') }}</small></dd>
+                        <dt class="col-6 text-muted">Created</dt>
+                        <dd class="col-6"><small>{{ post.postedAt|date('Y-m-d H:i') }}</small></dd>
 
-                        <dt class="col-sm-8">Vues:</dt>
-                        <dd class="col-sm-4"><span class="badge bg-info">{{ post.viewCount }}</span></dd>
+                        <dt class="col-6 text-muted">Views</dt>
+                        <dd class="col-6">
+                            <span class="badge bg-blue-lt">
+                                <i class="ti ti-eye me-1"></i>{{ post.viewCount }}
+                            </span>
+                        </dd>
 
-                        <dt class="col-sm-8">Réponses:</dt>
-                        <dd class="col-sm-4"><span class="badge bg-secondary">{{ post.replyCount }}</span></dd>
+                        <dt class="col-6 text-muted">Replies</dt>
+                        <dd class="col-6">
+                            <span class="badge bg-secondary-lt">
+                                <i class="ti ti-message-circle me-1"></i>{{ post.replyCount }}
+                            </span>
+                        </dd>
 
-                        <dt class="col-sm-8">Statut:</dt>
-                        <dd class="col-sm-4">
+                        <dt class="col-6 text-muted">Status</dt>
+                        <dd class="col-6">
                             {% if post.isActive %}
-                                <span class="badge bg-success">Actif</span>
+                                <span class="badge bg-success-lt">
+                                    <i class="ti ti-circle-check me-1"></i>Active
+                                </span>
                             {% else %}
-                                <span class="badge bg-danger">Inactif</span>
+                                <span class="badge bg-danger-lt">
+                                    <i class="ti ti-circle-x me-1"></i>Inactive
+                                </span>
                             {% endif %}
                         </dd>
                     </dl>
                 </div>
             </div>
+
+            <div class="card border-danger">
+                <div class="card-header bg-danger-lt">
+                    <h3 class="card-title text-danger">
+                        <i class="ti ti-alert-triangle me-2"></i> Danger Zone
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small">Permanently delete this post and all its replies. This cannot be undone.</p>
+                    <form method="post"
+                          action="{{ path('admin_forum_post_delete', {id: post.id}) }}"
+                          onsubmit="return confirm('Delete post #{{ post.id }}? All replies will also be removed. This cannot be undone.');">
+                        <input type="hidden" name="_method" value="DELETE">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ post.id) }}">
+                        <button type="submit" class="btn btn-danger btn-sm w-100">
+                            <i class="ti ti-trash me-1"></i> Delete Post
+                        </button>
+                    </form>
+                </div>
+            </div>
+
         </div>
     </div>
-    </div>
+
 {% endblock %}

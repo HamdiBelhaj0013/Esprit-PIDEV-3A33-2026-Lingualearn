@@ -1,152 +1,215 @@
-{% extends 'base.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
-{% block title %}Modifier une Réponse - Forum{% endblock %}
+{% block title %}{% block page_title %}Edit Reply #{{ reply.id }}{% endblock %}{% endblock %}
 
-{% block body %}
-    <div class="container-fluid mt-5">
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h1><i class="ti ti-pencil-square"></i> Modifier la Réponse #{{ reply.id }}</h1>
-        </div>
-        <div class="col-md-4 text-end">
-            <a href="{{ path('admin_forum_reply_index') }}" class="btn btn-secondary">
-                <i class="ti ti-arrow-left"></i> Retour à la liste
-            </a>
-        </div>
-    </div>
+{% block page_actions %}
+    <a href="{{ path('admin_forum_post_show', {id: reply.post.id}) }}" class="btn btn-outline-secondary">
+        <i class="ti ti-message-square me-1"></i> View Post
+    </a>
+    <a href="{{ path('admin_forum_reply_index') }}" class="btn btn-outline-secondary">
+        <i class="ti ti-arrow-left me-1"></i> Back to Replies
+    </a>
+{% endblock %}
+
+{% block content %}
 
     <div class="row">
-        <div class="col-md-8">
+
+        {# ===== FORM COLUMN ===== #}
+        <div class="col-lg-8">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0">Formulaire de modification</h5>
+                    <h3 class="card-title">
+                        <i class="ti ti-pencil me-2"></i> Edit Reply
+                    </h3>
                 </div>
                 <div class="card-body">
-                    {{ form_start(form) }}
 
+                    {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': true}}) }}
+
+                    {# Content #}
                     <div class="mb-3">
-                        <label class="form-label">{{ form.content.vars.label }}</label>
-                        {{ form_widget(form.content, {'attr': {'class': 'form-control', 'placeholder': 'Écrivez votre réponse...', 'rows': '6'}}) }}
-                        {{ form_errors(form.content) }}
+                        <label class="form-label required">{{ form.content.vars.label }}</label>
+                        {{ form_widget(form.content, {
+                            'attr': {
+                                'class': 'form-control' ~ (form.content.vars.errors|length > 0 ? ' is-invalid' : ''),
+                                'placeholder': 'Write your reply here…',
+                                'rows': '6'
+                            }
+                        }) }}
+                        {% if form.content.vars.errors|length > 0 %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.content.vars.errors %}{{ error.message }}{% endfor %}
+                            </div>
+                        {% endif %}
                     </div>
 
+                    {# Author — displayed as read-only info, not editable #}
                     <div class="mb-3">
-                        <label class="form-label">{{ form.authorId.vars.label }}</label>
-                        {{ form_widget(form.authorId, {'attr': {'class': 'form-control', 'type': 'number'}}) }}
-                        {{ form_errors(form.authorId) }}
+                        <label class="form-label">Author</label>
+                        <div class="alert alert-secondary mb-0">
+                            <div class="d-flex align-items-center">
+                                <i class="ti ti-user-circle me-2 fs-3"></i>
+                                <div>
+                                    <strong>
+                                        {% if author %}
+                                            {{ author.firstName ?? '' }} {{ author.lastName ?? '' }}
+                                            {% if author.email %}({{ author.email }}){% endif %}
+                                        {% else %}
+                                            User #{{ reply.authorId }}
+                                        {% endif %}
+                                    </strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        The author cannot be changed after creation
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {# Hidden field to preserve the author ID #}
+                        {{ form_widget(form.authorId, {'attr': {'class': 'd-none'}}) }}
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-6 mb-3 form-check">
-                            {{ form_widget(form.isActive, {'attr': {'class': 'form-check-input'}}) }}
-                            <label class="form-check-label">{{ form.isActive.vars.label }}</label>
-                            {{ form_errors(form.isActive) }}
+                    {# Toggles #}
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-check form-switch">
+                                {{ form_widget(form.isActive, {'attr': {'class': 'form-check-input'}}) }}
+                                <span class="form-check-label">{{ form.isActive.vars.label }}</span>
+                            </label>
                         </div>
-
-                        <div class="col-md-6 mb-3 form-check">
-                            {{ form_widget(form.isBestAnswer, {'attr': {'class': 'form-check-input'}}) }}
-                            <label class="form-check-label">{{ form.isBestAnswer.vars.label }}</label>
-                            {{ form_errors(form.isBestAnswer) }}
+                        <div class="col-md-6">
+                            <label class="form-check form-switch">
+                                {{ form_widget(form.isBestAnswer, {'attr': {'class': 'form-check-input'}}) }}
+                                <span class="form-check-label">{{ form.isBestAnswer.vars.label }}</span>
+                            </label>
                         </div>
                     </div>
 
-                    <hr />
-
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <a href="{{ path('admin_forum_reply_index') }}" class="btn btn-secondary">
-                            <i class="ti ti-x"></i> Annuler
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{{ path('admin_forum_reply_index') }}" class="btn btn-outline-secondary">
+                            <i class="ti ti-x me-1"></i> Cancel
                         </a>
                         <button type="submit" class="btn btn-warning">
-                            <i class="ti ti-check"></i> Mettre à jour
+                            <i class="ti ti-device-floppy me-1"></i> Save Changes
                         </button>
                     </div>
 
                     {{ form_end(form) }}
+
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <!-- Informations de la réponse -->
+        {# ===== SIDEBAR ===== #}
+        <div class="col-lg-4">
+
+            {# Reply metadata #}
             <div class="card mb-3">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="ti ti-info-circle"></i> Informations</h5>
+                    <h3 class="card-title">
+                        <i class="ti ti-info-circle me-2"></i> Reply Details
+                    </h3>
                 </div>
                 <div class="card-body">
-                    <dl class="row small">
-                        <dt class="col-sm-8">ID:</dt>
-                        <dd class="col-sm-4"><strong>#{{ reply.id }}</strong></dd>
+                    <dl class="row mb-0">
+                        <dt class="col-6 text-muted">ID</dt>
+                        <dd class="col-6 fw-medium">#{{ reply.id }}</dd>
 
-                        <dt class="col-sm-8">Auteur:</dt>
-                        <dd class="col-sm-4">{{ reply.authorId }}</dd>
+                        <dt class="col-6 text-muted">Author</dt>
+                        <dd class="col-6">
+                            <span class="text-muted">
+                                <i class="ti ti-user me-1"></i>
+                                {% if author %}
+                                    {{ author.firstName ?? '' }} {{ author.lastName ?? '' }}
+                                {% else %}
+                                    User #{{ reply.authorId }}
+                                {% endif %}
+                            </span>
+                        </dd>
 
-                        <dt class="col-sm-8">Créée le:</dt>
-                        <dd class="col-sm-4"><small>{{ reply.repliedAt|date('Y-m-d H:i:s') }}</small></dd>
+                        <dt class="col-6 text-muted">Created</dt>
+                        <dd class="col-6">
+                            <small class="text-muted">{{ reply.repliedAt|date('Y-m-d H:i') }}</small>
+                        </dd>
 
-                        <dt class="col-sm-8">Statut:</dt>
-                        <dd class="col-sm-4">
+                        <dt class="col-6 text-muted">Status</dt>
+                        <dd class="col-6">
                             {% if reply.isActive %}
-                                <span class="badge bg-success"><i class="ti ti-check"></i> Actif</span>
+                                <span class="badge bg-success-lt">
+                                    <i class="ti ti-circle-check me-1"></i>Active
+                                </span>
                             {% else %}
-                                <span class="badge bg-danger"><i class="ti ti-x"></i> Inactif</span>
+                                <span class="badge bg-danger-lt">
+                                    <i class="ti ti-circle-x me-1"></i>Inactive
+                                </span>
                             {% endif %}
                         </dd>
 
-                        <dt class="col-sm-8">Meilleure:</dt>
-                        <dd class="col-sm-4">
+                        <dt class="col-6 text-muted">Best Answer</dt>
+                        <dd class="col-6">
                             {% if reply.isBestAnswer %}
-                                <span class="badge bg-success"><i class="ti ti-star-filled"></i> Oui</span>
+                                <span class="badge bg-success-lt">
+                                    <i class="ti ti-star-filled me-1"></i>Yes
+                                </span>
                             {% else %}
-                                <span class="badge bg-secondary">Non</span>
+                                <span class="badge bg-secondary-lt">No</span>
                             {% endif %}
                         </dd>
                     </dl>
                 </div>
             </div>
 
-            <!-- Informations du post parent -->
+            {# Parent post #}
             <div class="card mb-3">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="ti ti-message-square"></i> Post parent</h5>
+                    <h3 class="card-title">
+                        <i class="ti ti-message-square me-2"></i> Parent Post
+                    </h3>
                 </div>
                 <div class="card-body">
-                    <p class="mb-2">
-                        <strong>{{ reply.post.title }}</strong>
+                    <p class="fw-medium mb-1">{{ reply.post.title }}</p>
+                    <p class="text-muted small mb-3">
+                        {{ reply.post.content|slice(0, 100) }}{% if reply.post.content|length > 100 %}…{% endif %}
                     </p>
-                    <p class="text-muted small mb-2">
-                        {{ reply.post.content|slice(0, 100) }}{% if reply.post.content|length > 100 %}...{% endif %}
-                    </p>
-                    <dl class="row small">
-                        <dt class="col-sm-8">ID Post:</dt>
-                        <dd class="col-sm-4">#{{ reply.post.id }}</dd>
+                    <dl class="row small mb-3">
+                        <dt class="col-7 text-muted">Post ID</dt>
+                        <dd class="col-5">#{{ reply.post.id }}</dd>
 
-                        <dt class="col-sm-8">Auteur:</dt>
-                        <dd class="col-sm-4">{{ reply.post.authorId }}</dd>
-
-                        <dt class="col-sm-8">Réponses:</dt>
-                        <dd class="col-sm-4">{{ reply.post.replyCount }}</dd>
+                        <dt class="col-7 text-muted">Total replies</dt>
+                        <dd class="col-5">
+                            <span class="badge bg-secondary-lt">{{ reply.post.replyCount }}</span>
+                        </dd>
                     </dl>
-                    <a href="{{ path('admin_forum_post_show', {id: reply.post.id}) }}" class="btn btn-sm btn-outline-primary w-100">
-                        <i class="ti ti-eye"></i> Voir le post
+                    <a href="{{ path('admin_forum_post_show', {id: reply.post.id}) }}"
+                       class="btn btn-outline-primary btn-sm w-100">
+                        <i class="ti ti-eye me-1"></i> View Post
                     </a>
                 </div>
             </div>
 
-            <!-- Actions rapides -->
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="ti ti-lightning"></i> Actions rapides</h5>
+            {# Danger zone #}
+            <div class="card border-danger">
+                <div class="card-header bg-danger-lt">
+                    <h3 class="card-title text-danger">
+                        <i class="ti ti-alert-triangle me-2"></i> Danger Zone
+                    </h3>
                 </div>
-                <div class="card-body d-grid gap-2">
-                    <a href="{{ path('admin_forum_reply_index') }}" class="btn btn-secondary btn-sm">
-                        <i class="ti ti-list"></i> Retour à la liste
-                    </a>
-                    <a href="{{ path('admin_forum_post_show', {id: reply.post.id}) }}" class="btn btn-info btn-sm">
-                        <i class="ti ti-message-square"></i> Voir le post
-                    </a>
+                <div class="card-body">
+                    <p class="text-muted small">Permanently delete this reply. This cannot be undone.</p>
+                    <form method="post"
+                          action="{{ path('admin_forum_reply_delete', {id: reply.id}) }}"
+                          onsubmit="return confirm('Delete reply #{{ reply.id }}? This cannot be undone.');">
+                        <input type="hidden" name="_method" value="DELETE">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reply.id) }}">
+                        <button type="submit" class="btn btn-danger btn-sm w-100">
+                            <i class="ti ti-trash me-1"></i> Delete Reply
+                        </button>
+                    </form>
                 </div>
             </div>
+
         </div>
     </div>
-</div>
+
 {% endblock %}

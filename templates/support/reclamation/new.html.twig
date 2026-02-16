@@ -1,0 +1,70 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Create Support Ticket{% endblock %}
+
+{% block page_title %}
+    <i class="ti ti-plus me-2"></i> Create New Support Ticket
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Ticket Information</h3>
+            </div>
+            <div class="card-body">
+                {{ form_start(form) }}
+
+                    <div class="mb-3">
+                        {{ form_row(form.subject) }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_row(form.messageBody) }}
+                    </div>
+
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <div class="mb-3">
+                            {{ form_row(form.status) }}
+                        </div>
+                    {% endif %}
+
+                    <div class="form-footer">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="ti ti-send"></i> Submit Ticket
+                        </button>
+                        <a href="{{ path('app_reclamation_index') }}" class="btn btn-link">
+                            Cancel
+                        </a>
+                    </div>
+
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Help</h3>
+            </div>
+            <div class="card-body small">
+                <p class="mb-2">
+                    <strong>Before creating a ticket:</strong>
+                </p>
+                <ul class="mb-3">
+                    <li>Check our <a href="{{ path('app_faq_index') }}">FAQ</a> for quick answers</li>
+                    <li>Provide as much detail as possible</li>
+                    <li>Choose the most appropriate subject category</li>
+                </ul>
+                
+                <div class="alert alert-info mb-0">
+                    <i class="ti ti-info-circle me-2"></i>
+                    <strong>Response Time:</strong> We typically respond within 24-48 hours.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

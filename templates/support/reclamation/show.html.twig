@@ -1,0 +1,229 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Ticket #{{ reclamation.id }}{% endblock %}
+
+{% block page_title %}
+    <i class="ti ti-ticket me-2"></i> Ticket #{{ reclamation.id }}
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Ticket Details -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Ticket Details</h3>
+                <div class="card-actions">
+                    {% if reclamation.status == 'PENDING' %}
+                        <span class="badge bg-yellow">Pending</span>
+                    {% elseif reclamation.status == 'IN_PROGRESS' %}
+                        <span class="badge bg-blue">In Progress</span>
+                    {% elseif reclamation.status == 'RESOLVED' %}
+                        <span class="badge bg-green">Resolved</span>
+                    {% elseif reclamation.status == 'CLOSED' %}
+                        <span class="badge bg-secondary">Closed</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Subject</label>
+                    <div>
+                        {% if reclamation.subject == 'payment' %}
+                            <span class="badge bg-primary">Problème de paiement</span>
+                        {% elseif reclamation.subject == 'technical' %}
+                            <span class="badge bg-info">Bug technique</span>
+                        {% elseif reclamation.subject == 'content' %}
+                            <span class="badge bg-warning">Erreur de contenu</span>
+                        {% elseif reclamation.subject == 'premium' %}
+                            <span class="badge bg-danger">Accès premium</span>
+                        {% elseif reclamation.subject == 'account' %}
+                            <span class="badge bg-success">Problème de compte</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ reclamation.subject }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Description</label>
+                    <div class="card card-sm bg-light">
+                        <div class="card-body">
+                            {{ reclamation.messageBody|nl2br }}
+                        </div>
+                    </div>
+                </div>
+
+                {% if is_granted('ROLE_ADMIN') %}
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Submitted By</label>
+                    <div>
+                        {% if reclamation.user %}
+                            <span class="text-muted">{{ reclamation.user.email }}</span>
+                        {% else %}
+                            <span class="text-muted">Anonymous User</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Responses -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">
+                    Responses 
+                    <span class="badge bg-azure ms-2">{{ reclamation.responses|length }}</span>
+                </h3>
+            </div>
+            <div class="card-body">
+                {% if reclamation.responses|length > 0 %}
+                    {% for response in reclamation.responses %}
+                        <div class="card card-sm mb-3 {% if response.author and is_granted('ROLE_ADMIN', response.author) %}bg-primary-lt{% endif %}">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <strong>
+                                            {% if response.author %}
+                                                {{ response.author.email }}
+                                                {% if is_granted('ROLE_ADMIN', response.author) %}
+                                                    <span class="badge bg-red ms-2">Admin</span>
+                                                {% endif %}
+                                            {% else %}
+                                                Anonymous
+                                            {% endif %}
+                                        </strong>
+                                    </div>
+                                    <small class="text-muted">
+                                        {{ response.respondedAt|date('d/m/Y H:i') }}
+                                    </small>
+                                </div>
+                                <div>
+                                    {{ response.message|nl2br }}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty">
+                        <p class="empty-title">No responses yet</p>
+                        <p class="empty-subtitle text-muted">
+                            Be the first to respond to this ticket.
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Add Response Form -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">Add Response</h3>
+            </div>
+            <div class="card-body">
+                {{ form_start(response_form) }}
+                    
+                    <div class="mb-3">
+                        {{ form_row(response_form.message) }}
+                    </div>
+
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <div class="mb-3">
+                            {{ form_row(response_form.status) }}
+                        </div>
+                    {% endif %}
+
+                    <div class="form-footer">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="ti ti-send"></i> Send Response
+                        </button>
+                    </div>
+
+                {{ form_end(response_form) }}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Info Card -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Information</h3>
+            </div>
+            <div class="list-group list-group-flush">
+                <div class="list-group-item">
+                    <div class="row align-items-center">
+                        <div class="col text-muted">Ticket ID</div>
+                        <div class="col-auto">
+                            <strong>#{{ reclamation.id }}</strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="list-group-item">
+                    <div class="row align-items-center">
+                        <div class="col text-muted">Status</div>
+                        <div class="col-auto">
+                            {% if reclamation.status == 'PENDING' %}
+                                <span class="badge bg-yellow">Pending</span>
+                            {% elseif reclamation.status == 'IN_PROGRESS' %}
+                                <span class="badge bg-blue">In Progress</span>
+                            {% elseif reclamation.status == 'RESOLVED' %}
+                                <span class="badge bg-green">Resolved</span>
+                            {% elseif reclamation.status == 'CLOSED' %}
+                                <span class="badge bg-secondary">Closed</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="list-group-item">
+                    <div class="row align-items-center">
+                        <div class="col text-muted">Submitted</div>
+                        <div class="col-auto">
+                            {{ reclamation.submittedAt|date('d/m/Y H:i') }}
+                        </div>
+                    </div>
+                </div>
+                <div class="list-group-item">
+                    <div class="row align-items-center">
+                        <div class="col text-muted">Responses</div>
+                        <div class="col-auto">
+                            <span class="badge bg-azure">{{ reclamation.responses|length }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions Card -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">Actions</h3>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ path('app_reclamation_index') }}" class="btn btn-outline-primary">
+                        <i class="ti ti-arrow-back"></i> Back to list
+                    </a>
+                    
+                    {% if can_modify %}
+                        <a href="{{ path('app_reclamation_edit', {'id': reclamation.id}) }}" class="btn btn-warning">
+                            <i class="ti ti-edit"></i> Edit Ticket
+                        </a>
+                    {% endif %}
+
+                    {% if is_granted('ROLE_ADMIN') or can_modify %}
+                        <form method="post" action="{{ path('app_reclamation_delete', {'id': reclamation.id}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reclamation.id) }}">
+                            <button type="submit" class="btn btn-danger w-100"
+                                    onclick="return confirm('Are you sure you want to delete this ticket?')">
+                                <i class="ti ti-trash"></i> Delete Ticket
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

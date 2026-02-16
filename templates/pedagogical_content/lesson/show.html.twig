@@ -1,122 +1,243 @@
 {% extends 'layouts/admin.html.twig' %}
 
-{% block title %}Admin � {{ lesson.title }}{% endblock %}
+{% block title %}Admin · {{ lesson.title }}{% endblock %}
 
-{% block page_title %}{{ lesson.title }}{% endblock %}
+{% block page_title %}
+    <i class="ti ti-notebook text-primary me-2"></i> {{ lesson.title }}
+{% endblock %}
 
 {% block breadcrumb %}
-    <ol class="breadcrumb breadcrumb-icons" aria-label="breadcrumbs">
-        <li class="breadcrumb-item">
-            <a href="{{ path('admin_dashboard') }}">
-                <i class="ti ti-home"></i> Tableau de bord
-            </a>
-        </li>
-        <li class="breadcrumb-item">Contenu P�dagogique</li>
-        <li class="breadcrumb-item">
-            <a href="{{ path('admin_lesson_index') }}">Le�ons</a>
-        </li>
-        <li class="breadcrumb-item active">{{ lesson.title }}</li>
-    </ol>
+<ol class="breadcrumb breadcrumb-icons p-2 rounded" style="background: rgba(32,107,196,0.1);">
+    <li class="breadcrumb-item">
+        <a href="{{ path('admin_dashboard') }}" style="color: #206bc4; text-decoration: none;">
+            <i class="ti ti-home"></i> Tableau de bord
+        </a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="{{ path('admin_pedagogical_content_index') }}" style="color: #206bc4; text-decoration: none;">Contenu Pédagogique</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="{{ path('admin_lesson_index') }}" style="color: #206bc4; text-decoration: none;">Leçons</a>
+    </li>
+    <li class="breadcrumb-item active" style="color: #206bc4;">{{ lesson.title }}</li>
+</ol>
 {% endblock %}
 
 {% block page_actions %}
-    <div class="col-auto">
-        <div class="btn-group">
-            <a href="{{ path('admin_lesson_edit', {'id': lesson.id}) }}" class="btn btn-primary">
-                <i class="ti ti-edit"></i> Modifier
-            </a>
-            <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-form-id="deleteForm{{ lesson.id }}">
-                <i class="ti ti-trash"></i> Supprimer
-            </button>
-        </div>
-    </div>
+<a href="{{ path('admin_lesson_edit', {'id': lesson.id}) }}" class="btn btn-primary">
+    <i class="ti ti-edit me-1"></i> Modifier
+</a>
+<button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-form-id="deleteForm{{ lesson.id }}">
+    <i class="ti ti-trash me-1"></i> Supprimer
+</button>
 {% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-md-8">
-        <div class="card">
+        {# Lesson Information Card #}
+        <div class="card shadow-sm border-0 rounded-3 mb-4">
+            <div class="card-header bg-white border-bottom">
+                <h3 class="card-title mb-0">
+                    <i class="ti ti-info-circle text-primary me-2"></i> Informations de la leçon
+                </h3>
+            </div>
             <div class="card-body">
-                <div class="mb-4">
-                    <h4 class="text-muted mb-2">Titre</h4>
-                    <p class="mb-0">{{ lesson.title }}</p>
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5 class="text-muted mb-2 small text-uppercase fw-bold">Titre</h5>
+                        <p class="mb-0 fs-5 fw-semibold">{{ lesson.title }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h5 class="text-muted mb-2 small text-uppercase fw-bold">Cours associé</h5>
+                        <p class="mb-0">
+                            {% if lesson.course %}
+                                <a href="{{ path('admin_course_show', {'id': lesson.course.id}) }}" class="badge" style="background: linear-gradient(135deg, #206bc4 0%, #3b7dd8 100%); color: white; padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 14px; text-decoration: none;">
+                                    <i class="ti ti-book me-1"></i> {{ lesson.course.title }}
+                                </a>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </p>
+                    </div>
                 </div>
 
-                <div class="mb-4">
-                    <h4 class="text-muted mb-2">Cours</h4>
-                    <p class="mb-0">
-                        {% if lesson.course %}
-                            <span class="badge bg-blue">{{ lesson.course.title }}</span>
-                        {% else %}
-                            <span class="text-muted">N/A</span>
-                        {% endif %}
-                    </p>
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5 class="text-muted mb-2 small text-uppercase fw-bold">Récompense XP</h5>
+                        <p class="mb-0">
+                            <span class="badge" style="background: linear-gradient(135deg, #ffa500 0%, #ffb84d 100%); color: white; padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 14px;">
+                                <i class="ti ti-award me-1"></i> {{ lesson.xpReward }} XP
+                            </span>
+                        </p>
+                    </div>
+                    {% if lesson.createdAt is defined %}
+                    <div class="col-md-6">
+                        <h5 class="text-muted mb-2 small text-uppercase fw-bold">Créée le</h5>
+                        <p class="mb-0">{{ lesson.createdAt|date('d/m/Y à H:i') }}</p>
+                    </div>
+                    {% endif %}
                 </div>
 
-                <div class="mb-4">
-                    <h4 class="text-muted mb-2">Contenu</h4>
-                    <div class="border p-3 rounded" style="max-height: 400px; overflow-y: auto;">
+                <div class="mb-0">
+                    <h5 class="text-muted mb-2 small text-uppercase fw-bold">Contenu</h5>
+                    <div class="border p-3 rounded bg-light" style="max-height: 400px; overflow-y: auto;">
                         {{ lesson.content|nl2br }}
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-4">
-                            <h4 class="text-muted mb-2">R�compense XP</h4>
-                            <p class="mb-0">
-                                <span class="badge bg-yellow">{{ lesson.xpReward }} XP</span>
-                            </p>
-                        </div>
+        {# Vocabulary Card #}
+        {% if lesson.vocabularyData and lesson.vocabularyData|length > 0 %}
+        <div class="card shadow-sm border-0 rounded-3 mb-4">
+            <div class="card-header bg-white border-bottom">
+                <h3 class="card-title mb-0">
+                    <i class="ti ti-book text-success me-2"></i> Vocabulaire
+                    <span class="badge bg-success ms-2">{{ lesson.vocabularyData|length }}</span>
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover table-vcenter">
+                        <thead style="background: #f8fafc;">
+                            <tr>
+                                <th style="font-weight: 600; color: #64748b; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; width: 50%;">Mot</th>
+                                <th style="font-weight: 600; color: #64748b; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; width: 50%;">Traduction</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for vocab in lesson.vocabularyData %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <i class="ti ti-language me-2 text-success"></i>
+                                            <strong>{{ vocab.word ?? 'N/A' }}</strong>
+                                        </div>
+                                    </td>
+                                    <td>{{ vocab.translation ?? 'N/A' }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {# Grammar Card #}
+        {% if lesson.grammarData and lesson.grammarData|length > 0 %}
+        <div class="card shadow-sm border-0 rounded-3 mb-4">
+            <div class="card-header bg-white border-bottom">
+                <h3 class="card-title mb-0">
+                    <i class="ti ti-list-check text-info me-2"></i> Grammaire
+                    <span class="badge bg-info ms-2">{{ lesson.grammarData|length }}</span>
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover table-vcenter">
+                        <thead style="background: #f8fafc;">
+                            <tr>
+                                <th style="font-weight: 600; color: #64748b; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; width: 40%;">Règle</th>
+                                <th style="font-weight: 600; color: #64748b; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; width: 60%;">Exemple</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for grammar in lesson.grammarData %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <i class="ti ti-file-text me-2 text-info"></i>
+                                            <strong>{{ grammar.rule ?? 'N/A' }}</strong>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <code class="bg-light p-1 rounded">{{ grammar.example ?? 'N/A' }}</code>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-4">
+        {# Quick Actions Card #}
+        <div class="card shadow-sm border-0 rounded-3 mb-3">
+            <div class="card-header bg-light">
+                <h3 class="card-title mb-0">
+                    <i class="ti ti-bolt text-warning me-2"></i> Actions rapides
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ path('admin_lesson_edit', {'id': lesson.id}) }}" class="btn btn-primary">
+                        <i class="ti ti-edit me-1"></i> Modifier cette leçon
+                    </a>
+                    {% if lesson.course %}
+                    <a href="{{ path('admin_course_show', {'id': lesson.course.id}) }}" class="btn btn-info">
+                        <i class="ti ti-book me-1"></i> Voir le cours
+                    </a>
+                    {% endif %}
+                    <a href="{{ path('admin_lesson_index') }}" class="btn btn-secondary">
+                        <i class="ti ti-list me-1"></i> Liste des leçons
+                    </a>
+                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-form-id="deleteForm{{ lesson.id }}">
+                        <i class="ti ti-trash me-1"></i> Supprimer
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        {# Statistics Card #}
+        <div class="card shadow-sm border-0 rounded-3 mb-3">
+            <div class="card-header bg-light">
+                <h3 class="card-title mb-0">
+                    <i class="ti ti-chart-bar text-info me-2"></i> Statistiques
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="mb-3 pb-3 border-bottom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted">Points XP</span>
+                        <span class="fs-3 fw-bold text-warning">{{ lesson.xpReward }}</span>
                     </div>
                 </div>
-
-                {% if lesson.vocabularyData and lesson.vocabularyData|length > 0 %}
-                    <div class="mb-4">
-                        <h4 class="text-muted mb-2">Vocabulaire</h4>
-                        <div class="table-responsive">
-                            <table class="table table-sm table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Mot</th>
-                                        <th>Traduction</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for vocab in lesson.vocabularyData %}
-                                        <tr>
-                                            <td><strong>{{ vocab.word ?? 'N/A' }}</strong></td>
-                                            <td>{{ vocab.translation ?? 'N/A' }}</td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
+                <div class="mb-3 pb-3 border-bottom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted">Mots de vocabulaire</span>
+                        <span class="fs-3 fw-bold text-success">{{ lesson.vocabularyData ? lesson.vocabularyData|length : 0 }}</span>
                     </div>
+                </div>
+                <div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted">Règles de grammaire</span>
+                        <span class="fs-3 fw-bold text-info">{{ lesson.grammarData ? lesson.grammarData|length : 0 }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Metadata Card #}
+        <div class="card shadow-sm border-0 rounded-3">
+            <div class="card-header bg-light">
+                <h3 class="card-title mb-0">
+                    <i class="ti ti-clock text-secondary me-2"></i> Métadonnées
+                </h3>
+            </div>
+            <div class="card-body">
+                <p class="mb-2 small"><strong>ID:</strong> <span class="badge bg-secondary">{{ lesson.id }}</span></p>
+                {% if lesson.createdAt is defined %}
+                <p class="mb-2 small"><strong>Créée le:</strong><br>{{ lesson.createdAt|date('d/m/Y à H:i:s') }}</p>
                 {% endif %}
-
-                {% if lesson.grammarData and lesson.grammarData|length > 0 %}
-                    <div class="mb-4">
-                        <h4 class="text-muted mb-2">Grammaire</h4>
-                        <div class="table-responsive">
-                            <table class="table table-sm table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>R�gle</th>
-                                        <th>Exemple</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for grammar in lesson.grammarData %}
-                                        <tr>
-                                            <td><strong>{{ grammar.rule ?? 'N/A' }}</strong></td>
-                                            <td>{{ grammar.example ?? 'N/A' }}</td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                {% if lesson.updatedAt is defined and lesson.updatedAt %}
+                <p class="mb-0 small"><strong>Dernière modification:</strong><br>{{ lesson.updatedAt|date('d/m/Y à H:i:s') }}</p>
+                {% elseif lesson.createdAt is not defined %}
+                <p class="mb-0 small text-muted">Pas d'informations temporelles</p>
                 {% endif %}
             </div>
         </div>
@@ -126,4 +247,13 @@
 <form method="post" action="{{ path('admin_lesson_delete', {'id': lesson.id}) }}" style="display:none;" id="deleteForm{{ lesson.id }}">
     <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ lesson.id) }}">
 </form>
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.table-hover tbody tr:hover { background-color: #f0f8ff; transition: 0.2s; }
+code { font-size: 0.875rem; }
+</style>
 {% endblock %}

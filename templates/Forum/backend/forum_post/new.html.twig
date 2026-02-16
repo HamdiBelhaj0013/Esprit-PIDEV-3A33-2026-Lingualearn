@@ -2,120 +2,178 @@
 
 {% block title %}{% block page_title %}New Post{% endblock %}{% endblock %}
 
+{% block page_actions %}
+    <a href="{{ path('admin_forum_post_index') }}" class="btn btn-outline-secondary">
+        <i class="ti ti-arrow-left me-1"></i> Back to Posts
+    </a>
+    <a href="{{ path('admin_forum_index') }}" class="btn btn-outline-secondary">
+        <i class="ti ti-layout-dashboard me-1"></i> Forum Overview
+    </a>
+{% endblock %}
+
 {% block content %}
 
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h1><i class="ti ti-plus-circle"></i> Créer un nouveau Post</h1>
-        </div>
-        <div class="col-md-4 text-end">
-            <a href="{{ path('admin_forum_post_index') }}" class="btn btn-secondary">
-                <i class="ti ti-arrow-left"></i> Retour à la liste
-            </a>
-        </div>
-    </div>
-
     <div class="row">
-        <div class="col-md-8">
+
+        {# ===== FORM COLUMN ===== #}
+        <div class="col-lg-8">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0">Formulaire de création</h5>
+                    <h3 class="card-title">
+                        <i class="ti ti-message-plus me-2"></i> Create New Post
+                    </h3>
                 </div>
                 <div class="card-body">
-                    {{ form_start(form, {
-                        'attr': {
-                            'class': 'needs-validation',
-                            'novalidate': true
-                        }
-                    }) }}
 
+                    {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': false}}) }}
+
+                    {# Title #}
                     <div class="mb-3">
-                        <label class="form-label">{{ form.title.vars.label }}</label>
+                        {{ form_label(form.title, 'Title', {'label_attr': {'class': 'form-label required'}}) }}
                         {{ form_widget(form.title, {
                             'attr': {
-                                'class': 'form-control',
-                                'placeholder': 'Entrez le titre...'
+                                'class': 'form-control' ~ (form.title.vars.errors|length > 0 ? ' is-invalid' : ''),
+                                'placeholder': 'Enter your post title...'
                             }
                         }) }}
                         {{ form_errors(form.title) }}
                     </div>
 
+                    {# Content #}
                     <div class="mb-3">
-                        <label class="form-label">{{ form.content.vars.label }}</label>
+                        {{ form_label(form.content, 'Content', {'label_attr': {'class': 'form-label required'}}) }}
                         {{ form_widget(form.content, {
                             'attr': {
-                                'class': 'form-control',
-                                'placeholder': 'Écrivez votre contenu...',
+                                'class': 'form-control' ~ (form.content.vars.errors|length > 0 ? ' is-invalid' : ''),
+                                'placeholder': 'Write your message...',
                                 'rows': '8'
                             }
                         }) }}
                         {{ form_errors(form.content) }}
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">{{ form.authorId.vars.label }}</label>
-                            {{ form_widget(form.authorId, {
-                                'attr': {
-                                    'class': 'form-control',
-                                    'type': 'number'
-                                }
-                            }) }}
-                            {{ form_errors(form.authorId) }}
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">{{ form.platformLanguageId.vars.label }}</label>
-                            {{ form_widget(form.platformLanguageId, {
-                                'attr': {
-                                    'class': 'form-select'
-                                }
-                            }) }}
-                            {{ form_errors(form.platformLanguageId) }}
-                        </div>
-                    </div>
-
-                    <div class="mb-3 form-check">
-                        {{ form_widget(form.isActive, {
+                    {# Language #}
+                    <div class="mb-3">
+                        {{ form_label(form.platformLanguageId, 'Language', {'label_attr': {'class': 'form-label required'}}) }}
+                        {{ form_widget(form.platformLanguageId, {
                             'attr': {
-                                'class': 'form-check-input'
+                                'class': 'form-select' ~ (form.platformLanguageId.vars.errors|length > 0 ? ' is-invalid' : '')
                             }
                         }) }}
-                        <label class="form-check-label">{{ form.isActive.vars.label }}</label>
-                        {{ form_errors(form.isActive) }}
+                        {{ form_errors(form.platformLanguageId) }}
+                        <small class="form-hint text-muted">
+                            <i class="ti ti-info-circle me-1"></i>
+                            Select the language for this post
+                        </small>
                     </div>
 
-                    <hr />
+                    {# Author - Automatically set to logged-in user #}
+                    <div class="mb-3">
+                        <label class="form-label">Author</label>
+                        <div class="alert alert-info mb-0">
+                            <div class="d-flex align-items-center">
+                                <i class="ti ti-user-circle me-2 fs-3"></i>
+                                <div>
+                                    <strong>
+                                        {% if currentUser %}
+                                            {{ currentUser.firstName ?? '' }} {{ currentUser.lastName ?? '' }}
+                                            {% if currentUser.email %} ({{ currentUser.email }}){% endif %}
+                                        {% else %}
+                                            Current User
+                                        {% endif %}
+                                    </strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        Post will be created as you (the currently logged-in user)
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {# Hidden field for author ID #}
+                        {{ form_widget(form.authorId, {'attr': {'class': 'd-none'}}) }}
+                    </div>
 
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <a href="{{ path('admin_forum_post_index') }}" class="btn btn-secondary">
-                            <i class="ti ti-x"></i> Annuler
+                    {# Active Toggle #}
+                    <div class="mb-4">
+                        <label class="form-check form-switch">
+                            {{ form_widget(form.isActive, {'attr': {'class': 'form-check-input'}}) }}
+                            <span class="form-check-label">{{ form.isActive.vars.label }}</span>
+                        </label>
+                    </div>
+
+                    {# Action Buttons #}
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{{ path('admin_forum_post_index') }}" class="btn btn-outline-secondary">
+                            <i class="ti ti-x me-1"></i> Cancel
                         </a>
                         <button type="submit" class="btn btn-primary">
-                            <i class="ti ti-check"></i> Créer le Post
+                            <i class="ti ti-check me-1"></i> Create Post
                         </button>
                     </div>
 
                     {{ form_end(form) }}
+
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4">
-            <div class="card">
+        {# ===== SIDEBAR ===== #}
+        <div class="col-lg-4">
+
+            {# Guidelines Card #}
+            <div class="card mb-3">
                 <div class="card-header">
-                    <h5 class="mb-0">💡 Aide</h5>
+                    <h3 class="card-title">
+                        <i class="ti ti-info-circle me-2"></i> Guidelines
+                    </h3>
                 </div>
-                <div class="card-body text-sm">
-                    <ul>
-                        <li>Titre clair et descriptif</li>
-                        <li>Contenu détaillé</li>
-                        <li>Sélectionnez la bonne langue</li>
-                        <li>Activez le post</li>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="d-flex align-items-start gap-2 mb-2">
+                            <i class="ti ti-point-filled text-primary mt-1"></i>
+                            <span><strong>Required:</strong> Title (5-255 characters)</span>
+                        </li>
+                        <li class="d-flex align-items-start gap-2 mb-2">
+                            <i class="ti ti-point-filled text-primary mt-1"></i>
+                            <span><strong>Required:</strong> Content (20-10000 characters)</span>
+                        </li>
+                        <li class="d-flex align-items-start gap-2 mb-2">
+                            <i class="ti ti-point-filled text-primary mt-1"></i>
+                            <span><strong>Required:</strong> Select a language</span>
+                        </li>
+                        <li class="d-flex align-items-start gap-2 mb-2">
+                            <i class="ti ti-point-filled text-primary mt-1"></i>
+                            <span>Post will be created as you automatically</span>
+                        </li>
+                        <li class="d-flex align-items-start gap-2 mb-2">
+                            <i class="ti ti-point-filled text-primary mt-1"></i>
+                            <span>Enable to make visible to users</span>
+                        </li>
                     </ul>
                 </div>
             </div>
+
+            {# Quick Links Card #}
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="ti ti-link me-2"></i> Quick Links
+                    </h3>
+                </div>
+                <div class="card-body d-grid gap-2">
+                    <a href="{{ path('admin_forum_index') }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="ti ti-layout-dashboard me-1"></i> Forum Overview
+                    </a>
+                    <a href="{{ path('admin_forum_post_index') }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="ti ti-list me-1"></i> All Posts
+                    </a>
+                    <a href="{{ path('admin_forum_reply_index') }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="ti ti-message-circle me-1"></i> All Replies
+                    </a>
+                </div>
+            </div>
         </div>
+
     </div>
-    </div>
+
 {% endblock %}

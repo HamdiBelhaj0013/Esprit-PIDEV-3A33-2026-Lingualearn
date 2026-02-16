@@ -11,6 +11,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Validator\Constraints as Assert;
 
 class ForumPostType extends AbstractType
 {
@@ -18,47 +19,75 @@ class ForumPostType extends AbstractType
     {
         $builder
             ->add('title', TextType::class, [
-                'label' => 'Titre du post',
+                'label' => 'Post Title',
                 'required' => true,
                 'attr' => [
                     'class' => 'form-control',
-                    'placeholder' => 'Entrez le titre de votre post...',
+                    'placeholder' => 'Enter your post title...',
                     'maxlength' => 255
+                ],
+                'constraints' => [
+                    new Assert\NotBlank([
+                        'message' => 'Title cannot be empty'
+                    ]),
+                    new Assert\Length([
+                        'min' => 5,
+                        'max' => 255,
+                        'minMessage' => 'Title must be at least {{ limit }} characters',
+                        'maxMessage' => 'Title cannot exceed {{ limit }} characters'
+                    ])
                 ]
             ])
             ->add('content', TextareaType::class, [
-                'label' => 'Contenu',
+                'label' => 'Content',
                 'required' => true,
                 'attr' => [
                     'class' => 'form-control',
-                    'placeholder' => 'Écrivez votre message...',
+                    'placeholder' => 'Write your message...',
                     'rows' => 8
+                ],
+                'constraints' => [
+                    new Assert\NotBlank([
+                        'message' => 'Content cannot be empty'
+                    ]),
+                    new Assert\Length([
+                        'min' => 20,
+                        'max' => 10000,
+                        'minMessage' => 'Content must be at least {{ limit }} characters',
+                        'maxMessage' => 'Content cannot exceed {{ limit }} characters'
+                    ])
                 ]
             ])
             ->add('authorId', IntegerType::class, [
-                'label' => 'ID Auteur',
-                'required' => true,
+                // Controller sets this automatically
+                'required' => false,
+                'mapped' => true,
                 'attr' => [
-                    'class' => 'form-control',
-                    'placeholder' => 'ID de l\'auteur'
+                    'class' => 'd-none'
                 ]
             ])
             ->add('platformLanguageId', ChoiceType::class, [
-                'label' => 'Langue de la plateforme',
+                'label' => 'Platform Language',
                 'required' => true,
                 'choices' => [
-                    'Français' => 1,
-                    'Anglais' => 2,
-                    'Arabe' => 3,
-                    'Espagnol' => 4,
-                    'Allemand' => 5,
+                    'French' => 1,
+                    'English' => 2,
+                    'Arabic' => 3,
+                    'Spanish' => 4,
+                    'German' => 5,
                 ],
                 'attr' => [
                     'class' => 'form-select'
+                ],
+                'placeholder' => '— Select a language —',
+                'constraints' => [
+                    new Assert\NotBlank([
+                        'message' => 'Please select a language'
+                    ])
                 ]
             ])
             ->add('isActive', CheckboxType::class, [
-                'label' => 'Post actif ?',
+                'label' => 'Active Post?',
                 'required' => false,
                 'attr' => [
                     'class' => 'form-check-input'

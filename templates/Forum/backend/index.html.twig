@@ -1,87 +1,167 @@
-{% extends 'base.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
-{% block title %}Forum - Administration{% endblock %}
+{% block title %}{% block page_title %}Forum Overview{% endblock %}{% endblock %}
+
+{% block page_actions %}
+    <a href="{{ path('admin_forum_post_index') }}" class="btn btn-primary">
+        <i class="ti ti-message-square me-1"></i> Manage Posts
+    </a>
+    <a href="{{ path('admin_forum_reply_index') }}" class="btn btn-secondary">
+        <i class="ti ti-message-circle me-1"></i> Manage Replies
+    </a>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-5">
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <h1><i class="ti ti-messages"></i> Administration du Forum</h1>
+
+    {# ===== FLASH MESSAGES ===== #}
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible fade show mb-4" role="alert">
+                <i class="ti ti-{{ label == 'error' ? 'alert-circle' : 'circle-check' }} me-2"></i>{{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    {# ===== STATS ROW ===== #}
+    <div class="row row-cards mb-4 mt-3">
+
+        <div class="col-sm-6 col-lg-4">
+            <div class="card card-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <span class="bg-blue text-white avatar">
+                                <i class="ti ti-messages"></i>
+                            </span>
+                        </div>
+                        <div class="col">
+                            <div class="font-weight-medium">Total Posts</div>
+                            <div class="text-muted fs-3 fw-bold">{{ stats.totalPosts ?? 0 }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        <div class="col-sm-6 col-lg-4">
+            <div class="card card-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <span class="bg-green text-white avatar">
+                                <i class="ti ti-circle-check"></i>
+                            </span>
+                        </div>
+                        <div class="col">
+                            <div class="font-weight-medium">Active Posts</div>
+                            <div class="text-muted fs-3 fw-bold">{{ stats.activePosts ?? 0 }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-4">
+            <div class="card card-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <span class="bg-red text-white avatar">
+                                <i class="ti ti-eye-off"></i>
+                            </span>
+                        </div>
+                        <div class="col">
+                            <div class="font-weight-medium">Inactive Posts</div>
+                            <div class="text-muted fs-3 fw-bold">{{ stats.inactivePosts ?? 0 }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-4">
+            <div class="card card-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <span class="bg-purple text-white avatar">
+                                <i class="ti ti-message-reply"></i>
+                            </span>
+                        </div>
+                        <div class="col">
+                            <div class="font-weight-medium">Total Replies</div>
+                            <div class="text-muted fs-3 fw-bold">{{ stats.totalReplies ?? 0 }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-4">
+            <div class="card card-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <span class="bg-teal text-white avatar">
+                                <i class="ti ti-message-dots"></i>
+                            </span>
+                        </div>
+                        <div class="col">
+                            <div class="font-weight-medium">Active Replies</div>
+                            <div class="text-muted fs-3 fw-bold">{{ stats.activeReplies ?? 0 }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-4">
+            <div class="card card-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <span class="bg-yellow text-white avatar">
+                                <i class="ti ti-star"></i>
+                            </span>
+                        </div>
+                        <div class="col">
+                            <div class="font-weight-medium">Best Answers</div>
+                            <div class="text-muted fs-3 fw-bold">{{ stats.bestAnswers ?? 0 }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
-    <!-- Statistiques -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card text-white bg-primary">
-                <div class="card-body">
-                    <h5 class="card-title">Total Posts</h5>
-                    <p class="card-text fs-4">{{ stats.totalPosts ?? 0 }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-success">
-                <div class="card-body">
-                    <h5 class="card-title">Posts Actifs</h5>
-                    <p class="card-text fs-4">{{ stats.activePosts ?? 0 }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-warning">
-                <div class="card-body">
-                    <h5 class="card-title">Posts Inactifs</h5>
-                    <p class="card-text fs-4">{{ stats.inactivePosts ?? 0 }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-info">
-                <div class="card-body">
-                    <h5 class="card-title">Total Réponses</h5>
-                    <p class="card-text fs-4">{{ stats.totalReplies ?? 0 }}</p>
-                </div>
-            </div>
-        </div>
-    </div>
+    {# ===== QUICK ACCESS CARDS ===== #}
+    <div class="row row-cards">
 
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card text-white bg-success">
-                <div class="card-body">
-                    <h5 class="card-title">Réponses Actives</h5>
-                    <p class="card-text fs-4">{{ stats.activeReplies ?? 0 }}</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-secondary">
-                <div class="card-body">
-                    <h5 class="card-title">Meilleures Réponses</h5>
-                    <p class="card-text fs-4">{{ stats.bestAnswers ?? 0 }}</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Actions rapides -->
-    <div class="row">
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="ti ti-message-square"></i> Posts</h5>
+                    <h3 class="card-title">
+                        <i class="ti ti-message-square me-2"></i> Posts
+                    </h3>
                 </div>
-                <div class="card-body d-grid gap-2">
-                    <a href="{{ path('admin_forum_post_index') }}" class="btn btn-primary">
-                        <i class="ti ti-list"></i> Gérer les Posts
-                    </a>
-                    <a href="{{ path('admin_forum_post_new') }}" class="btn btn-success">
-                        <i class="ti ti-plus"></i> Créer un Post
-                    </a>
-                    <a href="{{ path('admin_forum_post_export_csv') }}" class="btn btn-info">
-                        <i class="ti ti-download"></i> Exporter les Posts
-                    </a>
+                <div class="card-body">
+                    <p class="text-muted">View, moderate, and manage all forum posts. Filter by language, status, or author.</p>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="{{ path('admin_forum_post_index') }}" class="btn btn-primary">
+                            <i class="ti ti-list me-1"></i> All Posts
+                        </a>
+                        <a href="{{ path('admin_forum_post_new') }}" class="btn btn-outline-primary">
+                            <i class="ti ti-plus me-1"></i> New Post
+                        </a>
+                        <a href="{{ path('admin_forum_post_export_csv') }}" class="btn btn-outline-secondary">
+                            <i class="ti ti-download me-1"></i> Export CSV
+                        </a>
+                    </div>
+                </div>
+                <div class="card-footer text-muted">
+                    {{ stats.activePosts ?? 0 }} active · {{ stats.inactivePosts ?? 0 }} inactive
                 </div>
             </div>
         </div>
@@ -89,21 +169,30 @@
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0"><i class="ti ti-message-circle"></i> Réponses</h5>
+                    <h3 class="card-title">
+                        <i class="ti ti-message-circle me-2"></i> Replies
+                    </h3>
                 </div>
-                <div class="card-body d-grid gap-2">
-                    <a href="{{ path('admin_forum_reply_index') }}" class="btn btn-primary">
-                        <i class="ti ti-list"></i> Gérer les Réponses
-                    </a>
-                    <a href="{{ path('admin_forum_reply_new') }}" class="btn btn-success">
-                        <i class="ti ti-plus"></i> Créer une Réponse
-                    </a>
-                    <a href="{{ path('admin_forum_reply_export_csv') }}" class="btn btn-info">
-                        <i class="ti ti-download"></i> Exporter les Réponses
-                    </a>
+                <div class="card-body">
+                    <p class="text-muted">Manage replies across all posts. Mark best answers and moderate content.</p>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="{{ path('admin_forum_reply_index') }}" class="btn btn-secondary">
+                            <i class="ti ti-list me-1"></i> All Replies
+                        </a>
+                        <a href="{{ path('admin_forum_reply_new') }}" class="btn btn-outline-secondary">
+                            <i class="ti ti-plus me-1"></i> New Reply
+                        </a>
+                        <a href="{{ path('admin_forum_reply_export_csv') }}" class="btn btn-outline-secondary">
+                            <i class="ti ti-download me-1"></i> Export CSV
+                        </a>
+                    </div>
+                </div>
+                <div class="card-footer text-muted">
+                    {{ stats.activeReplies ?? 0 }} active · {{ stats.bestAnswers ?? 0 }} best answers
                 </div>
             </div>
         </div>
+
     </div>
-</div>
+
 {% endblock %}

@@ -42,7 +42,7 @@
                         <button type="submit" class="btn btn-primary">
                             <i class="ti ti-check"></i> Create FAQ
                         </button>
-                        <a href="{{ path('admin_faq_index') }}" class="btn btn-link">
+                        <a href="{{ path('app_faq_index') }}" class="btn btn-link">
                             Cancel
                         </a>
                     </div>
@@ -59,14 +59,19 @@
             </div>
             <div class="card-body small">
                 <p>
-                    <strong>Subject:</strong> Choose the type of problem this FAQ addresses (e.g., Payment, Technical)
+                    <strong>Question:</strong> Write a clear, concise question that users might search for.
                 </p>
                 <p>
-                    <strong>Category:</strong> Choose the category that best describes the content (e.g., General, Technical)
+                    <strong>Answer:</strong> Provide a detailed, helpful answer. You can use line breaks for better formatting.
+                </p>
+                <p>
+                    <strong>Subject:</strong> Choose the type of problem this FAQ addresses (e.g., Payment, Technical).
+                </p>
+                <p>
+                    <strong>Category:</strong> Choose the category that best describes the content (e.g., General, Technical).
                 </p>
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
-
