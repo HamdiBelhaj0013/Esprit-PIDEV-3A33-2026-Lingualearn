@@ -12,7 +12,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/support/faq')]
+#[Route('/admin/support/faq')]
+#[IsGranted('ROLE_ADMIN')]
 class FAQController extends AbstractController
 {
     #[Route('/', name: 'app_faq_index', methods: ['GET'])]
@@ -43,7 +44,6 @@ class FAQController extends AbstractController
     }
 
     #[Route('/new', name: 'app_faq_new', methods: ['GET', 'POST'])]
-    #[IsGranted('ROLE_ADMIN')]
     public function new(Request $request, FAQService $faqService): Response
     {
         $faq = new FAQ();
@@ -62,7 +62,6 @@ class FAQController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_faq_edit', methods: ['GET', 'POST'])]
-    #[IsGranted('ROLE_ADMIN')]
     public function edit(Request $request, FAQ $faq, FAQService $faqService): Response
     {
         $form = $this->createForm(FAQType::class, $faq);
@@ -81,7 +80,6 @@ class FAQController extends AbstractController
     }
 
     #[Route('/{id}/delete', name: 'app_faq_delete', methods: ['POST'])]
-    #[IsGranted('ROLE_ADMIN')]
     public function delete(Request $request, FAQ $faq, FAQService $faqService): Response
     {
         if ($this->isCsrfTokenValid('delete'.$faq->getId(), $request->request->get('_token'))) {
