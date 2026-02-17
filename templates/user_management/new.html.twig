@@ -3,13 +3,17 @@
 {% block title %}{{ user.id ? 'Edit User' : 'Create New User' }} - {{ parent() }}{% endblock %}
 
 {% block page_title %}
-    <i class="ti ti-{{ user.id ? 'pencil' : 'user-plus' }} me-2"></i>
-    {{ user.id ? 'Edit User' : 'Create New User' }}
+    <span class="d-flex align-items-center gap-2">
+        <span class="page-icon-badge {{ user.id ? 'badge-edit' : 'badge-new' }}">
+            <i class="ti ti-{{ user.id ? 'pencil' : 'user-plus' }}"></i>
+        </span>
+        {{ user.id ? 'Edit User' : 'Create New User' }}
+    </span>
 {% endblock %}
 
 {% block breadcrumb %}
     <ol class="breadcrumb breadcrumb-arrows" aria-label="breadcrumbs">
-        <li class="breadcrumb-item"><a href="{{ path('admin_users_index') }}">Users</a></li>
+        <li class="breadcrumb-item"><a href="{{ path('admin_users_index') }}"><i class="ti ti-users me-1"></i>Users</a></li>
         {% if user.id %}
             <li class="breadcrumb-item"><a href="{{ path('admin_users_show', {id: user.id}) }}">{{ user.fullName }}</a></li>
             <li class="breadcrumb-item active" aria-current="page">Edit</li>
@@ -21,390 +25,744 @@
 
 {% block page_actions %}
     <div class="col-auto ms-auto d-print-none">
-        <a href="{{ user.id ? path('admin_users_show', {id: user.id}) : path('admin_users_index') }}" class="btn">
-            <i class="ti ti-arrow-left icon"></i>
-            Back
+        <a href="{{ user.id ? path('admin_users_show', {id: user.id}) : path('admin_users_index') }}" class="btn btn-ghost-secondary">
+            <i class="ti ti-arrow-left me-1"></i> Back
         </a>
     </div>
 {% endblock %}
 
 {% block content %}
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        {{ user.id ? 'Edit User Information' : 'User Information' }}
-                    </h3>
+
+{# ── SHARED STYLES ─────────────────────────────────────────────────────────── #}
+<style>
+:root {
+    --uf-primary:    #3b5bdb;
+    --uf-primary-lt: #edf2ff;
+    --uf-success:   #2fb344;
+    --uf-warn:      #f59f00;
+    --uf-danger:    #d63939;
+    --uf-text:      #1a1f36;
+    --uf-muted:     #6c7a99;
+    --uf-border:    #e3e8f0;
+    --uf-bg:        #f8fafc;
+    --uf-card:      #ffffff;
+    --uf-radius:    14px;
+    --uf-shadow:    0 4px 24px rgba(59,91,219,.08);
+    --uf-shadow-lg: 0 8px 40px rgba(59,91,219,.14);
+}
+
+/* ── Layout ── */
+.uf-page { max-width: 860px; margin: 0 auto; }
+
+/* ── Section header ── */
+.uf-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 18px 0 10px;
+    border-bottom: 2px solid var(--uf-border);
+    margin-bottom: 24px;
+}
+.uf-section-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: grid; place-items: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+.uf-section-icon.blue  { background: var(--uf-primary-lt); color: var(--uf-primary); }
+.uf-section-icon.green { background: #d3f9d8; color: var(--uf-success); }
+.uf-section-icon.gold  { background: #fff3bf; color: var(--uf-warn); }
+.uf-section-icon.red   { background: #ffe3e3; color: var(--uf-danger); }
+.uf-section h4 { margin: 0; font-size: .9rem; font-weight: 700; color: var(--uf-text); letter-spacing: .03em; text-transform: uppercase; }
+.uf-section small { color: var(--uf-muted); font-size: .78rem; margin-top: 1px; display: block; }
+
+/* ── Inputs ── */
+.uf-field { margin-bottom: 20px; }
+.uf-label {
+    display: flex; align-items: center; gap: 6px;
+    font-size: .8rem; font-weight: 600;
+    color: var(--uf-text); margin-bottom: 7px; letter-spacing: .02em;
+}
+.uf-label .req { color: var(--uf-danger); }
+.uf-input-wrap { position: relative; }
+.uf-input-wrap .uf-icon {
+    position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+    color: var(--uf-muted); font-size: 16px; pointer-events: none;
+    transition: color .2s;
+}
+.uf-input-wrap:focus-within .uf-icon { color: var(--uf-primary); }
+.uf-input-wrap input,
+.uf-input-wrap select {
+    padding-left: 40px !important;
+}
+.form-control, .form-select {
+    border: 1.5px solid var(--uf-border);
+    border-radius: 10px;
+    font-size: .88rem;
+    padding: 10px 14px;
+    transition: border-color .2s, box-shadow .2s;
+    background: #fff;
+}
+.form-control:focus, .form-select:focus {
+    border-color: var(--uf-primary);
+    box-shadow: 0 0 0 3px rgba(59,91,219,.12);
+    outline: none;
+}
+.uf-hint { font-size: .76rem; color: var(--uf-muted); margin-top: 5px; }
+.uf-error { font-size: .76rem; color: var(--uf-danger); margin-top: 4px; font-weight: 500; }
+
+/* ── Password strength ── */
+.pw-strength-bar { height: 4px; border-radius: 99px; background: var(--uf-border); margin-top: 8px; overflow: hidden; }
+.pw-strength-fill { height: 100%; border-radius: 99px; width: 0%; transition: width .4s ease, background .4s ease; }
+.pw-strength-label { font-size: .72rem; color: var(--uf-muted); margin-top: 3px; }
+.pw-toggle {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; cursor: pointer; color: var(--uf-muted);
+    font-size: 16px; padding: 0; transition: color .2s;
+}
+.pw-toggle:hover { color: var(--uf-primary); }
+
+/* ── Role cards ── */
+.role-cards { display: flex; flex-wrap: wrap; gap: 12px; }
+.role-card {
+    flex: 1 1 calc(33% - 8px); min-width: 150px;
+    border: 2px solid var(--uf-border);
+    border-radius: 12px;
+    padding: 16px 14px 14px;
+    cursor: pointer;
+    transition: border-color .2s, background .2s, box-shadow .2s, transform .15s;
+    background: #fff;
+    position: relative;
+    overflow: hidden;
+    user-select: none;
+}
+.role-card:hover { border-color: #b0c0f0; box-shadow: 0 2px 12px rgba(59,91,219,.1); transform: translateY(-1px); }
+.role-card.is-active {
+    border-color: var(--uf-primary);
+    background: var(--uf-primary-lt);
+    box-shadow: 0 4px 16px rgba(59,91,219,.18);
+}
+.role-card.is-active.role-admin  { border-color: #e03131; background: #fff5f5; }
+.role-card.is-active.role-teacher{ border-color: #2f9e44; background: #ebfbee; }
+.role-card.is-active.role-user   { border-color: var(--uf-primary); background: var(--uf-primary-lt); }
+.role-card-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: grid; place-items: center;
+    font-size: 20px; margin-bottom: 10px;
+    transition: background .2s;
+}
+.role-user   .role-card-icon { background: #e8f0fe; color: var(--uf-primary); }
+.role-admin  .role-card-icon { background: #ffe3e3; color: #e03131; }
+.role-teacher.role-card-icon,
+.role-teacher .role-card-icon { background: #d3f9d8; color: #2f9e44; }
+.role-card.is-active.role-admin   .role-card-icon { background: #ffc9c9; }
+.role-card.is-active.role-teacher .role-card-icon { background: #b2f2bb; }
+.role-card.is-active.role-user    .role-card-icon { background: #bac8ff; }
+.role-card-name { font-weight: 700; font-size: .85rem; color: var(--uf-text); }
+.role-card-desc { font-size: .74rem; color: var(--uf-muted); margin-top: 2px; }
+.role-card-check {
+    position: absolute; top: 10px; right: 10px;
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 2px solid var(--uf-border);
+    display: grid; place-items: center;
+    transition: all .2s;
+    background: #fff;
+}
+.role-card.is-active .role-card-check {
+    border-color: currentColor;
+    background: var(--uf-primary);
+    border-color: var(--uf-primary);
+}
+.role-card.is-active.role-admin  .role-card-check { background: #e03131; border-color: #e03131; }
+.role-card.is-active.role-teacher .role-card-check { background: #2f9e44; border-color: #2f9e44; }
+.role-card-check i { color: #fff; font-size: 11px; opacity: 0; transition: opacity .15s; }
+.role-card.is-active .role-card-check i { opacity: 1; }
+/* Hide original Symfony checkbox inputs */
+.role-hidden-checkbox { position: absolute; opacity: 0; pointer-events: none; }
+
+/* ── Status selector ── */
+.status-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+.status-pill {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 16px; border-radius: 10px;
+    border: 2px solid var(--uf-border);
+    cursor: pointer; transition: all .2s;
+    background: #fff; font-size: .83rem; font-weight: 600;
+    user-select: none;
+}
+.status-pill:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+.status-pill input[type=radio] { position: absolute; opacity: 0; pointer-events: none; }
+.status-pill .dot { width: 8px; height: 8px; border-radius: 50%; }
+.status-pill[data-val="active"]    .dot { background: var(--uf-success); }
+.status-pill[data-val="suspended"] .dot { background: var(--uf-warn); }
+.status-pill[data-val="deleted"]   .dot { background: var(--uf-danger); }
+.status-pill.is-active[data-val="active"]    { border-color: var(--uf-success); background: #d3f9d8; color: #1a6130; }
+.status-pill.is-active[data-val="suspended"] { border-color: var(--uf-warn);    background: #fff3bf; color: #7d4a00; }
+.status-pill.is-active[data-val="deleted"]   { border-color: var(--uf-danger);  background: #ffe3e3; color: #7d1717; }
+
+/* ── Plan cards ── */
+.plan-cards { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 0; }
+.plan-card {
+    flex: 1 1 140px;
+    border: 2px solid var(--uf-border);
+    border-radius: 14px; padding: 18px 14px 14px;
+    cursor: pointer; transition: all .2s;
+    background: #fff; text-align: center;
+    position: relative; overflow: hidden;
+    user-select: none;
+}
+.plan-card:hover { border-color: #b0c0f0; transform: translateY(-2px); box-shadow: var(--uf-shadow); }
+.plan-card.is-active {
+    border-color: var(--uf-warn);
+    background: linear-gradient(135deg,#fff9db 0%,#fff3bf 100%);
+    box-shadow: 0 6px 24px rgba(245,159,0,.2);
+}
+.plan-card.is-active.plan-free { border-color: #868e96; background: #f8f9fa; }
+.plan-card-icon { font-size: 26px; margin-bottom: 8px; }
+.plan-card.is-active:not(.plan-free) .plan-card-icon { animation: pulse-crown .8s ease; }
+@keyframes pulse-crown {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.3) rotate(-10deg); }
+    70%  { transform: scale(.95) rotate(5deg); }
+    100% { transform: scale(1); }
+}
+.plan-card-name { font-weight: 700; font-size: .85rem; color: var(--uf-text); }
+.plan-card-price { font-size: .74rem; color: var(--uf-muted); margin-top: 3px; }
+.plan-hidden-select { position: absolute; opacity: 0; pointer-events: none; }
+
+/* ── Expiry field ── */
+.expiry-wrap { transition: opacity .3s ease; }
+.expiry-wrap.is-disabled { opacity: .4; pointer-events: none; }
+
+/* ── Submit button ── */
+.uf-submit-btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 12px 32px;
+    background: linear-gradient(135deg, #3b5bdb 0%, #4c6ef5 100%);
+    color: #fff; border: none; border-radius: 12px;
+    font-weight: 700; font-size: .9rem;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(59,91,219,.4);
+    transition: transform .15s, box-shadow .15s, opacity .2s;
+    position: relative; overflow: hidden;
+}
+.uf-submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(59,91,219,.45); }
+.uf-submit-btn:active { transform: translateY(0); }
+.uf-submit-btn.loading { pointer-events: none; opacity: .8; }
+.uf-submit-btn .btn-spinner {
+    display: none; width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,.4);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+}
+.uf-submit-btn.loading .btn-spinner { display: block; }
+.uf-submit-btn.loading .btn-label { display: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.uf-cancel-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 24px;
+    background: transparent;
+    color: var(--uf-muted); border: 1.5px solid var(--uf-border);
+    border-radius: 12px; font-weight: 600; font-size: .88rem;
+    cursor: pointer; text-decoration: none;
+    transition: all .2s;
+}
+.uf-cancel-btn:hover { border-color: var(--uf-danger); color: var(--uf-danger); background: #fff5f5; }
+
+/* ── Page icon badge ── */
+.page-icon-badge {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: grid; place-items: center; font-size: 18px;
+}
+.page-icon-badge.badge-new  { background: #d3f9d8; color: #2f9e44; }
+.page-icon-badge.badge-edit { background: var(--uf-primary-lt); color: var(--uf-primary); }
+
+/* ── Animations ── */
+@keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.uf-card { animation: fadeSlideUp .4s ease both; }
+.uf-card:nth-child(2) { animation-delay: .06s; }
+.uf-card:nth-child(3) { animation-delay: .12s; }
+.uf-card:nth-child(4) { animation-delay: .18s; }
+
+/* ── Floating label effect for text inputs ── */
+.uf-input-wrap input::placeholder { color: #c0c8d8; }
+
+/* ── Subscription expiry timestamp ── */
+.expiry-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: 8px;
+    background: #fff9db; border: 1px solid #ffe066;
+    color: #7d4a00; font-size: .78rem; font-weight: 600;
+    margin-top: 8px;
+}
+</style>
+
+<div class="uf-page">
+{{ form_start(form, {'attr': {'id': 'user-form', 'novalidate': 'novalidate'}}) }}
+
+{# ── CARD 1 — Personal Info ─────────────────────────────────────────────── #}
+<div class="card mb-4 uf-card" style="border-radius:var(--uf-radius); border:1px solid var(--uf-border); box-shadow:var(--uf-shadow);">
+    <div class="card-body p-4">
+        <div class="uf-section">
+            <div class="uf-section-icon blue"><i class="ti ti-id-badge-2"></i></div>
+            <div>
+                <h4>Personal Information</h4>
+                <small>Name and contact details</small>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="uf-field">
+                    <label class="uf-label">
+                        <i class="ti ti-user"></i> First Name <span class="req">*</span>
+                    </label>
+                    <div class="uf-input-wrap">
+                        <i class="ti ti-user uf-icon"></i>
+                        {{ form_widget(form.firstName, {'attr': {'class': 'form-control', 'placeholder': 'John', 'style': 'padding-left:40px'}}) }}
+                    </div>
+                    <div class="uf-error">{{ form_errors(form.firstName) }}</div>
                 </div>
-                <div class="card-body">
-                    {{ form_start(form) }}
-
-                    {# Personal Information Section #}
-                    <div class="mb-3">
-                        <h3 class="card-subtitle">Personal Information</h3>
+            </div>
+            <div class="col-md-6">
+                <div class="uf-field">
+                    <label class="uf-label">
+                        <i class="ti ti-user"></i> Last Name <span class="req">*</span>
+                    </label>
+                    <div class="uf-input-wrap">
+                        <i class="ti ti-user uf-icon"></i>
+                        {{ form_widget(form.lastName, {'attr': {'class': 'form-control', 'placeholder': 'Doe', 'style': 'padding-left:40px'}}) }}
                     </div>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                {{ form_label(form.firstName, null, {'label_attr': {'class': 'form-label required'}}) }}
-                                {{ form_widget(form.firstName, {'attr': {'class': 'form-control', 'placeholder': 'John'}}) }}
-                                <div class="invalid-feedback d-block">
-                                    {{ form_errors(form.firstName) }}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                {{ form_label(form.lastName, null, {'label_attr': {'class': 'form-label required'}}) }}
-                                {{ form_widget(form.lastName, {'attr': {'class': 'form-control', 'placeholder': 'Doe'}}) }}
-                                <div class="invalid-feedback d-block">
-                                    {{ form_errors(form.lastName) }}
-                                </div>
-                            </div>
-                        </div>
+                    <div class="uf-error">{{ form_errors(form.lastName) }}</div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="uf-field mb-0">
+                    <label class="uf-label">
+                        <i class="ti ti-mail"></i> Email Address <span class="req">*</span>
+                    </label>
+                    <div class="uf-input-wrap">
+                        <i class="ti ti-mail uf-icon"></i>
+                        {{ form_widget(form.email, {'attr': {'class': 'form-control', 'placeholder': 'john@example.com', 'style': 'padding-left:40px'}}) }}
                     </div>
-
-                    <div class="mb-3">
-                        {{ form_label(form.email, null, {'label_attr': {'class': 'form-label required'}}) }}
-                        <div class="input-icon">
-                            <span class="input-icon-addon">
-                                <i class="ti ti-mail"></i>
-                            </span>
-                            {{ form_widget(form.email, {'attr': {'class': 'form-control', 'placeholder': 'user@example.com'}}) }}
-                        </div>
-                        <div class="invalid-feedback d-block">
-                            {{ form_errors(form.email) }}
-                        </div>
-                    </div>
-
-                    {# Password Section #}
-                    {% if form.plainPassword is defined %}
-                        <hr class="my-4">
-                        <div class="mb-3">
-                            <h3 class="card-subtitle">Security</h3>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    {{ form_label(form.plainPassword.first, 'Password', {'label_attr': {'class': 'form-label required'}}) }}
-                                    <div class="input-icon">
-                                        <span class="input-icon-addon">
-                                            <i class="ti ti-lock"></i>
-                                        </span>
-                                        {{ form_widget(form.plainPassword.first, {'attr': {'class': 'form-control', 'placeholder': '••••••••'}}) }}
-                                    </div>
-                                    <div class="invalid-feedback d-block">
-                                        {{ form_errors(form.plainPassword.first) }}
-                                    </div>
-                                    <small class="form-hint">Minimum 6 characters, at least one letter and one number</small>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    {{ form_label(form.plainPassword.second, 'Confirm Password', {'label_attr': {'class': 'form-label required'}}) }}
-                                    <div class="input-icon">
-                                        <span class="input-icon-addon">
-                                            <i class="ti ti-lock"></i>
-                                        </span>
-                                        {{ form_widget(form.plainPassword.second, {'attr': {'class': 'form-control', 'placeholder': '••••••••'}}) }}
-                                    </div>
-                                    <div class="invalid-feedback d-block">
-                                        {{ form_errors(form.plainPassword.second) }}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="invalid-feedback d-block">
-                            {{ form_errors(form.plainPassword) }}
-                        </div>
-                    {% endif %}
-
-                    {# Administrative Settings #}
-                    {% if form.status is defined %}
-                        <hr class="my-4">
-                        <div class="mb-3">
-                            <h3 class="card-subtitle">
-                                <i class="ti ti-shield me-1"></i>
-                                Administrative Settings
-                            </h3>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    {{ form_label(form.status, null, {'label_attr': {'class': 'form-label'}}) }}
-                                    {{ form_widget(form.status, {'attr': {'class': 'form-select'}}) }}
-                                    <div class="invalid-feedback d-block">
-                                        {{ form_errors(form.status) }}
-                                    </div>
-                                    <small class="form-hint">
-                                        Account status: Active, Suspended, or Deleted.
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
-
-                        {# User Roles #}
-                        {% if form.roles is defined %}
-                            <div class="mb-3">
-                                {{ form_label(form.roles, 'User Roles', {'label_attr': {'class': 'form-label'}}) }}
-                                <div class="form-selectgroup">
-                                    {% for child in form.roles %}
-                                        <label class="form-selectgroup-item">
-                                            {{ form_widget(child, {'attr': {'class': 'form-selectgroup-input'}}) }}
-                                            <span class="form-selectgroup-label">
-                                                {% if child.vars.label == 'Admin' %}
-                                                    <i class="ti ti-shield-check me-1"></i>
-                                                {% elseif child.vars.label == 'Teacher' %}
-                                                    <i class="ti ti-school me-1"></i>
-                                                {% else %}
-                                                    <i class="ti ti-user me-1"></i>
-                                                {% endif %}
-                                                {{ child.vars.label }}
-                                            </span>
-                                        </label>
-                                    {% endfor %}
-                                </div>
-                                <div class="invalid-feedback d-block">
-                                    {{ form_errors(form.roles) }}
-                                </div>
-                                <small class="form-hint">
-                                    Assign authorization roles. Control what actions users can perform.
-                                </small>
-                            </div>
-                        {% endif %}
-                    {% endif %}
-
-                    {# Subscription Management - SEPARATE SECTION #}
-                    {% if form.subscriptionPlan is defined %}
-                        <hr class="my-4">
-                        <div class="mb-3">
-                            <h3 class="card-subtitle">
-                                <i class="ti ti-crown me-1 text-warning"></i>
-                                Subscription Management
-                            </h3>
-                        </div>
-
-                        <div class="alert alert-info mb-3">
-                            <div class="d-flex">
-                                <div>
-                                    <i class="ti ti-info-circle me-2"></i>
-                                </div>
-                                <div>
-                                    <strong>Note:</strong> Subscription determines access to premium features.
-                                    Expiration dates are automatically calculated based on the plan selected.
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    {{ form_label(form.subscriptionPlan, null, {'label_attr': {'class': 'form-label'}}) }}
-                                    {{ form_widget(form.subscriptionPlan, {'attr': {'class': 'form-select', 'id': 'subscription-plan-select'}}) }}
-                                    <div class="invalid-feedback d-block">
-                                        {{ form_errors(form.subscriptionPlan) }}
-                                    </div>
-                                    <small class="form-hint">
-                                        <strong>FREE:</strong> No premium features<br>
-                                        <strong>MONTHLY:</strong> Expires 1 month from now<br>
-                                        <strong>YEARLY:</strong> Expires 1 year from now
-                                    </small>
-                                </div>
-                            </div>
-
-                            {% if form.subscriptionExpiry is defined %}
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        {{ form_label(form.subscriptionExpiry, 'Expiration Date', {'label_attr': {'class': 'form-label'}}) }}
-                                        <div class="input-group">
-                                            {{ form_widget(form.subscriptionExpiry, {'attr': {'class': 'form-control', 'id': 'subscription-expiry'}}) }}
-                                            <button class="btn btn-outline-secondary" type="button" id="calculate-expiry-btn" title="Recalculate expiration date">
-                                                <i class="ti ti-refresh"></i>
-                                            </button>
-                                        </div>
-                                        <div class="invalid-feedback d-block">
-                                            {{ form_errors(form.subscriptionExpiry) }}
-                                        </div>
-                                        <small class="form-hint" id="expiry-hint">
-                                            Automatically calculated. Click refresh to recalculate or edit manually.
-                                        </small>
-                                    </div>
-                                </div>
-                            {% endif %}
-                        </div>
-
-                        {# Current Status Display #}
-                        {% if user.id %}
-                            <div class="card card-sm">
-                                <div class="card-body">
-                                    <div class="row align-items-center">
-                                        <div class="col-auto">
-                                            {% if user.isPremium %}
-                                                <span class="bg-success text-white avatar">
-                                                    <i class="ti ti-crown"></i>
-                                                </span>
-                                            {% else %}
-                                                <span class="bg-secondary text-white avatar">
-                                                    <i class="ti ti-user"></i>
-                                                </span>
-                                            {% endif %}
-                                        </div>
-                                        <div class="col">
-                                            <div class="font-weight-medium">
-                                                Current Status:
-                                                {% if user.isPremium %}
-                                                    <span class="badge bg-success ms-1">Premium Active</span>
-                                                {% else %}
-                                                    <span class="badge bg-secondary ms-1">Free Plan</span>
-                                                {% endif %}
-                                            </div>
-                                            <div class="text-muted">
-                                                Plan: <strong>{{ user.subscriptionPlan }}</strong>
-                                                {% if user.subscriptionExpiry %}
-                                                    | Expires: <strong>{{ user.subscriptionExpiry|date('M d, Y H:i') }}</strong>
-                                                {% else %}
-                                                    | <span class="text-muted">No expiration</span>
-                                                {% endif %}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        {% endif %}
-                    {% endif %}
-
-                    {# Form Actions #}
-                    <div class="card-footer bg-transparent mt-4">
-                        <div class="d-flex justify-content-between">
-                            <a href="{{ user.id ? path('admin_users_show', {id: user.id}) : path('admin_users_index') }}"
-                               class="btn">
-                                <i class="ti ti-x icon"></i>
-                                Cancel
-                            </a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="ti ti-check icon"></i>
-                                {{ user.id ? 'Update User' : 'Create User' }}
-                            </button>
-                        </div>
-                    </div>
-
-                    {{ form_end(form) }}
+                    <div class="uf-error">{{ form_errors(form.email) }}</div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    {# JavaScript for automatic date calculation #}
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const planSelect = document.getElementById('subscription-plan-select');
-            const expiryInput = document.getElementById('subscription-expiry');
-            const calculateBtn = document.getElementById('calculate-expiry-btn');
-            const expiryHint = document.getElementById('expiry-hint');
+{# ── CARD 2 — Password ──────────────────────────────────────────────────── #}
+{% if form.plainPassword is defined %}
+<div class="card mb-4 uf-card" style="border-radius:var(--uf-radius); border:1px solid var(--uf-border); box-shadow:var(--uf-shadow);">
+    <div class="card-body p-4">
+        <div class="uf-section">
+            <div class="uf-section-icon red"><i class="ti ti-lock"></i></div>
+            <div>
+                <h4>Security</h4>
+                <small>
+                    {% if user.id %}Leave blank to keep the current password{% else %}Set a strong password{% endif %}
+                </small>
+            </div>
+        </div>
 
-            if (!planSelect || !expiryInput) return;
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="uf-field">
+                    <label class="uf-label">
+                        <i class="ti ti-lock"></i>
+                        {{ user.id ? 'New Password' : 'Password' }}
+                        {% if not user.id %}<span class="req">*</span>{% endif %}
+                    </label>
+                    <div class="uf-input-wrap" style="position:relative">
+                        <i class="ti ti-lock uf-icon"></i>
+                        {{ form_widget(form.plainPassword.first, {'attr': {
+                            'class': 'form-control',
+                            'placeholder': '••••••••',
+                            'id': 'pw-field-1',
+                            'style': 'padding-left:40px; padding-right:42px'
+                        }}) }}
+                        <button type="button" class="pw-toggle" onclick="togglePw('pw-field-1',this)">
+                            <i class="ti ti-eye"></i>
+                        </button>
+                    </div>
+                    <div class="pw-strength-bar"><div class="pw-strength-fill" id="pw-strength-fill"></div></div>
+                    <div class="pw-strength-label" id="pw-strength-label">Enter a password</div>
+                    <div class="uf-error">{{ form_errors(form.plainPassword.first) }}</div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="uf-field">
+                    <label class="uf-label">
+                        <i class="ti ti-lock-check"></i> Confirm Password
+                        {% if not user.id %}<span class="req">*</span>{% endif %}
+                    </label>
+                    <div class="uf-input-wrap" style="position:relative">
+                        <i class="ti ti-lock-check uf-icon"></i>
+                        {{ form_widget(form.plainPassword.second, {'attr': {
+                            'class': 'form-control',
+                            'placeholder': '••••••••',
+                            'id': 'pw-field-2',
+                            'style': 'padding-left:40px; padding-right:42px'
+                        }}) }}
+                        <button type="button" class="pw-toggle" onclick="togglePw('pw-field-2',this)">
+                            <i class="ti ti-eye"></i>
+                        </button>
+                    </div>
+                    <div class="uf-hint" id="pw-match-hint"></div>
+                    <div class="uf-error">{{ form_errors(form.plainPassword.second) }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="uf-error">{{ form_errors(form.plainPassword) }}</div>
+    </div>
+</div>
+{% endif %}
 
-            // Calculate expiration date based on plan
-            function calculateExpiryDate(plan) {
-                const now = new Date();
+{# ── CARD 3 — Admin Settings ────────────────────────────────────────────── #}
+{% if form.status is defined %}
+<div class="card mb-4 uf-card" style="border-radius:var(--uf-radius); border:1px solid var(--uf-border); box-shadow:var(--uf-shadow);">
+    <div class="card-body p-4">
+        <div class="uf-section">
+            <div class="uf-section-icon red"><i class="ti ti-shield-lock"></i></div>
+            <div>
+                <h4>Administrative Settings</h4>
+                <small>Status, roles and permissions</small>
+            </div>
+        </div>
 
-                switch(plan) {
-                    case 'MONTHLY':
-                        now.setMonth(now.getMonth() + 1);
-                        break;
-                    case 'YEARLY':
-                        now.setFullYear(now.getFullYear() + 1);
-                        break;
-                    case 'FREE':
-                    default:
-                        return null;
-                }
+        {# ── Account Status ── #}
+        <div class="uf-field">
+            <label class="uf-label"><i class="ti ti-toggle-right"></i> Account Status</label>
 
-                return now;
-            }
+            {# Hide the original select widget off-screen #}
+            <div style="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;overflow:hidden;">
+                {{ form_widget(form.status, {'attr': {'id': 'status-select'}}) }}
+            </div>
 
-            // Format date for datetime-local input (YYYY-MM-DDTHH:MM)
-            function formatDateForInput(date) {
-                if (!date) return '';
+            <div class="status-pills" id="status-pills">
+                <label class="status-pill" data-val="active">
+                    <span class="dot"></span> <i class="ti ti-circle-check"></i> Active
+                </label>
+                <label class="status-pill" data-val="suspended">
+                    <span class="dot"></span> <i class="ti ti-player-pause"></i> Suspended
+                </label>
+                <label class="status-pill" data-val="deleted">
+                    <span class="dot"></span> <i class="ti ti-trash"></i> Deleted
+                </label>
+            </div>
+            <div class="uf-hint">Controls user access to the platform.</div>
+            <div class="uf-error">{{ form_errors(form.status) }}</div>
+        </div>
 
-                const year = date.getFullYear();
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const day = String(date.getDate()).padStart(2, '0');
-                const hours = String(date.getHours()).padStart(2, '0');
-                const minutes = String(date.getMinutes()).padStart(2, '0');
+        {# ── Roles ── #}
+        {% if form.roles is defined %}
+        <div class="uf-field mt-4">
+            <label class="uf-label"><i class="ti ti-badge"></i> User Roles</label>
 
-                return `${year}-${month}-${day}T${hours}:${minutes}`;
-            }
+            {# Render Symfony's hidden checkboxes (accessible but visually hidden) #}
+            <div style="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
+                {% for child in form.roles %}
+                    {{ form_widget(child) }}
+                {% endfor %}
+            </div>
 
-            // Update expiry date field
-            function updateExpiryDate() {
-                const selectedPlan = planSelect.value;
-                const expiryDate = calculateExpiryDate(selectedPlan);
+            <div class="role-cards">
+                {% set roleData = {
+                    'ROLE_USER':    {'label': 'User',    'icon': 'ti-user',         'desc': 'Standard access', 'css': 'role-user'},
+                    'ROLE_ADMIN':   {'label': 'Admin',   'icon': 'ti-shield-check', 'desc': 'Full admin access', 'css': 'role-admin'},
+                    'ROLE_TEACHER': {'label': 'Teacher', 'icon': 'ti-school',       'desc': 'Manage content', 'css': 'role-teacher'}
+                } %}
+                {% for child in form.roles %}
+                    {% set val = child.vars.value %}
+                    {% set rd  = roleData[val] ?? {'label': val, 'icon': 'ti-user', 'desc': '', 'css': 'role-user'} %}
+                    {% set checked = child.vars.checked %}
+                    <div class="role-card {{ rd.css }} {% if checked %}is-active{% endif %}"
+                         data-role="{{ val }}"
+                         data-checkbox-id="{{ child.vars.id }}"
+                         onclick="toggleRole(this)">
+                        <div class="role-card-check"><i class="ti ti-check"></i></div>
+                        <div class="role-card-icon"><i class="ti {{ rd.icon }}"></i></div>
+                        <div class="role-card-name">{{ rd.label }}</div>
+                        <div class="role-card-desc">{{ rd.desc }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="uf-hint mt-2">Select all roles that apply. Users always have base ROLE_USER.</div>
+            <div class="uf-error">{{ form_errors(form.roles) }}</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
 
-                if (expiryDate) {
-                    expiryInput.value = formatDateForInput(expiryDate);
-                    expiryInput.closest('.mb-3').style.opacity = '1';
-                    expiryInput.disabled = false;
+{# ── CARD 4 — Subscription ──────────────────────────────────────────────── #}
+{% if form.subscriptionPlan is defined %}
+<div class="card mb-4 uf-card" style="border-radius:var(--uf-radius); border:1px solid var(--uf-border); box-shadow:var(--uf-shadow);">
+    <div class="card-body p-4">
+        <div class="uf-section">
+            <div class="uf-section-icon gold"><i class="ti ti-crown"></i></div>
+            <div>
+                <h4>Subscription Plan</h4>
+                <small>Manage premium access and expiry</small>
+            </div>
+        </div>
 
-                    const readableDate = expiryDate.toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    });
-                    expiryHint.innerHTML = `Auto-calculated to: <strong>${readableDate}</strong>. You can edit if needed.`;
-                } else {
-                    expiryInput.value = '';
-                    expiryInput.closest('.mb-3').style.opacity = '0.5';
-                    expiryInput.disabled = true;
-                    expiryHint.innerHTML = 'No expiration for FREE plan.';
-                }
-            }
+        {# Hidden real select #}
+        <div style="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;overflow:hidden;">
+            {{ form_widget(form.subscriptionPlan, {'attr': {'id': 'plan-select'}}) }}
+        </div>
 
-            // Event listeners
-            planSelect.addEventListener('change', updateExpiryDate);
+        <div class="plan-cards mb-4">
+            {% set plans = [
+                {'val':'FREE',    'icon':'🆓', 'name':'Free',    'price':'No cost',   'css':'plan-free'},
+                {'val':'MONTHLY', 'icon':'👑', 'name':'Monthly', 'price':'$9.99/mo',  'css':'plan-monthly'},
+                {'val':'YEARLY',  'icon':'💎', 'name':'Yearly',  'price':'$99/yr',    'css':'plan-yearly'}
+            ] %}
+            {% set currentPlan = user.subscriptionPlan ?? 'FREE' %}
+            {% for p in plans %}
+            <div class="plan-card {{ p.css }} {% if currentPlan == p.val %}is-active{% endif %}"
+                 data-plan="{{ p.val }}" onclick="selectPlan(this)">
+                <div class="plan-card-icon">{{ p.icon }}</div>
+                <div class="plan-card-name">{{ p.name }}</div>
+                <div class="plan-card-price">{{ p.price }}</div>
+            </div>
+            {% endfor %}
+        </div>
 
-            if (calculateBtn) {
-                calculateBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    updateExpiryDate();
-                    this.querySelector('i').classList.add('ti-rotate');
-                    setTimeout(() => this.querySelector('i').classList.remove('ti-rotate'), 500);
-                });
-            }
+        {% if form.subscriptionExpiry is defined %}
+        <div class="expiry-wrap {% if (user.subscriptionPlan ?? 'FREE') == 'FREE' %}is-disabled{% endif %}" id="expiry-wrap">
+            <div class="uf-field mb-0">
+                <label class="uf-label"><i class="ti ti-calendar-time"></i> Expiration Date</label>
+                <div class="input-group" style="max-width:360px">
+                    <div class="uf-input-wrap flex-grow-1">
+                        <i class="ti ti-calendar uf-icon"></i>
+                        {{ form_widget(form.subscriptionExpiry, {'attr': {
+                            'class': 'form-control',
+                            'id': 'subscription-expiry',
+                            'style': 'padding-left:40px; border-radius:10px 0 0 10px'
+                        }}) }}
+                    </div>
+                    <button class="btn" type="button" id="recalc-btn"
+                            style="border:1.5px solid var(--uf-border); border-left:none; border-radius:0 10px 10px 0; background:#f8fafc; color:var(--uf-muted);"
+                            onclick="recalcExpiry()" title="Auto-calculate">
+                        <i class="ti ti-refresh"></i>
+                    </button>
+                </div>
+                <div class="uf-hint" id="expiry-hint">
+                    {% if user.id and user.subscriptionExpiry %}
+                        <span class="expiry-badge"><i class="ti ti-calendar-event"></i> Current: {{ user.subscriptionExpiry|date('M d, Y · H:i') }}</span>
+                    {% else %}
+                        Auto-calculated from plan selection.
+                    {% endif %}
+                </div>
+                <div class="uf-error">{{ form_errors(form.subscriptionExpiry) }}</div>
+            </div>
+        </div>
+        {% endif %}
 
-            // Auto-calculate on page load for new users
-            {% if not user.id or not user.subscriptionExpiry %}
-            updateExpiryDate();
-            {% else %}
-            // For existing users, update UI based on current plan
-            if (planSelect.value === 'FREE') {
-                expiryInput.closest('.mb-3').style.opacity = '0.5';
-                expiryInput.disabled = true;
-                expiryHint.innerHTML = 'No expiration for FREE plan.';
-            }
-            {% endif %}
+        {% if user.id %}
+        <div class="mt-3 p-3 rounded-3" style="background:var(--uf-bg); border:1px solid var(--uf-border);">
+            <div class="d-flex align-items-center gap-3">
+                <span class="avatar" style="background:{% if user.isPremium %}#fff3bf{% else %}#f1f3f9{% endif %}; color:{% if user.isPremium %}#e67700{% else %}#868e96{% endif %}; border-radius:10px; font-size:18px;">
+                    {% if user.isPremium %}👑{% else %}👤{% endif %}
+                </span>
+                <div>
+                    <div style="font-size:.82rem; font-weight:700; color:var(--uf-text);">Current status</div>
+                    <div style="font-size:.78rem; color:var(--uf-muted);">
+                        <span class="badge {% if user.isPremium %}bg-yellow text-dark{% else %}bg-secondary{% endif %} me-1">
+                            {{ user.subscriptionPlan }}
+                        </span>
+                        {% if user.subscriptionExpiry %}
+                            Expires {{ user.subscriptionExpiry|date('M d, Y') }}
+                        {% else %}
+                            No expiration
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+{# ── FOOTER / Actions ───────────────────────────────────────────────────── #}
+<div class="d-flex align-items-center justify-content-between py-2">
+    <a href="{{ user.id ? path('admin_users_show', {id: user.id}) : path('admin_users_index') }}" class="uf-cancel-btn">
+        <i class="ti ti-x"></i> Cancel
+    </a>
+    <button type="submit" class="uf-submit-btn" id="submit-btn">
+        <div class="btn-spinner"></div>
+        <span class="btn-label">
+            <i class="ti ti-{{ user.id ? 'device-floppy' : 'user-plus' }} me-1"></i>
+            {{ user.id ? 'Save Changes' : 'Create User' }}
+        </span>
+    </button>
+</div>
+
+{{ form_end(form) }}
+</div>{# end .uf-page #}
+
+<script>
+/* ── Role card toggle ─────────────────────────────────────────────────── */
+function toggleRole(card) {
+    const checkboxId = card.dataset.checkboxId;
+    const checkbox   = document.getElementById(checkboxId);
+    if (!checkbox) return;
+
+    // Toggle checked state
+    checkbox.checked = !checkbox.checked;
+
+    // Sync visual
+    card.classList.toggle('is-active', checkbox.checked);
+}
+
+/* ── Status pills ──────────────────────────────────────────────────────── */
+(function initStatusPills() {
+    const select = document.getElementById('status-select');
+    const pills  = document.querySelectorAll('#status-pills .status-pill');
+    if (!select || !pills.length) return;
+
+    function syncPills(val) {
+        pills.forEach(p => p.classList.toggle('is-active', p.dataset.val === val));
+    }
+
+    syncPills(select.value);
+
+    pills.forEach(pill => {
+        pill.addEventListener('click', () => {
+            select.value = pill.dataset.val;
+            syncPills(pill.dataset.val);
         });
-    </script>
+    });
+})();
 
-    <style>
-        .ti-rotate {
-            animation: rotate 0.5s linear;
-        }
+/* ── Plan card selector ─────────────────────────────────────────────────── */
+function selectPlan(card) {
+    const select = document.getElementById('plan-select');
+    if (!select) return;
 
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
+    document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('is-active'));
+    card.classList.add('is-active');
+    select.value = card.dataset.plan;
 
-        .mb-3 {
-            transition: opacity 0.3s ease;
+    updateExpiryState(card.dataset.plan);
+}
+
+function updateExpiryState(plan) {
+    const wrap  = document.getElementById('expiry-wrap');
+    const input = document.getElementById('subscription-expiry');
+    const hint  = document.getElementById('expiry-hint');
+    if (!wrap || !input) return;
+
+    if (plan === 'FREE') {
+        wrap.classList.add('is-disabled');
+        input.value = '';
+        if (hint) hint.innerHTML = 'No expiration for FREE plan.';
+    } else {
+        wrap.classList.remove('is-disabled');
+        recalcExpiry(plan);
+    }
+}
+
+function recalcExpiry(plan) {
+    const planSelect = document.getElementById('plan-select');
+    const input = document.getElementById('subscription-expiry');
+    const hint  = document.getElementById('expiry-hint');
+    const btn   = document.getElementById('recalc-btn');
+
+    const activePlan = plan || (planSelect ? planSelect.value : 'FREE');
+    const now = new Date();
+    if (activePlan === 'MONTHLY') now.setMonth(now.getMonth() + 1);
+    else if (activePlan === 'YEARLY') now.setFullYear(now.getFullYear() + 1);
+    else return;
+
+    // Animate refresh button
+    if (btn) { btn.querySelector('i').style.animation = 'spin .5s linear'; setTimeout(() => btn.querySelector('i').style.animation = '', 600); }
+
+    const pad = n => String(n).padStart(2,'0');
+    input.value = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+
+    const readable = now.toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' });
+    if (hint) hint.innerHTML = `<span class="expiry-badge"><i class="ti ti-calendar-event"></i> Auto-set: <strong>${readable}</strong></span>`;
+}
+
+/* ── Password strength ──────────────────────────────────────────────────── */
+function togglePw(id, btn) {
+    const inp = document.getElementById(id);
+    if (!inp) return;
+    const show = inp.type === 'password';
+    inp.type = show ? 'text' : 'password';
+    btn.querySelector('i').className = show ? 'ti ti-eye-off' : 'ti ti-eye';
+}
+
+(function initPwStrength() {
+    const pw1  = document.getElementById('pw-field-1');
+    const pw2  = document.getElementById('pw-field-2');
+    const fill = document.getElementById('pw-strength-fill');
+    const lbl  = document.getElementById('pw-strength-label');
+    const matchHint = document.getElementById('pw-match-hint');
+
+    if (!pw1 || !fill) return;
+
+    const levels = [
+        { score: 0,  color: '#dee2e6', text: 'Enter a password' },
+        { score: 25, color: '#d63939', text: '⚠ Too short' },
+        { score: 50, color: '#f59f00', text: 'Fair — add numbers or symbols' },
+        { score: 75, color: '#4dabf7', text: 'Good — keep going!' },
+        { score: 100,color: '#2fb344', text: '✓ Strong password' }
+    ];
+
+    function scorePassword(v) {
+        if (!v) return 0;
+        let s = 0;
+        if (v.length >= 6)  s += 25;
+        if (v.length >= 10) s += 25;
+        if (/[A-Z]/.test(v) && /[a-z]/.test(v)) s += 25;
+        if (/\d/.test(v) || /[^A-Za-z0-9]/.test(v)) s += 25;
+        return s;
+    }
+
+    pw1.addEventListener('input', () => {
+        const score = scorePassword(pw1.value);
+        const l = levels.find(x => x.score === score) || levels[0];
+        fill.style.width  = score + '%';
+        fill.style.background = l.color;
+        lbl.textContent   = l.text;
+        lbl.style.color   = l.color === '#dee2e6' ? 'var(--uf-muted)' : l.color;
+        checkMatch();
+    });
+
+    if (pw2) pw2.addEventListener('input', checkMatch);
+
+    function checkMatch() {
+        if (!matchHint || !pw2) return;
+        if (!pw2.value) { matchHint.textContent = ''; return; }
+        if (pw1.value === pw2.value) {
+            matchHint.innerHTML = '<span style="color:#2fb344">✓ Passwords match</span>';
+        } else {
+            matchHint.innerHTML = '<span style="color:#d63939">✗ Passwords do not match</span>';
         }
-    </style>
+    }
+})();
+
+/* ── Init plan state on load ─────────────────────────────────────────────── */
+(function () {
+    const sel = document.getElementById('plan-select');
+    if (sel) updateExpiryState(sel.value);
+})();
+
+/* ── Submit button loading state ─────────────────────────────────────────── */
+document.getElementById('user-form')?.addEventListener('submit', function() {
+    const btn = document.getElementById('submit-btn');
+    if (btn) btn.classList.add('loading');
+});
+</script>
 {% endblock %}
-

@@ -88,7 +88,8 @@ class UserFormType extends AbstractType
                         'Suspended' => 'suspended',
                         'Deleted' => 'deleted',
                     ],
-                    'attr' => ['class' => 'form-select'],
+                    // id is explicit so Twig templates can reference it via getElementById
+                    'attr' => ['class' => 'form-select', 'id' => 'status-select'],
                 ])
                 ->add('roles', ChoiceType::class, [
                     'label' => 'Roles',
@@ -115,14 +116,21 @@ class UserFormType extends AbstractType
                         'Monthly Premium' => 'MONTHLY',
                         'Yearly Premium' => 'YEARLY',
                     ],
-                    'attr' => ['class' => 'form-select'],
+                    // id is explicit so Twig JS can find it via getElementById('plan-select')
+                    'attr' => ['class' => 'form-select', 'id' => 'plan-select'],
                 ])
                 ->add('subscriptionExpiry', DateTimeType::class, [
                     'label' => 'Subscription Expires At',
                     'required' => false,
                     'widget' => 'single_text',
-                    'attr' => ['class' => 'form-control'],
-                    'help' => 'Leave empty for lifetime access. Required for MONTHLY and YEARLY plans.',
+                    // html5 = true renders as <input type="datetime-local"> which
+                    // correctly maps to PHP DateTime. id is explicit for JS.
+                    'html5' => true,
+                    'attr' => [
+                        'class' => 'form-control',
+                        'id' => 'subscription-expiry',
+                    ],
+                    'help' => 'Leave empty for FREE plan. Required for MONTHLY and YEARLY plans.',
                 ]);
         }
     }

@@ -1,199 +1,395 @@
 {% extends 'layouts/admin.html.twig' %}
 
 {% block title %}Users Management - {{ parent() }}{% endblock %}
+
 {% block page_title %}
-    <i class="ti ti-users me-2"></i> Users Management
+    <span class="d-flex align-items-center gap-2">
+        <span style="width:36px;height:36px;border-radius:10px;background:#edf2ff;color:#3b5bdb;display:grid;place-items:center;font-size:18px">
+            <i class="ti ti-users"></i>
+        </span>
+        Users Management
+        <span class="badge bg-blue-lt text-blue ms-1" style="font-size:.75rem">{{ totalUsers }}</span>
+    </span>
 {% endblock %}
+
 {% block page_actions %}
     <div class="col-auto ms-auto d-print-none">
-        <a href="{{ path('admin_users_new') }}" class="btn btn-primary">
-            <i class="ti ti-plus icon"></i>
-            Create User
+        <a href="{{ path('admin_users_new') }}" class="btn btn-primary d-flex align-items-center gap-2" style="border-radius:10px;font-weight:600;box-shadow:0 4px 12px rgba(59,91,219,.3)">
+            <i class="ti ti-user-plus"></i> Create User
         </a>
     </div>
 {% endblock %}
+
 {% block content %}
-    <div class="card mb-3">
-        <div class="card-body">
-            <form method="get" action="{{ path('admin_users_index') }}">
-                <div class="row g-2">
-                    <div class="col-md-2">
-                        <input type="text" name="search" value="{{ filters.search|default('') }}" class="form-control" placeholder="Name or Email">
-                    </div>
-                    <div class="col-md-2">
-                        <select name="status" class="form-select">
-                            <option value="">All Status</option>
-                            <option value="active" {{ filters.status == 'active' ? 'selected' : '' }}>Active</option>
-                            <option value="suspended" {{ filters.status == 'suspended' ? 'selected' : '' }}>Suspended</option>
-                            <option value="deleted" {{ filters.status == 'deleted' ? 'selected' : '' }}>Deleted</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <select name="role" class="form-select">
-                            <option value="">All Roles</option>
-                            <option value="ROLE_USER" {{ filters.role == 'ROLE_USER' ? 'selected' : '' }}>User</option>
-                            <option value="ROLE_ADMIN" {{ filters.role == 'ROLE_ADMIN' ? 'selected' : '' }}>Admin</option>
-                            <option value="ROLE_TEACHER" {{ filters.role == 'ROLE_TEACHER' ? 'selected' : '' }}>Teacher</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <select name="subscriptionPlan" class="form-select">
-                            <option value="">All Plans</option>
-                            <option value="FREE" {{ filters.subscriptionPlan == 'FREE' ? 'selected' : '' }}>Free</option>
-                            <option value="MONTHLY" {{ filters.subscriptionPlan == 'MONTHLY' ? 'selected' : '' }}>Monthly</option>
-                            <option value="YEARLY" {{ filters.subscriptionPlan == 'YEARLY' ? 'selected' : '' }}>Yearly</option>
-                        </select>
-                    </div>
-                    <div class="col-md-1">
-                        <select name="isPremium" class="form-select">
-                            <option value="">Premium?</option>
-                            <option value="1" {{ filters.isPremium == '1' or filters.isPremium == true ? 'selected' : '' }}>Yes</option>
-                            <option value="0" {{ filters.isPremium == '0' or filters.isPremium == false ? 'selected' : '' }}>No</option>
-                        </select>
-                    </div>
-                    <div class="col-md-1">
-                        <select name="sort" class="form-select">
-                            <option value="u.createdAt" {{ filters.sort == 'u.createdAt' ? 'selected' : '' }}>Recent</option>
-                            <option value="u.firstName" {{ filters.sort == 'u.firstName' ? 'selected' : '' }}>First Name</option>
-                            <option value="u.lastName" {{ filters.sort == 'u.lastName' ? 'selected' : '' }}>Last Name</option>
-                            <option value="u.email" {{ filters.sort == 'u.email' ? 'selected' : '' }}>Email</option>
-                            <option value="u.status" {{ filters.sort == 'u.status' ? 'selected' : '' }}>Status</option>
-                            <option value="u.isPremium" {{ filters.sort == 'u.isPremium' ? 'selected' : '' }}>Premium</option>
-                            <option value="u.subscriptionPlan" {{ filters.sort == 'u.subscriptionPlan' ? 'selected' : '' }}>Plan</option>
-                        </select>
-                    </div>
-                    <div class="col-md-1">
-                        <select name="direction" class="form-select">
-                            <option value="DESC" {{ filters.direction == 'DESC' ? 'selected' : '' }}>Desc</option>
-                            <option value="ASC"  {{ filters.direction == 'ASC' ? 'selected' : '' }}>Asc</option>
-                        </select>
-                    </div>
-                    <div class="col-auto">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="ti ti-search"></i>
-                        </button>
-                    </div>
-                    <div class="col-auto">
-                        <a href="{{ path('admin_users_index') }}" class="btn btn-secondary" title="Reset all filters">
-                            <i class="ti ti-x"></i>
-                        </a>
-                    </div>
-                </div>
-            </form>
-        </div>
+<style>
+:root {
+    --ix-primary:  #3b5bdb;
+    --ix-success:  #2fb344;
+    --ix-warn:     #f59f00;
+    --ix-danger:   #d63939;
+    --ix-muted:    #6c7a99;
+    --ix-border:   #e3e8f0;
+    --ix-bg:       #f8fafc;
+    --ix-radius:   12px;
+    --ix-shadow:   0 2px 16px rgba(59,91,219,.07);
+}
+
+/* Stats strip */
+.stats-strip { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+.stat-card {
+    flex: 1 1 160px; padding: 18px 20px; border-radius: 14px;
+    border: 1px solid var(--ix-border); background: #fff;
+    box-shadow: var(--ix-shadow);
+    transition: transform .2s, box-shadow .2s;
+    position: relative; overflow: hidden;
+}
+.stat-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 3px; border-radius: 99px 99px 0 0;
+}
+.stat-card.total::before   { background: var(--ix-primary); }
+.stat-card.active::before  { background: var(--ix-success); }
+.stat-card.premium::before { background: var(--ix-warn); }
+.stat-card.new::before     { background: #cc5de8; }
+.stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(59,91,219,.12); }
+.stat-num { font-size: 2rem; font-weight: 800; line-height: 1; color: #1a1f36; }
+.stat-label { font-size: .75rem; color: var(--ix-muted); font-weight: 600; margin-top: 4px; text-transform: uppercase; letter-spacing: .04em; }
+.stat-icon { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 2rem; opacity: .07; }
+
+/* Filter bar */
+.filter-bar {
+    background: #fff; border: 1px solid var(--ix-border);
+    border-radius: var(--ix-radius); padding: 16px 20px;
+    box-shadow: var(--ix-shadow); margin-bottom: 16px;
+}
+.filter-bar .form-control,
+.filter-bar .form-select {
+    border: 1.5px solid var(--ix-border); border-radius: 8px;
+    font-size: .82rem; padding: 8px 12px;
+    transition: border-color .2s, box-shadow .2s;
+}
+.filter-bar .form-control:focus,
+.filter-bar .form-select:focus {
+    border-color: var(--ix-primary);
+    box-shadow: 0 0 0 3px rgba(59,91,219,.1); outline: none;
+}
+.filter-btn {
+    padding: 8px 18px; border-radius: 8px; font-weight: 600;
+    font-size: .82rem; cursor: pointer; border: none;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: all .15s;
+}
+.filter-btn.search { background: var(--ix-primary); color: #fff; box-shadow: 0 2px 8px rgba(59,91,219,.3); }
+.filter-btn.search:hover { background: #3451c7; box-shadow: 0 4px 14px rgba(59,91,219,.4); }
+.filter-btn.reset  { background: #f1f3f9; color: var(--ix-muted); }
+.filter-btn.reset:hover { background: #ffe3e3; color: var(--ix-danger); }
+
+/* Table */
+.ux-table-card {
+    border-radius: var(--ix-radius); border: 1px solid var(--ix-border);
+    overflow: hidden; box-shadow: var(--ix-shadow); background: #fff;
+}
+.ux-table { width: 100%; border-collapse: collapse; }
+.ux-table thead th {
+    background: var(--ix-bg); padding: 12px 16px;
+    font-size: .74rem; font-weight: 700; color: var(--ix-muted);
+    text-transform: uppercase; letter-spacing: .06em;
+    border-bottom: 1.5px solid var(--ix-border);
+    white-space: nowrap;
+}
+.ux-table tbody tr {
+    border-bottom: 1px solid var(--ix-border);
+    transition: background .15s;
+    animation: rowFadeIn .35s ease both;
+}
+.ux-table tbody tr:last-child { border-bottom: none; }
+.ux-table tbody tr:hover { background: #f8fafc; }
+
+{% for i in range(1,30) %}
+.ux-table tbody tr:nth-child({{ i }}) { animation-delay: {{ (i * 0.03)|round(2) }}s; }
+{% endfor %}
+
+@keyframes rowFadeIn { from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:translateX(0)} }
+
+.ux-table td { padding: 12px 16px; vertical-align: middle; font-size: .85rem; }
+
+/* User cell */
+.user-cell { display: flex; align-items: center; gap: 12px; }
+.user-avatar {
+    width: 38px; height: 38px; border-radius: 10px;
+    object-fit: cover; flex-shrink: 0;
+    border: 2px solid var(--ix-border);
+}
+.user-name { font-weight: 700; color: #1a1f36; font-size: .88rem; }
+.user-roles { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 2px; }
+
+/* Status badge */
+.ux-status {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 10px; border-radius: 6px; font-size: .74rem; font-weight: 700;
+}
+.ux-status .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.ux-status.active    { background: #d3f9d8; color: #1a6130; }
+.ux-status.active .dot { background: var(--ix-success); }
+.ux-status.suspended { background: #fff3bf; color: #7d4a00; }
+.ux-status.suspended .dot { background: var(--ix-warn); }
+.ux-status.deleted   { background: #ffe3e3; color: #7d1717; }
+.ux-status.deleted .dot { background: var(--ix-danger); }
+
+/* Plan badge */
+.plan-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 10px; border-radius: 6px; font-size: .74rem; font-weight: 700;
+}
+.plan-badge.premium { background: #fff3bf; color: #7d4a00; }
+.plan-badge.free    { background: #f1f3f9; color: var(--ix-muted); }
+
+/* Action buttons */
+.action-btns { display: flex; gap: 6px; }
+.act-btn {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: grid; place-items: center;
+    border: 1.5px solid var(--ix-border);
+    background: #fff; color: var(--ix-muted);
+    font-size: 15px; transition: all .15s;
+    text-decoration: none;
+}
+.act-btn:hover.view  { border-color: var(--ix-primary); color: var(--ix-primary); background: #edf2ff; }
+.act-btn:hover.edit  { border-color: #2f9e44; color: #2f9e44; background: #ebfbee; }
+
+/* Pagination */
+.ux-pagination { display: flex; align-items: center; gap: 4px; }
+.ux-page-btn {
+    width: 34px; height: 34px; border-radius: 8px;
+    display: grid; place-items: center;
+    font-size: .82rem; font-weight: 600; border: 1.5px solid var(--ix-border);
+    background: #fff; color: var(--ix-muted);
+    text-decoration: none; transition: all .15s;
+}
+.ux-page-btn:hover  { border-color: var(--ix-primary); color: var(--ix-primary); background: #edf2ff; }
+.ux-page-btn.active { border-color: var(--ix-primary); background: var(--ix-primary); color: #fff; pointer-events: none; }
+.ux-page-btn.nav    { width: auto; padding: 0 10px; gap: 4px; display: flex; align-items: center; }
+
+/* Empty state */
+.empty-state { padding: 60px 20px; text-align: center; }
+.empty-state-icon { font-size: 3rem; margin-bottom: 12px; opacity: .3; }
+.empty-state-title { font-weight: 700; color: #1a1f36; margin-bottom: 6px; }
+.empty-state-sub { color: var(--ix-muted); font-size: .85rem; }
+
+/* Animations */
+@keyframes fadeSlideUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+.stats-strip  { animation: fadeSlideUp .4s ease both; }
+.filter-bar   { animation: fadeSlideUp .4s ease both .05s; }
+.ux-table-card{ animation: fadeSlideUp .4s ease both .1s; }
+</style>
+
+{# ── Stats Strip ────────────────────────────────────────────────────────── #}
+{% if statistics is defined %}
+<div class="stats-strip">
+    <div class="stat-card total">
+        <div class="stat-num">{{ statistics.total ?? totalUsers }}</div>
+        <div class="stat-label">Total Users</div>
+        <i class="ti ti-users stat-icon"></i>
     </div>
-    <div class="card">
-        <div class="table-responsive">
-            <table class="table table-vcenter card-table table-striped">
-                <thead>
+    <div class="stat-card active">
+        <div class="stat-num">{{ statistics.active ?? '—' }}</div>
+        <div class="stat-label">Active</div>
+        <i class="ti ti-circle-check stat-icon"></i>
+    </div>
+    <div class="stat-card premium">
+        <div class="stat-num">{{ statistics.premium ?? '—' }}</div>
+        <div class="stat-label">Premium</div>
+        <i class="ti ti-crown stat-icon"></i>
+    </div>
+    <div class="stat-card new">
+        <div class="stat-num">{{ statistics.newThisMonth ?? '—' }}</div>
+        <div class="stat-label">New This Month</div>
+        <i class="ti ti-sparkles stat-icon"></i>
+    </div>
+</div>
+{% endif %}
+
+{# ── Filter Bar ─────────────────────────────────────────────────────────── #}
+<div class="filter-bar">
+    <form method="get" action="{{ path('admin_users_index') }}">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label mb-1" style="font-size:.74rem;font-weight:700;color:var(--ix-muted);text-transform:uppercase;letter-spacing:.04em">Search</label>
+                <div style="position:relative">
+                    <i class="ti ti-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--ix-muted);font-size:14px"></i>
+                    <input type="text" name="search" value="{{ filters.search|default('') }}"
+                           class="form-control" placeholder="Name or email…" style="padding-left:32px">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label mb-1" style="font-size:.74rem;font-weight:700;color:var(--ix-muted);text-transform:uppercase;letter-spacing:.04em">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All Status</option>
+                    <option value="active"    {{ filters.status == 'active'    ? 'selected' : '' }}>Active</option>
+                    <option value="suspended" {{ filters.status == 'suspended' ? 'selected' : '' }}>Suspended</option>
+                    <option value="deleted"   {{ filters.status == 'deleted'   ? 'selected' : '' }}>Deleted</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label mb-1" style="font-size:.74rem;font-weight:700;color:var(--ix-muted);text-transform:uppercase;letter-spacing:.04em">Role</label>
+                <select name="role" class="form-select">
+                    <option value="">All Roles</option>
+                    <option value="ROLE_USER"    {{ filters.role == 'ROLE_USER'    ? 'selected' : '' }}>User</option>
+                    <option value="ROLE_ADMIN"   {{ filters.role == 'ROLE_ADMIN'   ? 'selected' : '' }}>Admin</option>
+                    <option value="ROLE_TEACHER" {{ filters.role == 'ROLE_TEACHER' ? 'selected' : '' }}>Teacher</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label mb-1" style="font-size:.74rem;font-weight:700;color:var(--ix-muted);text-transform:uppercase;letter-spacing:.04em">Plan</label>
+                <select name="subscriptionPlan" class="form-select">
+                    <option value="">All Plans</option>
+                    <option value="FREE"    {{ filters.subscriptionPlan == 'FREE'    ? 'selected' : '' }}>Free</option>
+                    <option value="MONTHLY" {{ filters.subscriptionPlan == 'MONTHLY' ? 'selected' : '' }}>Monthly</option>
+                    <option value="YEARLY"  {{ filters.subscriptionPlan == 'YEARLY'  ? 'selected' : '' }}>Yearly</option>
+                </select>
+            </div>
+            <div class="col-md-1">
+                <label class="form-label mb-1" style="font-size:.74rem;font-weight:700;color:var(--ix-muted);text-transform:uppercase;letter-spacing:.04em">Sort</label>
+                <select name="sort" class="form-select">
+                    <option value="u.createdAt" {{ filters.sort == 'u.createdAt' ? 'selected' : '' }}>Recent</option>
+                    <option value="u.firstName" {{ filters.sort == 'u.firstName' ? 'selected' : '' }}>Name</option>
+                    <option value="u.email"     {{ filters.sort == 'u.email'     ? 'selected' : '' }}>Email</option>
+                    <option value="u.status"    {{ filters.sort == 'u.status'    ? 'selected' : '' }}>Status</option>
+                    <option value="u.isPremium" {{ filters.sort == 'u.isPremium' ? 'selected' : '' }}>Premium</option>
+                </select>
+            </div>
+            <div class="col-md-auto">
+                <label class="form-label mb-1" style="font-size:.74rem;font-weight:700;color:var(--ix-muted);text-transform:uppercase;letter-spacing:.04em">Dir</label>
+                <select name="direction" class="form-select" style="width:80px">
+                    <option value="DESC" {{ filters.direction == 'DESC' ? 'selected' : '' }}>↓ Desc</option>
+                    <option value="ASC"  {{ filters.direction == 'ASC'  ? 'selected' : '' }}>↑ Asc</option>
+                </select>
+            </div>
+            <div class="col-auto d-flex gap-2">
+                <button type="submit" class="filter-btn search">
+                    <i class="ti ti-search"></i> Filter
+                </button>
+                <a href="{{ path('admin_users_index') }}" class="filter-btn reset" style="text-decoration:none">
+                    <i class="ti ti-x"></i>
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+{# ── Table ──────────────────────────────────────────────────────────────── #}
+<div class="ux-table-card">
+    <div style="overflow-x:auto">
+        <table class="ux-table">
+            <thead>
                 <tr>
-                    <th>ID</th>
+                    <th style="width:36px">#</th>
                     <th>User</th>
                     <th>Email</th>
                     <th>Status</th>
-                    <th>Subscription</th>
-                    <th>Created</th>
-                    <th class="w-1">Actions</th>
+                    <th>Plan</th>
+                    <th>Joined</th>
+                    <th style="width:80px">Actions</th>
                 </tr>
-                </thead>
-                <tbody>
-                {% for user in users %}
-                    <tr>
-                        <td class="text-muted">#{{ user.id }}</td>
-                        <td>
-                            <div class="d-flex py-1 align-items-center">
-                                <span class="avatar me-2" style="background-image: url(https://ui-avatars.com/api/?name={{ user.firstName }}+{{ user.lastName }}&background=random)"></span>
-                                <div class="flex-fill">
-                                    <div class="font-weight-medium">{{ user.fullName }}</div>
-                                    <div class="text-muted">
-                                        {% for role in user.roles %}
-                                            {% if role != 'ROLE_USER' %}
-                                                <span class="badge badge-sm bg-blue-lt">
-                                                    {{ role|replace({'ROLE_': ''}) }}
-                                                </span>
-                                            {% endif %}
-                                        {% endfor %}
-                                    </div>
+            </thead>
+            <tbody>
+            {% for user in users %}
+                <tr>
+                    <td style="color:var(--ix-muted);font-size:.78rem;font-weight:600">{{ user.id }}</td>
+                    <td>
+                        <div class="user-cell">
+                            <img class="user-avatar"
+                                 src="https://ui-avatars.com/api/?name={{ user.firstName|url_encode }}+{{ user.lastName|url_encode }}&background=random&size=76"
+                                 alt="{{ user.fullName }}">
+                            <div>
+                                <div class="user-name">{{ user.fullName }}</div>
+                                <div class="user-roles">
+                                    {% for role in user.roles %}
+                                        {% if role != 'ROLE_USER' %}
+                                            <span style="font-size:.68rem;padding:2px 6px;border-radius:4px;font-weight:700;background:#edf2ff;color:#3b5bdb">
+                                                {{ role|replace({'ROLE_': ''}) }}
+                                            </span>
+                                        {% endif %}
+                                    {% endfor %}
                                 </div>
                             </div>
-                        </td>
-                        <td><div class="text-muted">{{ user.email }}</div></td>
-                        <td>
-                            {% if user.status == 'active' %}
-                                <span class="badge bg-success me-1"></span> Active
-                            {% elseif user.status == 'suspended' %}
-                                <span class="badge bg-warning me-1"></span> Suspended
-                            {% else %}
-                                <span class="badge bg-danger me-1"></span> Deleted
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if user.isPremium %}
-                                <span class="badge bg-yellow">
-                                    <i class="ti ti-crown"></i>
-                                    {{ user.subscriptionPlan == 'MONTHLY' ? 'Monthly' : (user.subscriptionPlan == 'YEARLY' ? 'Yearly' : 'Premium') }}
-                                </span>
-                            {% else %}
-                                <span class="badge bg-secondary">Free</span>
-                            {% endif %}
-                        </td>
-                        <td class="text-muted">{{ user.createdAt|date('M d, Y') }}</td>
-                        <td>
-                            <div class="btn-list flex-nowrap">
-                                <a href="{{ path('admin_users_show', {id: user.id}) }}" class="btn btn-sm btn-ghost-primary">
-                                    <i class="ti ti-eye"></i>
-                                </a>
-                                <a href="{{ path('admin_users_edit', {id: user.id}) }}" class="btn btn-sm btn-ghost-primary">
-                                    <i class="ti ti-pencil"></i>
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                {% else %}
-                    <tr>
-                        <td colspan="7" class="text-center py-5">
-                            <div class="empty">
-                                <p class="empty-title">No users found</p>
-                            </div>
-                        </td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% if totalPages > 1 %}
-            <div class="card-footer d-flex align-items-center">
-                <ul class="pagination m-0 ms-auto">
-                    {% if currentPage > 1 %}
-                        <li class="page-item">
-                            <a class="page-link"
-                               href="{{ path('admin_users_index', filters|merge({'page': currentPage - 1})) }}">
-                                <i class="ti ti-chevron-left"></i> prev
-                            </a>
-                        </li>
-                    {% endif %}
-                    {% for page in 1..totalPages %}
-                        {% if page == currentPage %}
-                            <li class="page-item active">
-                                <a class="page-link" href="{{ path('admin_users_index', filters|merge({'page': page})) }}">{{ page }}</a>
-                            </li>
+                        </div>
+                    </td>
+                    <td style="color:var(--ix-muted);font-size:.82rem">{{ user.email }}</td>
+                    <td>
+                        {% if user.status == 'active' %}
+                            <span class="ux-status active"><span class="dot"></span> Active</span>
+                        {% elseif user.status == 'suspended' %}
+                            <span class="ux-status suspended"><span class="dot"></span> Suspended</span>
                         {% else %}
-                            <li class="page-item">
-                                <a class="page-link" href="{{ path('admin_users_index', filters|merge({'page': page})) }}">{{ page }}</a>
-                            </li>
+                            <span class="ux-status deleted"><span class="dot"></span> Deleted</span>
                         {% endif %}
-                    {% endfor %}
-                    {% if currentPage < totalPages %}
-                        <li class="page-item">
-                            <a class="page-link"
-                               href="{{ path('admin_users_index', filters|merge({'page': currentPage + 1})) }}">
-                                next <i class="ti ti-chevron-right"></i>
+                    </td>
+                    <td>
+                        {% if user.isPremium %}
+                            <span class="plan-badge premium">
+                                👑 {{ user.subscriptionPlan == 'MONTHLY' ? 'Monthly' : 'Yearly' }}
+                            </span>
+                        {% else %}
+                            <span class="plan-badge free">Free</span>
+                        {% endif %}
+                    </td>
+                    <td style="color:var(--ix-muted);font-size:.8rem;white-space:nowrap">{{ user.createdAt|date('M d, Y') }}</td>
+                    <td>
+                        <div class="action-btns">
+                            <a href="{{ path('admin_users_show', {id: user.id}) }}" class="act-btn view" title="View">
+                                <i class="ti ti-eye"></i>
                             </a>
-                        </li>
-                    {% endif %}
-                </ul>
-            </div>
-        {% endif %}
+                            <a href="{{ path('admin_users_edit', {id: user.id}) }}" class="act-btn edit" title="Edit">
+                                <i class="ti ti-pencil"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="7">
+                        <div class="empty-state">
+                            <div class="empty-state-icon"><i class="ti ti-users-group"></i></div>
+                            <div class="empty-state-title">No users found</div>
+                            <div class="empty-state-sub">Try adjusting your filters or <a href="{{ path('admin_users_new') }}">create a new user</a>.</div>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
     </div>
-{% endblock %}
 
+    {# ── Pagination ── #}
+    {% if totalPages > 1 %}
+    <div style="padding:16px 20px;border-top:1px solid var(--ix-border);display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:.78rem;color:var(--ix-muted)">
+            Page {{ currentPage }} of {{ totalPages }} · {{ totalUsers }} users
+        </div>
+        <nav class="ux-pagination">
+            {% if currentPage > 1 %}
+                <a class="ux-page-btn nav" href="{{ path('admin_users_index', filters|merge({'page': currentPage - 1})) }}">
+                    <i class="ti ti-chevron-left"></i> Prev
+                </a>
+            {% endif %}
+
+            {% for page in 1..totalPages %}
+                {% if page == 1 or page == totalPages or (page >= currentPage - 2 and page <= currentPage + 2) %}
+                    <a class="ux-page-btn {{ page == currentPage ? 'active' : '' }}"
+                       href="{{ path('admin_users_index', filters|merge({'page': page})) }}">{{ page }}</a>
+                {% elseif page == currentPage - 3 or page == currentPage + 3 %}
+                    <span style="padding:0 4px;color:var(--ix-muted)">…</span>
+                {% endif %}
+            {% endfor %}
+
+            {% if currentPage < totalPages %}
+                <a class="ux-page-btn nav" href="{{ path('admin_users_index', filters|merge({'page': currentPage + 1})) }}">
+                    Next <i class="ti ti-chevron-right"></i>
+                </a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

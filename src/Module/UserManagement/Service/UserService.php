@@ -77,10 +77,9 @@ class UserService
      */
     public function deleteUser(User $user): void
     {
-        // First, check if the user has learning stats and remove them
-        if ($user->getLearningStats()) {
-            $this->entityManager->remove($user->getLearningStats());
-        }
+        // The User entity has cascade:['persist','remove'] on the learningStats
+        // OneToOne relation, so Doctrine removes it automatically.
+        // Manually removing it first would throw a "detached entity" error.
         $this->entityManager->remove($user);
         $this->entityManager->flush();
     }
@@ -184,12 +183,17 @@ class UserService
      */
     public function getUserStatistics(): array
     {
+        $startOfMonth = new \DateTime('first day of this month midnight');
+        $now          = new \DateTime();
+
         return [
-            'total' => $this->userRepository->count([]),
-            'active' => $this->userRepository->countByStatus('active'),
-            'suspended' => $this->userRepository->countByStatus('suspended'),
-            'deleted' => $this->userRepository->countByStatus('deleted'),
-            'premium' => count($this->userRepository->findPremiumUsers()),
+            'total'        => $this->userRepository->count([]),
+            'active'       => $this->userRepository->countByStatus('active'),
+            'suspended'    => $this->userRepository->countByStatus('suspended'),
+            'deleted'      => $this->userRepository->countByStatus('deleted'),
+            'premium'      => count($this->userRepository->findPremiumUsers()),
+            // Used by the index template stats strip
+            'newThisMonth' => $this->userRepository->countBetweenDates($startOfMonth, $now),
         ];
     }
 }

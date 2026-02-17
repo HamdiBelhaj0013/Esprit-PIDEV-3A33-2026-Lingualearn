@@ -82,8 +82,10 @@ class UserController extends AbstractController
             $hashedPassword = $this->passwordHasher->hashPassword($user, $plainPassword);
             $user->setPassword($hashedPassword);
 
-            // Persist the user — roles, subscriptionPlan, subscriptionExpiry,
-            // status are already set on $user by the form via setters.
+            // Persist the user - roles, subscriptionPlan, subscriptionExpiry,
+            // status are already mapped onto $user by the form via setters.
+            // isPremium is auto-calculated by User::updatePremiumStatus() which
+            // is triggered internally by setSubscriptionPlan() / setSubscriptionExpiry().
             $this->entityManager->persist($user);
             $this->entityManager->flush();
 
@@ -129,11 +131,24 @@ class UserController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->userService->updateUser(
-                $user,
-                $user->getFirstName(),
-                $user->getLastName()
-            );
+            // Optional password change (plainPassword is not added in edit mode by default,
+            // but guard it safely in case the form type is ever changed)
+            if ($form->has('plainPassword')) {
+                $plainPassword = $form->get('plainPassword')->getData();
+                if ($plainPassword) {
+                    $hashedPassword = $this->passwordHasher->hashPassword($user, $plainPassword);
+                    $user->setPassword($hashedPassword);
+                }
+            }
+
+            // All form fields (firstName, lastName, email, roles, status,
+            // subscriptionPlan, subscriptionExpiry) are already mapped onto $user
+            // by Symfony's form system via the entity setters.
+            //
+            // isPremium is auto-recalculated inside User::setSubscriptionPlan()
+            // and User::setSubscriptionExpiry() via updatePremiumStatus(), so no
+            // manual setPremium() call is needed here.
+            $this->entityManager->flush();
 
             $this->addFlash('success', 'User updated successfully!');
 
