@@ -9,6 +9,14 @@
         </span>
         {{ user.fullName }}
     </span>
+<script>
+function toggleRpPw() {
+    const inp = document.getElementById('rp-input');
+    const ico = document.getElementById('rp-eye');
+    if (inp.type === 'password') { inp.type = 'text'; ico.className = 'ti ti-eye-off'; }
+    else { inp.type = 'password'; ico.className = 'ti ti-eye'; }
+}
+</script>
 {% endblock %}
 
 {% block breadcrumb %}
@@ -16,6 +24,14 @@
         <li class="breadcrumb-item"><a href="{{ path('admin_users_index') }}"><i class="ti ti-users me-1"></i>Users</a></li>
         <li class="breadcrumb-item active" aria-current="page">{{ user.fullName }}</li>
     </ol>
+<script>
+function toggleRpPw() {
+    const inp = document.getElementById('rp-input');
+    const ico = document.getElementById('rp-eye');
+    if (inp.type === 'password') { inp.type = 'text'; ico.className = 'ti ti-eye-off'; }
+    else { inp.type = 'password'; ico.className = 'ti ti-eye'; }
+}
+</script>
 {% endblock %}
 
 {% block page_actions %}
@@ -29,6 +45,14 @@
             </a>
         </div>
     </div>
+<script>
+function toggleRpPw() {
+    const inp = document.getElementById('rp-input');
+    const ico = document.getElementById('rp-eye');
+    if (inp.type === 'password') { inp.type = 'text'; ico.className = 'ti ti-eye-off'; }
+    else { inp.type = 'password'; ico.className = 'ti ti-eye'; }
+}
+</script>
 {% endblock %}
 
 {% block content %}
@@ -276,6 +300,26 @@
                         </button>
                     </form>
                 {% endif %}
+
+                <hr class="qa-divider">
+
+                {# ── Advanced actions ── #}
+                <a href="{{ path('admin_users_stats', {id: user.id}) }}" class="qa-btn" style="border-color:#7c3aed;color:#5b21b6">
+                    <span class="qa-icon" style="background:#f3f0ff;color:#7c3aed"><i class="ti ti-chart-bar"></i></span>
+                    Edit Learning Stats
+                </a>
+                <a href="{{ path('admin_users_notify', {id: user.id}) }}" class="qa-btn" style="border-color:#0891b2;color:#164e63">
+                    <span class="qa-icon" style="background:#ecfeff;color:#0891b2"><i class="ti ti-bell-ringing"></i></span>
+                    Send Notification
+                </a>
+                <a href="{{ path('admin_users_languages', {id: user.id}) }}" class="qa-btn" style="border-color:#059669;color:#064e3b">
+                    <span class="qa-icon" style="background:#d1fae5;color:#059669"><i class="ti ti-language"></i></span>
+                    Manage Languages
+                </a>
+                <button type="button" class="qa-btn" style="border-color:#dc2626;color:#7f1d1d;width:100%" data-bs-toggle="modal" data-bs-target="#resetPasswordModal">
+                    <span class="qa-icon" style="background:#fee2e2;color:#dc2626"><i class="ti ti-lock-open"></i></span>
+                    Reset Password
+                </button>
             </div>
         </div>
     </div>
@@ -407,6 +451,10 @@
             <div class="sp-card-header">
                 <div class="sp-card-icon purple"><i class="ti ti-chart-bar"></i></div>
                 <span class="sp-card-title">Learning Statistics</span>
+                <a href="{{ path('admin_users_stats', {id: user.id}) }}"
+                   style="margin-left:auto;font-size:.72rem;font-weight:700;color:#7c3aed;text-decoration:none;padding:4px 10px;border-radius:6px;background:#f3f0ff;border:1px solid #ddd6fe">
+                    <i class="ti ti-pencil"></i> Edit
+                </a>
             </div>
             <div class="sp-card-body">
                 <div class="stats-mini">
@@ -435,12 +483,93 @@
                 </div>
             </div>
         </div>
+        {% else %}
+        <div class="sp-card">
+            <div class="sp-card-header">
+                <div class="sp-card-icon purple"><i class="ti ti-chart-bar"></i></div>
+                <span class="sp-card-title">Learning Statistics</span>
+                <a href="{{ path('admin_users_stats', {id: user.id}) }}"
+                   style="margin-left:auto;font-size:.72rem;font-weight:700;color:#7c3aed;text-decoration:none;padding:4px 10px;border-radius:6px;background:#f3f0ff;border:1px solid #ddd6fe">
+                    <i class="ti ti-plus"></i> Init Stats
+                </a>
+            </div>
+            <div style="padding:28px;text-align:center;color:var(--sp-muted);font-size:.82rem">
+                <i class="ti ti-chart-bar-off" style="font-size:2rem;display:block;margin-bottom:8px;opacity:.3"></i>
+                No learning stats yet. Click "Init Stats" to create them.
+            </div>
+        </div>
+        {% endif %}
+
+        {# Languages summary #}
+        {% if user.userLanguages|length > 0 %}
+        <div class="sp-card">
+            <div class="sp-card-header">
+                <div class="sp-card-icon green"><i class="ti ti-language"></i></div>
+                <span class="sp-card-title">Languages ({{ user.userLanguages|length }})</span>
+                <a href="{{ path('admin_users_languages', {id: user.id}) }}"
+                   style="margin-left:auto;font-size:.72rem;font-weight:700;color:#059669;text-decoration:none;padding:4px 10px;border-radius:6px;background:#d1fae5;border:1px solid #a7f3d0">
+                    <i class="ti ti-pencil"></i> Manage
+                </a>
+            </div>
+            <div class="sp-card-body" style="padding-top:8px;padding-bottom:12px">
+                <div style="display:flex;flex-wrap:wrap;gap:7px">
+                {% for ul in user.userLanguages %}
+                    <span style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:8px;font-size:.78rem;font-weight:700;background:#f0fdf4;border:1px solid #bbf7d0;color:#166534">
+                        {{ ul.language.name }}
+                        <span style="padding:2px 6px;border-radius:4px;background:#d1fae5;font-size:.68rem">{{ ul.proficiencyLevel }}</span>
+                        {% if ul.isNative %}<span style="font-size:.7rem">🏠</span>{% endif %}
+                    </span>
+                {% endfor %}
+                </div>
+            </div>
+        </div>
         {% endif %}
 
     </div>{# end col-md-8 #}
 </div>{# end row #}
 
-{# ── Delete Confirm Modal ─────────────────────────────────────────────────── #}
+{# ── Reset Password Modal ─────────────────────────────────────────────────── #}
+<div class="modal modal-blur fade" id="resetPasswordModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+        <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 16px 60px rgba(0,0,0,.2)">
+            <div class="modal-body" style="padding:28px">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
+                    <div style="width:46px;height:46px;border-radius:12px;background:#fee2e2;display:grid;place-items:center;font-size:22px;color:#dc2626;flex-shrink:0">
+                        <i class="ti ti-lock-open"></i>
+                    </div>
+                    <div>
+                        <h3 style="font-weight:800;font-size:1rem;margin:0 0 2px">Reset Password</h3>
+                        <p style="color:var(--sp-muted);font-size:.8rem;margin:0">Set a new password for <strong>{{ user.firstName }}</strong></p>
+                    </div>
+                </div>
+                <form method="post" action="{{ path('admin_users_reset_password', {id: user.id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('reset_password' ~ user.id) }}">
+                    <div style="margin-bottom:14px">
+                        <label style="font-size:.76rem;font-weight:700;color:var(--sp-muted);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:6px">New Password</label>
+                        <div style="position:relative">
+                            <input type="password" name="new_password" id="rp-input"
+                                   placeholder="Min. 6 characters"
+                                   style="width:100%;border:1.5px solid #e3e8f0;border-radius:10px;padding:9px 42px 9px 12px;font-size:.88rem;outline:none;transition:border-color .2s"
+                                   onfocus="this.style.borderColor='#3b5bdb'" onblur="this.style.borderColor='#e3e8f0'"
+                                   required minlength="6">
+                            <button type="button" onclick="toggleRpPw()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#94a3b8;font-size:15px;padding:0">
+                                <i class="ti ti-eye" id="rp-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:10px">
+                        <button type="button" class="btn btn-ghost-secondary flex-1" data-bs-dismiss="modal" style="border-radius:10px;font-weight:600">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-danger flex-1" style="border-radius:10px;font-weight:600;box-shadow:0 4px 12px rgba(220,38,38,.25)">
+                            <i class="ti ti-key me-1"></i> Reset
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="modal modal-blur fade" id="confirmDeleteModal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
         <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 16px 60px rgba(0,0,0,.2)">
@@ -465,4 +594,12 @@
         </div>
     </div>
 </div>
+<script>
+function toggleRpPw() {
+    const inp = document.getElementById('rp-input');
+    const ico = document.getElementById('rp-eye');
+    if (inp.type === 'password') { inp.type = 'text'; ico.className = 'ti ti-eye-off'; }
+    else { inp.type = 'password'; ico.className = 'ti ti-eye'; }
+}
+</script>
 {% endblock %}

@@ -1,0 +1,195 @@
+{% extends 'layouts/admin.html.twig' %}
+{% block title %}Languages · {{ user.fullName }} - {{ parent() }}{% endblock %}
+{% block page_title %}
+    <span class="d-flex align-items-center gap-2">
+        <span style="width:36px;height:36px;border-radius:10px;background:#d1fae5;color:#059669;display:grid;place-items:center;font-size:18px"><i class="ti ti-language"></i></span>
+        Language Management — {{ user.firstName }}
+    </span>
+{% endblock %}
+{% block breadcrumb %}
+    <ol class="breadcrumb breadcrumb-arrows" aria-label="breadcrumbs">
+        <li class="breadcrumb-item"><a href="{{ path('admin_users_index') }}"><i class="ti ti-users me-1"></i>Users</a></li>
+        <li class="breadcrumb-item"><a href="{{ path('admin_users_show', {id: user.id}) }}">{{ user.fullName }}</a></li>
+        <li class="breadcrumb-item active">Languages</li>
+    </ol>
+{% endblock %}
+{% block page_actions %}
+    <div class="col-auto ms-auto d-print-none">
+        <a href="{{ path('admin_users_show', {id: user.id}) }}" class="btn btn-ghost-secondary" style="border-radius:10px"><i class="ti ti-arrow-left me-1"></i> Back to Profile</a>
+    </div>
+{% endblock %}
+{% block content %}
+<style>
+.lg-card{background:#fff;border:1px solid #e3e8f0;border-radius:14px;box-shadow:0 2px 16px rgba(5,150,105,.07);overflow:hidden;margin-bottom:20px;animation:lgFade .4s ease both}
+@keyframes lgFade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.lg-card-header{padding:16px 22px 14px;border-bottom:1px solid #e3e8f0;display:flex;align-items:center;gap:10px}
+.lg-card-body{padding:22px}
+.lg-ico{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;font-size:16px}
+
+/* Proficiency selector */
+.level-grid{display:flex;gap:7px;flex-wrap:wrap}
+.lv-pill{padding:7px 14px;border-radius:8px;border:2px solid #e3e8f0;background:#f8fafc;cursor:pointer;font-size:.8rem;font-weight:700;color:#6c7a99;transition:all .15s;user-select:none}
+.lv-pill:hover{border-color:#a7f3d0;color:#059669;background:#f0fdf4}
+.lv-pill.active{border-color:#059669;background:#d1fae5;color:#065f46}
+input[name=proficiency_level]{position:absolute;opacity:0;pointer-events:none}
+
+/* Native toggle */
+.native-toggle{display:flex;align-items:center;gap:10px;padding:12px 14px;border:2px solid #e3e8f0;border-radius:10px;cursor:pointer;user-select:none;transition:all .18s;margin-top:14px}
+.native-toggle:hover{border-color:#a7f3d0;background:#f0fdf4}
+.native-toggle.on{border-color:#059669;background:#d1fae5}
+.toggle-switch{width:38px;height:22px;border-radius:99px;background:#e3e8f0;position:relative;transition:background .2s;flex-shrink:0}
+.toggle-switch::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.2);transition:transform .2s}
+.native-toggle.on .toggle-switch{background:#059669}
+.native-toggle.on .toggle-switch::after{transform:translateX(16px)}
+
+/* Assigned list */
+.lang-row{display:flex;align-items:center;gap:14px;padding:12px 22px;border-bottom:1px solid #f1f3f9;transition:background .15s}
+.lang-row:last-child{border-bottom:none}
+.lang-row:hover{background:#f8fafc}
+.lang-flag{width:34px;height:34px;border-radius:9px;background:#eff6ff;display:grid;place-items:center;font-size:18px;flex-shrink:0}
+.lang-name{font-weight:700;font-size:.9rem;color:#1a1f36}
+.lang-level{display:inline-flex;align-items:center;padding:3px 10px;border-radius:6px;font-size:.72rem;font-weight:700}
+.lang-level.A1,.lang-level.A2{background:#fef3c7;color:#92400e}
+.lang-level.B1,.lang-level.B2{background:#dbeafe;color:#1e40af}
+.lang-level.C1,.lang-level.C2{background:#d1fae5;color:#065f46}
+.lang-level.native{background:#fff3bf;color:#7d4a00}
+.remove-btn{margin-left:auto;width:30px;height:30px;border-radius:8px;border:1.5px solid #fecaca;background:#fff;color:#dc2626;display:grid;place-items:center;font-size:14px;cursor:pointer;transition:all .15s;flex-shrink:0}
+.remove-btn:hover{background:#ffe3e3;border-color:#dc2626}
+
+/* Select */
+.lg-select{width:100%;border:1.5px solid #e3e8f0;border-radius:10px;padding:10px 14px;font-size:.9rem;outline:none;transition:border-color .2s}
+.lg-select:focus{border-color:#059669;box-shadow:0 0 0 3px rgba(5,150,105,.1)}
+</style>
+
+<div class="row g-3">
+    <div class="col-md-5">
+        {# Add language form #}
+        <div class="lg-card">
+            <div class="lg-card-header">
+                <div class="lg-ico" style="background:#d1fae5;color:#059669"><i class="ti ti-plus"></i></div>
+                <span style="font-weight:700;font-size:.88rem;color:#1a1f36">Add a Language</span>
+            </div>
+            <div class="lg-card-body">
+                <form method="post" action="{{ path('admin_users_languages', {id: user.id}) }}" id="add-lang-form">
+                    <input type="hidden" name="_token" value="{{ csrf_token('languages' ~ user.id) }}">
+                    <input type="hidden" name="action" value="add">
+
+                    {# Language select #}
+                    <div style="margin-bottom:16px">
+                        <label style="font-size:.78rem;font-weight:700;color:#6c7a99;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:8px">Language</label>
+                        <select name="language_id" class="lg-select" required>
+                            <option value="">— Select a language —</option>
+                            {% for lang in availableLanguages %}
+                                {# Skip already assigned #}
+                                {% set assigned = false %}
+                                {% for ul in user.userLanguages %}
+                                    {% if ul.language.id == lang.id %}{% set assigned = true %}{% endif %}
+                                {% endfor %}
+                                {% if not assigned %}
+                                    <option value="{{ lang.id }}">{{ lang.name }} ({{ lang.code|upper }})</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    {# Proficiency level #}
+                    <div style="margin-bottom:16px" id="level-section">
+                        <label style="font-size:.78rem;font-weight:700;color:#6c7a99;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:8px">Proficiency Level</label>
+                        <input type="hidden" name="proficiency_level" id="proficiency-value" value="A1">
+                        <div class="level-grid">
+                            {% for level in proficiencyLevels %}
+                                <label class="lv-pill {% if level == 'A1' %}active{% endif %}" onclick="selectLevel(this,'{{ level }}')">
+                                    {{ level }}
+                                </label>
+                            {% endfor %}
+                        </div>
+                        <div style="margin-top:8px;font-size:.72rem;color:#6c7a99" id="level-desc">A1 — Beginner</div>
+                    </div>
+
+                    {# Native toggle #}
+                    <div class="native-toggle" id="native-toggle" onclick="toggleNative()">
+                        <div class="toggle-switch" id="native-switch"></div>
+                        <div>
+                            <div style="font-size:.83rem;font-weight:700;color:#1a1f36">🏠 Native Language</div>
+                            <div style="font-size:.72rem;color:#6c7a99">Overrides proficiency level to "native"</div>
+                        </div>
+                        <input type="hidden" name="is_native" id="is-native-input" value="">
+                    </div>
+
+                    <button type="submit" style="width:100%;margin-top:18px;padding:11px;border-radius:10px;background:linear-gradient(135deg,#059669,#047857);color:#fff;font-size:.88rem;font-weight:700;border:none;cursor:pointer;box-shadow:0 4px 14px rgba(5,150,105,.3);display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s"
+                            onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">
+                        <i class="ti ti-plus"></i> Add Language
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-7">
+        <div class="lg-card" style="animation-delay:.07s">
+            <div class="lg-card-header">
+                <div class="lg-ico" style="background:#d1fae5;color:#059669"><i class="ti ti-language"></i></div>
+                <span style="font-weight:700;font-size:.88rem;color:#1a1f36">Assigned Languages</span>
+                <span style="margin-left:auto;padding:3px 10px;border-radius:6px;background:#d1fae5;color:#065f46;font-size:.72rem;font-weight:700">
+                    {{ user.userLanguages|length }} language{% if user.userLanguages|length != 1 %}s{% endif %}
+                </span>
+            </div>
+            {% if user.userLanguages|length > 0 %}
+                {% for ul in user.userLanguages %}
+                <div class="lang-row">
+                    <div class="lang-flag">🌍</div>
+                    <div style="flex:1;min-width:0">
+                        <div class="lang-name">{{ ul.language.name }}</div>
+                        <div style="font-size:.72rem;color:#6c7a99;margin-top:2px">{{ ul.language.code|upper }} · Added {{ ul.addedAt|date('M d, Y') }}</div>
+                    </div>
+                    <span class="lang-level {{ ul.proficiencyLevel }}">{{ ul.proficiencyLevel|upper }}</span>
+                    {% if ul.isNative %}
+                        <span style="padding:3px 8px;border-radius:5px;background:#fff9db;color:#92400e;font-size:.68rem;font-weight:700">🏠 Native</span>
+                    {% endif %}
+                    <form method="post" action="{{ path('admin_users_languages', {id: user.id}) }}" style="display:contents">
+                        <input type="hidden" name="_token" value="{{ csrf_token('languages' ~ user.id) }}">
+                        <input type="hidden" name="action" value="remove">
+                        <input type="hidden" name="user_language_id" value="{{ ul.id }}">
+                        <button type="submit" class="remove-btn" onclick="return confirm('Remove {{ ul.language.name }} from this user?')" title="Remove">
+                            <i class="ti ti-x"></i>
+                        </button>
+                    </form>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div style="padding:50px 22px;text-align:center;color:#6c7a99;font-size:.85rem">
+                    <i class="ti ti-language-off" style="font-size:2.5rem;display:block;margin-bottom:12px;opacity:.25"></i>
+                    No languages assigned yet.<br>Use the form to add the first one.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+const levelDescs = {
+    A1:'Beginner',A2:'Elementary',
+    B1:'Intermediate',B2:'Upper-Intermediate',
+    C1:'Advanced',C2:'Mastery'
+};
+
+function selectLevel(el, level) {
+    document.querySelectorAll('.lv-pill').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('proficiency-value').value = level;
+    document.getElementById('level-desc').textContent = level + ' — ' + (levelDescs[level] || level);
+}
+
+let isNative = false;
+function toggleNative() {
+    isNative = !isNative;
+    const toggle  = document.getElementById('native-toggle');
+    const section = document.getElementById('level-section');
+    const input   = document.getElementById('is-native-input');
+    toggle.classList.toggle('on', isNative);
+    section.style.opacity = isNative ? '.4' : '1';
+    section.style.pointerEvents = isNative ? 'none' : 'auto';
+    input.value = isNative ? '1' : '';
+}
+</script>
+{% endblock %}
