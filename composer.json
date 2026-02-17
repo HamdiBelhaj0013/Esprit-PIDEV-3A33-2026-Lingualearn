@@ -82,7 +82,7 @@
             "importmap:install": "symfony-cmd"
         },
         "patch-doctrine": [
-            "@php -r \"$f='vendor/doctrine/migrations/src/Metadata/Storage/TableMetadataStorage.php';$c=file_get_contents($f);$c=preg_replace('/private function needsUpdate\\(Table \\$expectedTable\\): TableDiff\\|null\\s*\\{[^}]+\\}/','private function needsUpdate(Table $expectedTable): TableDiff|null { return null; }',$c);file_put_contents($f,$c);echo 'Doctrine metadata patch applied.'.PHP_EOL;\""
+            "@php patch-doctrine.php"
         ],
         "post-install-cmd": [
             "@auto-scripts",
