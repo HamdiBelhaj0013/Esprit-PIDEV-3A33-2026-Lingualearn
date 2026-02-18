@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ lesson.title }} — LinguaLearn</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --white: #ffffff; --off-white: #f7f9fc; --surface: #eef1f8;
+            --ink: #0d1526; --ink-soft: #2c3a52; --muted: #7a87a0;
+            --border: #e2e8f2; --blue: #2563eb; --blue-dark: #1d4ed8;
+            --blue-bg: #eff6ff; --blue-mid: #3b82f6; --green: #16a34a;
+            --green-bg: #f0fdf4; --orange: #ea580c; --orange-bg: #fff7ed;
+            --violet: #7c3aed; --violet-bg: #f5f3ff; --gold: #ca8a04;
+            --gold-bg: #fefce8; --red: #dc2626; --red-bg: #fef2f2;
+            --sidebar-w: 260px; --radius: 12px; --radius-lg: 20px;
+        }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Sora', sans-serif; background: var(--off-white); color: var(--ink); min-height: 100vh; }
+
+        /* ─── SIDEBAR ─── */
+        .sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w); background: var(--white); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 50; transition: transform .3s ease; }
+        .sidebar-logo { padding: 1.5rem 1.5rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: .75rem; text-decoration: none; }
+        .sidebar-logo-text { font-family: 'Fraunces', serif; font-size: 1.3rem; font-weight: 400; color: var(--ink); }
+        .sidebar-logo-text span { color: var(--blue); }
+        .sidebar-user { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: .85rem; }
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--blue), var(--blue-mid)); display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', serif; font-size: 1rem; color: var(--white); flex-shrink: 0; }
+        .user-avatar.premium { background: linear-gradient(135deg, var(--gold), #fbbf24); }
+        .user-info { flex: 1; min-width: 0; }
+        .user-name { font-size: .85rem; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-plan { font-size: .7rem; font-family: 'DM Mono', monospace; letter-spacing: .08em; text-transform: uppercase; margin-top: .1rem; }
+        .user-plan.free { color: var(--muted); } .user-plan.premium { color: var(--gold); }
+        .sidebar-nav { flex: 1; padding: 1rem 0; overflow-y: auto; }
+        .nav-section-label { font-family: 'DM Mono', monospace; font-size: .6rem; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); padding: .75rem 1.5rem .35rem; display: block; }
+        .nav-item { display: flex; align-items: center; gap: .75rem; padding: .65rem 1.5rem; font-size: .84rem; font-weight: 500; color: var(--muted); text-decoration: none; transition: color .2s, background .2s; position: relative; }
+        .nav-item:hover { color: var(--ink); background: var(--off-white); }
+        .nav-item.active { color: var(--blue); background: var(--blue-bg); font-weight: 600; }
+        .nav-item.active::before { content: ''; position: absolute; left: 0; top: 4px; bottom: 4px; width: 3px; background: var(--blue); border-radius: 0 3px 3px 0; }
+        .nav-icon { font-size: 1.1rem; width: 20px; text-align: center; }
+
+        /* ─── LESSON SIDEBAR (progress) ─── */
+        .lesson-sidebar {
+            position: fixed; top: 0; right: 0; bottom: 0; width: 240px;
+            background: var(--white); border-left: 1px solid var(--border);
+            display: flex; flex-direction: column; z-index: 30; padding: 1.5rem;
+            overflow-y: auto;
+        }
+        .ls-title { font-family: 'DM Mono', monospace; font-size: .6rem; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); margin-bottom: 1rem; }
+        .ls-section { display: flex; align-items: center; gap: .6rem; padding: .55rem .75rem; border-radius: 8px; font-size: .82rem; color: var(--muted); cursor: pointer; transition: all .2s; margin-bottom: .35rem; border: 1.5px solid transparent; }
+        .ls-section:hover { background: var(--off-white); color: var(--ink); }
+        .ls-section.active { background: var(--blue-bg); color: var(--blue); border-color: rgba(37,99,235,.2); font-weight: 600; }
+        .ls-section.done { color: var(--green); }
+        .ls-section.done .ls-dot { background: var(--green); }
+        .ls-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); flex-shrink: 0; transition: background .2s; }
+        .ls-section.active .ls-dot { background: var(--blue); }
+        .ls-xp-box { margin-top: auto; padding-top: 1.25rem; border-top: 1px solid var(--border); }
+        .ls-xp-label { font-family: 'DM Mono', monospace; font-size: .6rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: .4rem; }
+        .ls-xp-val { font-family: 'Fraunces', serif; font-size: 1.75rem; font-weight: 300; color: var(--gold); }
+        .ls-xp-unit { font-size: .72rem; color: var(--muted); }
+
+        /* ─── MAIN ─── */
+        .main { margin-left: var(--sidebar-w); margin-right: 240px; min-height: 100vh; display: flex; flex-direction: column; }
+
+        /* ─── TOPBAR ─── */
+        .topbar { position: sticky; top: 0; z-index: 40; background: rgba(255,255,255,.95); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: .85rem 2rem; display: flex; align-items: center; gap: 1.25rem; }
+        .topbar-back { display: inline-flex; align-items: center; gap: .4rem; font-size: .82rem; color: var(--muted); text-decoration: none; transition: color .2s; white-space: nowrap; }
+        .topbar-back:hover { color: var(--blue); }
+        .topbar-center { flex: 1; text-align: center; }
+        .topbar-lesson-title { font-family: 'Fraunces', serif; font-size: 1.1rem; font-weight: 400; color: var(--ink); }
+        .topbar-progress-wrap { display: flex; align-items: center; gap: .75rem; }
+        .topbar-progress { flex: 1; height: 5px; background: var(--surface); border-radius: 10px; overflow: hidden; }
+        .topbar-progress-bar { height: 100%; background: linear-gradient(90deg, var(--blue), var(--blue-mid)); border-radius: 10px; transition: width .4s ease; }
+        .topbar-progress-label { font-family: 'DM Mono', monospace; font-size: .65rem; color: var(--muted); white-space: nowrap; }
+        .hamburger-btn { display: none; width: 38px; height: 38px; border-radius: var(--radius); border: 1.5px solid var(--border); background: transparent; align-items: center; justify-content: center; cursor: pointer; flex-direction: column; gap: 4px; flex-shrink: 0; }
+        .hamburger-btn span { width: 16px; height: 1.5px; background: var(--ink); display: block; border-radius: 2px; }
+
+        /* ─── PAGE CONTENT ─── */
+        .page-content { padding: 2.5rem 2rem; flex: 1; max-width: 720px; width: 100%; margin: 0 auto; }
+
+        /* ─── TABS ─── */
+        .tabs { display: flex; gap: .35rem; margin-bottom: 2rem; background: var(--surface); padding: .35rem; border-radius: var(--radius); }
+        .tab-btn {
+            flex: 1; padding: .6rem 1rem; border-radius: 8px;
+            font-family: 'Sora', sans-serif; font-size: .82rem; font-weight: 600;
+            border: none; background: transparent; cursor: pointer;
+            color: var(--muted); transition: all .2s; white-space: nowrap;
+        }
+        .tab-btn.active { background: var(--white); color: var(--ink); box-shadow: 0 1px 6px rgba(0,0,0,.08); }
+        .tab-btn:hover:not(.active) { color: var(--ink-soft); }
+
+        .tab-panel { display: none; animation: fadeIn .3s ease; }
+        .tab-panel.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+        /* ─── LESSON CONTENT (reading) ─── */
+        .lesson-content {
+            background: var(--white); border: 1.5px solid var(--border);
+            border-radius: var(--radius-lg); padding: 2rem;
+            font-size: .95rem; line-height: 1.8; color: var(--ink-soft);
+        }
+        .lesson-content p { margin-bottom: 1rem; }
+        .lesson-content p:last-child { margin-bottom: 0; }
+
+        /* ─── VOCABULARY FLASHCARDS ─── */
+        .vocab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+
+        .flashcard {
+            perspective: 800px; cursor: pointer; height: 140px;
+        }
+        .flashcard-inner {
+            position: relative; width: 100%; height: 100%;
+            transform-style: preserve-3d; transition: transform .5s cubic-bezier(.4,0,.2,1);
+        }
+        .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
+        .flashcard-front, .flashcard-back {
+            position: absolute; inset: 0; backface-visibility: hidden;
+            border-radius: var(--radius); border: 1.5px solid var(--border);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 1.25rem; text-align: center;
+        }
+        .flashcard-front { background: var(--white); }
+        .flashcard-back { background: var(--blue); border-color: var(--blue); transform: rotateY(180deg); }
+        .card-word { font-family: 'Fraunces', serif; font-size: 1.35rem; font-weight: 300; color: var(--ink); margin-bottom: .35rem; }
+        .card-hint { font-family: 'DM Mono', monospace; font-size: .62rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+        .card-translation { font-family: 'Fraunces', serif; font-size: 1.35rem; font-weight: 300; color: var(--white); margin-bottom: .35rem; }
+        .card-hint-back { font-family: 'DM Mono', monospace; font-size: .62rem; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.6); }
+
+        .vocab-controls { display: flex; align-items: center; justify-content: space-between; margin-top: 1.25rem; }
+        .vocab-hint { font-size: .78rem; color: var(--muted); display: flex; align-items: center; gap: .4rem; }
+        .vocab-counter { font-family: 'DM Mono', monospace; font-size: .75rem; color: var(--muted); }
+        .flip-all-btn { padding: .45rem 1rem; border-radius: 100px; font-size: .78rem; font-weight: 600; border: 1.5px solid var(--border); background: var(--white); color: var(--ink-soft); cursor: pointer; transition: all .2s; }
+        .flip-all-btn:hover { border-color: var(--blue); color: var(--blue); }
+
+        /* ─── GRAMMAR RULES ─── */
+        .grammar-list { display: flex; flex-direction: column; gap: 1rem; }
+        .grammar-card {
+            background: var(--white); border: 1.5px solid var(--border);
+            border-radius: var(--radius); overflow: hidden;
+            transition: border-color .2s;
+        }
+        .grammar-card:hover { border-color: var(--violet); }
+        .grammar-rule-header {
+            padding: 1rem 1.25rem; background: var(--violet-bg);
+            display: flex; align-items: center; gap: .75rem;
+            border-bottom: 1px solid rgba(124,58,237,.12);
+        }
+        .grammar-rule-icon { font-size: 1rem; }
+        .grammar-rule-name { font-weight: 600; font-size: .88rem; color: var(--violet); }
+        .grammar-example {
+            padding: 1rem 1.25rem;
+            font-style: italic; color: var(--ink-soft); font-size: .9rem;
+            border-left: 3px solid var(--violet); margin: .75rem 1.25rem;
+            border-radius: 0 4px 4px 0; background: var(--off-white);
+        }
+
+        /* ─── QUIZ (simple self-check) ─── */
+        .quiz-card {
+            background: var(--white); border: 1.5px solid var(--border);
+            border-radius: var(--radius-lg); padding: 2rem; margin-bottom: 1.25rem;
+        }
+        .quiz-question { font-weight: 600; font-size: .95rem; color: var(--ink); margin-bottom: 1.25rem; line-height: 1.5; }
+        .quiz-options { display: flex; flex-direction: column; gap: .6rem; }
+        .quiz-option {
+            padding: .8rem 1.1rem; border-radius: var(--radius);
+            border: 1.5px solid var(--border); background: var(--off-white);
+            font-size: .88rem; cursor: pointer; transition: all .2s; text-align: left;
+            font-family: 'Sora', sans-serif; color: var(--ink-soft);
+        }
+        .quiz-option:hover { border-color: var(--blue); background: var(--blue-bg); color: var(--blue); }
+        .quiz-option.correct { border-color: var(--green) !important; background: var(--green-bg) !important; color: var(--green) !important; font-weight: 600; pointer-events: none; }
+        .quiz-option.wrong { border-color: var(--red) !important; background: var(--red-bg) !important; color: var(--red) !important; pointer-events: none; }
+        .quiz-option.revealed { pointer-events: none; }
+        .quiz-feedback { margin-top: 1rem; padding: .75rem 1rem; border-radius: var(--radius); font-size: .85rem; font-weight: 600; display: none; }
+        .quiz-feedback.show { display: block; }
+        .quiz-feedback.correct { background: var(--green-bg); color: var(--green); }
+        .quiz-feedback.wrong { background: var(--red-bg); color: var(--red); }
+
+        /* ─── COMPLETE SECTION ─── */
+        .complete-section {
+            background: linear-gradient(135deg, var(--blue-bg), #e0eaff);
+            border: 1.5px solid rgba(37,99,235,.2);
+            border-radius: var(--radius-lg); padding: 2.5rem;
+            text-align: center; margin-top: 1.5rem;
+        }
+        .complete-icon { font-size: 3rem; margin-bottom: 1rem; }
+        .complete-title { font-family: 'Fraunces', serif; font-size: 1.6rem; font-weight: 300; color: var(--ink); margin-bottom: .5rem; }
+        .complete-sub { font-size: .88rem; color: var(--muted); margin-bottom: 1.75rem; }
+        .xp-earned { display: inline-flex; align-items: center; gap: .5rem; background: var(--gold-bg); border: 1.5px solid rgba(202,138,4,.2); border-radius: 100px; padding: .5rem 1.25rem; font-family: 'Fraunces', serif; font-size: 1.2rem; color: var(--gold); margin-bottom: 1.75rem; }
+        .complete-actions { display: flex; gap: .75rem; justify-content: center; flex-wrap: wrap; }
+
+        /* ─── BUTTONS ─── */
+        .btn { padding: .6rem 1.35rem; border-radius: 100px; font-family: 'Sora', sans-serif; font-size: .85rem; font-weight: 600; text-decoration: none; cursor: pointer; border: none; transition: all .2s; display: inline-flex; align-items: center; gap: .4rem; }
+        .btn-primary { background: var(--blue); color: var(--white); }
+        .btn-primary:hover { background: var(--blue-dark); box-shadow: 0 4px 14px rgba(37,99,235,.3); }
+        .btn-outline { background: transparent; color: var(--ink-soft); border: 1.5px solid var(--border) !important; }
+        .btn-outline:hover { border-color: var(--blue) !important; color: var(--blue); }
+        .btn-green { background: var(--green); color: var(--white); }
+        .btn-green:hover { background: #15803d; box-shadow: 0 4px 14px rgba(22,163,74,.3); }
+
+        /* ─── NAV BAR (prev/next) ─── */
+        .lesson-nav { display: flex; align-items: center; justify-content: space-between; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); gap: 1rem; }
+        .lesson-nav-btn { display: flex; align-items: center; gap: .5rem; padding: .65rem 1.1rem; border-radius: var(--radius); border: 1.5px solid var(--border); background: var(--white); text-decoration: none; font-size: .82rem; font-weight: 500; color: var(--muted); transition: all .2s; }
+        .lesson-nav-btn:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-bg); }
+        .lesson-nav-btn.disabled { opacity: .4; pointer-events: none; }
+        .lesson-nav-label { font-size: .68rem; font-family: 'DM Mono', monospace; letter-spacing: .1em; text-transform: uppercase; display: block; color: var(--muted); margin-bottom: .1rem; }
+
+        /* ─── EMPTY / NO DATA ─── */
+        .no-data { text-align: center; padding: 2.5rem; color: var(--muted); font-size: .88rem; background: var(--white); border: 1.5px dashed var(--border); border-radius: var(--radius-lg); }
+        .no-data-icon { font-size: 2rem; margin-bottom: .6rem; }
+
+        .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(13,21,38,.4); z-index: 45; }
+        .sidebar-overlay.visible { display: block; }
+
+        @media (max-width: 1100px) { .lesson-sidebar { display: none; } .main { margin-right: 0; } }
+        @media (max-width: 768px) {
+            :root { --sidebar-w: 0px; }
+            .sidebar { transform: translateX(-260px); width: 260px; }
+            .sidebar.open { transform: translateX(0); }
+            .main { margin-left: 0; }
+            .hamburger-btn { display: flex; }
+            .page-content { padding: 1.25rem; }
+            .topbar { padding: .75rem 1.25rem; flex-wrap: wrap; }
+            .tabs { flex-wrap: wrap; }
+            .vocab-grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 480px) { .vocab-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+{# ─── LEFT SIDEBAR ─── #}
+<aside class="sidebar" id="sidebar">
+    <a href="{{ path('app_homepage') }}" class="sidebar-logo">
+        <div class="sidebar-logo-text">Lingua<span>Learn</span></div>
+    </a>
+    <div class="sidebar-user">
+        <div class="user-avatar {{ app.user.isPremium is defined and app.user.isPremium ? 'premium' : '' }}">
+            {{ app.user.firstName|first|upper }}{{ app.user.lastName|first|upper }}
+        </div>
+        <div class="user-info">
+            <div class="user-name">{{ app.user.fullName }}</div>
+            <div class="user-plan {{ app.user.isPremium is defined and app.user.isPremium ? 'premium' : 'free' }}">
+                {{ app.user.isPremium is defined and app.user.isPremium ? '★ ' ~ app.user.subscriptionPlan : 'Free Plan' }}
+            </div>
+        </div>
+    </div>
+    <nav class="sidebar-nav">
+        <span class="nav-section-label">Main</span>
+        <a href="{{ path('user_dashboard') }}" class="nav-item"><span class="nav-icon">⊞</span> Dashboard</a>
+        <a href="{{ path('language_select') }}" class="nav-item active"><span class="nav-icon">📚</span> My Courses</a>
+        <a href="#" class="nav-item"><span class="nav-icon">🧩</span> Practice</a>
+        <a href="#" class="nav-item"><span class="nav-icon">📝</span> Mock Tests</a>
+        <span class="nav-section-label">Account</span>
+        <a href="{{ path('user_profile') }}" class="nav-item"><span class="nav-icon">👤</span> My Profile</a>
+        <a href="{{ path('app_logout') }}" class="nav-item"><span class="nav-icon">→</span> Log Out</a>
+    </nav>
+</aside>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+{# ─── RIGHT LESSON SIDEBAR ─── #}
+<aside class="lesson-sidebar" id="lessonSidebar">
+    <div class="ls-title">In this lesson</div>
+    <div class="ls-section active" id="ls-read" onclick="switchTab('read')">
+        <div class="ls-dot"></div> Reading
+    </div>
+    {% if lesson.vocabularyData|length > 0 %}
+    <div class="ls-section" id="ls-vocab" onclick="switchTab('vocab')">
+        <div class="ls-dot"></div> Vocabulary
+        <span style="margin-left:auto;font-family:'DM Mono',monospace;font-size:.65rem;color:var(--muted);">{{ lesson.vocabularyData|length }}</span>
+    </div>
+    {% endif %}
+    {% if lesson.grammarData|length > 0 %}
+    <div class="ls-section" id="ls-grammar" onclick="switchTab('grammar')">
+        <div class="ls-dot"></div> Grammar
+        <span style="margin-left:auto;font-family:'DM Mono',monospace;font-size:.65rem;color:var(--muted);">{{ lesson.grammarData|length }}</span>
+    </div>
+    {% endif %}
+    {% if lesson.vocabularyData|length > 0 %}
+    <div class="ls-section" id="ls-quiz" onclick="switchTab('quiz')">
+        <div class="ls-dot"></div> Quick Quiz
+    </div>
+    {% endif %}
+    <div class="ls-section" id="ls-complete" onclick="switchTab('complete')">
+        <div class="ls-dot"></div> Complete
+    </div>
+
+    <div class="ls-xp-box">
+        <div class="ls-xp-label">XP Reward</div>
+        <div class="ls-xp-val">{{ lesson.xpReward }}</div>
+        <div class="ls-xp-unit">experience points</div>
+    </div>
+</aside>
+
+<div class="main">
+
+    {# ─── TOPBAR ─── #}
+    <header class="topbar">
+        <button class="hamburger-btn" id="hamburgerBtn"><span></span><span></span><span></span></button>
+        <a href="{{ path('course_show', {id: course.id}) }}" class="topbar-back">← {{ course.title }}</a>
+        <div class="topbar-center">
+            <div class="topbar-lesson-title">{{ lesson.title }}</div>
+        </div>
+        <div class="topbar-progress-wrap" style="min-width:120px;">
+            <div class="topbar-progress"><div class="topbar-progress-bar" id="progressBar" style="width:25%"></div></div>
+            <div class="topbar-progress-label" id="progressLabel">1 / 4</div>
+        </div>
+    </header>
+
+    <main class="page-content">
+
+        {# Lesson counter #}
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+            <div style="font-family:'DM Mono',monospace;font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);">
+                Lesson {{ lessonIndex }} of {{ totalLessons }}
+            </div>
+            <div style="display:flex;align-items:center;gap:.5rem;">
+                <span style="font-family:'DM Mono',monospace;font-size:.68rem;color:var(--gold);background:var(--gold-bg);padding:.2rem .6rem;border-radius:5px;">⭐ {{ lesson.xpReward }} XP</span>
+            </div>
+        </div>
+
+        {# ─── TABS ─── #}
+        <div class="tabs" id="tabBar">
+            <button class="tab-btn active" onclick="switchTab('read')" id="tab-read">📖 Read</button>
+            {% if lesson.vocabularyData|length > 0 %}
+                <button class="tab-btn" onclick="switchTab('vocab')" id="tab-vocab">🔤 Vocab ({{ lesson.vocabularyData|length }})</button>
+            {% endif %}
+            {% if lesson.grammarData|length > 0 %}
+                <button class="tab-btn" onclick="switchTab('grammar')" id="tab-grammar">📐 Grammar ({{ lesson.grammarData|length }})</button>
+            {% endif %}
+            {% if lesson.vocabularyData|length > 0 %}
+                <button class="tab-btn" onclick="switchTab('quiz')" id="tab-quiz">🧩 Quiz</button>
+            {% endif %}
+            <button class="tab-btn" onclick="switchTab('complete')" id="tab-complete">✅ Done</button>
+        </div>
+
+        {# ─── TAB: READING ─── #}
+        <div class="tab-panel active" id="panel-read">
+            <div class="lesson-content">
+                {{ lesson.content|nl2br }}
+            </div>
+            <div style="margin-top:1.5rem;display:flex;justify-content:flex-end;">
+                {% if lesson.vocabularyData|length > 0 %}
+                    <button class="btn btn-primary" onclick="switchTab('vocab')">Next: Vocabulary →</button>
+                {% elseif lesson.grammarData|length > 0 %}
+                    <button class="btn btn-primary" onclick="switchTab('grammar')">Next: Grammar →</button>
+                {% else %}
+                    <button class="btn btn-green" onclick="switchTab('complete')">Complete Lesson →</button>
+                {% endif %}
+            </div>
+        </div>
+
+        {# ─── TAB: VOCABULARY ─── #}
+        {% if lesson.vocabularyData|length > 0 %}
+        <div class="tab-panel" id="panel-vocab">
+            <p style="font-size:.85rem;color:var(--muted);margin-bottom:1.25rem;">Click any card to reveal the translation.</p>
+            <div class="vocab-grid" id="vocabGrid">
+                {% for item in lesson.vocabularyData %}
+                    <div class="flashcard" onclick="flipCard(this)">
+                        <div class="flashcard-inner">
+                            <div class="flashcard-front">
+                                <div class="card-word">{{ item.word ?? item.term ?? (item|first) }}</div>
+                                <div class="card-hint">Tap to reveal</div>
+                            </div>
+                            <div class="flashcard-back">
+                                <div class="card-translation">{{ item.translation ?? item.meaning ?? (item|last) }}</div>
+                                <div class="card-hint-back">Translation</div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="vocab-controls">
+                <span class="vocab-hint">🃏 <span id="flippedCount">0</span> / {{ lesson.vocabularyData|length }} revealed</span>
+                <button class="flip-all-btn" onclick="flipAll()">Reveal All</button>
+            </div>
+            <div style="margin-top:1.5rem;display:flex;justify-content:flex-end;">
+                {% if lesson.grammarData|length > 0 %}
+                    <button class="btn btn-primary" onclick="switchTab('grammar')">Next: Grammar →</button>
+                {% else %}
+                    <button class="btn btn-primary" onclick="switchTab('quiz')">Next: Quiz →</button>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        {# ─── TAB: GRAMMAR ─── #}
+        {% if lesson.grammarData|length > 0 %}
+        <div class="tab-panel" id="panel-grammar">
+            <div class="grammar-list">
+                {% for item in lesson.grammarData %}
+                    <div class="grammar-card">
+                        <div class="grammar-rule-header">
+                            <span class="grammar-rule-icon">📐</span>
+                            <span class="grammar-rule-name">{{ item.rule ?? item.title ?? item.name ?? 'Rule ' ~ loop.index }}</span>
+                        </div>
+                        {% if item.example is defined or item.exemple is defined %}
+                            <div class="grammar-example">{{ item.example ?? item.exemple }}</div>
+                        {% endif %}
+                        {% if item.explanation is defined or item.description is defined %}
+                            <div style="padding:.75rem 1.25rem 1rem;font-size:.85rem;color:var(--ink-soft);line-height:1.6;">
+                                {{ item.explanation ?? item.description }}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+            <div style="margin-top:1.5rem;display:flex;justify-content:flex-end;">
+                {% if lesson.vocabularyData|length > 0 %}
+                    <button class="btn btn-primary" onclick="switchTab('quiz')">Next: Quiz →</button>
+                {% else %}
+                    <button class="btn btn-green" onclick="switchTab('complete')">Complete Lesson →</button>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        {# ─── TAB: QUIZ ─── #}
+        {% if lesson.vocabularyData|length > 0 %}
+        <div class="tab-panel" id="panel-quiz">
+            <p style="font-size:.85rem;color:var(--muted);margin-bottom:1.5rem;">Test yourself on the vocabulary from this lesson.</p>
+            <div id="quizContainer"></div>
+            <div style="margin-top:1.5rem;display:flex;justify-content:space-between;align-items:center;">
+                <button class="btn btn-outline" onclick="resetQuiz()">🔄 Retry</button>
+                <button class="btn btn-green" onclick="switchTab('complete')">Complete Lesson →</button>
+            </div>
+        </div>
+        {% endif %}
+
+        {# ─── TAB: COMPLETE ─── #}
+        <div class="tab-panel" id="panel-complete">
+            <div class="complete-section">
+                <div class="complete-icon" id="completeIcon">🎉</div>
+                <div class="complete-title">Lesson Complete!</div>
+                <div class="complete-sub">Great work finishing <strong>{{ lesson.title }}</strong>.</div>
+                <div class="xp-earned">⭐ +{{ lesson.xpReward }} XP earned</div>
+                <div class="complete-actions">
+                    {% if prevLesson %}
+                        <a href="{{ path('lesson_show', {id: prevLesson.id}) }}" class="btn btn-outline">← Previous</a>
+                    {% endif %}
+                    <a href="{{ path('course_show', {id: course.id}) }}" class="btn btn-outline">📋 All Lessons</a>
+                    {% if nextLesson %}
+                        <a href="{{ path('lesson_show', {id: nextLesson.id}) }}" class="btn btn-primary">Next Lesson →</a>
+                    {% else %}
+                        <a href="{{ path('language_courses', {id: language.id}) }}" class="btn btn-green">🏆 Back to Courses</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {# ─── PREV / NEXT NAV ─── #}
+        <div class="lesson-nav">
+            {% if prevLesson %}
+                <a href="{{ path('lesson_show', {id: prevLesson.id}) }}" class="lesson-nav-btn">
+                    <span>←</span>
+                    <div>
+                        <span class="lesson-nav-label">Previous</span>
+                        {{ prevLesson.title }}
+                    </div>
+                </a>
+            {% else %}
+                <div class="lesson-nav-btn disabled"><span>←</span> <div><span class="lesson-nav-label">Previous</span>First lesson</div></div>
+            {% endif %}
+
+            <a href="{{ path('course_show', {id: course.id}) }}" style="font-size:.78rem;color:var(--muted);text-decoration:none;">All lessons</a>
+
+            {% if nextLesson %}
+                <a href="{{ path('lesson_show', {id: nextLesson.id}) }}" class="lesson-nav-btn" style="flex-direction:row-reverse;text-align:right;">
+                    <span>→</span>
+                    <div>
+                        <span class="lesson-nav-label">Next</span>
+                        {{ nextLesson.title }}
+                    </div>
+                </a>
+            {% else %}
+                <div class="lesson-nav-btn disabled" style="flex-direction:row-reverse;text-align:right;"><span>→</span><div><span class="lesson-nav-label">Next</span>Last lesson</div></div>
+            {% endif %}
+        </div>
+
+    </main>
+</div>
+
+<script>
+// ─── TAB DATA FROM TWIG ───
+const vocabData = {{ lesson.vocabularyData|json_encode|raw }};
+const totalTabs = document.querySelectorAll('.tab-btn').length;
+
+// ─── TAB SWITCHING ───
+const tabOrder = ['read', 'vocab', 'grammar', 'quiz', 'complete'].filter(t => document.getElementById('panel-' + t));
+
+function switchTab(name) {
+    if (!document.getElementById('panel-' + name)) return;
+
+    // panels
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + name).classList.add('active');
+
+    // tab buttons
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    const btn = document.getElementById('tab-' + name);
+    if (btn) btn.classList.add('active');
+
+    // right sidebar
+    document.querySelectorAll('.ls-section').forEach(s => s.classList.remove('active'));
+    const ls = document.getElementById('ls-' + name);
+    if (ls) ls.classList.add('active');
+
+    // progress bar
+    const idx = tabOrder.indexOf(name);
+    const pct = Math.round(((idx + 1) / tabOrder.length) * 100);
+    document.getElementById('progressBar').style.width = pct + '%';
+    document.getElementById('progressLabel').textContent = (idx + 1) + ' / ' + tabOrder.length;
+
+    // confetti on complete
+    if (name === 'complete') triggerConfetti();
+}
+
+// ─── FLASHCARDS ───
+function flipCard(el) {
+    el.classList.toggle('flipped');
+    updateFlippedCount();
+}
+
+function flipAll() {
+    const cards = document.querySelectorAll('.flashcard');
+    const allFlipped = [...cards].every(c => c.classList.contains('flipped'));
+    cards.forEach(c => allFlipped ? c.classList.remove('flipped') : c.classList.add('flipped'));
+    document.querySelector('.flip-all-btn').textContent = allFlipped ? 'Reveal All' : 'Hide All';
+    updateFlippedCount();
+}
+
+function updateFlippedCount() {
+    const count = document.querySelectorAll('.flashcard.flipped').length;
+    const el = document.getElementById('flippedCount');
+    if (el) el.textContent = count;
+}
+
+// ─── QUIZ ───
+function buildQuiz() {
+    if (!vocabData || vocabData.length === 0) return;
+
+    const container = document.getElementById('quizContainer');
+    if (!container) return;
+    container.innerHTML = '';
+
+    // Pick up to 5 random words
+    const shuffled = [...vocabData].sort(() => Math.random() - .5).slice(0, Math.min(5, vocabData.length));
+
+    shuffled.forEach((item, qi) => {
+        const word = item.word || item.term || Object.values(item)[0];
+        const correct = item.translation || item.meaning || Object.values(item)[1];
+
+        // Wrong answers from other vocab items
+        const others = vocabData
+            .filter(v => (v.translation || v.meaning || Object.values(v)[1]) !== correct)
+            .sort(() => Math.random() - .5)
+            .slice(0, 3)
+            .map(v => v.translation || v.meaning || Object.values(v)[1]);
+
+        const options = [...others, correct].sort(() => Math.random() - .5);
+
+        const card = document.createElement('div');
+        card.className = 'quiz-card';
+        card.innerHTML = `
+            <div class="quiz-question">What is the translation of "<strong>${word}</strong>"?</div>
+            <div class="quiz-options">
+                ${options.map(opt => `
+                    <button class="quiz-option" onclick="checkAnswer(this, '${opt.replace(/'/g,"\\'")}', '${correct.replace(/'/g,"\\'")}', ${qi})">${opt}</button>
+                `).join('')}
+            </div>
+            <div class="quiz-feedback" id="feedback-${qi}"></div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+function checkAnswer(btn, chosen, correct, qi) {
+    const card = btn.closest('.quiz-card');
+    const feedback = document.getElementById('feedback-' + qi);
+    const allOptions = card.querySelectorAll('.quiz-option');
+
+    allOptions.forEach(o => {
+        o.classList.add('revealed');
+        if (o.textContent.trim() === correct) o.classList.add('correct');
+    });
+
+    if (chosen === correct) {
+        btn.classList.add('correct');
+        feedback.textContent = '✓ Correct!';
+        feedback.className = 'quiz-feedback show correct';
+    } else {
+        btn.classList.add('wrong');
+        feedback.textContent = '✗ Not quite — the answer is: ' + correct;
+        feedback.className = 'quiz-feedback show wrong';
+    }
+}
+
+function resetQuiz() { buildQuiz(); }
+
+// ─── CONFETTI (CSS only, lightweight) ───
+function triggerConfetti() {
+    const existing = document.getElementById('confetti-wrap');
+    if (existing) existing.remove();
+
+    const wrap = document.createElement('div');
+    wrap.id = 'confetti-wrap';
+    wrap.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:9999;overflow:hidden;';
+    document.body.appendChild(wrap);
+
+    const colors = ['#2563eb','#16a34a','#ca8a04','#7c3aed','#ea580c','#3b82f6'];
+    for (let i = 0; i < 60; i++) {
+        const p = document.createElement('div');
+        const size = 6 + Math.random() * 8;
+        p.style.cssText = `
+            position:absolute; width:${size}px; height:${size}px;
+            background:${colors[Math.floor(Math.random()*colors.length)]};
+            border-radius:${Math.random() > .5 ? '50%' : '2px'};
+            left:${Math.random()*100}%; top:-12px;
+            animation: confettiFall ${1.5 + Math.random()*2}s ease-in ${Math.random()*.8}s forwards;
+            opacity: ${0.7 + Math.random()*.3};
+        `;
+        wrap.appendChild(p);
+    }
+
+    const style = document.createElement('style');
+    style.textContent = `@keyframes confettiFall {
+        0%   { transform: translateY(0) rotate(0deg); opacity:1; }
+        100% { transform: translateY(100vh) rotate(${360 + Math.random()*360}deg); opacity:0; }
+    }`;
+    document.head.appendChild(style);
+    setTimeout(() => { wrap.remove(); }, 4000);
+}
+
+// ─── SIDEBAR TOGGLE ───
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('sidebarOverlay');
+document.getElementById('hamburgerBtn').addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('visible');
+});
+overlay.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('visible');
+});
+
+// ─── INIT ───
+buildQuiz();
+</script>
+</body>
+</html>

@@ -28,31 +28,31 @@ class CourseController extends AbstractController
         $isAjax = $request->headers->get('X-Requested-With') === 'XMLHttpRequest';
 
         $queryBuilder = $em->getRepository(Course::class)->createQueryBuilder('c')
-                           ->leftJoin('c.platformLanguage', 'l')
-                           ->addSelect('l');
+            ->leftJoin('c.platformLanguage', 'l')
+            ->addSelect('l');
 
         // Recherche
         if (!empty($search)) {
             $queryBuilder->andWhere('c.title LIKE :search')
-                         ->setParameter('search', '%' . $search . '%');
+                ->setParameter('search', '%' . $search . '%');
         }
 
         // Filtrer par niveau
         if (!empty($level)) {
             $queryBuilder->andWhere('c.level = :level')
-                         ->setParameter('level', $level);
+                ->setParameter('level', $level);
         }
 
         // Filtrer par statut
         if (!empty($status)) {
             $queryBuilder->andWhere('c.status = :status')
-                         ->setParameter('status', $status);
+                ->setParameter('status', $status);
         }
 
         // Filtrer par langue
         if (!empty($language)) {
             $queryBuilder->andWhere('c.platformLanguage = :language')
-                         ->setParameter('language', (int)$language);
+                ->setParameter('language', (int)$language);
         }
 
         // Tri
@@ -69,10 +69,10 @@ class CourseController extends AbstractController
 
         // Récupérer les langues pour le filtre
         $languages = $em->getRepository('App\Module\PedagogicalContent\Entity\PlatformLanguage')
-                        ->createQueryBuilder('l')
-                        ->orderBy('l.name', 'ASC')
-                        ->getQuery()
-                        ->getResult();
+            ->createQueryBuilder('l')
+            ->orderBy('l.name', 'ASC')
+            ->getQuery()
+            ->getResult();
 
         // Réponse AJAX
         if ($isAjax) {
@@ -100,12 +100,13 @@ class CourseController extends AbstractController
     public function new(Request $request, EntityManagerInterface $em): Response
     {
         $course = new Course();
+        $course->setAuthor($this->getUser());
+        $course->setPublishedAt(new \DateTime());
+
         $form = $this->createForm(CourseType::class, $course);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $course->setAuthorId(1);
-            $course->setPublishedAt(new \DateTime());
             $em->persist($course);
             $em->flush();
 

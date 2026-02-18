@@ -1,513 +1,938 @@
-{% extends 'layouts/admin.html.twig' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="LinguaLearn — AI-powered language learning. Master new languages with personalized lessons and real-time feedback.">
+    <title>LinguaLearn — AI Powered Language Learning</title>
 
-{% block page_title %}Dashboard{% endblock %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
 
-{% block admin_styles %}
     <style>
-        .ll-stat-card .ll-stat-badge {
-            font-size: 0.7rem;
-            font-weight: 600;
-            padding: 0.2rem 0.5rem;
-            border-radius: 6px;
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --white:     #ffffff;
+            --off-white: #f7f9fc;
+            --surface:   #eef1f8;
+            --ink:       #0d1526;
+            --ink-soft:  #2c3a52;
+            --muted:     #7a87a0;
+            --border:    #e2e8f2;
+
+            --blue:      #2563eb;
+            --blue-dark: #1d4ed8;
+            --blue-bg:   #eff6ff;
+
+            --radius:    12px;
+            --radius-lg: 20px;
+            --radius-xl: 28px;
+
+            /* Language accent palette — mapped by code in JS */
+            --c-en: #2563eb;
+            --c-fr: #7c3aed;
+            --c-es: #ea580c;
+            --c-de: #16a34a;
+            --c-ar: #dc2626;
+            --c-zh: #ca8a04;
+            --c-pt: #0891b2;
+            --c-it: #be185d;
         }
-        .ll-chart-container {
-            position: relative;
-            height: 300px;
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Sora', sans-serif;
+            background: url("{{ asset('assets/images/hero-bg.jpg') }}") center/cover no-repeat, var(--white);
+            color: var(--ink);
+            overflow-x: hidden;
         }
-        .ll-activity-item {
-            border-left: 3px solid #e5e7eb;
-            padding-left: 1rem;
-            margin-bottom: 1rem;
-            transition: var(--ll-transition);
+
+        /* ─── LOADER ─── */
+        .loader-screen {
+            position: fixed; inset: 0; background: url("{{ asset('assets/images/hero-bg.jpg') }}") center/cover no-repeat, var(--white);
+            z-index: 9000; display: flex; align-items: center; justify-content: center;
+            transition: opacity .5s ease, visibility .5s ease;
         }
-        .ll-activity-item:hover {
-            border-left-color: var(--ll-primary);
-            background: #f8fafc;
-            padding-left: 1.25rem;
-            border-radius: 0 8px 8px 0;
+        .loader-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+        .loader-inner { display: flex; flex-direction: column; align-items: center; gap: 1.25rem; }
+        .loader-logo {
+            font-family: 'Fraunces', serif; font-size: 1.6rem; font-weight: 400;
+            color: var(--ink); letter-spacing: -.01em;
+        }
+        .loader-logo span { color: var(--blue); }
+        .loader-bar {
+            width: 120px; height: 2px; background: var(--border); border-radius: 2px; overflow: hidden;
+        }
+        .loader-bar::after {
+            content: ''; display: block; height: 100%;
+            background: var(--blue); border-radius: 2px;
+            animation: loadprogress 1.2s ease-in-out infinite;
+        }
+        @keyframes loadprogress {
+            0%   { width: 0%; margin-left: 0%; }
+            50%  { width: 60%; margin-left: 20%; }
+            100% { width: 0%; margin-left: 100%; }
+        }
+
+        /* ─── NAV ─── */
+        .nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            padding: 1.1rem 5vw;
+            display: flex; align-items: center; justify-content: space-between;
+            transition: background .3s, box-shadow .3s;
+        }
+        .nav.scrolled {
+            background: rgba(255,255,255,.95);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 1px 0 var(--border);
+        }
+        .nav-logo {
+            font-family: 'Fraunces', serif; font-size: 1.4rem; font-weight: 400;
+            color: var(--ink); text-decoration: none; letter-spacing: -.01em;
+        }
+        .nav-logo span { color: var(--blue); }
+
+        .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+        .nav-links a {
+            font-size: .82rem; font-weight: 500; color: var(--muted);
+            text-decoration: none; letter-spacing: .01em; transition: color .2s;
+        }
+        .nav-links a:hover { color: var(--ink); }
+
+        .nav-actions { display: flex; gap: .6rem; align-items: center; }
+
+        .btn-ghost {
+            padding: .48rem 1.25rem; border-radius: 100px;
+            border: 1.5px solid var(--border); background: transparent;
+            color: var(--ink-soft); font-family: 'Sora', sans-serif;
+            font-size: .79rem; font-weight: 500;
+            text-decoration: none; cursor: pointer;
+            transition: border-color .2s, color .2s, background .2s;
+            display: inline-block;
+        }
+        .btn-ghost:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-bg); }
+
+        .btn-primary {
+            padding: .52rem 1.35rem; border-radius: 100px;
+            background: var(--blue); border: none; color: var(--white);
+            font-family: 'Sora', sans-serif; font-size: .79rem; font-weight: 600;
+            text-decoration: none; cursor: pointer;
+            transition: background .2s, transform .2s, box-shadow .2s; display: inline-block;
+        }
+        .btn-primary:hover { background: var(--blue-dark); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(37,99,235,.28); }
+
+        .hamburger {
+            display: none; flex-direction: column; gap: 5px;
+            background: none; border: none; cursor: pointer; padding: 4px;
+        }
+        .hamburger span { width: 22px; height: 2px; background: var(--ink); display: block; border-radius: 2px; }
+
+        /* ─── MOBILE MENU ─── */
+        .mobile-menu {
+            display: none; position: fixed; inset: 0;
+            background: rgba(255,255,255,.98); backdrop-filter: blur(20px);
+            z-index: 500; flex-direction: column;
+            align-items: center; justify-content: center; gap: 1.75rem;
+        }
+        .mobile-menu.open { display: flex; }
+        .mobile-menu a {
+            font-family: 'Fraunces', serif; font-size: 2rem;
+            font-weight: 300; color: var(--ink); text-decoration: none; transition: color .2s;
+        }
+        .mobile-menu a:hover { color: var(--blue); }
+        .mobile-close {
+            position: absolute; top: 1.5rem; right: 2rem;
+            background: none; border: none; color: var(--muted);
+            font-size: 1.4rem; cursor: pointer;
+        }
+        .mobile-actions { display: flex; gap: .75rem; margin-top: 1rem; }
+
+        /* ─── HERO ─── */
+        .hero {
+            min-height: 100vh;
+            display: grid; grid-template-columns: 1fr 1fr;
+            align-items: center; gap: 4rem;
+            padding: 9rem 5vw 6rem;
+            position: relative; overflow: hidden;
+            background: url("{{ asset('assets/images/hero-bg.jpg') }}") center/cover no-repeat, var(--white);
+        }
+
+        /* Grid dot background */
+        .hero::before {
+            content: ''; position: absolute; inset: 0;
+            background-image: radial-gradient(circle, #c7d2e8 1px, transparent 1px);
+            background-size: 36px 36px;
+            opacity: .5; pointer-events: none;
+        }
+        /* Blue blob */
+        .hero::after {
+            content: ''; position: absolute; top: -80px; right: -80px;
+            width: 580px; height: 580px;
+            background: radial-gradient(circle, rgba(37,99,235,.07) 0%, transparent 68%);
+            pointer-events: none;
+        }
+
+        .hero-content { position: relative; z-index: 1; }
+
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: .5rem;
+            background: var(--blue-bg); color: var(--blue);
+            font-size: .7rem; font-weight: 600; letter-spacing: .1em;
+            text-transform: uppercase; padding: .35rem .9rem;
+            border-radius: 100px; margin-bottom: 1.75rem;
+            border: 1px solid rgba(37,99,235,.18);
+        }
+        .hero-badge .dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--blue); animation: blink 2s ease-in-out infinite;
+        }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+        .hero-title {
+            font-family: 'Fraunces', serif;
+            font-size: clamp(2.8rem, 5vw, 5rem);
+            font-weight: 300; line-height: 1.08;
+            color: var(--ink); margin-bottom: 1.5rem; letter-spacing: -.02em;
+        }
+        .hero-title em { font-style: italic; color: var(--blue); }
+
+        .hero-desc {
+            font-size: 1rem; font-weight: 300; color: var(--muted);
+            line-height: 1.82; max-width: 430px; margin-bottom: 2.25rem;
+        }
+
+        .hero-actions { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+
+        .btn-hero {
+            padding: .85rem 2.1rem; border-radius: 100px;
+            background: var(--blue); border: none; color: var(--white);
+            font-family: 'Sora', sans-serif; font-size: .9rem; font-weight: 600;
+            text-decoration: none; cursor: pointer; transition: all .25s; display: inline-block;
+        }
+        .btn-hero:hover { background: var(--blue-dark); transform: translateY(-2px); box-shadow: 0 12px 32px rgba(37,99,235,.3); }
+
+        .btn-hero-ghost {
+            padding: .82rem 1.9rem; border-radius: 100px;
+            border: 1.5px solid var(--border); background: transparent;
+            color: var(--ink-soft); font-family: 'Sora', sans-serif;
+            font-size: .9rem; font-weight: 400;
+            text-decoration: none; cursor: pointer; transition: all .25s; display: inline-block;
+        }
+        .btn-hero-ghost:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-bg); }
+
+        /* Hero card */
+        .hero-visual { position: relative; z-index: 1; display: flex; justify-content: flex-end; }
+        .hero-card-stack { position: relative; width: 100%; max-width: 440px; }
+
+        .hero-main-card {
+            background: url("{{ asset('assets/images/hero-bg.jpg') }}") center/cover no-repeat, var(--white); border: 1.5px solid var(--border);
+            border-radius: var(--radius-xl); padding: 2rem;
+            box-shadow: 0 24px 64px rgba(13,21,38,.09);
+        }
+
+        .card-top-label {
+            font-family: 'DM Mono', monospace; font-size: .6rem;
+            letter-spacing: .22em; text-transform: uppercase;
+            color: var(--muted); margin-bottom: 1.2rem; display: block;
+        }
+
+        .card-lang-row {
+            display: flex; align-items: center; gap: .75rem;
+            padding: .65rem .85rem; border-radius: 10px;
+            background: var(--off-white); border: 1.5px solid var(--border);
+            margin-bottom: .55rem; transition: border-color .2s;
+        }
+        .card-lang-row:last-of-type { margin-bottom: 0; }
+        .card-lang-row:hover { border-color: var(--blue); }
+        .card-flag-img { width: 28px; height: 20px; object-fit: cover; border-radius: 3px; }
+        .card-lang-name { font-size: .82rem; font-weight: 600; color: var(--ink); flex: 1; }
+        .card-progress-wrap { width: 80px; }
+        .card-progress-bar { height: 4px; background: var(--border); border-radius: 4px; overflow: hidden; }
+        .card-progress-fill { height: 100%; background: linear-gradient(90deg, var(--blue), #60a5fa); border-radius: 4px; animation: fillbar 1.8s ease-out forwards; }
+        @keyframes fillbar { from { width: 0; } }
+
+        .card-divider { height: 1px; background: var(--border); margin: 1.25rem 0; }
+
+        .card-stats-row { display: flex; justify-content: space-around; }
+        .card-stat-item { text-align: center; }
+        .card-stat-val {
+            font-family: 'Fraunces', serif; font-size: 1.4rem;
+            font-weight: 400; color: var(--ink); display: block; line-height: 1;
+        }
+        .card-stat-lbl { font-size: .62rem; color: var(--muted); letter-spacing: .04em; margin-top: .25rem; display: block; }
+
+        .float-chip {
+            position: absolute; background: url("{{ asset('assets/images/hero-bg.jpg') }}") center/cover no-repeat, var(--white);
+            border: 1.5px solid var(--border); border-radius: var(--radius);
+            padding: .72rem 1rem; display: flex; align-items: center; gap: .6rem;
+            box-shadow: 0 10px 36px rgba(13,21,38,.1);
+        }
+        .float-chip-1 { top: -1.4rem; right: -1.4rem; animation: chipfloat 4s ease-in-out infinite; }
+        .float-chip-2 { bottom: -1.4rem; left: -1.4rem; animation: chipfloat 4s ease-in-out infinite 2s; }
+        @keyframes chipfloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-7px)} }
+        .chip-icon { font-size: 1.3rem; }
+        .chip-val { font-size: .85rem; font-weight: 600; color: var(--ink); display: block; }
+        .chip-sub { font-size: .6rem; color: var(--muted); font-family: 'DM Mono', monospace; }
+
+        /* ─── STATS BAND ─── */
+        .stats-band { background: var(--blue); padding: 3rem 5vw; }
+        .stats-inner { display: grid; grid-template-columns: repeat(3,1fr); }
+        .stat-item { text-align: center; padding: 1rem 2rem; border-right: 1px solid rgba(255,255,255,.2); }
+        .stat-item:last-child { border-right: none; }
+        .stat-number {
+            font-family: 'Fraunces', serif; font-size: clamp(2.2rem,3.5vw,3.5rem);
+            font-weight: 300; color: var(--white); display: block; line-height: 1; margin-bottom: .35rem;
+        }
+        .stat-desc { font-size: .78rem; color: rgba(255,255,255,.72); }
+
+        /* ─── SECTION SHARED ─── */
+        section { padding: 6rem 5vw; }
+
+        .section-eyebrow {
+            display: inline-flex; align-items: center; gap: .5rem;
+            font-family: 'DM Mono', monospace; font-size: .63rem;
+            letter-spacing: .22em; text-transform: uppercase;
+            color: var(--blue); margin-bottom: .8rem;
+        }
+        .section-eyebrow::before { content: ''; width: 18px; height: 2px; background: var(--blue); border-radius: 2px; }
+
+        .section-title {
+            font-family: 'Fraunces', serif;
+            font-size: clamp(2rem, 3.5vw, 3.3rem);
+            font-weight: 300; line-height: 1.12;
+            color: var(--ink); margin-bottom: .8rem; letter-spacing: -.01em;
+        }
+        .section-title em { font-style: italic; color: var(--blue); }
+        .section-sub { font-size: .95rem; color: var(--muted); font-weight: 300; line-height: 1.8; max-width: 480px; }
+
+        /* ─── LANGUAGES ─── */
+        .languages { background: var(--off-white); }
+
+        .languages-header {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 3rem; align-items: end; margin-bottom: 3rem;
+        }
+
+        .lang-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .lang-card {
+            background: url("{{ asset('assets/images/hero-bg.jpg') }}") center/cover no-repeat, var(--white); border: 1.5px solid var(--border);
+            border-radius: var(--radius-lg); overflow: hidden;
+            transition: transform .3s ease, box-shadow .3s ease;
+            display: flex; flex-direction: column;
+        }
+        .lang-card:hover { transform: translateY(-6px); box-shadow: 0 20px 48px rgba(13,21,38,.1); }
+
+        /* Banner with vivid color per language */
+        .lang-banner {
+            height: 110px; position: relative;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+        }
+        .lang-banner img.lang-flag {
+            width: 56px; height: 56px; object-fit: cover;
+            border-radius: 50%; border: 3px solid rgba(255,255,255,.5);
+            box-shadow: 0 4px 20px rgba(0,0,0,.2);
+        }
+        .lang-banner-code {
+            position: absolute; top: .65rem; right: .75rem;
+            font-family: 'DM Mono', monospace; font-size: .6rem;
+            letter-spacing: .12em; color: rgba(255,255,255,.65); text-transform: uppercase;
+        }
+        /* Shine overlay */
+        .lang-banner::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,.12) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .lang-card-body { padding: 1.25rem; flex: 1; display: flex; flex-direction: column; }
+        .lang-card-name { font-size: .95rem; font-weight: 600; color: var(--ink); margin-bottom: .4rem; }
+        .lang-card-desc { font-size: .78rem; color: var(--muted); line-height: 1.55; flex: 1; }
+        .lang-card-footer {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-top: 1rem; padding-top: .9rem; border-top: 1px solid var(--border);
+        }
+        .level-badge {
+            font-family: 'DM Mono', monospace; font-size: .6rem;
+            letter-spacing: .08em; text-transform: uppercase;
+            padding: .22rem .65rem; border-radius: 6px; font-weight: 400;
+        }
+        .stars { font-size: .68rem; letter-spacing: .05em; }
+
+        /* Empty state if no languages */
+        .lang-empty {
+            grid-column: 1 / -1; text-align: center;
+            padding: 4rem 2rem; color: var(--muted);
+        }
+        .lang-empty p { font-size: .95rem; margin-top: .5rem; }
+
+        /* ─── FEATURES ─── */
+        .features { background: url("{{ asset('assets/images/hero-bg.jpg') }}") center/cover no-repeat, var(--white); }
+
+        .features-header { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: end; margin-bottom: 4rem; }
+
+        .features-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 1.25rem; }
+
+        .feature-card {
+            background: var(--off-white); border: 1.5px solid var(--border);
+            border-radius: var(--radius-lg); padding: 1.75rem;
+            transition: border-color .3s, box-shadow .3s, transform .3s;
+        }
+        .feature-card:hover {
+            border-color: var(--blue);
+            box-shadow: 0 8px 30px rgba(37,99,235,.1);
+            transform: translateY(-3px);
+        }
+
+        .feature-number {
+            font-family: 'DM Mono', monospace; font-size: .6rem;
+            letter-spacing: .18em; color: var(--blue);
+            margin-bottom: 1rem; display: block;
+        }
+        .feature-icon {
+            width: 42px; height: 42px; border-radius: 10px;
+            background: var(--blue-bg); border: 1px solid rgba(37,99,235,.15);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; margin-bottom: 1rem;
+        }
+        .feature-card h3 { font-size: .97rem; font-weight: 600; color: var(--ink); margin-bottom: .5rem; }
+        .feature-card p { font-size: .82rem; color: var(--muted); line-height: 1.65; }
+
+        /* ─── CTA ─── */
+        .cta-section {
+            background: var(--ink); padding: 8rem 5vw;
+            text-align: center; position: relative; overflow: hidden;
+        }
+        .cta-section::before {
+            content: ''; position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(37,99,235,.15) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .cta-content { position: relative; z-index: 1; max-width: 640px; margin: 0 auto; }
+        .cta-eyebrow {
+            display: inline-flex; align-items: center; gap: .5rem;
+            font-family: 'DM Mono', monospace; font-size: .63rem;
+            letter-spacing: .22em; text-transform: uppercase;
+            color: #60a5fa; margin-bottom: .9rem; justify-content: center;
+        }
+        .cta-eyebrow::before { content: ''; width: 18px; height: 2px; background: #60a5fa; border-radius: 2px; }
+        .cta-title {
+            font-family: 'Fraunces', serif; font-size: clamp(2.6rem,4.5vw,4.5rem);
+            font-weight: 300; color: var(--white); line-height: 1.1; margin-bottom: 1.1rem;
+        }
+        .cta-title em { font-style: italic; color: #60a5fa; }
+        .cta-sub { font-size: .97rem; color: rgba(255,255,255,.55); line-height: 1.75; margin-bottom: 2.25rem; }
+        .cta-buttons { display: flex; gap: .85rem; justify-content: center; flex-wrap: wrap; }
+        .btn-cta-primary {
+            padding: .88rem 2.1rem; border-radius: 100px;
+            background: var(--blue); border: none; color: var(--white);
+            font-family: 'Sora', sans-serif; font-size: .9rem; font-weight: 600;
+            text-decoration: none; cursor: pointer; transition: all .25s; display: inline-block;
+        }
+        .btn-cta-primary:hover { background: #3b82f6; transform: translateY(-2px); box-shadow: 0 12px 32px rgba(37,99,235,.4); }
+        .btn-cta-ghost {
+            padding: .85rem 1.9rem; border-radius: 100px;
+            border: 1.5px solid rgba(255,255,255,.2); background: transparent;
+            color: rgba(255,255,255,.8); font-family: 'Sora', sans-serif;
+            font-size: .9rem; font-weight: 400;
+            text-decoration: none; cursor: pointer; transition: all .25s; display: inline-block;
+        }
+        .btn-cta-ghost:hover { border-color: rgba(255,255,255,.5); color: var(--white); }
+
+        /* ─── FOOTER ─── */
+        footer { background: var(--off-white); border-top: 1px solid var(--border); padding: 4.5rem 5vw 2rem; }
+        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 3rem; }
+        .footer-brand-name {
+            font-family: 'Fraunces', serif; font-size: 1.35rem;
+            font-weight: 400; color: var(--ink); margin-bottom: .65rem;
+        }
+        .footer-brand-name span { color: var(--blue); }
+        .footer-brand-desc { font-size: .83rem; color: var(--muted); line-height: 1.72; margin-bottom: 1.5rem; max-width: 270px; }
+
+        .newsletter-row {
+            display: flex; border: 1.5px solid var(--border); border-radius: 100px; overflow: hidden;
+            background: url("{{ asset('assets/images/hero-bg.jpg') }}") center/cover no-repeat, var(--white);
+        }
+        .newsletter-row input {
+            flex: 1; background: transparent; border: none; outline: none;
+            padding: .62rem 1.1rem; color: var(--ink);
+            font-family: 'Sora', sans-serif; font-size: .8rem;
+        }
+        .newsletter-row input::placeholder { color: var(--muted); }
+        .newsletter-row button {
+            background: var(--blue); border: none; color: var(--white);
+            font-family: 'Sora', sans-serif; font-size: .78rem; font-weight: 600;
+            padding: .62rem 1.25rem; cursor: pointer; transition: background .2s;
+            white-space: nowrap; letter-spacing: .02em;
+        }
+        .newsletter-row button:hover { background: var(--blue-dark); }
+
+        .footer-col h4 {
+            font-size: .7rem; font-weight: 600; letter-spacing: .14em;
+            text-transform: uppercase; color: var(--ink-soft); margin-bottom: 1.1rem;
+        }
+        .footer-col ul { list-style: none; }
+        .footer-col ul li { margin-bottom: .6rem; }
+        .footer-col ul li a { font-size: .83rem; color: var(--muted); text-decoration: none; transition: color .2s; }
+        .footer-col ul li a:hover { color: var(--ink); }
+
+        .footer-bottom {
+            display: flex; justify-content: space-between; align-items: center;
+            padding-top: 2rem; border-top: 1px solid var(--border);
+        }
+        .footer-copy { font-size: .74rem; color: var(--muted); font-family: 'DM Mono', monospace; }
+
+        /* ─── SCROLL TOP ─── */
+        .scroll-top {
+            position: fixed; bottom: 2rem; right: 2rem; z-index: 300;
+            width: 42px; height: 42px; border-radius: 50%;
+            background: var(--blue); border: none; color: var(--white);
+            font-size: 1rem; cursor: pointer;
+            opacity: 0; transform: translateY(12px);
+            transition: opacity .3s, transform .3s, background .2s;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 6px 20px rgba(37,99,235,.35);
+        }
+        .scroll-top.visible { opacity: 1; transform: translateY(0); }
+        .scroll-top:hover { background: var(--blue-dark); }
+
+        /* ─── REVEAL ─── */
+        .reveal { opacity: 0; transform: translateY(24px); transition: opacity .65s ease, transform .65s ease; }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+        .d1 { transition-delay: .1s; } .d2 { transition-delay: .2s; }
+        .d3 { transition-delay: .3s; } .d4 { transition-delay: .4s; }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 1024px) {
+            .hero { grid-template-columns: 1fr; padding-top: 7rem; }
+            .hero-visual { justify-content: center; }
+            .hero-card-stack { max-width: 420px; }
+            .languages-header { grid-template-columns: 1fr; gap: 1.5rem; }
+            .features-header { grid-template-columns: 1fr; gap: 1.5rem; }
+            .footer-grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 768px) {
+            .nav-links, .nav-actions { display: none; }
+            .hamburger { display: flex; }
+            .stats-inner { grid-template-columns: 1fr; }
+            .stat-item { border-right: none; border-bottom: 1px solid rgba(255,255,255,.2); }
+            .stat-item:last-child { border-bottom: none; }
+            .features-grid { grid-template-columns: 1fr; }
+            .footer-grid { grid-template-columns: 1fr; }
+            .footer-bottom { flex-direction: column; gap: .75rem; text-align: center; }
+        }
+        @media (max-width: 480px) {
+            .hero { padding: 6rem 1.5rem 4rem; gap: 3rem; }
+            section { padding: 4.5rem 1.5rem; }
+            .hero-actions { flex-direction: column; align-items: flex-start; }
+            .float-chip-1, .float-chip-2 { display: none; }
+            .cta-buttons { flex-direction: column; align-items: center; }
         }
     </style>
-{% endblock %}
+</head>
+<body>
 
-{% block page_actions %}
-    <button type="button" class="btn btn-ghost-primary btn-sm" id="refreshDashboard">
-        <i class="ti ti-refresh me-1"></i> Refresh
+{# ─── LOADER ─── #}
+<div class="loader-screen" id="loader">
+    <div class="loader-inner">
+        <div class="loader-logo">Lingua<span>Learn</span></div>
+        <div class="loader-bar"></div>
+    </div>
+</div>
+
+{# ─── MOBILE MENU ─── #}
+<div class="mobile-menu" id="mobileMenu">
+    <button class="mobile-close" id="mobileClose">✕</button>
+    <a href="#home" class="mobile-link">Home</a>
+    <a href="#languages" class="mobile-link">Languages</a>
+    <a href="#features" class="mobile-link">Features</a>
+    <a href="#about" class="mobile-link">About</a>
+    <div class="mobile-actions">
+        <a href="{{ path('app_login') }}" class="btn-ghost">Log In</a>
+        <a href="{{ path('app_register') }}" class="btn-primary">Sign Up</a>
+    </div>
+</div>
+
+{# ─── NAV ─── #}
+<nav class="nav" id="navbar">
+    <a href="#home" class="nav-logo">Lingua<span>Learn</span></a>
+    <ul class="nav-links">
+        <li><a href="#home">Home</a></li>
+        <li><a href="#languages">Languages</a></li>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#about">About</a></li>
+    </ul>
+    <div class="nav-actions">
+        <a href="{{ path('app_login') }}" class="btn-ghost">Log In</a>
+        <a href="{{ path('app_register') }}" class="btn-primary">Sign Up</a>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Open menu">
+        <span></span><span></span><span></span>
     </button>
-    <button type="button" class="btn btn-ghost-primary btn-sm" data-bs-toggle="modal" data-bs-target="#dateRangeModal">
-        <i class="ti ti-calendar me-1"></i> Date Range
-    </button>
-    <a href="{{ path('admin_dashboard_export') }}" class="btn btn-ll-primary btn-sm">
-        <i class="ti ti-download me-1"></i> Export
-    </a>
-{% endblock %}
+</nav>
 
-{% block content %}
-    <div class="row row-deck row-cards mt-2">
+{# ─── HERO ─── #}
+<section class="hero" id="home">
+    <div class="hero-content">
+        <div class="hero-badge">
+            <span class="dot"></span>
+            AI-Powered Language Learning
+        </div>
+        <h1 class="hero-title">
+            Master any language<br>with <em>intelligent</em><br>lessons
+        </h1>
+        <p class="hero-desc">
+            Personalized AI lessons, real-time feedback, and conversation practice —
+            built to adapt to you and get you fluent faster than any traditional method.
+        </p>
+        <div class="hero-actions">
+            <a href="{{ path('app_register') }}" class="btn-hero">Start for Free</a>
+            <a href="{{ path('app_login') }}" class="btn-hero-ghost">I have an account</a>
+        </div>
+    </div>
 
-        {# Date Range Display #}
-        {% if dateRange is defined %}
-            <div class="col-12">
-                <div class="alert alert-info ll-alert">
-                    <i class="ti ti-info-circle me-1"></i>
-                    Showing data from <strong>{{ dateRange.start|date('M d, Y') }}</strong> to <strong>{{ dateRange.end|date('M d, Y') }}</strong>
+    <div class="hero-visual">
+        <div class="hero-card-stack">
+
+            <div class="float-chip float-chip-1">
+                <span class="chip-icon">💬</span>
+                <div>
+                    <span class="chip-val">250k+</span>
+                    <span class="chip-sub">Active Learners</span>
                 </div>
+            </div>
+
+            <div class="hero-main-card">
+                <span class="card-top-label">Your Learning Dashboard</span>
+
+                {# Show up to 4 languages as a preview — dynamic from DB #}
+                {% if languages is defined and languages|length > 0 %}
+                    {% set previewLangs = languages|slice(0, 4) %}
+                    {% set progressValues = [72, 45, 58, 31] %}
+                    {% for lang in previewLangs %}
+                        <div class="card-lang-row">
+                            <img class="card-flag-img" src="{{ lang.flagUrl }}" alt="{{ lang.name }} flag">
+                            <span class="card-lang-name">{{ lang.name }}</span>
+                            <div class="card-progress-wrap">
+                                <div class="card-progress-bar">
+                                    <div class="card-progress-fill" style="width: {{ progressValues[loop.index0] }}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    {# Fallback if no languages yet #}
+                    <div class="card-lang-row">
+                        <span style="font-size:1.3rem">🇬🇧</span>
+                        <span class="card-lang-name">English</span>
+                        <div class="card-progress-wrap"><div class="card-progress-bar"><div class="card-progress-fill" style="width:72%"></div></div></div>
+                    </div>
+                    <div class="card-lang-row">
+                        <span style="font-size:1.3rem">🇫🇷</span>
+                        <span class="card-lang-name">French</span>
+                        <div class="card-progress-wrap"><div class="card-progress-bar"><div class="card-progress-fill" style="width:45%"></div></div></div>
+                    </div>
+                {% endif %}
+
+                <div class="card-divider"></div>
+                <div class="card-stats-row">
+                    <div class="card-stat-item">
+                        <span class="card-stat-val">{{ languages is defined ? languages|length : '4' }}+</span>
+                        <span class="card-stat-lbl">Languages</span>
+                    </div>
+                    <div class="card-stat-item">
+                        <span class="card-stat-val">1,120+</span>
+                        <span class="card-stat-lbl">Lessons</span>
+                    </div>
+                    <div class="card-stat-item">
+                        <span class="card-stat-val">CEFR</span>
+                        <span class="card-stat-lbl">Aligned</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="float-chip float-chip-2">
+                <span class="chip-icon">🧠</span>
+                <div>
+                    <span class="chip-val">AI Tutor</span>
+                    <span class="chip-sub">Always adapting</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+{# ─── STATS BAND ─── #}
+<div class="stats-band">
+    <div class="stats-inner">
+        <div class="stat-item reveal">
+            <span class="stat-number">250k+</span>
+            <span class="stat-desc">Active learners worldwide</span>
+        </div>
+        <div class="stat-item reveal d1">
+            <span class="stat-number">1,120+</span>
+            <span class="stat-desc">Lessons across all levels</span>
+        </div>
+        <div class="stat-item reveal d2">
+            <span class="stat-number">{{ languages is defined ? languages|length : '4' }}+</span>
+            <span class="stat-desc">Languages, full CEFR coverage</span>
+        </div>
+    </div>
+</div>
+
+{# ─── LANGUAGES ─── #}
+<section class="languages" id="languages">
+    <div class="languages-header">
+        <div>
+            <div class="section-eyebrow">Supported Languages</div>
+            <h2 class="section-title reveal">Learn the world's<br>most spoken <em>languages</em></h2>
+        </div>
+        <p class="section-sub reveal d1">
+            Structured around the CEFR framework — from complete beginner to advanced fluency,
+            every level is covered with AI-driven precision.
+        </p>
+    </div>
+
+    <div class="lang-cards-grid">
+        {% if languages is defined and languages|length > 0 %}
+            {#
+            Color palette rotated per card.
+            We map known language codes to specific colors,
+            and fall back to rotating through a set for unknown codes.
+            #}
+            {% set colorMap = {
+                'en': {'bg': '#eff6ff', 'color': '#2563eb', 'banner': 'linear-gradient(135deg,#2563eb,#60a5fa)'},
+                'fr': {'bg': '#f5f3ff', 'color': '#7c3aed', 'banner': 'linear-gradient(135deg,#7c3aed,#a78bfa)'},
+                'es': {'bg': '#fff7ed', 'color': '#ea580c', 'banner': 'linear-gradient(135deg,#ea580c,#fb923c)'},
+                'de': {'bg': '#f0fdf4', 'color': '#16a34a', 'banner': 'linear-gradient(135deg,#16a34a,#4ade80)'},
+                'ar': {'bg': '#fef2f2', 'color': '#dc2626', 'banner': 'linear-gradient(135deg,#dc2626,#f87171)'},
+                'zh': {'bg': '#fefce8', 'color': '#ca8a04', 'banner': 'linear-gradient(135deg,#ca8a04,#fbbf24)'},
+                'pt': {'bg': '#ecfeff', 'color': '#0891b2', 'banner': 'linear-gradient(135deg,#0891b2,#22d3ee)'},
+                'it': {'bg': '#fdf2f8', 'color': '#be185d', 'banner': 'linear-gradient(135deg,#be185d,#f472b6)'}
+            } %}
+            {% set fallbackBanners = [
+                'linear-gradient(135deg,#2563eb,#60a5fa)',
+                'linear-gradient(135deg,#7c3aed,#a78bfa)',
+                'linear-gradient(135deg,#ea580c,#fb923c)',
+                'linear-gradient(135deg,#16a34a,#4ade80)'
+            ] %}
+
+            {% for lang in languages %}
+                {% set code = lang.code|lower %}
+                {% set palette = colorMap[code] ?? {
+                    'bg': '#eff6ff',
+                    'color': '#2563eb',
+                    'banner': fallbackBanners[loop.index0 % 4]
+                } %}
+
+                <article class="lang-card reveal d{{ (loop.index0 % 4) + 1 == 5 ? '' : (loop.index0 % 4) }}">
+                    <div class="lang-banner" style="background: {{ palette.banner }};">
+                        <img class="lang-flag" src="{{ lang.flagUrl }}" alt="{{ lang.name }} flag">
+                        <span class="lang-banner-code">{{ lang.code|upper }}</span>
+                    </div>
+                    <div class="lang-card-body">
+                        <div class="lang-card-name">{{ lang.name }}</div>
+                        <div class="lang-card-footer">
+                            <span class="level-badge" style="background:{{ palette.bg }};color:{{ palette.color }};">A1 — C1</span>
+                            <span class="stars" style="color:{{ palette.color }};">★★★★★</span>
+                        </div>
+                    </div>
+                </article>
+            {% endfor %}
+
+        {% else %}
+            <div class="lang-empty">
+                <span style="font-size:2rem">🌍</span>
+                <p>Languages coming soon. Check back later!</p>
             </div>
         {% endif %}
+    </div>
+</section>
 
-        {# ── USER STATISTICS ── #}
-        <div class="col-sm-6 col-lg-3">
-            <div class="card ll-stat-card bg-primary-lt">
-                <div class="card-body">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                        <span class="text-primary ll-stat-icon"><i class="ti ti-users"></i></span>
-                        {% if userStats.totalTrend is defined %}
-                            <span class="ll-stat-badge bg-primary text-white">
-                                <i class="ti ti-trending-{{ userStats.totalTrend >= 0 ? 'up' : 'down' }}"></i>
-                                {{ userStats.totalTrend|abs }}%
-                            </span>
-                        {% endif %}
-                    </div>
-                    <div class="ll-stat-value text-primary">{{ userStats.total|number_format }}</div>
-                    <div class="ll-stat-label">Total Users</div>
-                </div>
-            </div>
+{# ─── FEATURES ─── #}
+<section class="features" id="features">
+    <div class="features-header">
+        <div>
+            <div class="section-eyebrow">Platform Features</div>
+            <h2 class="section-title reveal">Built different.<br>Designed to <em>work</em>.</h2>
         </div>
-
-        <div class="col-sm-6 col-lg-3">
-            <div class="card ll-stat-card bg-success-lt">
-                <div class="card-body">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                        <span class="text-success ll-stat-icon"><i class="ti ti-user-check"></i></span>
-                        {% if userStats.total > 0 %}
-                            <span class="ll-stat-badge bg-success text-white">
-                                {{ ((userStats.active / userStats.total) * 100)|number_format(0) }}%
-                            </span>
-                        {% endif %}
-                    </div>
-                    <div class="ll-stat-value text-success">{{ userStats.active|number_format }}</div>
-                    <div class="ll-stat-label">Active Users</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-sm-6 col-lg-3">
-            <div class="card ll-stat-card bg-info-lt">
-                <div class="card-body">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                        <span class="text-info ll-stat-icon"><i class="ti ti-crown"></i></span>
-                        {% if userStats.premiumRevenue is defined %}
-                            <span class="ll-stat-badge bg-info text-white">
-                                ${{ userStats.premiumRevenue|number_format(0) }}
-                            </span>
-                        {% endif %}
-                    </div>
-                    <div class="ll-stat-value text-info">{{ userStats.premium|number_format }}</div>
-                    <div class="ll-stat-label">Premium Users</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-sm-6 col-lg-3">
-            <div class="card ll-stat-card bg-warning-lt">
-                <div class="card-body">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                        <span class="text-warning ll-stat-icon"><i class="ti ti-user-off"></i></span>
-                        {% if userStats.suspended > 0 %}
-                            <span class="ll-stat-badge bg-warning text-white">
-                                <i class="ti ti-alert-triangle"></i>
-                            </span>
-                        {% endif %}
-                    </div>
-                    <div class="ll-stat-value text-warning">{{ userStats.suspended|number_format }}</div>
-                    <div class="ll-stat-label">Suspended</div>
-                </div>
-            </div>
-        </div>
-
-        {# ── USER GROWTH CHART ── #}
-        <div class="col-12">
-            <div class="card ll-card">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="ti ti-chart-line me-2 text-primary"></i> User Growth
-                    </h3>
-                    <div class="card-actions">
-                        <div class="btn-group btn-group-sm" role="group">
-                            <input type="radio" class="btn-check" name="user-growth-period" id="period-7d" checked>
-                            <label for="period-7d" class="btn">7D</label>
-                            <input type="radio" class="btn-check" name="user-growth-period" id="period-30d">
-                            <label for="period-30d" class="btn">30D</label>
-                            <input type="radio" class="btn-check" name="user-growth-period" id="period-90d">
-                            <label for="period-90d" class="btn">90D</label>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="ll-chart-container" style="height: 350px;">
-                        <canvas id="userGrowthChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {# ── CONTENT OVERVIEW ── #}
-        <div class="col-lg-8">
-            <div class="card ll-card">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="ti ti-books me-2 text-primary"></i> Content Overview
-                    </h3>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <div class="card ll-stat-card bg-purple-lt border-0">
-                                <div class="card-body text-center">
-                                    <div class="ll-stat-icon text-purple mb-2"><i class="ti ti-books"></i></div>
-                                    <div class="ll-stat-value text-purple mb-1">{{ courseCount|number_format }}</div>
-                                    <div class="ll-stat-label mb-2">Total Courses</div>
-                                    {% if courseStats is defined %}
-                                        <div>
-                                            <span class="ll-badge bg-success-lt text-success">{{ courseStats.published }} Published</span>
-                                            <span class="ll-badge bg-warning-lt text-warning">{{ courseStats.draft }} Draft</span>
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="card ll-stat-card bg-lime-lt border-0">
-                                <div class="card-body text-center">
-                                    <div class="ll-stat-icon text-lime mb-2"><i class="ti ti-pencil-check"></i></div>
-                                    <div class="ll-stat-value text-lime mb-1">{{ exerciseCount|number_format }}</div>
-                                    <div class="ll-stat-label mb-2">Total Exercises</div>
-                                    {% if exerciseStats is defined %}
-                                        <span class="ll-badge bg-lime-lt text-lime">{{ exerciseStats.completionRate }}% completion</span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row g-3 mt-2">
-                        <div class="col-md-6">
-                            <div class="card card-sm border-0" style="border-left: 3px solid var(--ll-primary) !important;">
-                                <div class="card-body">
-                                    <div class="d-flex align-items-center justify-content-between">
-                                        <div>
-                                            <div class="ll-stat-label mb-1">Avg Course Rating</div>
-                                            <div class="h2 mb-0">
-                                                {% if averageRating is defined and averageRating %}
-                                                    {{ averageRating|number_format(1) }}
-                                                    <span class="text-warning fs-4">
-                                                        {% for i in 1..5 %}
-                                                            <i class="ti ti-star{{ i <= averageRating|round ? '-filled' : '' }}"></i>
-                                                        {% endfor %}
-                                                    </span>
-                                                {% else %}
-                                                    <span class="text-muted fs-4">N/A</span>
-                                                {% endif %}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="card card-sm border-0" style="border-left: 3px solid var(--ll-success) !important;">
-                                <div class="card-body">
-                                    <div class="d-flex align-items-center justify-content-between">
-                                        <div>
-                                            <div class="ll-stat-label mb-1">Total Enrollments</div>
-                                            <div class="h2 mb-0 text-success">
-                                                {{ totalEnrollments|default(0)|number_format }}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {# ── REVENUE OVERVIEW ── #}
-        <div class="col-lg-4">
-            <div class="card ll-card">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="ti ti-wallet me-2 text-success"></i> Revenue
-                    </h3>
-                </div>
-                <div class="card-body">
-                    <div class="ll-chart-container" style="height: 200px;">
-                        <canvas id="revenueChart"></canvas>
-                    </div>
-                    {% if revenueStats is defined %}
-                        <div class="mt-4">
-                            <div class="row g-2">
-                                <div class="col-6">
-                                    <div class="card card-sm bg-success-lt border-0">
-                                        <div class="card-body text-center py-2">
-                                            <div class="text-muted small">This Month</div>
-                                            <div class="h3 mb-0 text-success">${{ revenueStats.thisMonth|number_format(0) }}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="card card-sm bg-azure-lt border-0">
-                                        <div class="card-body text-center py-2">
-                                            <div class="text-muted small">Last Month</div>
-                                            <div class="h3 mb-0">${{ revenueStats.lastMonth|number_format(0) }}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mt-3 text-center">
-                                <div class="text-muted small mb-1">Growth</div>
-                                <div class="h2 mb-0 {{ revenueStats.growth >= 0 ? 'text-success' : 'text-danger' }}">
-                                    <i class="ti ti-trending-{{ revenueStats.growth >= 0 ? 'up' : 'down' }}"></i>
-                                    {{ revenueStats.growth >= 0 ? '+' : '' }}{{ revenueStats.growth }}%
-                                </div>
-                            </div>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        {# ── COMMUNITY ENGAGEMENT ── #}
-        <div class="col-md-6">
-            <div class="card ll-card">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="ti ti-messages me-2 text-orange"></i> Community
-                    </h3>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-6">
-                            <div class="card ll-stat-card bg-orange-lt border-0">
-                                <div class="card-body text-center">
-                                    <div class="ll-stat-icon text-orange mb-2"><i class="ti ti-messages"></i></div>
-                                    <div class="ll-stat-value text-orange mb-1">{{ forumPostCount|number_format }}</div>
-                                    <div class="ll-stat-label">Forum Posts</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="card ll-stat-card bg-red-lt border-0">
-                                <div class="card-body text-center">
-                                    <div class="ll-stat-icon text-red mb-2"><i class="ti ti-message-2"></i></div>
-                                    <div class="ll-stat-value text-red mb-1">{{ forumReplyCount|number_format }}</div>
-                                    <div class="ll-stat-label">Replies</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% if forumStats is defined %}
-                        <div class="mt-4">
-                            <div class="list-group list-group-flush">
-                                <div class="list-group-item d-flex justify-content-between align-items-center px-0 border-0">
-                                    <span class="text-muted small"><i class="ti ti-activity me-2"></i>Today's Activity</span>
-                                    <span class="ll-badge bg-primary-lt text-primary">{{ forumStats.todayPosts }} posts</span>
-                                </div>
-                                <div class="list-group-item d-flex justify-content-between align-items-center px-0 border-0">
-                                    <span class="text-muted small"><i class="ti ti-trophy me-2"></i>Most Active</span>
-                                    <strong class="small">{{ forumStats.mostActiveUser|default('N/A') }}</strong>
-                                </div>
-                                <div class="list-group-item d-flex justify-content-between align-items-center px-0 border-0">
-                                    <span class="text-muted small"><i class="ti ti-clock me-2"></i>Avg Response</span>
-                                    <span class="ll-badge bg-success-lt text-success">{{ forumStats.avgResponseTime|default('N/A') }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        {# ── RECENT REGISTRATIONS ── #}
-        <div class="col-md-6">
-            <div class="card ll-card">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="ti ti-user-plus me-2 text-success"></i> Recent Registrations
-                    </h3>
-                </div>
-                <div class="card-body">
-                    {% if recentRegistrations is defined and recentRegistrations|length > 0 %}
-                        <div class="list-group list-group-flush">
-                            {% for user in recentRegistrations|slice(0, 5) %}
-                                <div class="list-group-item px-0 border-0">
-                                    <div class="row align-items-center">
-                                        <div class="col-auto">
-                                            <span class="avatar avatar-sm"
-                                                  style="background: {{ ['#2563eb', '#7c3aed', '#10b981', '#f59e0b', '#ef4444'][loop.index0 % 5] }}; color: #fff; font-weight: 600;">
-                                                {{ user.fullName|first|upper }}
-                                            </span>
-                                        </div>
-                                        <div class="col">
-                                            <div class="fw-bold small">{{ user.fullName }}</div>
-                                            <div class="text-muted" style="font-size: 0.75rem;">{{ user.email }}</div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <div class="text-muted" style="font-size: 0.75rem;">
-                                                <i class="ti ti-clock"></i> {{ user.createdAt|date('M d, H:i') }}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="ll-empty-state">
-                            <i class="ti ti-user-off d-block"></i>
-                            <p class="text-muted mb-0">No recent registrations</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
+        <p class="section-sub reveal d1">
+            Our AI isn't a gimmick — it's the core engine behind every lesson,
+            every correction, and every recommendation you receive.
+        </p>
     </div>
 
-    {# Date Range Modal #}
-    <div class="modal modal-blur fade" id="dateRangeModal" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
-            <div class="modal-content" style="border-radius: 12px; border: none;">
-                <div class="modal-header" style="border-bottom: 1px solid #f1f5f9;">
-                    <h5 class="modal-title fw-bold">Select Date Range</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form method="get" action="{{ path('admin_dashboard') }}">
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold small">Start Date</label>
-                            <input type="date" class="form-control" name="start_date" style="border-radius: 8px;"
-                                   value="{{ dateRange.start|default('now')|date('Y-m-d') }}">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold small">End Date</label>
-                            <input type="date" class="form-control" name="end_date" style="border-radius: 8px;"
-                                   value="{{ dateRange.end|default('now')|date('Y-m-d') }}">
-                        </div>
-                    </div>
-                    <div class="modal-footer" style="border-top: 1px solid #f1f5f9;">
-                        <button type="button" class="btn me-auto" data-bs-dismiss="modal" style="border-radius: 8px;">Cancel</button>
-                        <button type="submit" class="btn btn-ll-primary" style="border-radius: 8px;">Apply</button>
-                    </div>
-                </form>
-            </div>
+    <div class="features-grid">
+        <div class="feature-card reveal">
+            <span class="feature-number">01</span>
+            <div class="feature-icon">🤖</div>
+            <h3>AI-Adaptive Learning</h3>
+            <p>Your lessons evolve in real time. The AI tracks every response, finds your weak spots, and reshapes your curriculum so you always train where it matters most.</p>
+        </div>
+
+        <div class="feature-card reveal d1">
+            <span class="feature-number">02</span>
+            <div class="feature-icon">💬</div>
+            <h3>Real Conversation Practice</h3>
+            <p>Realistic dialogues with our conversational AI, built to simulate authentic interactions aligned with CEFR communication goals — not scripted exercises.</p>
+        </div>
+
+        <div class="feature-card reveal d2">
+            <span class="feature-number">03</span>
+            <div class="feature-icon">📈</div>
+            <h3>Success Prediction Engine</h3>
+            <p>Advanced analytics show exactly how your progress maps to your target proficiency and when you'll reach it — so you're never guessing.</p>
+        </div>
+
+        <div class="feature-card reveal d3">
+            <span class="feature-number">04</span>
+            <div class="feature-icon">🎯</div>
+            <h3>Smart Recommendations</h3>
+            <p>No more guessing what to study next. The platform recommends exercises and lessons dynamically based on your current learning state.</p>
         </div>
     </div>
-{% endblock %}
+</section>
 
-{% block javascripts %}
-    {{ parent() }}
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const chartDefaults = {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: '#0f172a',
-                        titleFont: { weight: '600' },
-                        padding: 12,
-                        cornerRadius: 8,
-                        displayColors: false
-                    }
-                }
-            };
+{# ─── CTA ─── #}
+<section class="cta-section" id="about">
+    <div class="cta-content">
+        <div class="cta-eyebrow">Begin Today</div>
+        <h2 class="cta-title reveal">Your fluency<br>journey starts <em>now</em></h2>
+        <p class="cta-sub reveal">
+            Join thousands of learners already making real progress.
+            Sign up free — no credit card required, no commitment.
+        </p>
+        <div class="cta-buttons reveal">
+            <a href="{{ path('app_register') }}" class="btn-cta-primary">Create Free Account</a>
+            <a href="{{ path('app_login') }}" class="btn-cta-ghost">Log In</a>
+        </div>
+    </div>
+</section>
 
-            // User Growth Chart
-            {% if userGrowthData is defined %}
-            const userGrowthCtx = document.getElementById('userGrowthChart');
-            if (userGrowthCtx) {
-                new Chart(userGrowthCtx, {
-                    type: 'line',
-                    data: {
-                        labels: {{ userGrowthData.labels|json_encode|raw }},
-                        datasets: [{
-                            label: 'New Users',
-                            data: {{ userGrowthData.data|json_encode|raw }},
-                            borderColor: '#2563eb',
-                            backgroundColor: 'rgba(37, 99, 235, 0.06)',
-                            tension: 0.4,
-                            fill: true,
-                            pointRadius: 4,
-                            pointHoverRadius: 6,
-                            pointBackgroundColor: '#2563eb',
-                            pointBorderColor: '#fff',
-                            pointBorderWidth: 2,
-                            borderWidth: 2.5
-                        }]
-                    },
-                    options: {
-                        ...chartDefaults,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: { precision: 0, color: '#94a3b8', font: { size: 11 } },
-                                grid: { color: 'rgba(0, 0, 0, 0.04)', drawBorder: false }
-                            },
-                            x: {
-                                ticks: { color: '#94a3b8', font: { size: 11 } },
-                                grid: { display: false }
-                            }
-                        }
-                    }
-                });
-            }
-            {% endif %}
+{# ─── FOOTER ─── #}
+<footer>
+    <div class="footer-grid">
+        <div>
+            <div class="footer-brand-name">Lingua<span>Learn</span></div>
+            <p class="footer-brand-desc">AI-powered language learning designed to get you fluent faster, with lessons that adapt to you.</p>
+            <div class="newsletter-row">
+                <input type="email" placeholder="Your email address..." id="newsletterInput" aria-label="Newsletter email">
+                <button type="button" id="newsletterBtn">Subscribe</button>
+            </div>
+        </div>
 
-            // Revenue Chart
-            {% if revenueData is defined %}
-            const revenueCtx = document.getElementById('revenueChart');
-            if (revenueCtx) {
-                new Chart(revenueCtx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: {{ revenueData.labels|json_encode|raw }},
-                        datasets: [{
-                            data: {{ revenueData.data|json_encode|raw }},
-                            backgroundColor: ['#2563eb', '#7c3aed', '#10b981'],
-                            borderWidth: 0,
-                            spacing: 2
-                        }]
-                    },
-                    options: {
-                        ...chartDefaults,
-                        plugins: {
-                            ...chartDefaults.plugins,
-                            legend: {
-                                position: 'bottom',
-                                labels: { padding: 12, usePointStyle: true, pointStyle: 'circle', font: { size: 11 } }
-                            }
-                        },
-                        cutout: '72%'
-                    }
-                });
-            }
-            {% endif %}
+        <div class="footer-col">
+            <h4>Platform</h4>
+            <ul>
+                <li><a href="{{ path('app_register') }}">Get Started</a></li>
+                <li><a href="{{ path('app_login') }}">Log In</a></li>
+                <li><a href="#languages">Languages</a></li>
+                <li><a href="#features">Features</a></li>
+            </ul>
+        </div>
 
-            // Refresh
-            document.getElementById('refreshDashboard')?.addEventListener('click', () => location.reload());
+        <div class="footer-col">
+            <h4>Company</h4>
+            <ul>
+                <li><a href="#about">About Us</a></li>
+                <li><a href="#">Blog</a></li>
+                <li><a href="#">Careers</a></li>
+                <li><a href="#">Press</a></li>
+            </ul>
+        </div>
 
-            // Period Selection
-            document.querySelectorAll('input[name="user-growth-period"]').forEach(radio => {
-                radio.addEventListener('change', function() {
-                    const period = this.id.replace('period-', '');
-                    fetch(`{{ path('admin_dashboard_chart_data') }}?period=${period}`)
-                        .then(r => r.json())
-                        .then(data => console.log('Chart updated:', period))
-                        .catch(err => console.error('Error:', err));
-                });
-            });
+        <div class="footer-col">
+            <h4>Legal</h4>
+            <ul>
+                <li><a href="#">Privacy Policy</a></li>
+                <li><a href="#">Terms of Service</a></li>
+                <li><a href="#">Cookie Policy</a></li>
+                <li><a href="#">Accessibility</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="footer-bottom">
+        <span class="footer-copy">© {{ "now"|date("Y") }} LinguaLearn. All rights reserved.</span>
+        <span class="footer-copy">Built with AI · Powered by humans.</span>
+    </div>
+</footer>
+
+<button class="scroll-top" id="scrollTop" aria-label="Scroll to top">↑</button>
+
+<script>
+    // Loader
+    window.addEventListener('load', () => {
+        setTimeout(() => document.getElementById('loader').classList.add('hidden'), 600);
+    });
+
+    // Nav scroll state
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+        navbar.classList.toggle('scrolled', window.scrollY > 50);
+        document.getElementById('scrollTop').classList.toggle('visible', window.scrollY > 400);
+    }, { passive: true });
+
+    // Smooth scroll
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+        a.addEventListener('click', e => {
+            const t = document.querySelector(a.getAttribute('href'));
+            if (t) { e.preventDefault(); t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
         });
-    </script>
-{% endblock %}
+    });
+
+    // Scroll reveal
+    const ro = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+            if (e.isIntersecting) { e.target.classList.add('visible'); ro.unobserve(e.target); }
+        });
+    }, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
+    document.querySelectorAll('.reveal').forEach(el => ro.observe(el));
+
+    // Scroll top
+    document.getElementById('scrollTop').addEventListener('click', () =>
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+    );
+
+    // Mobile menu
+    document.getElementById('hamburger').addEventListener('click', () =>
+        document.getElementById('mobileMenu').classList.add('open')
+    );
+    document.getElementById('mobileClose').addEventListener('click', () =>
+        document.getElementById('mobileMenu').classList.remove('open')
+    );
+    document.querySelectorAll('.mobile-link').forEach(l =>
+        l.addEventListener('click', () => document.getElementById('mobileMenu').classList.remove('open'))
+    );
+
+    // Newsletter
+    const nBtn = document.getElementById('newsletterBtn');
+    const nInput = document.getElementById('newsletterInput');
+    nBtn.addEventListener('click', () => {
+        const v = nInput.value.trim();
+        if (v && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
+            nBtn.textContent = '✓ Done';
+            nBtn.style.background = '#16a34a';
+            nInput.value = '';
+            setTimeout(() => { nBtn.textContent = 'Subscribe'; nBtn.style.background = ''; }, 3000);
+        } else {
+            nInput.style.boxShadow = '0 0 0 2px rgba(220,38,38,.4)';
+            nInput.placeholder = 'Enter a valid email';
+            setTimeout(() => { nInput.style.boxShadow = ''; nInput.placeholder = 'Your email address...'; }, 2000);
+        }
+    });
+    nInput.addEventListener('keypress', e => { if (e.key === 'Enter') nBtn.click(); });
+</script>
+</body>
+</html>

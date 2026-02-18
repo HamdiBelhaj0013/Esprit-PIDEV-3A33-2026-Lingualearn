@@ -394,9 +394,10 @@ class UserController extends AbstractController
     #[Route('/{id}/languages', name: 'languages', methods: ['GET', 'POST'])]
     public function languages(Request $request, User $user): Response
     {
+        // Show all enabled platform languages for the dropdown
         $availableLanguages = $this->entityManager
-            ->getRepository(\App\Module\UserManagement\Entity\Language::class)
-            ->findAll();
+            ->getRepository(\App\Module\PedagogicalContent\Entity\PlatformLanguage::class)
+            ->findBy(['isEnabled' => true], ['name' => 'ASC']);
 
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('languages' . $user->getId(), $request->request->get('_token'))) {
@@ -408,35 +409,35 @@ class UserController extends AbstractController
 
             // --- Add a language ---
             if ($action === 'add') {
-                $languageId       = (int) $request->request->get('language_id');
-                $proficiency      = $request->request->get('proficiency_level', 'A1');
-                $isNative         = (bool) $request->request->get('is_native', false);
+                $languageId  = (int) $request->request->get('language_id');
+                $proficiency = $request->request->get('proficiency_level', 'A1');
+                $isNative    = (bool) $request->request->get('is_native', false);
 
                 $allowedLevels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'native'];
                 if (!in_array($proficiency, $allowedLevels, true)) {
                     $proficiency = 'A1';
                 }
 
-                $language = $this->entityManager
-                    ->getRepository(\App\Module\UserManagement\Entity\Language::class)
+                $platformLanguage = $this->entityManager
+                    ->getRepository(\App\Module\PedagogicalContent\Entity\PlatformLanguage::class)
                     ->find($languageId);
 
-                if (!$language) {
+                if (!$platformLanguage) {
                     $this->addFlash('danger', 'Language not found.');
                     return $this->redirectToRoute('admin_users_languages', ['id' => $user->getId()]);
                 }
 
-                // Prevent duplicate language assignments
+                // Prevent duplicates
                 foreach ($user->getUserLanguages() as $existing) {
-                    if ($existing->getLanguage() === $language) {
+                    if ($existing->getPlatformLanguage() === $platformLanguage) {
                         $this->addFlash('warning', 'This language is already assigned to the user.');
                         return $this->redirectToRoute('admin_users_languages', ['id' => $user->getId()]);
                     }
                 }
 
-                $userLanguage = new UserLanguage();
+                $userLanguage = new \App\Module\UserManagement\Entity\UserLanguage();
                 $userLanguage->setUser($user);
-                $userLanguage->setLanguage($language);
+                $userLanguage->setPlatformLanguage($platformLanguage);
                 $userLanguage->setProficiencyLevel($isNative ? 'native' : $proficiency);
                 $userLanguage->setIsNative($isNative);
 
@@ -450,10 +451,9 @@ class UserController extends AbstractController
             if ($action === 'remove') {
                 $userLanguageId = (int) $request->request->get('user_language_id');
                 $userLanguage   = $this->entityManager
-                    ->getRepository(UserLanguage::class)
+                    ->getRepository(\App\Module\UserManagement\Entity\UserLanguage::class)
                     ->find($userLanguageId);
 
-                // Security: only remove if it belongs to this user
                 if ($userLanguage && $userLanguage->getUser() === $user) {
                     $this->entityManager->remove($userLanguage);
                     $this->entityManager->flush();
@@ -470,6 +470,7 @@ class UserController extends AbstractController
             'proficiencyLevels'  => ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'],
         ]);
     }
+
 
     // =========================================================
     //  ADVANCED FEATURE 6 — PASSWORD RESET BY ADMIN

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ course.title }} — LinguaLearn</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --white: #ffffff; --off-white: #f7f9fc; --surface: #eef1f8;
+            --ink: #0d1526; --ink-soft: #2c3a52; --muted: #7a87a0;
+            --border: #e2e8f2; --blue: #2563eb; --blue-dark: #1d4ed8;
+            --blue-bg: #eff6ff; --blue-mid: #3b82f6; --green: #16a34a;
+            --green-bg: #f0fdf4; --orange: #ea580c; --orange-bg: #fff7ed;
+            --violet: #7c3aed; --violet-bg: #f5f3ff; --gold: #ca8a04;
+            --gold-bg: #fefce8; --sidebar-w: 260px; --radius: 12px; --radius-lg: 20px;
+        }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Sora', sans-serif; background: var(--off-white); color: var(--ink); min-height: 100vh; }
+
+        .sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w); background: var(--white); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 50; transition: transform .3s ease; }
+        .sidebar-logo { padding: 1.5rem 1.5rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: .75rem; text-decoration: none; }
+        .sidebar-logo-text { font-family: 'Fraunces', serif; font-size: 1.3rem; font-weight: 400; color: var(--ink); }
+        .sidebar-logo-text span { color: var(--blue); }
+        .sidebar-user { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: .85rem; }
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--blue), var(--blue-mid)); display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', serif; font-size: 1rem; color: var(--white); flex-shrink: 0; }
+        .user-avatar.premium { background: linear-gradient(135deg, var(--gold), #fbbf24); }
+        .user-info { flex: 1; min-width: 0; }
+        .user-name { font-size: .85rem; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-plan { font-size: .7rem; font-family: 'DM Mono', monospace; letter-spacing: .08em; text-transform: uppercase; margin-top: .1rem; }
+        .user-plan.free { color: var(--muted); } .user-plan.premium { color: var(--gold); }
+        .sidebar-nav { flex: 1; padding: 1rem 0; overflow-y: auto; }
+        .nav-section-label { font-family: 'DM Mono', monospace; font-size: .6rem; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); padding: .75rem 1.5rem .35rem; display: block; }
+        .nav-item { display: flex; align-items: center; gap: .75rem; padding: .65rem 1.5rem; font-size: .84rem; font-weight: 500; color: var(--muted); text-decoration: none; transition: color .2s, background .2s; position: relative; }
+        .nav-item:hover { color: var(--ink); background: var(--off-white); }
+        .nav-item.active { color: var(--blue); background: var(--blue-bg); font-weight: 600; }
+        .nav-item.active::before { content: ''; position: absolute; left: 0; top: 4px; bottom: 4px; width: 3px; background: var(--blue); border-radius: 0 3px 3px 0; }
+        .nav-icon { font-size: 1.1rem; width: 20px; text-align: center; }
+
+        .main { margin-left: var(--sidebar-w); min-height: 100vh; display: flex; flex-direction: column; }
+        .topbar { position: sticky; top: 0; z-index: 40; background: rgba(255,255,255,.92); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: .85rem 2rem; display: flex; align-items: center; gap: 1rem; }
+        .page-heading { font-family: 'Fraunces', serif; font-size: 1.25rem; font-weight: 400; color: var(--ink); }
+        .page-sub { font-size: .78rem; color: var(--muted); margin-top: .1rem; }
+        .back-link { display: inline-flex; align-items: center; gap: .4rem; font-size: .82rem; color: var(--muted); text-decoration: none; transition: color .2s; white-space: nowrap; }
+        .back-link:hover { color: var(--blue); }
+        .hamburger-btn { display: none; width: 38px; height: 38px; border-radius: var(--radius); border: 1.5px solid var(--border); background: transparent; align-items: center; justify-content: center; cursor: pointer; flex-direction: column; gap: 4px; flex-shrink: 0; }
+        .hamburger-btn span { width: 16px; height: 1.5px; background: var(--ink); display: block; border-radius: 2px; }
+
+        .page-content { padding: 2rem; flex: 1; max-width: 860px; width: 100%; margin: 0 auto; }
+
+        /* ─── COURSE HERO ─── */
+        .course-hero {
+            background: var(--white); border: 1.5px solid var(--border);
+            border-radius: var(--radius-lg); padding: 2rem 2.25rem;
+            margin-bottom: 1.75rem; position: relative; overflow: hidden;
+        }
+        .course-hero::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--blue), var(--blue-mid)); }
+        .course-hero-top { display: flex; align-items: flex-start; gap: 1.25rem; margin-bottom: 1.25rem; }
+        .course-lang-flag { width: 52px; height: 37px; border-radius: 7px; object-fit: cover; border: 1.5px solid var(--border); flex-shrink: 0; }
+        .course-lang-flag-placeholder { width: 52px; height: 37px; border-radius: 7px; background: var(--surface); border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; }
+        .course-hero-info { flex: 1; }
+        .course-hero-title { font-family: 'Fraunces', serif; font-size: 1.9rem; font-weight: 300; color: var(--ink); line-height: 1.2; margin-bottom: .6rem; }
+        .course-hero-meta { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+        .badge { display: inline-block; font-family: 'DM Mono', monospace; font-size: .6rem; letter-spacing: .12em; text-transform: uppercase; padding: .22rem .7rem; border-radius: 6px; }
+        .badge-beginner     { background: var(--green-bg);  color: var(--green); }
+        .badge-intermediate { background: var(--blue-bg);   color: var(--blue); }
+        .badge-advanced     { background: var(--violet-bg); color: var(--violet); }
+        .badge-lang { background: var(--surface); color: var(--muted); border: 1px solid var(--border); }
+
+        .course-stats { display: flex; gap: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border); flex-wrap: wrap; }
+        .course-stat { text-align: center; }
+        .course-stat-val { font-family: 'Fraunces', serif; font-size: 1.5rem; font-weight: 300; color: var(--ink); }
+        .course-stat-label { font-family: 'DM Mono', monospace; font-size: .6rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-top: .15rem; }
+
+        /* ─── LESSONS LIST ─── */
+        .lessons-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+        .lessons-title { font-family: 'Fraunces', serif; font-size: 1.1rem; font-weight: 400; color: var(--ink); }
+        .lessons-title em { font-style: italic; color: var(--blue); }
+
+        .lesson-list { display: flex; flex-direction: column; gap: .75rem; }
+
+        .lesson-row {
+            background: var(--white); border: 1.5px solid var(--border);
+            border-radius: var(--radius); padding: 1.1rem 1.4rem;
+            display: flex; align-items: center; gap: 1.1rem;
+            text-decoration: none; color: inherit;
+            transition: border-color .2s, box-shadow .2s, transform .15s;
+            position: relative;
+        }
+        .lesson-row:hover { border-color: var(--blue-mid); box-shadow: 0 4px 16px rgba(37,99,235,.1); transform: translateX(4px); }
+
+        .lesson-num {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: var(--surface); border: 1.5px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'DM Mono', monospace; font-size: .75rem; font-weight: 400;
+            color: var(--muted); flex-shrink: 0;
+            transition: background .2s, border-color .2s, color .2s;
+        }
+        .lesson-row:hover .lesson-num { background: var(--blue-bg); border-color: var(--blue); color: var(--blue); }
+
+        .lesson-info { flex: 1; min-width: 0; }
+        .lesson-title { font-weight: 600; font-size: .9rem; color: var(--ink); margin-bottom: .2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .lesson-meta { display: flex; align-items: center; gap: .75rem; font-size: .75rem; color: var(--muted); }
+        .lesson-xp { display: inline-flex; align-items: center; gap: .25rem; font-family: 'DM Mono', monospace; font-size: .68rem; color: var(--gold); background: var(--gold-bg); padding: .15rem .5rem; border-radius: 5px; }
+        .lesson-vocab-count { font-size: .72rem; color: var(--muted); }
+
+        .lesson-arrow { font-size: 1rem; color: var(--muted); transition: color .2s, transform .2s; flex-shrink: 0; }
+        .lesson-row:hover .lesson-arrow { color: var(--blue); transform: translateX(3px); }
+
+        .empty-state { text-align: center; padding: 3.5rem 2rem; background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius-lg); color: var(--muted); }
+        .empty-state-icon { font-size: 3rem; margin-bottom: .75rem; }
+        .empty-state-title { font-family: 'Fraunces', serif; font-size: 1.3rem; font-weight: 300; color: var(--ink); margin-bottom: .4rem; }
+
+        .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(13,21,38,.4); z-index: 45; }
+        .sidebar-overlay.visible { display: block; }
+
+        @media (max-width: 768px) {
+            :root { --sidebar-w: 0px; }
+            .sidebar { transform: translateX(-260px); width: 260px; }
+            .sidebar.open { transform: translateX(0); }
+            .main { margin-left: 0; }
+            .hamburger-btn { display: flex; }
+            .page-content { padding: 1.25rem; }
+            .topbar { padding: .75rem 1.25rem; }
+            .course-hero-top { flex-direction: column; }
+        }
+
+        .reveal { opacity: 0; transform: translateY(12px); transition: opacity .4s ease, transform .4s ease; }
+        .reveal.visible { opacity: 1; transform: none; }
+        .d1 { transition-delay: .06s; } .d2 { transition-delay: .12s; } .d3 { transition-delay: .18s; }
+    </style>
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+    <a href="{{ path('app_homepage') }}" class="sidebar-logo">
+        <div class="sidebar-logo-text">Lingua<span>Learn</span></div>
+    </a>
+    <div class="sidebar-user">
+        <div class="user-avatar {{ app.user.isPremium is defined and app.user.isPremium ? 'premium' : '' }}">
+            {{ app.user.firstName|first|upper }}{{ app.user.lastName|first|upper }}
+        </div>
+        <div class="user-info">
+            <div class="user-name">{{ app.user.fullName }}</div>
+            <div class="user-plan {{ app.user.isPremium is defined and app.user.isPremium ? 'premium' : 'free' }}">
+                {{ app.user.isPremium is defined and app.user.isPremium ? '★ ' ~ app.user.subscriptionPlan : 'Free Plan' }}
+            </div>
+        </div>
+    </div>
+    <nav class="sidebar-nav">
+        <span class="nav-section-label">Main</span>
+        <a href="{{ path('user_dashboard') }}" class="nav-item"><span class="nav-icon">⊞</span> Dashboard</a>
+        <a href="{{ path('language_select') }}" class="nav-item active"><span class="nav-icon">📚</span> My Courses</a>
+        <a href="#" class="nav-item"><span class="nav-icon">🧩</span> Practice</a>
+        <a href="#" class="nav-item"><span class="nav-icon">📝</span> Mock Tests</a>
+        <span class="nav-section-label">Account</span>
+        <a href="{{ path('user_profile') }}" class="nav-item"><span class="nav-icon">👤</span> My Profile</a>
+        <a href="{{ path('app_logout') }}" class="nav-item"><span class="nav-icon">→</span> Log Out</a>
+    </nav>
+</aside>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="main">
+    <header class="topbar">
+        <button class="hamburger-btn" id="hamburgerBtn"><span></span><span></span><span></span></button>
+        <div>
+            <div class="page-heading">{{ course.title }}</div>
+            <div class="page-sub">
+                <a href="{{ path('language_courses', {id: language.id}) }}" class="back-link">← {{ language.name }} courses</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="page-content">
+
+        {# Course Hero #}
+        <div class="course-hero reveal">
+            <div class="course-hero-top">
+                {% if language.flagUrl %}
+                    <img src="{{ language.flagUrl }}" alt="{{ language.name }}" class="course-lang-flag"
+                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                    <div class="course-lang-flag-placeholder" style="display:none;">🌐</div>
+                {% else %}
+                    <div class="course-lang-flag-placeholder">🌐</div>
+                {% endif %}
+                <div class="course-hero-info">
+                    <div class="course-hero-title">{{ course.title }}</div>
+                    <div class="course-hero-meta">
+                        <span class="badge badge-{{ course.level }}">{{ course.level|capitalize }}</span>
+                        <span class="badge badge-lang">{{ language.name }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="course-stats">
+                <div class="course-stat">
+                    <div class="course-stat-val">{{ lessons|length }}</div>
+                    <div class="course-stat-label">Lessons</div>
+                </div>
+                <div class="course-stat">
+                    {% set totalXp = 0 %}
+                    {% for l in lessons %}{% set totalXp = totalXp + l.xpReward %}{% endfor %}
+                    <div class="course-stat-val">{{ totalXp }}</div>
+                    <div class="course-stat-label">Total XP</div>
+                </div>
+                <div class="course-stat">
+                    {% set totalVocab = 0 %}
+                    {% for l in lessons %}{% set totalVocab = totalVocab + l.vocabularyData|length %}{% endfor %}
+                    <div class="course-stat-val">{{ totalVocab }}</div>
+                    <div class="course-stat-label">Vocab Words</div>
+                </div>
+                <div class="course-stat">
+                    {% set totalGrammar = 0 %}
+                    {% for l in lessons %}{% set totalGrammar = totalGrammar + l.grammarData|length %}{% endfor %}
+                    <div class="course-stat-val">{{ totalGrammar }}</div>
+                    <div class="course-stat-label">Grammar Rules</div>
+                </div>
+            </div>
+        </div>
+
+        {# Lessons #}
+        <div class="lessons-header reveal d1">
+            <div class="lessons-title">Course <em>Lessons</em></div>
+            <span style="font-size:.75rem;color:var(--muted);">{{ lessons|length }} lesson{{ lessons|length != 1 ? 's' : '' }}</span>
+        </div>
+
+        {% if lessons|length > 0 %}
+            <div class="lesson-list">
+                {% for lesson in lessons %}
+                    <a href="{{ path('lesson_show', {id: lesson.id}) }}" class="lesson-row reveal" style="transition-delay: {{ loop.index * 0.05 }}s">
+                        <div class="lesson-num">{{ loop.index }}</div>
+                        <div class="lesson-info">
+                            <div class="lesson-title">{{ lesson.title }}</div>
+                            <div class="lesson-meta">
+                                <span class="lesson-xp">⭐ {{ lesson.xpReward }} XP</span>
+                                {% if lesson.vocabularyData|length > 0 %}
+                                    <span class="lesson-vocab-count">📖 {{ lesson.vocabularyData|length }} words</span>
+                                {% endif %}
+                                {% if lesson.grammarData|length > 0 %}
+                                    <span class="lesson-vocab-count">📐 {{ lesson.grammarData|length }} rules</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <span class="lesson-arrow">→</span>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state reveal d2">
+                <div class="empty-state-icon">📖</div>
+                <div class="empty-state-title">No lessons yet</div>
+                <div style="font-size:.85rem;">This course has no lessons yet. Check back soon!</div>
+            </div>
+        {% endif %}
+
+    </main>
+</div>
+
+<script>
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    document.getElementById('hamburgerBtn').addEventListener('click', () => { sidebar.classList.toggle('open'); overlay.classList.toggle('visible'); });
+    overlay.addEventListener('click', () => { sidebar.classList.remove('open'); overlay.classList.remove('visible'); });
+    const ro = new IntersectionObserver(entries => { entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); ro.unobserve(e.target); } }); }, { threshold: 0.05 });
+    document.querySelectorAll('.reveal').forEach(el => ro.observe(el));
+</script>
+</body>
+</html>
