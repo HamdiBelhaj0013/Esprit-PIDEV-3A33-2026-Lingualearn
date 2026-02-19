@@ -18,7 +18,7 @@ class Course
 
     // Relation avec User
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'courses')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     #[Assert\NotNull(message: 'L\'auteur est obligatoire.')]
     private ?User $author = null;
 

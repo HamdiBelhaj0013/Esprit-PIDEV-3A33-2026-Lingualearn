@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Module\UserManagement\Entity\User;
+use App\Module\UserManagement\Service\EmailVerificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,7 +17,8 @@ class RegistrationController extends AbstractController
     public function register(
         Request $request,
         UserPasswordHasherInterface $passwordHasher,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        EmailVerificationService $verificationService,
     ): Response {
         // If already logged in, redirect
         if ($this->getUser()) {
@@ -26,45 +28,52 @@ class RegistrationController extends AbstractController
         $error = null;
 
         if ($request->isMethod('POST')) {
-            $email = $request->request->get('email');
-            $password = $request->request->get('password');
-            $confirmPassword = $request->request->get('confirm_password');
-            $firstName = $request->request->get('first_name');
-            $lastName = $request->request->get('last_name');
+            $email           = trim($request->request->get('email', ''));
+            $password        = $request->request->get('password', '');
+            $confirmPassword = $request->request->get('confirm_password', '');
+            $firstName       = trim($request->request->get('first_name', ''));
+            $lastName        = trim($request->request->get('last_name', ''));
 
-            // Basic validation
+            // Validation
             if (empty($email) || empty($password) || empty($firstName) || empty($lastName)) {
                 $error = 'All fields are required.';
+            } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $error = 'Please enter a valid email address.';
             } elseif ($password !== $confirmPassword) {
                 $error = 'Passwords do not match.';
             } elseif (strlen($password) < 6) {
                 $error = 'Password must be at least 6 characters long.';
             } else {
-                // Check if user already exists
                 $existingUser = $entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
 
                 if ($existingUser) {
                     $error = 'An account with this email already exists.';
                 } else {
-                    // Create new user
+                    // Create new user — NOT verified yet
                     $user = new User();
                     $user->setEmail($email);
                     $user->setFirstName($firstName);
                     $user->setLastName($lastName);
-                    $user->setRoles(['ROLE_USER']); // Regular user role
+                    $user->setRoles(['ROLE_USER']);
                     $user->setStatus('active');
                     $user->setPremium(false);
+                    $user->setIsVerified(false);   // explicitly unverified
 
-                    // Hash password
                     $hashedPassword = $passwordHasher->hashPassword($user, $password);
                     $user->setPassword($hashedPassword);
 
-                    // Save to database
                     $entityManager->persist($user);
                     $entityManager->flush();
 
-                    $this->addFlash('success', 'Account created successfully! Please login.');
-                    return $this->redirectToRoute('app_login');
+                    // Send verification email
+                    try {
+                        $verificationService->sendVerificationEmail($user);
+                    } catch (\Throwable $e) {
+                        // Log the error but don't block registration
+                        // The user can request a new link from the notice page
+                    }
+
+                    return $this->redirectToRoute('email_verify_notice');
                 }
             }
         }

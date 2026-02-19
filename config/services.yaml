@@ -48,6 +48,14 @@ services:
         arguments:
             $urlGenerator: '@router'
 
+    App\Module\UserManagement\Service\EmailVerificationService:
+        arguments:
+            $mailerFrom: '%env(MAILER_FROM)%'
+
+    App\Module\UserManagement\Service\PasswordResetService:
+        arguments:
+            $mailerFrom: '%env(MAILER_FROM)%'
+
     # Security - Admin Access Event Subscriber (prevents unauthorized admin access)
     # DISABLED - File renamed to .DISABLED
     # App\EventSubscriber\AdminAccessSubscriber:

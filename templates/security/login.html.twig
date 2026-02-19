@@ -44,7 +44,6 @@
             overflow: hidden;
         }
 
-        /* ── Dot grid background (same as landing page hero) ── */
         body::before {
             content: '';
             position: fixed; inset: 0;
@@ -54,7 +53,6 @@
             pointer-events: none;
         }
 
-        /* ── Blue radial glow ── */
         body::after {
             content: '';
             position: fixed; top: -120px; right: -120px;
@@ -63,7 +61,6 @@
             pointer-events: none;
         }
 
-        /* ── CARD WRAPPER ── */
         .auth-wrap {
             position: relative; z-index: 1;
             width: 100%; max-width: 460px;
@@ -76,7 +73,6 @@
             to   { opacity: 1; transform: translateY(0); }
         }
 
-        /* ── LOGO ── */
         .auth-logo {
             text-align: center; margin-bottom: 2rem;
             text-decoration: none; display: block;
@@ -94,7 +90,6 @@
             margin-top: .3rem;
         }
 
-        /* ── CARD ── */
         .auth-card {
             background: var(--white);
             border: 1.5px solid var(--border);
@@ -103,7 +98,6 @@
             box-shadow: 0 20px 60px rgba(13,21,38,.08);
         }
 
-        /* Top accent line */
         .auth-card::before {
             content: ''; display: block;
             height: 3px;
@@ -124,7 +118,6 @@
             font-weight: 300; margin-bottom: 1.75rem;
         }
 
-        /* ── ALERTS ── */
         .alert {
             display: flex; align-items: flex-start; gap: .65rem;
             padding: .85rem 1rem; border-radius: var(--radius);
@@ -133,10 +126,11 @@
         .alert-icon { font-size: 1rem; flex-shrink: 0; margin-top: .05rem; }
         .alert-success { background: var(--green-bg); border: 1px solid rgba(22,163,74,.2); color: var(--green); }
         .alert-error   { background: var(--red-bg);   border: 1px solid rgba(220,38,38,.2);  color: var(--red); }
+        .alert-warning { background: #fffbeb; border: 1px solid rgba(245,158,11,.2); color: #b45309; }
         .alert-info    { background: var(--blue-bg);  border: 1px solid rgba(37,99,235,.2);  color: var(--blue); }
         .alert strong  { font-weight: 600; }
+        .alert a       { color: inherit; font-weight: 600; }
 
-        /* ── FORM ── */
         .f-group { margin-bottom: 1.1rem; }
 
         .f-label {
@@ -186,7 +180,6 @@
             width: 15px; height: 15px; accent-color: var(--blue); cursor: pointer;
         }
 
-        /* ── SUBMIT BUTTON ── */
         .btn-submit {
             width: 100%; padding: .82rem;
             border-radius: 100px; border: none;
@@ -203,30 +196,6 @@
         }
         .btn-submit:active { transform: translateY(0); }
 
-        /* ── DIVIDER ── */
-        .divider {
-            display: flex; align-items: center; gap: 1rem;
-            margin: 1.5rem 0; color: var(--muted); font-size: .75rem;
-            font-family: 'DM Mono', monospace; letter-spacing: .1em;
-        }
-        .divider::before, .divider::after {
-            content: ''; flex: 1; height: 1px; background: var(--border);
-        }
-
-        /* ── SOCIAL BUTTONS ── */
-        .social-row { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-bottom: 1.75rem; }
-        .btn-social {
-            padding: .65rem; border-radius: var(--radius);
-            border: 1.5px solid var(--border); background: var(--white);
-            font-family: 'Sora', sans-serif; font-size: .8rem; font-weight: 500;
-            color: var(--ink-soft); cursor: pointer; text-decoration: none;
-            display: flex; align-items: center; justify-content: center; gap: .5rem;
-            transition: border-color .2s, background .2s, color .2s;
-        }
-        .btn-social:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-bg); }
-        .btn-social svg { width: 16px; height: 16px; flex-shrink: 0; }
-
-        /* ── CARD FOOTER ── */
         .auth-card-foot {
             padding: 1.1rem 2.25rem;
             border-top: 1px solid var(--border);
@@ -238,7 +207,6 @@
         .auth-card-foot a { color: var(--blue); font-weight: 600; text-decoration: none; }
         .auth-card-foot a:hover { color: var(--blue-dark); }
 
-        /* ── PAGE FOOTER ── */
         .auth-page-foot {
             text-align: center; margin-top: 1.5rem;
             font-size: .72rem; color: var(--muted);
@@ -250,7 +218,6 @@
         @media (max-width: 480px) {
             .auth-card-body { padding: 1.75rem 1.5rem 1.5rem; }
             .auth-card-foot { flex-direction: column; text-align: center; }
-            .social-row { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -258,20 +225,17 @@
 
 <div class="auth-wrap">
 
-    {# Logo #}
     <a href="{{ path('app_homepage') }}" class="auth-logo">
         <div class="auth-logo-name">Lingua<span>Learn</span></div>
         <div class="auth-logo-tag">AI-Powered Language Learning</div>
     </a>
 
-    {# Card #}
     <div class="auth-card">
         <div class="auth-card-body">
 
             <h1 class="auth-heading">Welcome <em>back</em></h1>
             <p class="auth-subhead">Sign in to continue your learning journey</p>
 
-            {# Success flash (e.g. after registration) #}
             {% for msg in app.flashes('success') %}
                 <div class="alert alert-success">
                     <span class="alert-icon">✓</span>
@@ -279,18 +243,27 @@
                 </div>
             {% endfor %}
 
-            {# Auth error #}
             {% if error %}
-                <div class="alert alert-error">
-                    <span class="alert-icon">✕</span>
-                    <div>
-                        <strong>Login failed</strong><br>
-                        {{ error.messageKey|trans(error.messageData, 'security') }}
+                {% if error.messageKey == 'unverified_email' %}
+                    <div class="alert alert-warning">
+                        <span class="alert-icon">✉</span>
+                        <div>
+                            <strong>Email not verified</strong><br>
+                            Please verify your email before logging in.
+                            <a href="{{ path('email_verify_resend_form') }}">Resend verification link →</a>
+                        </div>
                     </div>
-                </div>
+                {% else %}
+                    <div class="alert alert-error">
+                        <span class="alert-icon">✕</span>
+                        <div>
+                            <strong>Login failed</strong><br>
+                            {{ error.messageKey|trans(error.messageData, 'security') }}
+                        </div>
+                    </div>
+                {% endif %}
             {% endif %}
 
-            {# Already logged in #}
             {% if app.user %}
                 <div class="alert alert-info">
                     <span class="alert-icon">ℹ</span>
@@ -301,7 +274,6 @@
                 </div>
             {% endif %}
 
-            {# Login Form #}
             <form method="post" action="{{ path('app_login') }}" autocomplete="off" novalidate>
                 <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 
@@ -323,7 +295,7 @@
                 <div class="f-group">
                     <label class="f-label" for="inputPassword">
                         Password
-                        <a href="#">Forgot password?</a>
+                        <a href="{{ path('password_reset_request') }}">Forgot password?</a>
                     </label>
                     <div class="f-input-wrap">
                         <input
@@ -353,7 +325,6 @@
                 </button>
             </form>
 
-
         </div>
 
         <div class="auth-card-foot">
@@ -370,7 +341,6 @@
 </div>
 
 <script>
-    // Password show/hide
     const pwInput  = document.getElementById('inputPassword');
     const pwToggle = document.getElementById('pwToggle');
     const pwIcon   = document.getElementById('pwIcon');
