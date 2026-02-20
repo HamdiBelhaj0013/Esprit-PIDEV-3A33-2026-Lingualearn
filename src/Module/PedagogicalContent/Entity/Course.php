@@ -15,9 +15,15 @@ class Course
     #[ORM\Column]
     private ?int $id = null;
 
+<<<<<<< Updated upstream
     // ❌ PAS de validation ici car rempli dans le controller
     #[ORM\Column]
     private ?int $authorId = null;
+=======
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'courses')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?User $author = null;
+>>>>>>> Stashed changes
 
     #[ORM\ManyToOne(targetEntity: PlatformLanguage::class, inversedBy: 'courses')]
     #[ORM\JoinColumn(nullable: false)]
