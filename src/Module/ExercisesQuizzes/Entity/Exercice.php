@@ -35,13 +35,33 @@ class Exercice
     private ?string $correctAnswer = null;
 
     #[Assert\Callback]
-    public function validate(ExecutionContextInterface $context, $payload)
+    public function validate(ExecutionContextInterface $context, $payload): void
     {
         if ($this->type === 'multiple_choice' && empty($this->options)) {
             $context->buildViolation('Les options sont obligatoires pour un exercice à choix multiples.')
                 ->atPath('options')
                 ->addViolation();
         }
+        // Quand des options sont fournies, la réponse correcte doit correspondre à l'une d'elles
+        if ($this->correctAnswer !== null && $this->correctAnswer !== '' && !empty($this->options)) {
+            $normalizedAnswer = self::normalizeOption($this->correctAnswer);
+            $normalizedOptions = array_map([self::class, 'normalizeOption'], $this->options);
+            if (!in_array($normalizedAnswer, $normalizedOptions, true)) {
+                $context->buildViolation('La réponse correcte doit correspondre à l\'une des options fournies.')
+                    ->atPath('correctAnswer')
+                    ->addViolation();
+            }
+        }
+    }
+
+    /**
+     * Normalise une chaîne pour comparaison (trim, suppression caractères de contrôle/format).
+     */
+    public static function normalizeOption(string $value): string
+    {
+        $value = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $value);
+        $value = preg_replace('/[\p{C}\p{Z}]/u', ' ', $value);
+        return trim($value);
     }
 
     #[ORM\Column]
@@ -51,6 +71,7 @@ class Exercice
     private bool $enabled = true; // <-- Nouveau champ pour activer/désactiver l'exercice
 
     #[ORM\ManyToOne(targetEntity: Quiz::class, inversedBy: 'exercices')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Quiz $quiz = null;
 
     // --------------------------

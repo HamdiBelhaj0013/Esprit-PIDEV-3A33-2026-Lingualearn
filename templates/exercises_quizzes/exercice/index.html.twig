@@ -4,6 +4,7 @@
 
 {% block stylesheets %}
 {{ parent() }}
+{{ include('exercises_quizzes/_eq_styles.html.twig') }}
 <style>
     .table-vcenter td, .table-vcenter th {
         vertical-align: middle;
@@ -20,11 +21,11 @@
         font-weight: 500;
         letter-spacing: 0.02em;
     }
-    .card-header-flex {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
+    .card-header-flex { display: flex; justify-content: space-between; align-items: center; }
+    .form-control-rounded { border-radius: 50px; border: 1px solid #e2e8f0; }
+    .form-control-rounded:focus { border-color: #206bc4; box-shadow: 0 0 0 0.25rem rgba(32, 107, 196, 0.15); }
+    .sortable { cursor: pointer; }
+    .sortable:hover { background-color: rgba(0,0,0,0.03); }
 </style>
 {% endblock %}
 
@@ -38,39 +39,45 @@
                 </h2>
             </div>
             <div class="col-auto ms-auto">
-                <a href="{{ path('exercice_new') }}" class="btn btn-primary btn-animated">
+                <a href="{{ path('exercice_new') }}" class="btn eq-btn-create">
                     <i class="ti ti-plus me-2"></i> Nouvel exercice
                 </a>
             </div>
         </div>
     </div>
 
-    <div class="card shadow-sm border-0">
-        <div class="card-header bg-light-lt">
-            <div class="row g-2 w-100 align-items-center">
-                <div class="col-md-6">
+    <div class="card eq-index-card shadow-sm">
+        <div class="card-header py-3">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label small text-muted mb-1">Recherche</label>
                     <div class="input-icon">
-                        <span class="input-icon-addon">
-                            <i class="ti ti-search"></i>
-                        </span>
-                        <input type="text" id="search" placeholder="Rechercher une question..." class="form-control form-control-rounded">
+                        <span class="input-icon-addon"><i class="ti ti-search"></i></span>
+                        <input type="text" id="search" placeholder="Question ou type..." class="form-control form-control-rounded ps-5" autocomplete="off">
                     </div>
                 </div>
                 <div class="col-md-3">
+                    <label class="form-label small text-muted mb-1">Source</label>
                     <select id="ai-filter" class="form-select form-control-rounded">
-                        <option value="">Tous les types (IA/Manuel)</option>
-                        <option value="1">✨ IA générée</option>
-                        <option value="0">📝 Création manuelle</option>
+                        <option value="">Tous</option>
+                        <option value="1">✨ IA</option>
+                        <option value="0">📝 Manuel</option>
                     </select>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <button type="button" id="reset-filters" class="btn btn-sm eq-btn-reset">
+                        <i class="ti ti-filter-off me-1"></i> Réinitialiser
+                    </button>
                 </div>
             </div>
         </div>
 
         <div class="table-responsive">
-            <table class="table table-vcenter card-table table-hover" id="exercice-table">
+            <table class="table table-vcenter card-table table-hover eq-table" id="exercice-table">
                 <thead class="bg-light">
                     <tr>
                         <th data-field="id" class="sortable">ID <i class="ti ti-arrows-sort"></i></th>
+                        <th class="text-start">Quiz</th>
                         <th data-field="type" class="sortable">Type <i class="ti ti-arrows-sort"></i></th>
                         <th data-field="question" class="sortable text-start">Question <i class="ti ti-arrows-sort"></i></th>
                         <th data-field="aiGenerated" class="sortable text-center">IA <i class="ti ti-arrows-sort"></i></th>
@@ -93,86 +100,69 @@
 document.addEventListener('DOMContentLoaded', () => {
     let sortField = 'id';
     let sortOrder = 'DESC';
+    let searchTimeout = null;
+    const toggleBaseUrl = '{{ path('exercice_toggle', { id: 0 }) }}'.replace('/0/toggle', '');
+
+    function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s != null ? s : ''; return d.innerHTML; }
 
     function fetchData() {
-        const search = document.getElementById('search').value;
+        const search = document.getElementById('search').value.trim();
         const ai = document.getElementById('ai-filter').value;
-
-        fetch(`{{ path('exercice_ajax_list') }}?search=${encodeURIComponent(search)}&ai=${ai}&sortField=${sortField}&sortOrder=${sortOrder}`)
+        const quizId = new URLSearchParams(window.location.search).get('quiz_id') || '';
+        const params = new URLSearchParams({ search: search, ai: ai, sortField: sortField, sortOrder: sortOrder });
+        if (quizId) params.set('quiz_id', quizId);
+        fetch('{{ path('exercice_ajax_list') }}?' + params.toString())
             .then(res => res.json())
             .then(res => {
                 const tbody = document.querySelector('#exercice-table tbody');
                 tbody.innerHTML = '';
-                document.getElementById('total-count').textContent = `${res.data.length} exercice(s) trouvé(s)`;
+                document.getElementById('total-count').textContent = res.data.length + ' exercice(s)';
 
+                if (res.data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted"><i class="ti ti-mood-empty fs-1 mb-2"></i><p class="mb-0">Aucun exercice trouvé.</p></td></tr>';
+                    return;
+                }
                 res.data.forEach(ex => {
-                    const aiBadge = ex.aiGenerated 
-                        ? '<span class="badge bg-purple-lt status-badge">✨ Oui</span>' 
-                        : '<span class="badge bg-blue-lt status-badge">📝 Non</span>';
-                    
-                    const enabledBtn = `
-                        <button class="btn btn-sm btn-pill toggle-btn ${ex.enabled ? 'btn-success' : 'btn-ghost-secondary'}">
-                            ${ex.enabled ? 'Actif' : 'Inactif'}
-                        </button>
-                    `;
-
-                    tbody.innerHTML += `
-                        <tr data-id="${ex.id}">
-                            <td class="text-muted">#${ex.id}</td>
-                            <td><span class="badge bg-azure-lt">${ex.type}</span></td>
-                            <td class="text-start">
-                                <div class="fw-bold text-dark">${ex.question.substring(0,60)}${ex.question.length>60?'...':''}</div>
-                            </td>
-                            <td class="text-center">${aiBadge}</td>
-                            <td class="text-center">${enabledBtn}</td>
-                            <td class="text-center">
-                                <div class="btn-list justify-content-center">
-                                    <a href="/admin/exercice/${ex.id}/edit" class="btn btn-icon btn-ghost-primary btn-animated" title="Modifier">
-                                        <i class="ti ti-edit"></i>
-                                    </a>
-                                    <a href="/admin/exercice/${ex.id}" class="btn btn-icon btn-ghost-info btn-animated" title="Voir">
-                                        <i class="ti ti-eye"></i>
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
+                    const aiBadge = ex.aiGenerated ? '<span class="badge bg-purple-lt status-badge">✨ Oui</span>' : '<span class="badge bg-blue-lt status-badge">📝 Non</span>';
+                    const enabledBtn = '<button class="btn btn-sm btn-pill toggle-btn ' + (ex.enabled ? 'btn-success' : 'btn-ghost-secondary') + '">' + (ex.enabled ? 'Actif' : 'Inactif') + '</button>';
+                    const quizCell = (ex.quizTitle && ex.quizShowUrl) ? '<a href="' + escapeHtml(ex.quizShowUrl) + '" class="text-reset">' + escapeHtml(ex.quizTitle) + '</a>' : '<span class="text-muted">—</span>';
+                    const q = escapeHtml(ex.question.substring(0, 60) + (ex.question.length > 60 ? '...' : ''));
+                    const row = '<tr data-id="' + ex.id + '"><td class="text-muted">#' + ex.id + '</td><td class="text-start">' + quizCell + '</td><td><span class="badge bg-azure-lt">' + escapeHtml(ex.type) + '</span></td><td class="text-start"><div class="fw-bold text-dark">' + q + '</div></td><td class="text-center">' + aiBadge + '</td><td class="text-center">' + enabledBtn + '</td><td class="text-center"><div class="btn-list justify-content-center"><a href="' + ex.editUrl + '" class="btn btn-icon btn-outline-primary" title="Modifier"><i class="ti ti-edit"></i></a><a href="' + ex.showUrl + '" class="btn btn-icon btn-outline-info" title="Voir"><i class="ti ti-eye"></i></a></div></td></tr>';
+                    tbody.insertAdjacentHTML('beforeend', row);
                 });
-
-                // Toggle enabled logic (existing)
                 document.querySelectorAll('.toggle-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
+                    btn.addEventListener('click', function(e) {
                         e.preventDefault();
-                        const tr = btn.closest('tr');
-                        const id = tr.dataset.id;
-
-                        fetch(`/admin/exercice/${id}/toggle`, {
-                            method: 'POST',
-                            headers: {'X-Requested-With':'XMLHttpRequest'}
-                        }).then(r => r.json())
-                          .then(data => {
-                              btn.textContent = data.enabled ? 'Actif' : 'Inactif';
-                              btn.classList.toggle('btn-success', data.enabled);
-                              btn.classList.toggle('btn-ghost-secondary', !data.enabled);
-                          });
+                        const id = this.closest('tr').dataset.id;
+                        fetch(toggleBaseUrl + '/' + id + '/toggle', { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                            .then(r => r.json())
+                            .then(data => {
+                                this.textContent = data.enabled ? 'Actif' : 'Inactif';
+                                this.classList.toggle('btn-success', data.enabled);
+                                this.classList.toggle('btn-ghost-secondary', !data.enabled);
+                            });
                     });
                 });
             });
     }
 
-    document.getElementById('search').addEventListener('input', fetchData);
+    document.getElementById('search').addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(fetchData, 300);
+    });
     document.getElementById('ai-filter').addEventListener('change', fetchData);
+    document.getElementById('reset-filters').addEventListener('click', () => {
+        document.getElementById('search').value = '';
+        document.getElementById('ai-filter').value = '';
+        fetchData();
+    });
 
     document.querySelectorAll('#exercice-table th.sortable').forEach(th => {
         th.style.cursor = 'pointer';
         th.addEventListener('click', () => {
             const field = th.dataset.field;
-            if (sortField === field) {
-                sortOrder = sortOrder === 'ASC' ? 'DESC' : 'ASC';
-            } else {
-                sortField = field;
-                sortOrder = 'ASC';
-            }
+            sortOrder = (sortField === field && sortOrder === 'ASC') ? 'DESC' : 'ASC';
+            sortField = field;
             fetchData();
         });
     });

@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — LinguaLearn</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --white:      #ffffff;
+            --off-white:  #f7f9fc;
+            --surface:    #eef1f8;
+            --ink:        #0d1526;
+            --ink-soft:   #2c3a52;
+            --muted:      #7a87a0;
+            --border:     #e2e8f2;
+            --blue:       #2563eb;
+            --blue-dark:  #1d4ed8;
+            --blue-bg:    #eff6ff;
+            --blue-mid:   #3b82f6;
+            --green:      #16a34a;
+            --green-bg:   #f0fdf4;
+            --orange:     #ea580c;
+            --orange-bg:  #fff7ed;
+            --violet:     #7c3aed;
+            --violet-bg:  #f5f3ff;
+            --gold:       #ca8a04;
+            --gold-bg:    #fefce8;
+            --sidebar-w:  260px;
+            --radius:     12px;
+            --radius-lg:  20px;
+        }
+
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Sora', sans-serif;
+            background: var(--off-white);
+            color: var(--ink);
+            min-height: 100vh;
+        }
+
+        /* ─── SIDEBAR ─── */
+        .sidebar {
+            position: fixed; top: 0; left: 0; bottom: 0;
+            width: var(--sidebar-w);
+            background: var(--white);
+            border-right: 1px solid var(--border);
+            display: flex; flex-direction: column;
+            z-index: 50;
+            transition: transform .3s ease;
+        }
+
+        .sidebar-logo {
+            padding: 1.5rem 1.5rem 1.25rem;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: .75rem;
+            text-decoration: none;
+        }
+        .sidebar-logo-text {
+            font-family: 'Fraunces', serif; font-size: 1.3rem;
+            font-weight: 400; color: var(--ink); letter-spacing: -.01em;
+        }
+        .sidebar-logo-text span { color: var(--blue); }
+
+        .sidebar-user {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: .85rem;
+        }
+        .user-avatar {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--blue), var(--blue-mid));
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Fraunces', serif; font-size: 1rem; font-weight: 400;
+            color: var(--white); flex-shrink: 0;
+        }
+        .user-avatar.premium {
+            background: linear-gradient(135deg, var(--gold), #fbbf24);
+        }
+        .user-info { flex: 1; min-width: 0; }
+        .user-name {
+            font-size: .85rem; font-weight: 600; color: var(--ink);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .user-plan {
+            font-size: .7rem; font-family: 'DM Mono', monospace;
+            letter-spacing: .08em; text-transform: uppercase;
+            margin-top: .1rem;
+        }
+        .user-plan.free { color: var(--muted); }
+        .user-plan.premium { color: var(--gold); }
+
+        .sidebar-nav { flex: 1; padding: 1rem 0; overflow-y: auto; }
+
+        .nav-section-label {
+            font-family: 'DM Mono', monospace; font-size: .6rem;
+            letter-spacing: .2em; text-transform: uppercase; color: var(--muted);
+            padding: .75rem 1.5rem .35rem; display: block;
+        }
+
+        .nav-item {
+            display: flex; align-items: center; gap: .75rem;
+            padding: .65rem 1.5rem; font-size: .84rem; font-weight: 500;
+            color: var(--muted); text-decoration: none; border-radius: 0;
+            transition: color .2s, background .2s;
+            position: relative;
+        }
+        .nav-item:hover { color: var(--ink); background: var(--off-white); }
+        .nav-item.active {
+            color: var(--blue); background: var(--blue-bg);
+            font-weight: 600;
+        }
+        .nav-item.active::before {
+            content: ''; position: absolute; left: 0; top: 4px; bottom: 4px;
+            width: 3px; background: var(--blue); border-radius: 0 3px 3px 0;
+        }
+        .nav-icon { font-size: 1.1rem; width: 20px; text-align: center; }
+
+        .nav-badge {
+            margin-left: auto; background: var(--blue); color: var(--white);
+            font-size: .62rem; font-weight: 700; padding: .15rem .45rem;
+            border-radius: 100px; font-family: 'DM Mono', monospace;
+        }
+        .nav-badge.orange { background: var(--orange); }
+
+        .sidebar-bottom {
+            padding: 1rem 0;
+            border-top: 1px solid var(--border);
+        }
+
+        /* ─── MAIN ─── */
+        .main {
+            margin-left: var(--sidebar-w);
+            min-height: 100vh;
+            display: flex; flex-direction: column;
+        }
+
+        /* ─── TOPBAR ─── */
+        .topbar {
+            position: sticky; top: 0; z-index: 40;
+            background: rgba(255,255,255,.92);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: .85rem 2rem;
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .topbar-left { display: flex; align-items: center; gap: 1rem; }
+
+        .page-heading { font-family: 'Fraunces', serif; font-size: 1.25rem; font-weight: 400; color: var(--ink); }
+        .page-sub { font-size: .78rem; color: var(--muted); margin-top: .1rem; }
+
+        .topbar-right { display: flex; align-items: center; gap: .75rem; }
+
+        .topbar-btn {
+            width: 38px; height: 38px; border-radius: var(--radius);
+            border: 1.5px solid var(--border); background: transparent;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; position: relative; transition: border-color .2s, background .2s;
+            font-size: 1.1rem; text-decoration: none; color: var(--ink-soft);
+        }
+        .topbar-btn:hover { border-color: var(--blue); background: var(--blue-bg); color: var(--blue); }
+
+        .notif-dot {
+            position: absolute; top: 6px; right: 6px;
+            width: 7px; height: 7px; border-radius: 50%;
+            background: var(--orange); border: 1.5px solid var(--white);
+        }
+
+        .hamburger-btn {
+            display: none; width: 38px; height: 38px; border-radius: var(--radius);
+            border: 1.5px solid var(--border); background: transparent;
+            align-items: center; justify-content: center; cursor: pointer;
+            flex-direction: column; gap: 4px;
+        }
+        .hamburger-btn span { width: 16px; height: 1.5px; background: var(--ink); display: block; border-radius: 2px; }
+
+        /* ─── PAGE CONTENT ─── */
+        .page-content { padding: 2rem; flex: 1; }
+
+        /* ─── PREMIUM BANNER ─── */
+        .premium-banner {
+            background: linear-gradient(135deg, #fefce8, #fef9c3);
+            border: 1.5px solid #fde68a;
+            border-radius: var(--radius-lg);
+            padding: 1.25rem 1.75rem;
+            display: flex; align-items: center; gap: 1.25rem;
+            margin-bottom: 1.75rem;
+        }
+        .premium-banner-icon { font-size: 2rem; flex-shrink: 0; }
+        .premium-banner-text { flex: 1; }
+        .premium-banner-text h4 { font-size: .97rem; font-weight: 600; color: #92400e; margin-bottom: .2rem; }
+        .premium-banner-text p { font-size: .82rem; color: #a16207; }
+        .btn-upgrade {
+            padding: .55rem 1.35rem; border-radius: 100px;
+            background: var(--gold); border: none; color: var(--white);
+            font-family: 'Sora', sans-serif; font-size: .8rem; font-weight: 600;
+            cursor: pointer; text-decoration: none; white-space: nowrap;
+            transition: all .2s; display: inline-block;
+        }
+        .btn-upgrade:hover { background: #a16207; transform: translateY(-1px); }
+
+        /* ─── SECTION HEADING ─── */
+        .section-eyebrow {
+            display: inline-flex; align-items: center; gap: .5rem;
+            font-family: 'DM Mono', monospace; font-size: .6rem;
+            letter-spacing: .2em; text-transform: uppercase;
+            color: var(--blue); margin-bottom: .5rem;
+        }
+        .section-eyebrow::before { content: ''; width: 14px; height: 2px; background: var(--blue); border-radius: 2px; }
+        .section-heading {
+            font-family: 'Fraunces', serif; font-size: 1.4rem;
+            font-weight: 300; color: var(--ink); margin-bottom: 1.25rem;
+        }
+        .section-heading em { font-style: italic; color: var(--blue); }
+
+        /* ─── STAT CARDS ─── */
+        .stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 1.1rem; margin-bottom: 1.75rem; }
+
+        .stat-card {
+            background: var(--white); border: 1.5px solid var(--border);
+            border-radius: var(--radius-lg); padding: 1.4rem 1.5rem;
+            transition: transform .25s, box-shadow .25s, border-color .25s;
+        }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(13,21,38,.08); }
+
+        .stat-card-top {
+            display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;
+        }
+        .stat-label {
+            font-family: 'DM Mono', monospace; font-size: .62rem;
+            letter-spacing: .18em; text-transform: uppercase; color: var(--muted);
+        }
+        .stat-icon {
+            width: 36px; height: 36px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+        }
+        .si-blue   { background: var(--blue-bg); }
+        .si-green  { background: var(--green-bg); }
+        .si-orange { background: var(--orange-bg); }
+        .si-violet { background: var(--violet-bg); }
+
+        .stat-value {
+            font-family: 'Fraunces', serif; font-size: 2rem;
+            font-weight: 300; color: var(--ink); line-height: 1; margin-bottom: .3rem;
+        }
+        .stat-hint { font-size: .74rem; color: var(--muted); }
+        .stat-hint.up { color: var(--green); }
+
+        /* ─── GRID LAYOUT ─── */
+        .dash-grid {
+            display: grid; grid-template-columns: 1fr 360px;
+            gap: 1.25rem; margin-bottom: 1.75rem;
+        }
+
+        .card {
+            background: var(--white); border: 1.5px solid var(--border);
+            border-radius: var(--radius-lg); overflow: hidden;
+        }
+        .card-head {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .card-title {
+            font-family: 'Fraunces', serif; font-size: 1rem;
+            font-weight: 400; color: var(--ink);
+        }
+        .card-title em { font-style: italic; color: var(--blue); }
+        .card-body { padding: 1.5rem; }
+        .card-link {
+            font-size: .78rem; font-weight: 600; color: var(--blue);
+            text-decoration: none; transition: color .2s;
+        }
+        .card-link:hover { color: var(--blue-dark); }
+
+        /* ─── LANGUAGES CARD ─── */
+        .lang-item {
+            display: flex; align-items: center; gap: 1rem;
+            padding: .9rem 0; border-bottom: 1px solid var(--border);
+        }
+        .lang-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .lang-item:first-child { padding-top: 0; }
+
+        .lang-flag-wrap {
+            width: 38px; height: 38px; border-radius: 10px;
+            overflow: hidden; flex-shrink: 0; border: 1.5px solid var(--border);
+            display: flex; align-items: center; justify-content: center; font-size: 1.4rem;
+        }
+        .lang-flag-img { width: 100%; height: 100%; object-fit: cover; }
+
+        .lang-info { flex: 1; min-width: 0; }
+        .lang-name { font-size: .88rem; font-weight: 600; color: var(--ink); }
+        .lang-native { font-size: .68rem; color: var(--gold); font-family: 'DM Mono', monospace; letter-spacing: .08em; }
+
+        .lang-level-col { text-align: right; }
+        .level-pill {
+            display: inline-block; font-family: 'DM Mono', monospace;
+            font-size: .62rem; letter-spacing: .1em; text-transform: uppercase;
+            padding: .22rem .65rem; border-radius: 6px; font-weight: 400;
+        }
+        .lp-a { background: var(--green-bg); color: var(--green); }
+        .lp-b { background: var(--blue-bg);  color: var(--blue); }
+        .lp-c { background: var(--violet-bg); color: var(--violet); }
+        .lp-native { background: var(--gold-bg); color: var(--gold); }
+
+        .lang-empty {
+            text-align: center; padding: 2.5rem 1rem;
+            color: var(--muted); font-size: .85rem;
+        }
+        .lang-empty-icon { font-size: 2.5rem; margin-bottom: .5rem; display: block; }
+
+        /* ─── NOTIFICATIONS ─── */
+        .notif-item {
+            display: flex; gap: .85rem;
+            padding: .9rem 0; border-bottom: 1px solid var(--border);
+        }
+        .notif-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .notif-item:first-child { padding-top: 0; }
+        .notif-item.unread { background: transparent; }
+
+        .notif-dot-indicator {
+            width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px;
+        }
+        .nd-info    { background: var(--blue); }
+        .nd-warning { background: var(--orange); }
+        .nd-success { background: var(--green); }
+        .nd-premium { background: var(--gold); }
+        .nd-system  { background: var(--muted); }
+
+        .notif-content { flex: 1; min-width: 0; }
+        .notif-msg { font-size: .82rem; color: var(--ink-soft); line-height: 1.5; }
+        .notif-msg.unread { font-weight: 500; color: var(--ink); }
+        .notif-time { font-size: .68rem; color: var(--muted); font-family: 'DM Mono', monospace; margin-top: .2rem; }
+
+        .notif-empty {
+            text-align: center; padding: 2rem 1rem;
+            color: var(--muted); font-size: .82rem;
+        }
+
+        /* ─── QUICK ACTIONS ─── */
+        .actions-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 1rem; }
+
+        .action-card {
+            background: var(--off-white); border: 1.5px solid var(--border);
+            border-radius: var(--radius-lg); padding: 1.4rem 1rem;
+            text-align: center; text-decoration: none; color: var(--ink);
+            transition: all .25s; display: flex; flex-direction: column;
+            align-items: center; gap: .6rem;
+        }
+        .action-card:hover {
+            transform: translateY(-4px); border-color: var(--blue);
+            background: var(--blue-bg); box-shadow: 0 8px 24px rgba(37,99,235,.12);
+        }
+        .action-icon {
+            width: 48px; height: 48px; border-radius: var(--radius);
+            display: flex; align-items: center; justify-content: center; font-size: 1.4rem;
+        }
+        .ai-blue   { background: var(--blue-bg); }
+        .ai-green  { background: var(--green-bg); }
+        .ai-orange { background: var(--orange-bg); }
+        .ai-violet { background: var(--violet-bg); }
+        .action-label { font-size: .82rem; font-weight: 600; color: var(--ink); }
+        .action-sub { font-size: .72rem; color: var(--muted); }
+
+        /* ─── SUBSCRIPTION ─── */
+        .sub-card {
+            background: var(--white); border: 1.5px solid var(--border);
+            border-radius: var(--radius-lg);
+        }
+        .sub-inner { padding: 1.5rem; }
+        .sub-badge {
+            display: inline-flex; align-items: center; gap: .4rem;
+            padding: .3rem .85rem; border-radius: 100px;
+            font-size: .72rem; font-weight: 600; letter-spacing: .06em;
+            text-transform: uppercase; font-family: 'DM Mono', monospace;
+            margin-bottom: 1rem;
+        }
+        .sb-free { background: var(--surface); color: var(--muted); }
+        .sb-premium { background: var(--gold-bg); color: var(--gold); }
+        .sb-premium::before { content: '★'; }
+
+        .sub-plan-name {
+            font-family: 'Fraunces', serif; font-size: 1.5rem;
+            font-weight: 300; color: var(--ink); margin-bottom: .35rem;
+        }
+        .sub-expiry { font-size: .8rem; color: var(--muted); margin-bottom: 1.25rem; }
+
+        .sub-features { list-style: none; margin-bottom: 1.5rem; }
+        .sub-features li {
+            font-size: .82rem; color: var(--ink-soft);
+            padding: .3rem 0; display: flex; align-items: center; gap: .5rem;
+        }
+        .sub-features li::before { content: '✓'; color: var(--green); font-weight: 700; font-size: .75rem; }
+        .sub-features li.locked::before { content: '✗'; color: var(--muted); }
+        .sub-features li.locked { color: var(--muted); }
+
+        .btn-full {
+            display: block; width: 100%; padding: .75rem;
+            border-radius: 100px; text-align: center;
+            font-family: 'Sora', sans-serif; font-size: .85rem; font-weight: 600;
+            text-decoration: none; cursor: pointer; border: none;
+            transition: all .2s;
+        }
+        .btn-full-primary { background: var(--blue); color: var(--white); }
+        .btn-full-primary:hover { background: var(--blue-dark); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(37,99,235,.28); }
+        .btn-full-outline {
+            background: transparent; color: var(--ink-soft);
+            border: 1.5px solid var(--border) !important;
+        }
+        .btn-full-outline:hover { border-color: var(--blue) !important; color: var(--blue); }
+
+        /* ─── STATS PROGRESS ─── */
+        .progress-wrap { margin-bottom: 1.1rem; }
+        .progress-top { display: flex; justify-content: space-between; margin-bottom: .4rem; }
+        .progress-label { font-size: .8rem; font-weight: 500; color: var(--ink-soft); }
+        .progress-val { font-family: 'DM Mono', monospace; font-size: .72rem; color: var(--muted); }
+        .progress-bar { height: 6px; background: var(--border); border-radius: 6px; overflow: hidden; }
+        .progress-fill { height: 100%; border-radius: 6px; transition: width 1.2s ease; }
+        .pf-blue { background: linear-gradient(90deg, var(--blue), var(--blue-mid)); }
+        .pf-green { background: linear-gradient(90deg, var(--green), #4ade80); }
+        .pf-orange { background: linear-gradient(90deg, var(--orange), #fb923c); }
+
+        /* ─── ACCOUNT ROW ─── */
+        .account-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: .8rem 0; border-bottom: 1px solid var(--border);
+        }
+        .account-row:last-child { border-bottom: none; }
+        .account-label { font-size: .78rem; color: var(--muted); }
+        .account-value { font-size: .85rem; font-weight: 500; color: var(--ink); }
+        .status-active { color: var(--green); font-weight: 600; }
+        .status-suspended { color: var(--orange); font-weight: 600; }
+
+        /* ─── BOTTOM ROW ─── */
+        .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 1200px) {
+            .stats-grid { grid-template-columns: repeat(2,1fr); }
+            .dash-grid { grid-template-columns: 1fr; }
+            .actions-grid { grid-template-columns: repeat(2,1fr); }
+        }
+        @media (max-width: 768px) {
+            :root { --sidebar-w: 0px; }
+            .sidebar { transform: translateX(-260px); width: 260px; }
+            .sidebar.open { transform: translateX(0); }
+            .main { margin-left: 0; }
+            .hamburger-btn { display: flex; }
+            .page-content { padding: 1.25rem; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .bottom-grid { grid-template-columns: 1fr; }
+            .topbar { padding: .75rem 1.25rem; }
+        }
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .actions-grid { grid-template-columns: 1fr 1fr; }
+            .premium-banner { flex-direction: column; text-align: center; }
+        }
+
+        /* ─── OVERLAY ─── */
+        .sidebar-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(13,21,38,.4); z-index: 45;
+        }
+        .sidebar-overlay.visible { display: block; }
+
+        /* ─── REVEAL ─── */
+        .reveal { opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease; }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+        .d1{transition-delay:.08s} .d2{transition-delay:.16s} .d3{transition-delay:.24s} .d4{transition-delay:.32s}
+    </style>
+</head>
+<body>
+
+{# ─── SIDEBAR ─── #}
+<aside class="sidebar" id="sidebar">
+    <a href="{{ path('app_homepage') }}" class="sidebar-logo">
+        <div class="sidebar-logo-text">Lingua<span>Learn</span></div>
+    </a>
+
+    <div class="sidebar-user">
+        <div class="user-avatar {{ user.isPremium ? 'premium' : '' }}">
+            {{ user.firstName|first|upper }}{{ user.lastName|first|upper }}
+        </div>
+        <div class="user-info">
+            <div class="user-name">{{ user.fullName }}</div>
+            <div class="user-plan {{ user.isPremium ? 'premium' : 'free' }}">
+                {{ user.isPremium ? '★ ' ~ user.subscriptionPlan : 'Free Plan' }}
+            </div>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <span class="nav-section-label">Main</span>
+        <a href="{{ path('user_dashboard') }}" class="nav-item active">
+            <span class="nav-icon">⊞</span> Dashboard
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">📚</span> My Courses
+            <span class="nav-badge">0</span>
+        </a>
+        <a href="{{ path('learn_practice') }}" class="nav-item">
+            <span class="nav-icon">🧩</span> Practice
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">📝</span> Mock Tests
+        </a>
+
+        <span class="nav-section-label">Account</span>
+        <a href="{{ path('user_profile') }}" class="nav-item">
+            <span class="nav-icon">👤</span> My Profile
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">🔔</span> Notifications
+            {% set unread = 0 %}
+            {% for n in user.notifications %}
+                {% if not n.isRead %}{% set unread = unread + 1 %}{% endif %}
+            {% endfor %}
+            {% if unread > 0 %}
+                <span class="nav-badge orange">{{ unread }}</span>
+            {% endif %}
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">👑</span> Subscription
+        </a>
+
+        <span class="nav-section-label">System</span>
+        <a href="{{ path('app_logout') }}" class="nav-item">
+            <span class="nav-icon">→</span> Log Out
+        </a>
+    </nav>
+</aside>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+{# ─── MAIN ─── #}
+<div class="main">
+
+    {# Topbar #}
+    <header class="topbar">
+        <div class="topbar-left">
+            <button class="hamburger-btn" id="hamburgerBtn" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
+            <div>
+                <div class="page-heading">Welcome back, {{ user.firstName }} 👋</div>
+                <div class="page-sub">{{ "now"|date("l, F j, Y") }}</div>
+            </div>
+        </div>
+        <div class="topbar-right">
+            <a href="#" class="topbar-btn" title="Notifications">
+                🔔
+                {% set unread = 0 %}
+                {% for n in user.notifications %}
+                    {% if not n.isRead %}{% set unread = unread + 1 %}{% endif %}
+                {% endfor %}
+                {% if unread > 0 %}<span class="notif-dot"></span>{% endif %}
+            </a>
+            <a href="{{ path('user_profile') }}" class="topbar-btn" title="My Profile">👤</a>
+        </div>
+    </header>
+
+    {# Page Content #}
+    <main class="page-content">
+
+        {# Premium Upgrade Banner — only for free users #}
+        {% if not user.isPremium %}
+            <div class="premium-banner reveal">
+                <div class="premium-banner-icon">👑</div>
+                <div class="premium-banner-text">
+                    <h4>Unlock your full potential with Premium</h4>
+                    <p>Access all courses, unlimited practice, mock tests, and priority support.</p>
+                </div>
+                <a href="#" class="btn-upgrade">Upgrade Now</a>
+            </div>
+        {% endif %}
+
+        {# Stats Row #}
+        <div class="section-eyebrow">Learning Overview</div>
+        <div class="stats-grid">
+            <div class="stat-card reveal">
+                <div class="stat-card-top">
+                    <span class="stat-label">Words Learned</span>
+                    <div class="stat-icon si-blue">📖</div>
+                </div>
+                <div class="stat-value">{{ user.learningStats ? user.learningStats.wordsLearned : 0 }}</div>
+                <div class="stat-hint">vocabulary built</div>
+            </div>
+            <div class="stat-card reveal d1">
+                <div class="stat-card-top">
+                    <span class="stat-label">Total XP</span>
+                    <div class="stat-icon si-orange">⚡</div>
+                </div>
+                <div class="stat-value">{{ user.learningStats ? user.learningStats.totalXP : 0 }}</div>
+                <div class="stat-hint">experience points</div>
+            </div>
+            <div class="stat-card reveal d2">
+                <div class="stat-card-top">
+                    <span class="stat-label">Study Time</span>
+                    <div class="stat-icon si-green">⏱</div>
+                </div>
+                <div class="stat-value">{{ user.learningStats ? user.learningStats.totalMinutesStudied : 0 }}</div>
+                <div class="stat-hint">minutes total</div>
+            </div>
+            <div class="stat-card reveal d3">
+                <div class="stat-card-top">
+                    <span class="stat-label">Languages</span>
+                    <div class="stat-icon si-violet">🌍</div>
+                </div>
+                <div class="stat-value">{{ user.userLanguages|length }}</div>
+                <div class="stat-hint">enrolled</div>
+            </div>
+        </div>
+
+        {# Main Grid — Languages + Notifications #}
+        <div class="dash-grid">
+
+            {# My Languages #}
+            <div class="card reveal">
+                <div class="card-head">
+                    <div class="card-title">My <em>Languages</em></div>
+                    <a href="{{ path('user_profile') }}" class="card-link">Manage →</a>
+                </div>
+                <div class="card-body">
+                    {% if user.userLanguages|length > 0 %}
+                        {% for ul in user.userLanguages %}
+                            {% set code = ul.language.code|lower %}
+                            {% set level = ul.proficiencyLevel|upper %}
+                            <div class="lang-item">
+                                <div class="lang-flag-wrap">
+                                    {{ ul.language.code|upper }}
+                                </div>
+                                <div class="lang-info">
+                                    <div class="lang-name">{{ ul.language.name }}</div>
+                                    {% if ul.isNative %}
+                                        <div class="lang-native">★ Native</div>
+                                    {% endif %}
+                                </div>
+                                <div class="lang-level-col">
+                                    {% if ul.isNative %}
+                                        <span class="level-pill lp-native">Native</span>
+                                    {% elseif level starts with 'A' %}
+                                        <span class="level-pill lp-a">{{ level }}</span>
+                                    {% elseif level starts with 'B' %}
+                                        <span class="level-pill lp-b">{{ level }}</span>
+                                    {% else %}
+                                        <span class="level-pill lp-c">{{ level }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="lang-empty">
+                            <span class="lang-empty-icon">🌍</span>
+                            No languages added yet.<br>
+                            <a href="{{ path('user_profile') }}" style="color:var(--blue);font-weight:600;">Add your first language →</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# Notifications #}
+            <div class="card reveal d1">
+                <div class="card-head">
+                    <div class="card-title">Notifications</div>
+                    <a href="#" class="card-link">Mark all read</a>
+                </div>
+                <div class="card-body">
+                    {% set recentNotifs = user.notifications|slice(0, 6) %}
+                    {% if recentNotifs|length > 0 %}
+                        {% for n in recentNotifs %}
+                            <div class="notif-item {{ not n.isRead ? 'unread' : '' }}">
+                                <div class="notif-dot-indicator nd-{{ n.type }}"></div>
+                                <div class="notif-content">
+                                    <div class="notif-msg {{ not n.isRead ? 'unread' : '' }}">{{ n.message }}</div>
+                                    <div class="notif-time">{{ n.createdAt|date('M j · H:i') }}</div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="notif-empty">
+                            <div style="font-size:1.75rem;margin-bottom:.5rem;">🔔</div>
+                            You're all caught up!
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {# Quick Actions #}
+        <div class="section-eyebrow">Quick Actions</div>
+        <div class="card reveal" style="margin-bottom:1.75rem;">
+            <div class="card-body">
+                <div class="actions-grid">
+                    <a href="#" class="action-card">
+                        <div class="action-icon ai-blue">📚</div>
+                        <div class="action-label">Browse Courses</div>
+                        <div class="action-sub">Find your next lesson</div>
+                    </a>
+                    <a href="{{ path('learn_practice') }}" class="action-card">
+                        <div class="action-icon ai-green">🧩</div>
+                        <div class="action-label">Practice Now</div>
+                        <div class="action-sub">Daily exercises</div>
+                    </a>
+                    <a href="#" class="action-card {{ not user.isPremium ? 'locked' : '' }}">
+                        <div class="action-icon ai-orange">📝</div>
+                        <div class="action-label">Mock Test</div>
+                        <div class="action-sub">{{ user.isPremium ? 'CEFR preparation' : 'Premium only' }}</div>
+                    </a>
+                    <a href="{{ path('user_profile') }}" class="action-card">
+                        <div class="action-icon ai-violet">👤</div>
+                        <div class="action-label">Edit Profile</div>
+                        <div class="action-sub">Update your info</div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {# Bottom Row — Subscription + Account #}
+        <div class="bottom-grid">
+
+            {# Subscription #}
+            <div class="sub-card reveal">
+                <div class="card-head">
+                    <div class="card-title">My <em>Subscription</em></div>
+                </div>
+                <div class="sub-inner">
+                    <div class="sub-badge {{ user.isPremium ? 'sb-premium' : 'sb-free' }}">
+                        {{ user.isPremium ? user.subscriptionPlan : 'Free' }}
+                    </div>
+                    <div class="sub-plan-name">{{ user.isPremium ? user.subscriptionPlan|capitalize ~ ' Plan' : 'Free Account' }}</div>
+                    <div class="sub-expiry">
+                        {% if user.isPremium and user.subscriptionExpiry %}
+                            Renews {{ user.subscriptionExpiry|date('F j, Y') }}
+                        {% elseif user.isPremium %}
+                            Active subscription
+                        {% else %}
+                            Limited access · Upgrade to unlock all features
+                        {% endif %}
+                    </div>
+                    <ul class="sub-features">
+                        <li>Access to free courses</li>
+                        <li>Basic vocabulary practice</li>
+                        <li class="{{ not user.isPremium ? 'locked' : '' }}">All premium courses</li>
+                        <li class="{{ not user.isPremium ? 'locked' : '' }}">Mock test access</li>
+                        <li class="{{ not user.isPremium ? 'locked' : '' }}">AI conversation practice</li>
+                    </ul>
+                    {% if not user.isPremium %}
+                        <a href="#" class="btn-full btn-full-primary">👑 Upgrade to Premium</a>
+                    {% else %}
+                        <a href="#" class="btn-full btn-full-outline">Manage Subscription</a>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# Account Info #}
+            <div class="card reveal d1">
+                <div class="card-head">
+                    <div class="card-title">Account <em>Info</em></div>
+                    <a href="{{ path('user_profile') }}" class="card-link">Edit →</a>
+                </div>
+                <div class="card-body">
+                    <div class="account-row">
+                        <span class="account-label">Full Name</span>
+                        <span class="account-value">{{ user.fullName }}</span>
+                    </div>
+                    <div class="account-row">
+                        <span class="account-label">Email</span>
+                        <span class="account-value">{{ user.email }}</span>
+                    </div>
+                    <div class="account-row">
+                        <span class="account-label">Member Since</span>
+                        <span class="account-value">{{ user.createdAt ? user.createdAt|date('M j, Y') : 'N/A' }}</span>
+                    </div>
+                    <div class="account-row">
+                        <span class="account-label">Account Status</span>
+                        <span class="account-value status-{{ user.status }}">
+                            {{ user.status|capitalize }}
+                        </span>
+                    </div>
+                    <div class="account-row">
+                        <span class="account-label">Last Study</span>
+                        <span class="account-value">
+                            {{ user.learningStats and user.learningStats.lastStudySession
+                            ? user.learningStats.lastStudySession|date('M j, Y')
+                            : 'Not started yet' }}
+                        </span>
+                    </div>
+
+                    {% if user.learningStats %}
+                        <div style="margin-top:1.25rem;">
+                            <div class="progress-wrap">
+                                <div class="progress-top">
+                                    <span class="progress-label">Words Learned</span>
+                                    <span class="progress-val">{{ user.learningStats.wordsLearned }}</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill pf-blue"
+                                         style="width: {{ min(user.learningStats.wordsLearned / 10, 100) }}%">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="progress-wrap">
+                                <div class="progress-top">
+                                    <span class="progress-label">Total XP</span>
+                                    <span class="progress-val">{{ user.learningStats.totalXP }}</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill pf-orange" style="width:{{ min(user.learningStats.totalXP / 20, 100) }}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<script>
+    // Sidebar toggle on mobile
+    const sidebar  = document.getElementById('sidebar');
+    const overlay  = document.getElementById('sidebarOverlay');
+    const hamburger = document.getElementById('hamburgerBtn');
+
+    hamburger.addEventListener('click', () => {
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('visible');
+    });
+    overlay.addEventListener('click', () => {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('visible');
+    });
+
+    // Scroll reveal
+    const ro = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+            if (e.isIntersecting) { e.target.classList.add('visible'); ro.unobserve(e.target); }
+        });
+    }, { threshold: 0.06 });
+    document.querySelectorAll('.reveal').forEach(el => ro.observe(el));
+</script>
+</body>
+</html>

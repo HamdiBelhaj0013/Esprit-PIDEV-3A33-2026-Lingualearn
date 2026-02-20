@@ -1,0 +1,91 @@
+{% extends 'layouts/user.html.twig' %}
+
+{% block title %}Practice — Choisir un quiz{% endblock %}
+{% block page_title %}Practice — Quiz{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ include('exercises_quizzes/_eq_styles.html.twig') }}
+    <style>
+        .eq-practice-page { max-width: 820px; margin: 0 auto; }
+        .eq-practice-intro { margin-bottom: 1.5rem; padding: 1.25rem; background: linear-gradient(135deg, var(--eq-primary-lt) 0%, #f8fafc 100%); border-radius: var(--eq-radius); border: 1px solid rgba(32, 107, 196, 0.1); }
+        .eq-practice-card { margin-bottom: 1rem; border-radius: var(--eq-radius); box-shadow: var(--eq-shadow); border: 1px solid #e2e8f0; overflow: hidden; transition: var(--eq-transition); }
+        .eq-practice-card:hover { box-shadow: var(--eq-shadow-hover); }
+        .eq-practice-card .card-body { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+        .eq-practice-meta { font-size: 0.8rem; color: #64748b; }
+        .eq-practice-score { font-weight: 700; font-size: 1.1rem; }
+        .eq-practice-score.passed { color: var(--eq-success); }
+        .eq-practice-score.pending { color: #64748b; }
+        .eq-practice-score.failed { color: var(--eq-danger); }
+        .eq-practice-empty { text-align: center; padding: 3rem 1.5rem; color: #64748b; }
+        .eq-quiz-badge { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--eq-primary); }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="ll-page-body">
+    <div class="container py-4">
+        <div class="eq-practice-page">
+            <div class="eq-practice-intro">
+                <h2 class="h4 mb-2"><i class="ti ti-clipboard-list me-2"></i>Choisir un quiz</h2>
+                <p class="mb-0 text-muted small">Cliquez sur un quiz ci-dessous pour le passer. Chaque quiz est lié à une leçon. Vous voyez ici les quiz créés pour vos langues ; votre meilleur score est enregistré.</p>
+            </div>
+
+            {% if items is empty %}
+                <div class="eq-practice-empty eq-card card">
+                    <div class="card-body">
+                        <p class="mb-2">Aucun quiz disponible pour le moment.</p>
+                        <p class="small text-muted mb-3">Inscrivez-vous à une langue. Les quiz sont créés dans le back-office et rattachés aux leçons. Chaque quiz doit avoir <strong>au moins un exercice activé</strong> (Admin → Exercices → cocher « Activé ») pour apparaître ici et être passable.</p>
+                        <a href="{{ path('language_select') }}" class="btn eq-btn-primary eq-btn">Voir mes langues</a>
+                    </div>
+                </div>
+            {% else %}
+                <p class="eq-quiz-badge mb-2">{{ items|length }} quiz disponible(s)</p>
+                {% for item in items %}
+                    <div class="eq-practice-card card">
+                        <div class="card-body">
+                            <div class="flex-grow-1 min-w-0">
+                                <h3 class="h6 mb-1">{{ item.quiz.title }}</h3>
+                                <p class="eq-practice-meta mb-1">
+                                    {% if item.lesson and item.course and item.language %}
+                                        Associé à la leçon : <strong>{{ item.lesson.title }}</strong> · {{ item.course.title }} ({{ item.language.name }})
+                                    {% else %}
+                                        <span class="text-warning">Non associé à une leçon — Associez une leçon dans le back-office pour pouvoir passer ce quiz.</span>
+                                    {% endif %}
+                                </p>
+                                <p class="eq-practice-meta mb-0">
+                                    {{ item.exerciseCount }} question(s) · Score minimum pour réussir : {{ item.quiz.passingScore }} %
+                                    {% if item.playable %}
+                                        {% if item.hasAttempted %}
+                                            · <span class="eq-practice-score {{ (item.lastScore ?? item.bestScore) >= item.quiz.passingScore ? 'passed' : 'failed' }}">Dernier score : {{ item.lastScore ?? item.bestScore }} %</span>
+                                            · <span class="eq-practice-score {{ item.passed ? 'passed' : 'failed' }}">Meilleur score : {{ item.bestScore }} %</span>
+                                        {% else %}
+                                            · <span class="eq-practice-score pending">Pas encore passé</span>
+                                        {% endif %}
+                                    {% else %}
+                                        {% if not item.lesson %}
+                                            · <span class="eq-practice-score pending">Indisponible (pas de leçon)</span>
+                                        {% elseif item.exerciseCount == 0 %}
+                                            · <span class="eq-practice-score pending">Activez des exercices dans le back-office</span>
+                                        {% endif %}
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                                {% if item.playable %}
+                                    <a href="{{ path('learn_lesson_quiz_play', { id: item.lesson.id }) }}" class="btn eq-btn-primary eq-btn" title="Passer ce quiz">
+                                        {{ item.hasAttempted ? 'Rejouer le quiz' : 'Commencer le quiz' }} <i class="ti ti-arrow-right ms-1"></i>
+                                    </a>
+                                    <a href="{{ path('lesson_show', { id: item.lesson.id }) }}" class="btn eq-btn-outline eq-btn btn-sm" title="Voir le contenu de la leçon">Voir la leçon</a>
+                                {% else %}
+                                    <span class="btn btn-ghost-secondary btn-sm disabled" title="Configurez ce quiz dans le back-office">Non disponible</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

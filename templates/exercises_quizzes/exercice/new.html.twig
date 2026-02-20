@@ -1,8 +1,14 @@
+<<<<<<< Updated upstream
 {# templates/exercises_quizzes/exercice/new.html.twig #}
 {% extends 'base.html.twig' %}
+=======
+{% extends 'layouts/admin.html.twig' %}
+>>>>>>> Stashed changes
 
 {% block title %}Créer un exercice{% endblock %}
+{% block page_title %}Nouvel exercice{% endblock %}
 
+<<<<<<< Updated upstream
 {% block body %}
     <h1>Créer un exercice</h1>
 
@@ -13,3 +19,24 @@
         Retour à la liste
     </a>
 {% endblock %}
+=======
+{% block breadcrumb %}
+<ol class="breadcrumb breadcrumb-arrows" aria-label="breadcrumbs">
+    <li class="breadcrumb-item"><a href="{{ path('admin_dashboard') }}">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="{{ path('exercice_index') }}">Exercices</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Créer</li>
+</ol>
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+{{ include('exercises_quizzes/_eq_styles.html.twig') }}
+{% endblock %}
+
+{% block content %}
+<div class="eq-page-wrap">
+    <h2 class="eq-page-title"><i class="ti ti-puzzle me-2"></i>Créer un exercice</h2>
+    {% include 'exercises_quizzes/exercice/_form.html.twig' with {'form': form, 'is_edit': false} %}
+</div>
+{% endblock %}
+>>>>>>> Stashed changes

@@ -1,0 +1,70 @@
+{% extends 'layouts/user.html.twig' %}
+
+{% block title %}{{ quiz.title }} — {{ lesson.title }}{% endblock %}
+{% block page_title %}Quiz : {{ quiz.title }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ include('exercises_quizzes/_eq_styles.html.twig') }}
+    <style>
+        .eq-learn-card { max-width: 720px; margin: 0 auto; }
+        .eq-exercice-block { margin-bottom: 1.5rem; padding: 1.25rem; background: #fff; border-radius: var(--eq-radius-sm); border: 1px solid #e2e8f0; }
+        .eq-exercice-block label.option { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.65rem 0.85rem; border-radius: 8px; cursor: pointer; transition: var(--eq-transition); }
+        .eq-exercice-block label.option:hover { background: var(--eq-primary-lt); }
+        .eq-exercice-block input[type="radio"] { margin-top: 0.25rem; }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="ll-page-body">
+    <div class="container py-4">
+        <div class="eq-learn-card eq-card card">
+            <div class="card-header">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <h2 class="card-title mb-0"><i class="ti ti-clipboard-list me-2"></i>{{ quiz.title }}</h2>
+                    <div class="d-flex gap-2">
+                        <a href="{{ path('learn_practice') }}" class="btn btn-ghost-secondary btn-sm">
+                            <i class="ti ti-arrow-left me-1"></i> Retour aux quiz
+                        </a>
+                        <a href="{{ path('lesson_show', { id: lesson.id }) }}" class="btn btn-ghost-secondary btn-sm">
+                            Voir la leçon
+                        </a>
+                    </div>
+                </div>
+                {% if quiz.description %}
+                    <p class="mb-0 mt-2 text-muted small">{{ quiz.description }}</p>
+                {% endif %}
+                <p class="mb-0 mt-1 small"><strong>{{ exercices|length }}</strong> question(s) — Score minimum pour réussir : <strong>{{ quiz.passingScore }} %</strong></p>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ path('learn_lesson_quiz_submit', { id: lesson.id }) }}" class="eq-form">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('learn_quiz_submit') }}">
+                    {% for exercice in exercices %}
+                        <div class="eq-exercice-block">
+                            <p class="fw-bold text-dark mb-3"><span class="text-primary">Q{{ loop.index }}.</span> {{ exercice.question }}</p>
+                            {% if exercice.type == 'multiple_choice' and exercice.options is defined and exercice.options|length > 0 %}
+                                <div class="ps-2">
+                                    {% for option in exercice.options %}
+                                        <label class="option">
+                                            <input type="radio" name="answers[{{ exercice.id }}]" value="{{ option }}" required>
+                                            <span>{{ option }}</span>
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <input type="text" name="answers[{{ exercice.id }}]" class="form-control" placeholder="Votre réponse" required>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                        <a href="{{ path('lesson_show', { id: lesson.id }) }}" class="btn eq-btn-outline eq-btn">Annuler</a>
+                        <button type="submit" class="btn eq-btn-primary eq-btn">
+                            <i class="ti ti-send me-2"></i> Valider le quiz
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

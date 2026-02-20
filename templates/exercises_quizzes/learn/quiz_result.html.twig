@@ -1,0 +1,46 @@
+{% extends 'layouts/user.html.twig' %}
+
+{% block title %}Résultat du quiz — {{ lesson.title }}{% endblock %}
+{% block page_title %}Résultat du quiz{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ include('exercises_quizzes/_eq_styles.html.twig') }}
+    <style>
+        .eq-result-card { max-width: 480px; margin: 0 auto; text-align: center; }
+        .eq-result-score { font-size: 3rem; font-weight: 800; line-height: 1; margin: 1rem 0; }
+        .eq-result-score.passed { color: var(--eq-success); }
+        .eq-result-score.failed { color: var(--eq-danger); }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="ll-page-body">
+    <div class="container py-4">
+        <div class="eq-result-card eq-card card">
+            <div class="card-body py-5">
+                {% if result.passed %}
+                    <div class="text-success mb-2"><i class="ti ti-circle-check" style="font-size: 3rem;"></i></div>
+                    <h3 class="h4 text-success mb-2">Quiz réussi</h3>
+                {% else %}
+                    <div class="text-danger mb-2"><i class="ti ti-circle-x" style="font-size: 3rem;"></i></div>
+                    <h3 class="h4 text-danger mb-2">Quiz non réussi</h3>
+                {% endif %}
+                <p class="eq-result-score {{ result.passed ? 'passed' : 'failed' }}">{{ result.score }} %</p>
+                <p class="text-muted mb-0">{{ result.correct }} bonne(s) réponse(s) sur {{ result.total }}. Score minimum requis : {{ result.passingScore }} %.</p>
+                <div class="mt-4 d-flex flex-wrap gap-2 justify-content-center">
+                    <a href="{{ path('learn_practice') }}" class="btn eq-btn-primary eq-btn">
+                        <i class="ti ti-arrow-left me-2"></i> Retour aux quiz
+                    </a>
+                    <a href="{{ path('learn_lesson_quiz_play', { id: lesson.id }) }}" class="btn eq-btn-outline eq-btn">
+                        <i class="ti ti-refresh me-2"></i> Rejouer ce quiz
+                    </a>
+                    <a href="{{ path('lesson_show', { id: lesson.id }) }}" class="btn eq-btn-outline eq-btn btn-sm">
+                        Voir la leçon
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

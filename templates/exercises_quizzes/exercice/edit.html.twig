@@ -1,8 +1,14 @@
+<<<<<<< Updated upstream
 {# templates/exercises_quizzes/exercice/edit.html.twig #}
 {% extends 'base.html.twig' %}
+=======
+{% extends 'layouts/admin.html.twig' %}
+>>>>>>> Stashed changes
 
 {% block title %}Modifier l'exercice{% endblock %}
+{% block page_title %}Modifier l'exercice{% endblock %}
 
+<<<<<<< Updated upstream
 {% block body %}
     <h1>Modifier l'exercice</h1>
 
@@ -13,3 +19,25 @@
         Retour à la liste
     </a>
 {% endblock %}
+=======
+{% block breadcrumb %}
+<ol class="breadcrumb breadcrumb-arrows" aria-label="breadcrumbs">
+    <li class="breadcrumb-item"><a href="{{ path('admin_dashboard') }}">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="{{ path('exercice_index') }}">Exercices</a></li>
+    <li class="breadcrumb-item"><a href="{{ path('exercice_show', { id: exercice.id }) }}">#{{ exercice.id }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Modifier</li>
+</ol>
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+{{ include('exercises_quizzes/_eq_styles.html.twig') }}
+{% endblock %}
+
+{% block content %}
+<div class="eq-page-wrap">
+    <h2 class="eq-page-title"><i class="ti ti-edit me-2"></i>Modifier l'exercice #{{ exercice.id }}</h2>
+    {% include 'exercises_quizzes/exercice/_form.html.twig' with {'form': form, 'is_edit': true} %}
+</div>
+{% endblock %}
+>>>>>>> Stashed changes
