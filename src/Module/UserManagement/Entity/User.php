@@ -88,7 +88,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $lastName = null;
 
     // =========================================================
-    // EMAIL VERIFICATION  (new fields)
+    // EMAIL VERIFICATION
     // =========================================================
     /** Whether the user has clicked the link in their verification email */
     #[ORM\Column(options: ['default' => false])]
@@ -103,7 +103,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?\DateTimeInterface $emailVerificationTokenExpiresAt = null;
 
     // =========================================================
-    // PASSWORD RESET  (new fields)
+    // PASSWORD RESET
     // =========================================================
     /** Random hex token included in the reset link */
     #[ORM\Column(length: 100, nullable: true)]
@@ -114,7 +114,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?\DateTimeInterface $passwordResetTokenExpiresAt = null;
 
     // =========================================================
-    // STRIPE PAYMENT  (new fields)
+    // STRIPE PAYMENT
     // =========================================================
     /** Stripe Customer ID — created once per user on first checkout */
     #[ORM\Column(length: 100, nullable: true)]
@@ -125,7 +125,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $stripeSubscriptionId = null;
 
     // =========================================================
-    // RELATIONS  (unchanged)
+    // RELATIONS
     // =========================================================
     #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
     #[Groups(['stats:read'])]
@@ -154,7 +154,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     // =========================================================
-    // CORE GETTERS / SETTERS  (unchanged from original)
+    // CORE GETTERS / SETTERS
     // =========================================================
     public function getId(): ?int { return $this->id; }
 
@@ -277,7 +277,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     // =========================================================
-    // EMAIL VERIFICATION METHODS  (new)
+    // EMAIL VERIFICATION METHODS
     // =========================================================
     public function isVerified(): bool { return $this->isVerified; }
     public function setIsVerified(bool $isVerified): static
@@ -312,7 +312,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     // =========================================================
-    // PASSWORD RESET METHODS  (new)
+    // PASSWORD RESET METHODS
     // =========================================================
     public function getPasswordResetToken(): ?string { return $this->passwordResetToken; }
     public function setPasswordResetToken(?string $token): static
@@ -340,7 +340,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     // =========================================================
-    // STRIPE PAYMENT METHODS  (new)
+    // STRIPE PAYMENT METHODS
     // =========================================================
     public function getStripeCustomerId(): ?string { return $this->stripeCustomerId; }
     public function setStripeCustomerId(?string $id): static { $this->stripeCustomerId = $id; return $this; }
