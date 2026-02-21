@@ -79,8 +79,9 @@ class UserService
 
     public function upgradeToPremium(User $user, string $plan, \DateTimeInterface $expiryDate): void
     {
-        $user->setSubscriptionPlan($plan);
+        // Set expiry FIRST so updatePremiumStatus() inside setSubscriptionPlan() has it available
         $user->setSubscriptionExpiry($expiryDate);
+        $user->setSubscriptionPlan($plan);
         $user->setPremium(true);
         $user->setLastPaymentStatus('success');
         $this->entityManager->flush();

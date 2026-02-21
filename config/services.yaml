@@ -56,6 +56,20 @@ services:
         arguments:
             $mailerFrom: '%env(MAILER_FROM)%'
 
+    # =========================================================
+    # STRIPE PAYMENT
+    # =========================================================
+
+    App\Module\UserManagement\Service\StripeService:
+        arguments:
+            $priceMonthly: '%env(STRIPE_PRICE_MONTHLY)%'
+            $priceYearly:  '%env(STRIPE_PRICE_YEARLY)%'
+
+    App\Module\UserManagement\Controller\StripeWebhookController:
+        arguments:
+            $webhookSecret: '%env(STRIPE_WEBHOOK_SECRET)%'
+        tags: ['controller.service_arguments']
+
     # Security - Admin Access Event Subscriber (prevents unauthorized admin access)
     # DISABLED - File renamed to .DISABLED
     # App\EventSubscriber\AdminAccessSubscriber:

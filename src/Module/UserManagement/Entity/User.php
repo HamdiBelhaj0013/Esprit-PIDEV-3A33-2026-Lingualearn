@@ -114,6 +114,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?\DateTimeInterface $passwordResetTokenExpiresAt = null;
 
     // =========================================================
+    // STRIPE PAYMENT  (new fields)
+    // =========================================================
+    /** Stripe Customer ID — created once per user on first checkout */
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $stripeCustomerId = null;
+
+    /** Stripe Subscription ID — set after checkout.session.completed webhook */
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $stripeSubscriptionId = null;
+
+    // =========================================================
     // RELATIONS  (unchanged)
     // =========================================================
     #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
@@ -327,4 +338,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             && $this->passwordResetTokenExpiresAt !== null
             && $this->passwordResetTokenExpiresAt > new \DateTime();
     }
+
+    // =========================================================
+    // STRIPE PAYMENT METHODS  (new)
+    // =========================================================
+    public function getStripeCustomerId(): ?string { return $this->stripeCustomerId; }
+    public function setStripeCustomerId(?string $id): static { $this->stripeCustomerId = $id; return $this; }
+
+    public function getStripeSubscriptionId(): ?string { return $this->stripeSubscriptionId; }
+    public function setStripeSubscriptionId(?string $id): static { $this->stripeSubscriptionId = $id; return $this; }
 }

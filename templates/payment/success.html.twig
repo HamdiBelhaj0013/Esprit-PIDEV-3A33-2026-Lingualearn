@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Premium — LinguaLearn</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --white: #ffffff; --off-white: #f7f9fc; --ink: #0d1526; --muted: #7a87a0;
+            --border: #e2e8f2; --blue: #2563eb; --blue-bg: #eff6ff;
+            --gold: #ca8a04; --gold-light: #fbbf24; --gold-bg: #fefce8;
+            --green: #16a34a; --green-bg: #f0fdf4; --radius: 12px; --radius-lg: 20px;
+        }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Sora', sans-serif; background: var(--off-white);
+            color: var(--ink); min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            padding: 2rem;
+        }
+
+        .success-card {
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 3.5rem 3rem;
+            max-width: 520px; width: 100%;
+            text-align: center;
+            position: relative; overflow: hidden;
+        }
+
+        /* Gold top accent */
+        .success-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+            background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold));
+        }
+
+        /* Confetti dots background */
+        .success-card::after {
+            content: ''; position: absolute; inset: 0;
+            background-image:
+                radial-gradient(circle, rgba(202,138,4,.08) 1px, transparent 1px),
+                radial-gradient(circle, rgba(37,99,235,.06) 1px, transparent 1px);
+            background-size: 32px 32px, 48px 48px;
+            background-position: 0 0, 16px 16px;
+            pointer-events: none;
+        }
+
+        .success-inner { position: relative; z-index: 1; }
+
+        .success-icon {
+            width: 80px; height: 80px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--gold-bg), #fff9e6);
+            border: 2px solid rgba(202,138,4,.2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2.25rem; margin: 0 auto 1.75rem;
+            animation: bounceIn .6s cubic-bezier(.68,-.55,.265,1.55) both;
+        }
+
+        @keyframes bounceIn {
+            from { transform: scale(0); opacity: 0; }
+            to   { transform: scale(1); opacity: 1; }
+        }
+
+        .success-eyebrow {
+            font-family: 'DM Mono', monospace; font-size: .65rem;
+            letter-spacing: .15em; text-transform: uppercase;
+            color: var(--gold); margin-bottom: .75rem;
+        }
+
+        .success-title {
+            font-family: 'Fraunces', serif; font-size: 2rem; font-weight: 300;
+            color: var(--ink); margin-bottom: .75rem; line-height: 1.25;
+        }
+        .success-title em { color: var(--gold); font-style: italic; }
+
+        .success-desc {
+            font-size: .87rem; color: var(--muted); line-height: 1.7;
+            margin-bottom: 2rem;
+        }
+
+        .plan-pill {
+            display: inline-flex; align-items: center; gap: .5rem;
+            background: var(--gold-bg); border: 1.5px solid rgba(202,138,4,.2);
+            color: var(--gold); font-size: .75rem; font-weight: 600;
+            font-family: 'DM Mono', monospace; letter-spacing: .08em;
+            text-transform: uppercase; padding: .4rem 1rem;
+            border-radius: 100px; margin-bottom: 2rem;
+        }
+
+        .success-actions {
+            display: flex; flex-direction: column; gap: .75rem;
+        }
+
+        .btn-primary {
+            display: flex; align-items: center; justify-content: center; gap: .5rem;
+            padding: .85rem 1.5rem; border-radius: var(--radius);
+            background: var(--blue); color: var(--white); border: none;
+            font-family: 'Sora', sans-serif; font-size: .87rem; font-weight: 600;
+            text-decoration: none; cursor: pointer;
+            transition: background .2s, transform .2s, box-shadow .2s;
+            box-shadow: 0 4px 14px rgba(37,99,235,.25);
+        }
+        .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(37,99,235,.35); }
+
+        .btn-secondary {
+            display: flex; align-items: center; justify-content: center; gap: .5rem;
+            padding: .8rem 1.5rem; border-radius: var(--radius);
+            background: transparent; color: var(--muted);
+            border: 1.5px solid var(--border);
+            font-family: 'Sora', sans-serif; font-size: .84rem; font-weight: 500;
+            text-decoration: none; cursor: pointer;
+            transition: border-color .2s, color .2s, background .2s;
+        }
+        .btn-secondary:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-bg); }
+
+        .success-note {
+            margin-top: 1.5rem; font-size: .74rem; color: var(--muted);
+            font-family: 'DM Mono', monospace; line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="success-card">
+        <div class="success-inner">
+
+            <div class="success-icon">👑</div>
+
+            <div class="success-eyebrow">Payment Successful</div>
+
+            <h1 class="success-title">You're now<br><em>Premium</em></h1>
+
+            <p class="success-desc">
+                Your subscription is active and all premium content is now unlocked.
+                Time to accelerate your language learning journey.
+            </p>
+
+            <div class="plan-pill">
+                ✦ {{ plan == 'YEARLY' ? 'Yearly' : 'Monthly' }} Plan Active
+            </div>
+
+            <div class="success-actions">
+                <a href="{{ path('user_dashboard') }}" class="btn-primary">
+                    Go to Dashboard →
+                </a>
+                <a href="{{ path('language_select') }}" class="btn-secondary">
+                    🌍 Start Learning
+                </a>
+            </div>
+
+            <div class="success-note">
+                A confirmation email will be sent to your inbox shortly.<br>
+                Manage your subscription anytime from
+                <a href="{{ path('pricing') }}" style="color:var(--blue);text-decoration:none;">Plans & Billing</a>.
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>
