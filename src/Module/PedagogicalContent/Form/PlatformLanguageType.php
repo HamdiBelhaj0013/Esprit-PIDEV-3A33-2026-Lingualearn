@@ -19,59 +19,34 @@ class PlatformLanguageType extends AbstractType
     {
         $builder
             ->add('name', TextType::class, [
-                'label' => 'Nom de la langue',
+                'label' => 'Language Name',
                 'constraints' => [
-                    new Assert\NotBlank(message: 'Le nom est obligatoire.'),
-                    new Assert\Length([
-                        'min' => 2,
-                        'max' => 100,
-                        'minMessage' => 'Le nom doit contenir au moins {{ limit }} caractères.',
-                        'maxMessage' => 'Le nom ne peut pas dépasser {{ limit }} caractères.',
-                    ]),
+                    new Assert\NotBlank(message: 'Name is required.'),
+                    new Assert\Length(['min' => 2, 'max' => 100]),
                 ],
-                'attr' => [
-                    'placeholder' => 'Ex: Français',
-                    'class' => 'form-control'
-                ]
+                'attr' => ['placeholder' => 'e.g. French', 'class' => 'form-control'],
             ])
             ->add('code', TextType::class, [
-                'label' => 'Code de la langue',
+                'label' => 'Language Code',
                 'constraints' => [
-                    new Assert\NotBlank(message: 'Le code est obligatoire.'),
-                    new Assert\Length([
-                        'min' => 2,
-                        'max' => 10,
-                        'minMessage' => 'Le code doit contenir au moins {{ limit }} caractères.',
-                        'maxMessage' => 'Le code ne peut pas dépasser {{ limit }} caractères.',
-                    ]),
+                    new Assert\NotBlank(message: 'Code is required.'),
+                    new Assert\Length(['min' => 2, 'max' => 10]),
                 ],
-                'attr' => [
-                    'placeholder' => 'Ex: fr',
-                    'class' => 'form-control'
-                ]
+                'attr' => ['placeholder' => 'e.g. fr', 'class' => 'form-control'],
             ])
             ->add('flagUrl', UrlType::class, [
-                'label' => 'URL du drapeau',
+                'label' => 'Flag Image URL',
                 'constraints' => [
-                    new Assert\NotBlank(message: "L'URL du drapeau est obligatoire."),
-                    new Assert\Url(message: "L'URL du drapeau n'est pas valide."),
+                    new Assert\NotBlank(message: 'Flag URL is required.'),
+                    new Assert\Url(message: 'Please enter a valid URL.'),
                 ],
-                'attr' => [
-                    'placeholder' => 'https://example.com/flag.png',
-                    'class' => 'form-control'
-                ]
+                'attr' => ['placeholder' => 'https://example.com/flag.png', 'class' => 'form-control'],
             ])
             ->add('isEnabled', CheckboxType::class, [
-                'label' => 'Langue activée',
+                'label'    => 'Enable this language (visible to users)',
                 'required' => false,
-                'constraints' => [
-                    new Assert\Type(type: 'bool', message: 'Le statut doit être un booléen.'),
-                ],
-                'attr' => [
-                    'class' => 'form-check-input'
-                ]
-            ])
-        ;
+                'attr'     => ['class' => 'form-check-input'],
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

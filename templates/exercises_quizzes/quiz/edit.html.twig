@@ -1,0 +1,78 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Edit Quiz - {{ quiz.title }}{% endblock %}
+
+{% block page_title %}Edit Quiz{% endblock %}
+
+{% block breadcrumb %}
+    <ol class="breadcrumb breadcrumb-arrows" aria-label="breadcrumbs">
+        <li class="breadcrumb-item"><a href="{{ path('admin_dashboard') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ path('quiz_index') }}">Quizzes</a></li>
+        <li class="breadcrumb-item"><a href="{{ path('quiz_show', {'id': quiz.id}) }}">{{ quiz.title }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Edit</li>
+    </ol>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <form method="post" action="{{ path('quiz_edit', {'id': quiz.id}) }}">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Quiz Details</h3>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form) }}
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                {{ form_label(form.title, 'Quiz Title', {'label_attr': {'class': 'form-label required'}}) }}
+                                {{ form_widget(form.title, {'attr': {'class': 'form-control', 'placeholder': 'Enter quiz title'}}) }}
+                                {{ form_errors(form.title) }}
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form_label(form.passingScore, 'Pass Score (%)', {'label_attr': {'class': 'form-label required'}}) }}
+                                {{ form_widget(form.passingScore, {'attr': {'class': 'form-control', 'min': '0', 'max': '100'}}) }}
+                                {{ form_errors(form.passingScore) }}
+                                <small class="form-hint">Minimum score to pass (0-100)</small>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form_label(form.questionCount, 'Question Count', {'label_attr': {'class': 'form-label required'}}) }}
+                                {{ form_widget(form.questionCount, {'attr': {'class': 'form-control', 'placeholder': 'Number of questions'}}) }}
+                                {{ form_errors(form.questionCount) }}
+                                <small class="form-hint">Total number of questions</small>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="mb-3">
+                                {{ form_label(form.description, 'Description', {'label_attr': {'class': 'form-label'}}) }}
+                                {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': '4', 'placeholder': 'Enter quiz description'}}) }}
+                                {{ form_errors(form.description) }}
+                            </div>
+                        </div>
+                    </div>
+
+                    {{ form_end(form) }}
+                </div>
+                <div class="card-footer text-end">
+                    <div class="d-flex">
+                        <a href="{{ path('quiz_show', {'id': quiz.id}) }}" class="btn btn-link">Cancel</a>
+                        <button type="submit" class="btn btn-primary ms-auto">
+                            <i class="ti ti-device-floppy icon"></i>
+                            Save Changes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,4 +1,4 @@
-﻿{% extends 'base.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
 {% block title %}Admin · Leçons{% endblock %}
 
@@ -28,7 +28,7 @@
 </div>
 {% endblock %}
 
-{% block body %}
+{% block content %}
 <div class="row g-4">
 
     <!-- Formulaire de recherche et filtrage -->
@@ -63,16 +63,14 @@
                             <option value="xpReward" {% if sort == 'xpReward' %}selected{% endif %}>Récompense XP</option>
                         </select>
                     </div>
-                    <div class="col-md-2">
-                        <label class="form-label fw-bold text-secondary small text-uppercase">
-                            <i class="ti ti-arrow-up-down"></i> Ordre
-                        </label>
+                    <div class="col-md-1">
+                        <label class="form-label fw-bold text-secondary small text-uppercase">Ordre</label>
                         <select name="order" id="orderSelect" class="form-select form-select-sm" style="border-radius: 8px;">
-                            <option value="ASC" {% if order == 'ASC' %}selected{% endif %}>Croissant ↑</option>
-                            <option value="DESC" {% if order == 'DESC' %}selected{% endif %}>Décroissant ↓</option>
+                            <option value="ASC" {% if order == 'ASC' %}selected{% endif %}>↑</option>
+                            <option value="DESC" {% if order == 'DESC' %}selected{% endif %}>↓</option>
                         </select>
                     </div>
-                    <div class="col-md-1 d-flex gap-2">
+                    <div class="col-md-2 d-flex gap-2">
                         <button type="submit" class="btn btn-primary btn-sm w-100">
                             <i class="ti ti-search"></i>
                         </button>
@@ -105,8 +103,26 @@
     </div>
 
 </div>
+{% endblock %}
 
-<!-- Script AJAX -->
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.card:hover { transform: translateY(-3px); box-shadow: 0 6px 18px rgba(32,107,196,0.12); }
+.form-control:focus, .form-select:focus { border-color: #206bc4 !important; box-shadow: 0 0 0 3px rgba(32,107,196,0.15) !important; }
+.form-control, .form-select { transition: all 0.3s ease; }
+.form-control:hover, .form-select:hover { border-color: #206bc4; }
+.table tbody tr { animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+.form-check-input { cursor: pointer; }
+.form-check-input:checked { background-color: #206bc4; border-color: #206bc4; }
+.table-hover tbody tr:hover { background-color: #f0f8ff; transition: 0.2s; }
+</style>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
 <script>
 const filterForm = document.getElementById('filterForm');
 const searchInput = document.getElementById('searchInput');
@@ -160,7 +176,7 @@ function toggleStatus(lessonId, isChecked) {
     fetch('{{ path('admin_lesson_toggle_status', {'id': 'LESSON_ID'}) }}'.replace('LESSON_ID', lessonId), {
         method:'POST',
         headers:{'X-Requested-With':'XMLHttpRequest','Content-Type':'application/x-www-form-urlencoded'},
-        body: '_token=' + document.querySelector('meta[name="csrf-token"]')?.content || ''
+        body: '_token=' + (document.querySelector('meta[name="csrf-token"]')?.content || '')
     })
     .then(r=>r.json())
     .then(data=> { if (!data.success) button.checked = originalState; })
@@ -169,18 +185,4 @@ function toggleStatus(lessonId, isChecked) {
 
 attachToggleEvents();
 </script>
-
-<!-- Styles -->
-<style>
-.form-control:focus, .form-select:focus { border-color:#206bc4!important; box-shadow:0 0 0 3px rgba(32,107,196,0.1)!important; }
-.form-control, .form-select { transition: all 0.3s ease; }
-.form-control:hover, .form-select:hover { border-color:#206bc4!important; }
-.table tbody tr { animation: fadeIn 0.3s ease; }
-@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
-.form-check-input { cursor:pointer; }
-.form-check-input:checked { background-color:#206bc4; border-color:#206bc4; }
-.card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
-.card:hover { transform: translateY(-3px); box-shadow: 0 6px 18px rgba(32,107,196,0.12); }
-.table-hover tbody tr:hover { background-color: #f0f8ff; transition: 0.2s; }
-</style>
 {% endblock %}

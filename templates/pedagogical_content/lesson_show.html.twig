@@ -268,21 +268,21 @@
         <div class="ls-dot"></div> Reading
     </div>
     {% if lesson.vocabularyData|length > 0 %}
-    <div class="ls-section" id="ls-vocab" onclick="switchTab('vocab')">
-        <div class="ls-dot"></div> Vocabulary
-        <span style="margin-left:auto;font-family:'DM Mono',monospace;font-size:.65rem;color:var(--muted);">{{ lesson.vocabularyData|length }}</span>
-    </div>
+        <div class="ls-section" id="ls-vocab" onclick="switchTab('vocab')">
+            <div class="ls-dot"></div> Vocabulary
+            <span style="margin-left:auto;font-family:'DM Mono',monospace;font-size:.65rem;color:var(--muted);">{{ lesson.vocabularyData|length }}</span>
+        </div>
     {% endif %}
     {% if lesson.grammarData|length > 0 %}
-    <div class="ls-section" id="ls-grammar" onclick="switchTab('grammar')">
-        <div class="ls-dot"></div> Grammar
-        <span style="margin-left:auto;font-family:'DM Mono',monospace;font-size:.65rem;color:var(--muted);">{{ lesson.grammarData|length }}</span>
-    </div>
+        <div class="ls-section" id="ls-grammar" onclick="switchTab('grammar')">
+            <div class="ls-dot"></div> Grammar
+            <span style="margin-left:auto;font-family:'DM Mono',monospace;font-size:.65rem;color:var(--muted);">{{ lesson.grammarData|length }}</span>
+        </div>
     {% endif %}
     {% if lesson.vocabularyData|length > 0 %}
-    <div class="ls-section" id="ls-quiz" onclick="switchTab('quiz')">
-        <div class="ls-dot"></div> Quick Quiz
-    </div>
+        <div class="ls-section" id="ls-quiz" onclick="switchTab('quiz')">
+            <div class="ls-dot"></div> Quick Quiz
+        </div>
     {% endif %}
     <div class="ls-section" id="ls-complete" onclick="switchTab('complete')">
         <div class="ls-dot"></div> Complete
@@ -355,79 +355,79 @@
 
         {# ─── TAB: VOCABULARY ─── #}
         {% if lesson.vocabularyData|length > 0 %}
-        <div class="tab-panel" id="panel-vocab">
-            <p style="font-size:.85rem;color:var(--muted);margin-bottom:1.25rem;">Click any card to reveal the translation.</p>
-            <div class="vocab-grid" id="vocabGrid">
-                {% for item in lesson.vocabularyData %}
-                    <div class="flashcard" onclick="flipCard(this)">
-                        <div class="flashcard-inner">
-                            <div class="flashcard-front">
-                                <div class="card-word">{{ item.word ?? item.term ?? (item|first) }}</div>
-                                <div class="card-hint">Tap to reveal</div>
-                            </div>
-                            <div class="flashcard-back">
-                                <div class="card-translation">{{ item.translation ?? item.meaning ?? (item|last) }}</div>
-                                <div class="card-hint-back">Translation</div>
+            <div class="tab-panel" id="panel-vocab">
+                <p style="font-size:.85rem;color:var(--muted);margin-bottom:1.25rem;">Click any card to reveal the translation.</p>
+                <div class="vocab-grid" id="vocabGrid">
+                    {% for item in lesson.vocabularyData %}
+                        <div class="flashcard" onclick="flipCard(this)">
+                            <div class="flashcard-inner">
+                                <div class="flashcard-front">
+                                    <div class="card-word">{{ item.word ?? item.term ?? (item|first) }}</div>
+                                    <div class="card-hint">Tap to reveal</div>
+                                </div>
+                                <div class="flashcard-back">
+                                    <div class="card-translation">{{ item.translation ?? item.meaning ?? (item|last) }}</div>
+                                    <div class="card-hint-back">Translation</div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                {% endfor %}
+                    {% endfor %}
+                </div>
+                <div class="vocab-controls">
+                    <span class="vocab-hint">🃏 <span id="flippedCount">0</span> / {{ lesson.vocabularyData|length }} revealed</span>
+                    <button class="flip-all-btn" onclick="flipAll()">Reveal All</button>
+                </div>
+                <div style="margin-top:1.5rem;display:flex;justify-content:flex-end;">
+                    {% if lesson.grammarData|length > 0 %}
+                        <button class="btn btn-primary" onclick="switchTab('grammar')">Next: Grammar →</button>
+                    {% else %}
+                        <button class="btn btn-primary" onclick="switchTab('quiz')">Next: Quiz →</button>
+                    {% endif %}
+                </div>
             </div>
-            <div class="vocab-controls">
-                <span class="vocab-hint">🃏 <span id="flippedCount">0</span> / {{ lesson.vocabularyData|length }} revealed</span>
-                <button class="flip-all-btn" onclick="flipAll()">Reveal All</button>
-            </div>
-            <div style="margin-top:1.5rem;display:flex;justify-content:flex-end;">
-                {% if lesson.grammarData|length > 0 %}
-                    <button class="btn btn-primary" onclick="switchTab('grammar')">Next: Grammar →</button>
-                {% else %}
-                    <button class="btn btn-primary" onclick="switchTab('quiz')">Next: Quiz →</button>
-                {% endif %}
-            </div>
-        </div>
         {% endif %}
 
         {# ─── TAB: GRAMMAR ─── #}
         {% if lesson.grammarData|length > 0 %}
-        <div class="tab-panel" id="panel-grammar">
-            <div class="grammar-list">
-                {% for item in lesson.grammarData %}
-                    <div class="grammar-card">
-                        <div class="grammar-rule-header">
-                            <span class="grammar-rule-icon">📐</span>
-                            <span class="grammar-rule-name">{{ item.rule ?? item.title ?? item.name ?? 'Rule ' ~ loop.index }}</span>
-                        </div>
-                        {% if item.example is defined or item.exemple is defined %}
-                            <div class="grammar-example">{{ item.example ?? item.exemple }}</div>
-                        {% endif %}
-                        {% if item.explanation is defined or item.description is defined %}
-                            <div style="padding:.75rem 1.25rem 1rem;font-size:.85rem;color:var(--ink-soft);line-height:1.6;">
-                                {{ item.explanation ?? item.description }}
+            <div class="tab-panel" id="panel-grammar">
+                <div class="grammar-list">
+                    {% for item in lesson.grammarData %}
+                        <div class="grammar-card">
+                            <div class="grammar-rule-header">
+                                <span class="grammar-rule-icon">📐</span>
+                                <span class="grammar-rule-name">{{ item.rule ?? item.title ?? item.name ?? 'Rule ' ~ loop.index }}</span>
                             </div>
-                        {% endif %}
-                    </div>
-                {% endfor %}
+                            {% if item.example is defined or item.exemple is defined %}
+                                <div class="grammar-example">{{ item.example ?? item.exemple }}</div>
+                            {% endif %}
+                            {% if item.explanation is defined or item.description is defined %}
+                                <div style="padding:.75rem 1.25rem 1rem;font-size:.85rem;color:var(--ink-soft);line-height:1.6;">
+                                    {{ item.explanation ?? item.description }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+                <div style="margin-top:1.5rem;display:flex;justify-content:flex-end;">
+                    {% if lesson.vocabularyData|length > 0 %}
+                        <button class="btn btn-primary" onclick="switchTab('quiz')">Next: Quiz →</button>
+                    {% else %}
+                        <button class="btn btn-green" onclick="switchTab('complete')">Complete Lesson →</button>
+                    {% endif %}
+                </div>
             </div>
-            <div style="margin-top:1.5rem;display:flex;justify-content:flex-end;">
-                {% if lesson.vocabularyData|length > 0 %}
-                    <button class="btn btn-primary" onclick="switchTab('quiz')">Next: Quiz →</button>
-                {% else %}
-                    <button class="btn btn-green" onclick="switchTab('complete')">Complete Lesson →</button>
-                {% endif %}
-            </div>
-        </div>
         {% endif %}
 
         {# ─── TAB: QUIZ ─── #}
         {% if lesson.vocabularyData|length > 0 %}
-        <div class="tab-panel" id="panel-quiz">
-            <p style="font-size:.85rem;color:var(--muted);margin-bottom:1.5rem;">Test yourself on the vocabulary from this lesson.</p>
-            <div id="quizContainer"></div>
-            <div style="margin-top:1.5rem;display:flex;justify-content:space-between;align-items:center;">
-                <button class="btn btn-outline" onclick="resetQuiz()">🔄 Retry</button>
-                <button class="btn btn-green" onclick="switchTab('complete')">Complete Lesson →</button>
+            <div class="tab-panel" id="panel-quiz">
+                <p style="font-size:.85rem;color:var(--muted);margin-bottom:1.5rem;">Test yourself on the vocabulary from this lesson.</p>
+                <div id="quizContainer"></div>
+                <div style="margin-top:1.5rem;display:flex;justify-content:space-between;align-items:center;">
+                    <button class="btn btn-outline" onclick="resetQuiz()">🔄 Retry</button>
+                    <button class="btn btn-green" onclick="switchTab('complete')">Complete Lesson →</button>
+                </div>
             </div>
-        </div>
         {% endif %}
 
         {# ─── TAB: COMPLETE ─── #}
@@ -438,12 +438,12 @@
                 <div class="complete-sub">Great work finishing <strong>{{ lesson.title }}</strong>.</div>
                 <div class="xp-earned">⭐ +{{ lesson.xpReward }} XP earned</div>
                 <div class="complete-actions">
-                {# ✅ Bouton qui enregistre XP en DB #}
-    <form method="post" action="{{ path('lesson_complete', {id: lesson.id}) }}" style="display:inline;" id="completeLessonForm">
-    <input type="hidden" name="_token" value="{{ csrf_token('complete_lesson_' ~ lesson.id) }}">
-    <input type="hidden" name="minutes" id="minutesInput" value="0">
-    <button type="submit" class="btn btn-green">✅ Valider la leçon (+{{ lesson.xpReward }} XP)</button>
-</form>
+                    {# Submit form to record XP and study time in DB #}
+                    <form method="post" action="{{ path('lesson_complete', {id: lesson.id}) }}" style="display:inline;" id="completeLessonForm">
+                        <input type="hidden" name="_token" value="{{ csrf_token('complete_lesson_' ~ lesson.id) }}">
+                        <input type="hidden" name="minutes" id="minutesInput" value="0">
+                        <button type="submit" class="btn btn-green">✅ Complete Lesson (+{{ lesson.xpReward }} XP)</button>
+                    </form>
                     {% if prevLesson %}
                         <a href="{{ path('lesson_show', {id: prevLesson.id}) }}" class="btn btn-outline">← Previous</a>
                     {% endif %}
@@ -490,87 +490,87 @@
 </div>
 
 <script>
-// ─── TAB DATA FROM TWIG ───
-const vocabData = {{ lesson.vocabularyData|json_encode|raw }};
-const totalTabs = document.querySelectorAll('.tab-btn').length;
+    // ─── TAB DATA FROM TWIG ───
+    const vocabData = {{ lesson.vocabularyData|json_encode|raw }};
+    const totalTabs = document.querySelectorAll('.tab-btn').length;
 
-// ─── TAB SWITCHING ───
-const tabOrder = ['read', 'vocab', 'grammar', 'quiz', 'complete'].filter(t => document.getElementById('panel-' + t));
+    // ─── TAB SWITCHING ───
+    const tabOrder = ['read', 'vocab', 'grammar', 'quiz', 'complete'].filter(t => document.getElementById('panel-' + t));
 
-function switchTab(name) {
-    if (!document.getElementById('panel-' + name)) return;
+    function switchTab(name) {
+        if (!document.getElementById('panel-' + name)) return;
 
-    // panels
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-    document.getElementById('panel-' + name).classList.add('active');
+        // panels
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        document.getElementById('panel-' + name).classList.add('active');
 
-    // tab buttons
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    const btn = document.getElementById('tab-' + name);
-    if (btn) btn.classList.add('active');
+        // tab buttons
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        const btn = document.getElementById('tab-' + name);
+        if (btn) btn.classList.add('active');
 
-    // right sidebar
-    document.querySelectorAll('.ls-section').forEach(s => s.classList.remove('active'));
-    const ls = document.getElementById('ls-' + name);
-    if (ls) ls.classList.add('active');
+        // right sidebar
+        document.querySelectorAll('.ls-section').forEach(s => s.classList.remove('active'));
+        const ls = document.getElementById('ls-' + name);
+        if (ls) ls.classList.add('active');
 
-    // progress bar
-    const idx = tabOrder.indexOf(name);
-    const pct = Math.round(((idx + 1) / tabOrder.length) * 100);
-    document.getElementById('progressBar').style.width = pct + '%';
-    document.getElementById('progressLabel').textContent = (idx + 1) + ' / ' + tabOrder.length;
+        // progress bar
+        const idx = tabOrder.indexOf(name);
+        const pct = Math.round(((idx + 1) / tabOrder.length) * 100);
+        document.getElementById('progressBar').style.width = pct + '%';
+        document.getElementById('progressLabel').textContent = (idx + 1) + ' / ' + tabOrder.length;
 
-    // confetti on complete
-    if (name === 'complete') triggerConfetti();
-}
+        // confetti on complete
+        if (name === 'complete') triggerConfetti();
+    }
 
-// ─── FLASHCARDS ───
-function flipCard(el) {
-    el.classList.toggle('flipped');
-    updateFlippedCount();
-}
+    // ─── FLASHCARDS ───
+    function flipCard(el) {
+        el.classList.toggle('flipped');
+        updateFlippedCount();
+    }
 
-function flipAll() {
-    const cards = document.querySelectorAll('.flashcard');
-    const allFlipped = [...cards].every(c => c.classList.contains('flipped'));
-    cards.forEach(c => allFlipped ? c.classList.remove('flipped') : c.classList.add('flipped'));
-    document.querySelector('.flip-all-btn').textContent = allFlipped ? 'Reveal All' : 'Hide All';
-    updateFlippedCount();
-}
+    function flipAll() {
+        const cards = document.querySelectorAll('.flashcard');
+        const allFlipped = [...cards].every(c => c.classList.contains('flipped'));
+        cards.forEach(c => allFlipped ? c.classList.remove('flipped') : c.classList.add('flipped'));
+        document.querySelector('.flip-all-btn').textContent = allFlipped ? 'Reveal All' : 'Hide All';
+        updateFlippedCount();
+    }
 
-function updateFlippedCount() {
-    const count = document.querySelectorAll('.flashcard.flipped').length;
-    const el = document.getElementById('flippedCount');
-    if (el) el.textContent = count;
-}
+    function updateFlippedCount() {
+        const count = document.querySelectorAll('.flashcard.flipped').length;
+        const el = document.getElementById('flippedCount');
+        if (el) el.textContent = count;
+    }
 
-// ─── QUIZ ───
-function buildQuiz() {
-    if (!vocabData || vocabData.length === 0) return;
+    // ─── QUIZ ───
+    function buildQuiz() {
+        if (!vocabData || vocabData.length === 0) return;
 
-    const container = document.getElementById('quizContainer');
-    if (!container) return;
-    container.innerHTML = '';
+        const container = document.getElementById('quizContainer');
+        if (!container) return;
+        container.innerHTML = '';
 
-    // Pick up to 5 random words
-    const shuffled = [...vocabData].sort(() => Math.random() - .5).slice(0, Math.min(5, vocabData.length));
+        // Pick up to 5 random words
+        const shuffled = [...vocabData].sort(() => Math.random() - .5).slice(0, Math.min(5, vocabData.length));
 
-    shuffled.forEach((item, qi) => {
-        const word = item.word || item.term || Object.values(item)[0];
-        const correct = item.translation || item.meaning || Object.values(item)[1];
+        shuffled.forEach((item, qi) => {
+            const word = item.word || item.term || Object.values(item)[0];
+            const correct = item.translation || item.meaning || Object.values(item)[1];
 
-        // Wrong answers from other vocab items
-        const others = vocabData
-            .filter(v => (v.translation || v.meaning || Object.values(v)[1]) !== correct)
-            .sort(() => Math.random() - .5)
-            .slice(0, 3)
-            .map(v => v.translation || v.meaning || Object.values(v)[1]);
+            // Wrong answers from other vocab items
+            const others = vocabData
+                .filter(v => (v.translation || v.meaning || Object.values(v)[1]) !== correct)
+                .sort(() => Math.random() - .5)
+                .slice(0, 3)
+                .map(v => v.translation || v.meaning || Object.values(v)[1]);
 
-        const options = [...others, correct].sort(() => Math.random() - .5);
+            const options = [...others, correct].sort(() => Math.random() - .5);
 
-        const card = document.createElement('div');
-        card.className = 'quiz-card';
-        card.innerHTML = `
+            const card = document.createElement('div');
+            card.className = 'quiz-card';
+            card.innerHTML = `
             <div class="quiz-question">What is the translation of "<strong>${word}</strong>"?</div>
             <div class="quiz-options">
                 ${options.map(opt => `
@@ -579,48 +579,48 @@ function buildQuiz() {
             </div>
             <div class="quiz-feedback" id="feedback-${qi}"></div>
         `;
-        container.appendChild(card);
-    });
-}
-
-function checkAnswer(btn, chosen, correct, qi) {
-    const card = btn.closest('.quiz-card');
-    const feedback = document.getElementById('feedback-' + qi);
-    const allOptions = card.querySelectorAll('.quiz-option');
-
-    allOptions.forEach(o => {
-        o.classList.add('revealed');
-        if (o.textContent.trim() === correct) o.classList.add('correct');
-    });
-
-    if (chosen === correct) {
-        btn.classList.add('correct');
-        feedback.textContent = '✓ Correct!';
-        feedback.className = 'quiz-feedback show correct';
-    } else {
-        btn.classList.add('wrong');
-        feedback.textContent = '✗ Not quite — the answer is: ' + correct;
-        feedback.className = 'quiz-feedback show wrong';
+            container.appendChild(card);
+        });
     }
-}
 
-function resetQuiz() { buildQuiz(); }
+    function checkAnswer(btn, chosen, correct, qi) {
+        const card = btn.closest('.quiz-card');
+        const feedback = document.getElementById('feedback-' + qi);
+        const allOptions = card.querySelectorAll('.quiz-option');
 
-// ─── CONFETTI (CSS only, lightweight) ───
-function triggerConfetti() {
-    const existing = document.getElementById('confetti-wrap');
-    if (existing) existing.remove();
+        allOptions.forEach(o => {
+            o.classList.add('revealed');
+            if (o.textContent.trim() === correct) o.classList.add('correct');
+        });
 
-    const wrap = document.createElement('div');
-    wrap.id = 'confetti-wrap';
-    wrap.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:9999;overflow:hidden;';
-    document.body.appendChild(wrap);
+        if (chosen === correct) {
+            btn.classList.add('correct');
+            feedback.textContent = '✓ Correct!';
+            feedback.className = 'quiz-feedback show correct';
+        } else {
+            btn.classList.add('wrong');
+            feedback.textContent = '✗ Not quite — the answer is: ' + correct;
+            feedback.className = 'quiz-feedback show wrong';
+        }
+    }
 
-    const colors = ['#2563eb','#16a34a','#ca8a04','#7c3aed','#ea580c','#3b82f6'];
-    for (let i = 0; i < 60; i++) {
-        const p = document.createElement('div');
-        const size = 6 + Math.random() * 8;
-        p.style.cssText = `
+    function resetQuiz() { buildQuiz(); }
+
+    // ─── CONFETTI (CSS only, lightweight) ───
+    function triggerConfetti() {
+        const existing = document.getElementById('confetti-wrap');
+        if (existing) existing.remove();
+
+        const wrap = document.createElement('div');
+        wrap.id = 'confetti-wrap';
+        wrap.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:9999;overflow:hidden;';
+        document.body.appendChild(wrap);
+
+        const colors = ['#2563eb','#16a34a','#ca8a04','#7c3aed','#ea580c','#3b82f6'];
+        for (let i = 0; i < 60; i++) {
+            const p = document.createElement('div');
+            const size = 6 + Math.random() * 8;
+            p.style.cssText = `
             position:absolute; width:${size}px; height:${size}px;
             background:${colors[Math.floor(Math.random()*colors.length)]};
             border-radius:${Math.random() > .5 ? '50%' : '2px'};
@@ -628,30 +628,30 @@ function triggerConfetti() {
             animation: confettiFall ${1.5 + Math.random()*2}s ease-in ${Math.random()*.8}s forwards;
             opacity: ${0.7 + Math.random()*.3};
         `;
-        wrap.appendChild(p);
-    }
+            wrap.appendChild(p);
+        }
 
-    const style = document.createElement('style');
-    style.textContent = `@keyframes confettiFall {
+        const style = document.createElement('style');
+        style.textContent = `@keyframes confettiFall {
         0%   { transform: translateY(0) rotate(0deg); opacity:1; }
         100% { transform: translateY(100vh) rotate(${360 + Math.random()*360}deg); opacity:0; }
     }`;
-    document.head.appendChild(style);
-    setTimeout(() => { wrap.remove(); }, 4000);
-}
+        document.head.appendChild(style);
+        setTimeout(() => { wrap.remove(); }, 4000);
+    }
 
-// ─── SIDEBAR TOGGLE ───
-const sidebar = document.getElementById('sidebar');
-const overlay = document.getElementById('sidebarOverlay');
-document.getElementById('hamburgerBtn').addEventListener('click', () => {
-    sidebar.classList.toggle('open');
-    overlay.classList.toggle('visible');
-});
-overlay.addEventListener('click', () => {
-    sidebar.classList.remove('open');
-    overlay.classList.remove('visible');
-});
- // ✅ TIMER (Option 2): calcule les minutes passées dans la leçon
+    // ─── SIDEBAR TOGGLE ───
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    document.getElementById('hamburgerBtn').addEventListener('click', () => {
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('visible');
+    });
+    overlay.addEventListener('click', () => {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('visible');
+    });
+    // ─── TIMER: calculate minutes spent in the lesson ───
     const lessonStartTime = Date.now();
 
     const completeForm = document.getElementById('completeLessonForm');
@@ -659,17 +659,15 @@ overlay.addEventListener('click', () => {
         completeForm.addEventListener('submit', function () {
             const elapsedMs = Date.now() - lessonStartTime;
             let minutes = Math.round(elapsedMs / 60000);
-
-            // sécuriser (ex: minimum 1 minute, max 240)
             if (minutes < 1) minutes = 1;
             if (minutes > 240) minutes = 240;
-
             const minutesInput = document.getElementById('minutesInput');
             if (minutesInput) minutesInput.value = minutes;
         });
     }
-// ─── INIT ───
-buildQuiz();
+
+    // ─── INIT ───
+    buildQuiz();
 </script>
 </body>
 </html>

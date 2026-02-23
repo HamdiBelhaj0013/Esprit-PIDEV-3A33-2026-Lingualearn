@@ -4,241 +4,119 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
     <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
-    <title>{% block title %}Language Learning Platform{% endblock %}</title>
+    <title>{% block title %}LinguaLearn{% endblock %} - Language Learning Platform</title>
 
-    {# Tabler CSS #}
+    {# Tabler CSS Framework #}
     <link href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/css/tabler.min.css" rel="stylesheet"/>
     <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet"/>
 
+    {# AOS - Animate On Scroll #}
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    {# LinguaLearn Enhanced Design System #}
+    <style>
+        :root {
+            /* Brand Colors */
+            --ll-primary: #667eea;
+            --ll-primary-dark: #5a67d8;
+            --ll-primary-light: #dbeafe;
+            --ll-accent: #f59e0b;
+            --ll-success: #10b981;
+            --ll-danger: #ef4444;
+            --ll-warning: #f59e0b;
+
+            /* Sidebar Colors */
+            --ll-sidebar-bg: #0f172a;
+            --ll-sidebar-hover: #1e293b;
+            --ll-sidebar-active: rgba(102, 126, 234, 0.15);
+            --ll-sidebar-text: #94a3b8;
+            --ll-sidebar-text-active: #ffffff;
+
+            /* Enhanced Shadows */
+            --ll-card-shadow: 0 2px 4px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+            --ll-card-shadow-hover: 0 10px 20px -5px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04);
+            --ll-shadow-glow: 0 0 20px rgba(102, 126, 234, 0.3);
+
+            /* Gradients */
+            --ll-gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --ll-gradient-success: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            --ll-gradient-warning: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            --ll-gradient-danger: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+
+            /* Layout */
+            --ll-radius: 12px;
+            --ll-radius-sm: 8px;
+            --ll-radius-lg: 16px;
+            --ll-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --ll-transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Base Styles */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+            background: #f8fafc;
+        }
+
+        /* Smooth Scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Selection Color */
+        ::selection {
+            background: rgba(102, 126, 234, 0.2);
+            color: inherit;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+
+    {# Premium UI CSS - Load after base styles #}
+    <link rel="stylesheet" href="{{ asset('css/premium-ui.css') }}">
+
     {% block stylesheets %}{% endblock %}
 </head>
-<body>
-<div class="page">
-    {# Sidebar #}
-    <aside class="navbar navbar-vertical navbar-expand-lg" data-bs-theme="dark">
-        <div class="container-fluid">
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-menu" aria-controls="sidebar-menu" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+<body class="antialiased">
+{% block body %}{% endblock %}
 
-            <h1 class="navbar-brand navbar-brand-autodark">
-                <a href="{{ path('admin_dashboard') }}">
-                    <i class="ti ti-language fs-1"></i>
-                    <span class="ms-2">LinguaLearn</span>
-                </a>
-            </h1>
-
-            <div class="collapse navbar-collapse" id="sidebar-menu">
-                <ul class="navbar-nav pt-lg-3">
-                <li class="nav-item">
-    <a class="nav-link" href="{{ path('admin_pedagogical_content_index') }}">
-        <span class="nav-link-icon d-md-none d-lg-inline-block">
-            <i class="ti ti-book"></i>
-        </span>
-        <span class="nav-link-title">Gestion Pédagogical</span>
-    </a>
-</li>
-
-                    {# Dashboard #}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ path('admin_dashboard') }}">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                    <i class="ti ti-home"></i>
-                                </span>
-                            <span class="nav-link-title">Dashboard</span>
-                        </a>
-                    </li>
-
-                    {# User Management #}
-                    <li class="nav-item dropdown active">
-                        <a class="nav-link dropdown-toggle" href="#navbar-user" data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="true">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                    <i class="ti ti-users"></i>
-                                </span>
-                            <span class="nav-link-title">User Management</span>
-                        </a>
-                        <div class="dropdown-menu show">
-                            <a class="dropdown-item" href="{{ path('admin_users_index') }}">
-                                <i class="ti ti-list me-2"></i> All Users
-                            </a>
-                            <a class="dropdown-item" href="{{ path('admin_users_new') }}">
-                                <i class="ti ti-user-plus me-2"></i> Create User
-                            </a>
-                        </div>
-                    </li>
-
-                    {# Courses (Placeholder for Module 2) #}
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                    <i class="ti ti-book"></i>
-                                </span>
-                            <span class="nav-link-title">Courses</span>
-                        </a>
-                    </li>
-
-                    {# Exercises (Placeholder for Module 3) #}
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                    <i class="ti ti-puzzle"></i>
-                                </span>
-                            <span class="nav-link-title">Exercises</span>
-                        </a>
-                    </li>
-
-                    {# Tests (Placeholder for Module 4) #}
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                    <i class="ti ti-certificate"></i>
-                                </span>
-                            <span class="nav-link-title">Mock Tests</span>
-                        </a>
-                    </li>
-
-                    {# Forum (Placeholder for Module 5) #}
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                    <i class="ti ti-messages"></i>
-                                </span>
-                            <span class="nav-link-title">Forum</span>
-                        </a>
-                    </li>
-
-                    {# Support (Placeholder for Module 6) #}
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                    <i class="ti ti-lifebuoy"></i>
-                                </span>
-                            <span class="nav-link-title">Support</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </aside>
-
-    {# Header #}
-    <header class="navbar navbar-expand-md d-print-none">
-        <div class="container-xl">
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <div class="navbar-nav flex-row order-md-last">
-                {# User Menu #}
-                {% if app.user %}
-                    <div class="nav-item dropdown">
-                        <a href="#" class="nav-link d-flex lh-1 text-reset p-0" data-bs-toggle="dropdown" aria-label="Open user menu">
-                            <span class="avatar avatar-sm" style="background-image: url(https://ui-avatars.com/api/?name={{ app.user.firstName }}+{{ app.user.lastName }}&background=206bc4&color=fff)"></span>
-                            <div class="d-none d-xl-block ps-2">
-                                <div>{{ app.user.fullName }}</div>
-                                <div class="mt-1 small text-muted">Administrator</div>
-                            </div>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                            <a href="#" class="dropdown-item">
-                                <i class="ti ti-user me-2"></i> Profile
-                            </a>
-                            <a href="#" class="dropdown-item">
-                                <i class="ti ti-settings me-2"></i> Settings
-                            </a>
-                            <div class="dropdown-divider"></div>
-                            <a href="#" class="dropdown-item">
-                                <i class="ti ti-logout me-2"></i> Logout
-                            </a>
-                        </div>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-    </header>
-
-    {# Page Content #}
-    <div class="page-wrapper">
-        {# Page header #}
-        {% block page_header %}
-            <div class="page-header d-print-none">
-                <div class="container-xl">
-                    <div class="row g-2 align-items-center">
-                        <div class="col">
-                            <h2 class="page-title">
-                                {% block page_title %}Dashboard{% endblock %}
-                            </h2>
-                            {% block breadcrumb %}{% endblock %}
-                        </div>
-                        {% block page_actions %}{% endblock %}
-                    </div>
-                </div>
-            </div>
-        {% endblock %}
-
-        {# Flash Messages #}
-        <div class="container-xl mt-3">
-            {% for label, messages in app.flashes %}
-                {% for message in messages %}
-                    <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible" role="alert">
-                        <div class="d-flex">
-                            <div>
-                                {% if label == 'success' %}
-                                    <i class="ti ti-check icon alert-icon"></i>
-                                {% elseif label == 'error' or label == 'danger' %}
-                                    <i class="ti ti-alert-circle icon alert-icon"></i>
-                                {% elseif label == 'warning' %}
-                                    <i class="ti ti-alert-triangle icon alert-icon"></i>
-                                {% else %}
-                                    <i class="ti ti-info-circle icon alert-icon"></i>
-                                {% endif %}
-                            </div>
-                            <div>{{ message }}</div>
-                        </div>
-                        <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
-                    </div>
-                {% endfor %}
-            {% endfor %}
-        </div>
-
-        {# Page body #}
-        <div class="page-body">
-            <div class="container-xl">
-                {% block body %}{% endblock %}
-            </div>
-        </div>
-
-        {# Footer #}
-        <footer class="footer footer-transparent d-print-none">
-            <div class="container-xl">
-                <div class="row text-center align-items-center flex-row-reverse">
-                    <div class="col-lg-auto ms-lg-auto">
-                        <ul class="list-inline list-inline-dots mb-0">
-                            <li class="list-inline-item">
-                                <a href="#" class="link-secondary">Documentation</a>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="col-12 col-lg-auto mt-3 mt-lg-0">
-                        <ul class="list-inline list-inline-dots mb-0">
-                            <li class="list-inline-item">
-                                Copyright &copy; {{ 'now'|date('Y') }}
-                                <a href="#" class="link-secondary">LinguaLearn Platform</a>.
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </footer>
-    </div>
-</div>
-
-{# Tabler JS #}
+{# Tabler JavaScript #}
 <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/js/tabler.min.js"></script>
 
-{% block javascripts %}{% endblock %}
+{# AOS - Animate On Scroll #}
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+    // Initialize AOS
+    AOS.init({
+        duration: 800,
+        easing: 'ease-out-cubic',
+        once: true,
+        offset: 50,
+        delay: 0
+    });
 
-{% include 'components/_delete_modal.html.twig' %}
+    // Refresh AOS on dynamic content load
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(() => AOS.refresh(), 100);
+    });
+</script>
+
+{% block javascripts %}{% endblock %}
 </body>
 </html>
-

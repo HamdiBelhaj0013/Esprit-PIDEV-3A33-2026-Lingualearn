@@ -1,79 +1,157 @@
-﻿{% extends 'base.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
 {% block title %}Admin · Créer une leçon{% endblock %}
 
-{% block page_title %}Créer une leçon{% endblock %}
-
-{% block breadcrumb %}
-    <ol class="breadcrumb breadcrumb-icons" aria-label="breadcrumbs">
-        <li class="breadcrumb-item">
-            <a href="{{ path('admin_dashboard') }}">
-                <i class="ti ti-home"></i> Tableau de bord
-            </a>
-        </li>
-        <li class="breadcrumb-item">Contenu Pédagogique</li>
-        <li class="breadcrumb-item">
-            <a href="{{ path('admin_lesson_index') }}">Leçons</a>
-        </li>
-        <li class="breadcrumb-item active">Créer une leçon</li>
-    </ol>
+{% block page_title %}
+    <i class="ti ti-plus text-primary me-2"></i> Créer une leçon
 {% endblock %}
 
-{% block body %}
+{% block breadcrumb %}
+<ol class="breadcrumb breadcrumb-icons p-2 rounded" style="background: rgba(32,107,196,0.1);">
+    <li class="breadcrumb-item">
+        <a href="{{ path('admin_dashboard') }}" style="color: #206bc4; text-decoration: none;">
+            <i class="ti ti-home"></i> Tableau de bord
+        </a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="{{ path('admin_pedagogical_content_index') }}" style="color: #206bc4; text-decoration: none;">Contenu Pédagogique</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="{{ path('admin_lesson_index') }}" style="color: #206bc4; text-decoration: none;">Leçons</a>
+    </li>
+    <li class="breadcrumb-item active" style="color: #206bc4;">Créer une leçon</li>
+</ol>
+{% endblock %}
+
+{% block content %}
 <div class="row">
     <div class="col-md-8">
-        <div class="card">
+        <div class="card shadow-sm border-0 rounded-3">
+            <div class="card-header bg-white border-bottom">
+                <h3 class="card-title mb-0">
+                    <i class="ti ti-forms text-primary me-2"></i> Informations de la leçon
+                </h3>
+            </div>
             <div class="card-body">
                 {{ form_start(form, {'attr': {'class': 'form-horizontal', 'novalidate': 'novalidate'}}) }}
                     <div class="mb-3">
-                        {{ form_label(form.title, 'Titre', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_label(form.title, 'Titre', {'label_attr': {'class': 'form-label required'}}) }}
                         {{ form_widget(form.title, {'attr': {'class': 'form-control', 'placeholder': 'Titre de la leçon'}}) }}
                         {{ form_errors(form.title) }}
                     </div>
 
                     <div class="mb-3">
-                        {{ form_label(form.content, 'Contenu', {'label_attr': {'class': 'form-label'}}) }}
-                        {{ form_widget(form.content, {'attr': {'class': 'form-control', 'rows': '8', 'placeholder': 'Contenu principal de la leçon'}}) }}
-                        {{ form_errors(form.content) }}
-                    </div>
-
-                    <div class="mb-3">
-                        {{ form_label(form.course, 'Cours associé', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_label(form.course, 'Cours associé', {'label_attr': {'class': 'form-label required'}}) }}
                         {{ form_widget(form.course, {'attr': {'class': 'form-select'}}) }}
                         {{ form_errors(form.course) }}
                     </div>
 
                     <div class="mb-3">
-                        {{ form_label(form.xpReward, 'Récompense XP', {'label_attr': {'class': 'form-label'}}) }}
-                        {{ form_widget(form.xpReward, {'attr': {'class': 'form-control', 'type': 'number', 'min': '0'}}) }}
+                        {{ form_label(form.content, 'Contenu', {'label_attr': {'class': 'form-label required'}}) }}
+                        {{ form_widget(form.content, {'attr': {'class': 'form-control', 'rows': '8', 'placeholder': 'Contenu principal de la leçon'}}) }}
+                        {{ form_errors(form.content) }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_label(form.xpReward, 'Récompense XP', {'label_attr': {'class': 'form-label required'}}) }}
+                        {{ form_widget(form.xpReward, {'attr': {'class': 'form-control', 'type': 'number', 'min': '0', 'placeholder': 'Ex: 50'}}) }}
+                        <small class="form-text text-muted">Points d'expérience gagnés après complétion</small>
                         {{ form_errors(form.xpReward) }}
                     </div>
 
                     <div class="mb-3">
                         {{ form_label(form.vocabularyData, 'Données de vocabulaire (JSON)', {'label_attr': {'class': 'form-label'}}) }}
-                        {{ form_widget(form.vocabularyData, {'attr': {'class': 'form-control', 'rows': '5', 'placeholder': '[{"word": "hello", "translation": "bonjour"}]'}}) }}
+                        {{ form_widget(form.vocabularyData, {'attr': {'class': 'form-control font-monospace', 'rows': '5', 'placeholder': '[{"word": "hello", "translation": "bonjour"}]'}}) }}
                         <small class="form-text text-muted">Format: [{"word": "mot", "translation": "traduction"}]</small>
                         {{ form_errors(form.vocabularyData) }}
                     </div>
 
                     <div class="mb-3">
                         {{ form_label(form.grammarData, 'Données de grammaire (JSON)', {'label_attr': {'class': 'form-label'}}) }}
-                        {{ form_widget(form.grammarData, {'attr': {'class': 'form-control', 'rows': '5', 'placeholder': '[{"rule": "nom", "example": "Je m\'appelle Jean"}]'}}) }}
+                        {{ form_widget(form.grammarData, {'attr': {'class': 'form-control font-monospace', 'rows': '5', 'placeholder': '[{"rule": "nom", "example": "Je m\'appelle Jean"}]'}}) }}
                         <small class="form-text text-muted">Format: [{"rule": "règle", "example": "exemple"}]</small>
                         {{ form_errors(form.grammarData) }}
                     </div>
 
-                    <div class="form-footer">
+                    <div class="form-footer mt-4 d-flex gap-2">
                         <button type="submit" class="btn btn-primary">
-                            <i class="ti ti-check"></i> Créer la leçon
+                            <i class="ti ti-check me-1"></i> Créer la leçon
                         </button>
                         <a href="{{ path('admin_lesson_index') }}" class="btn btn-secondary">
-                            <i class="ti ti-arrow-left"></i> Retour
+                            <i class="ti ti-arrow-left me-1"></i> Retour
                         </a>
                     </div>
                 {{ form_end(form) }}
             </div>
         </div>
     </div>
+    
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 rounded-3">
+            <div class="card-header bg-light">
+                <h3 class="card-title mb-0">
+                    <i class="ti ti-info-circle text-info me-2"></i> Aide
+                </h3>
+            </div>
+            <div class="card-body">
+                <p class="mb-2"><strong>Titre:</strong></p>
+                <p class="text-muted small mb-3">Le nom de la leçon tel qu'il apparaîtra dans l'interface.</p>
+                
+                <p class="mb-2"><strong>Cours associé:</strong></p>
+                <p class="text-muted small mb-3">Le cours auquel cette leçon appartient. Obligatoire.</p>
+                
+                <p class="mb-2"><strong>Contenu:</strong></p>
+                <p class="text-muted small mb-3">Le contenu principal de la leçon. Peut inclure du texte, des explications, etc.</p>
+                
+                <p class="mb-2"><strong>Récompense XP:</strong></p>
+                <p class="text-muted small mb-3">Points d'expérience gagnés par l'apprenant après avoir complété cette leçon.</p>
+                
+                <p class="mb-2"><strong>Vocabulaire & Grammaire:</strong></p>
+                <p class="text-muted small mb-0">Données au format JSON. Optionnelles mais utiles pour enrichir la leçon.</p>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0 rounded-3 mt-3">
+            <div class="card-header bg-light">
+                <h3 class="card-title mb-0">
+                    <i class="ti ti-code text-secondary me-2"></i> Exemples JSON
+                </h3>
+            </div>
+            <div class="card-body">
+                <p class="mb-2 small"><strong>Vocabulaire:</strong></p>
+                <pre class="bg-light p-2 rounded small mb-3"><code>[
+  {
+    "word": "hello",
+    "translation": "bonjour"
+  },
+  {
+    "word": "goodbye",
+    "translation": "au revoir"
+  }
+]</code></pre>
+                
+                <p class="mb-2 small"><strong>Grammaire:</strong></p>
+                <pre class="bg-light p-2 rounded small mb-0"><code>[
+  {
+    "rule": "Le verbe être",
+    "example": "Je suis content"
+  }
+]</code></pre>
+            </div>
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.form-label.required::after {
+    content: " *";
+    color: var(--ll-danger);
+}
+.card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.form-control:focus, .form-select:focus { border-color: #206bc4 !important; box-shadow: 0 0 0 3px rgba(32,107,196,0.15) !important; }
+pre code { font-size: 0.75rem; }
+</style>
 {% endblock %}

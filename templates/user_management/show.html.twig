@@ -1,290 +1,605 @@
-{% extends 'base.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
-{% block title %}{{ user.fullName }} - User Details - {{ parent() }}{% endblock %}
+{% block title %}{{ user.fullName }} · Profile - {{ parent() }}{% endblock %}
 
 {% block page_title %}
-    <i class="ti ti-user-circle me-2"></i> {{ user.fullName }}
+    <span class="d-flex align-items-center gap-2">
+        <span style="width:36px;height:36px;border-radius:10px;background:#edf2ff;color:#3b5bdb;display:grid;place-items:center;font-size:18px">
+            <i class="ti ti-user-circle"></i>
+        </span>
+        {{ user.fullName }}
+    </span>
+<script>
+function toggleRpPw() {
+    const inp = document.getElementById('rp-input');
+    const ico = document.getElementById('rp-eye');
+    if (inp.type === 'password') { inp.type = 'text'; ico.className = 'ti ti-eye-off'; }
+    else { inp.type = 'password'; ico.className = 'ti ti-eye'; }
+}
+</script>
 {% endblock %}
 
 {% block breadcrumb %}
     <ol class="breadcrumb breadcrumb-arrows" aria-label="breadcrumbs">
-        <li class="breadcrumb-item"><a href="{{ path('admin_users_index') }}">Users</a></li>
+        <li class="breadcrumb-item"><a href="{{ path('admin_users_index') }}"><i class="ti ti-users me-1"></i>Users</a></li>
         <li class="breadcrumb-item active" aria-current="page">{{ user.fullName }}</li>
     </ol>
+<script>
+function toggleRpPw() {
+    const inp = document.getElementById('rp-input');
+    const ico = document.getElementById('rp-eye');
+    if (inp.type === 'password') { inp.type = 'text'; ico.className = 'ti ti-eye-off'; }
+    else { inp.type = 'password'; ico.className = 'ti ti-eye'; }
+}
+</script>
 {% endblock %}
 
 {% block page_actions %}
     <div class="col-auto ms-auto d-print-none">
-        <div class="btn-list">
-            <a href="{{ path('admin_users_edit', {id: user.id}) }}" class="btn btn-primary">
-                <i class="ti ti-pencil icon"></i>
-                Edit
+        <div class="d-flex gap-2">
+            <a href="{{ path('admin_users_edit', {id: user.id}) }}" class="btn btn-primary d-flex align-items-center gap-2" style="border-radius:10px;font-weight:600;box-shadow:0 4px 12px rgba(59,91,219,.3)">
+                <i class="ti ti-pencil"></i> Edit User
             </a>
-            <a href="{{ path('admin_users_index') }}" class="btn">
-                <i class="ti ti-arrow-left icon"></i>
-                Back
+            <a href="{{ path('admin_users_index') }}" class="btn btn-ghost-secondary" style="border-radius:10px">
+                <i class="ti ti-arrow-left me-1"></i> Back
             </a>
         </div>
     </div>
+<script>
+function toggleRpPw() {
+    const inp = document.getElementById('rp-input');
+    const ico = document.getElementById('rp-eye');
+    if (inp.type === 'password') { inp.type = 'text'; ico.className = 'ti ti-eye-off'; }
+    else { inp.type = 'password'; ico.className = 'ti ti-eye'; }
+}
+</script>
 {% endblock %}
 
-{% block body %}
-    <div class="row row-deck row-cards">
-        {# User Profile Card #}
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body text-center">
-                    <span class="avatar avatar-xl mb-3" style="background-image: url(https://ui-avatars.com/api/?name={{ user.firstName }}+{{ user.lastName }}&size=200&background=206bc4&color=fff)"></span>
-                    <h3 class="m-0 mb-1">{{ user.fullName }}</h3>
-                    <div class="text-muted">{{ user.email }}</div>
-                    <div class="mt-3">
-                        {% if user.isPremium %}
-                            <span class="badge bg-yellow-lt">
-                                <i class="ti ti-crown"></i> Premium Member
-                            </span>
-                        {% else %}
-                            <span class="badge bg-blue-lt">Free Account</span>
-                        {% endif %}
-                        
+{% block content %}
+<style>
+:root {
+    --sp-primary:  #3b5bdb;
+    --sp-success:  #2fb344;
+    --sp-warn:     #f59f00;
+    --sp-danger:   #d63939;
+    --sp-purple:   #7c3aed;
+    --sp-muted:    #6c7a99;
+    --sp-border:   #e3e8f0;
+    --sp-bg:       #f8fafc;
+    --sp-shadow:   0 2px 16px rgba(59,91,219,.07);
+    --sp-radius:   14px;
+}
+
+/* ── Profile hero ── */
+.profile-hero {
+    border-radius: var(--sp-radius); overflow: hidden;
+    border: 1px solid var(--sp-border); box-shadow: var(--sp-shadow);
+    background: #fff; margin-bottom: 16px;
+}
+.profile-hero-banner {
+    height: 80px;
+    background: linear-gradient(135deg, #3b5bdb 0%, #7c3aed 50%, #4c6ef5 100%);
+    position: relative;
+}
+.profile-hero-banner::after {
+    content: ''; position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='20'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.profile-hero-body {
+    padding: 0 24px 24px;
+    display: flex; align-items: flex-end; gap: 20px;
+    position: relative;
+}
+.profile-avatar-wrap { margin-top: -32px; flex-shrink: 0; }
+.profile-avatar {
+    width: 80px; height: 80px; border-radius: 16px;
+    border: 3px solid #fff; box-shadow: 0 4px 16px rgba(0,0,0,.15);
+}
+.profile-name { font-size: 1.3rem; font-weight: 800; color: #1a1f36; line-height: 1; margin-bottom: 4px; }
+.profile-email { font-size: .83rem; color: var(--sp-muted); }
+.profile-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.profile-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 10px; border-radius: 6px; font-size: .74rem; font-weight: 700;
+}
+.pb-active    { background: #d3f9d8; color: #1a6130; }
+.pb-suspended { background: #fff3bf; color: #7d4a00; }
+.pb-deleted   { background: #ffe3e3; color: #7d1717; }
+.pb-premium   { background: #fff3bf; color: #7d4a00; }
+.pb-free      { background: #f1f3f9; color: var(--sp-muted); }
+.pb-role      { background: #edf2ff; color: var(--sp-primary); }
+
+/* ── Cards ── */
+.sp-card {
+    border-radius: var(--sp-radius); border: 1px solid var(--sp-border);
+    background: #fff; box-shadow: var(--sp-shadow); margin-bottom: 16px;
+    overflow: hidden;
+    animation: spFadeUp .4s ease both;
+}
+@keyframes spFadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+.sp-card:nth-child(2){animation-delay:.06s}.sp-card:nth-child(3){animation-delay:.12s}.sp-card:nth-child(4){animation-delay:.18s}.sp-card:nth-child(5){animation-delay:.22s}
+
+.sp-card-header {
+    padding: 16px 20px 14px;
+    border-bottom: 1px solid var(--sp-border);
+    display: flex; align-items: center; gap: 10px;
+}
+.sp-card-icon { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; font-size: 16px; }
+.sp-card-icon.blue  { background: #edf2ff; color: var(--sp-primary); }
+.sp-card-icon.gold  { background: #fff3bf; color: var(--sp-warn); }
+.sp-card-icon.red   { background: #ffe3e3; color: var(--sp-danger); }
+.sp-card-icon.green { background: #d3f9d8; color: var(--sp-success); }
+.sp-card-icon.purple{ background: #f3f0ff; color: var(--sp-purple); }
+.sp-card-title { font-weight: 700; font-size: .88rem; color: #1a1f36; }
+.sp-card-body { padding: 20px; }
+
+/* Info grid */
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+.info-row {
+    padding: 12px 0; border-bottom: 1px solid var(--sp-border);
+    display: flex; flex-direction: column; gap: 3px;
+}
+.info-row:nth-last-child(-n+2) { border-bottom: none; }
+.info-row:nth-child(odd)  { padding-right: 20px; border-right: 1px solid var(--sp-border); }
+.info-row:nth-child(even) { padding-left: 20px; }
+.info-label { font-size: .72rem; font-weight: 700; color: var(--sp-muted); text-transform: uppercase; letter-spacing: .05em; }
+.info-value { font-size: .88rem; font-weight: 600; color: #1a1f36; }
+
+/* Quick action buttons */
+.qa-btn {
+    width: 100%; padding: 11px 16px;
+    border-radius: 10px; border: 1.5px solid var(--sp-border);
+    background: #fff; cursor: pointer; font-size: .83rem; font-weight: 700;
+    display: flex; align-items: center; gap: 10px;
+    transition: all .18s; text-decoration: none;
+    margin-bottom: 8px;
+}
+.qa-btn:last-child { margin-bottom: 0; }
+.qa-btn:hover { transform: translateY(-1px); }
+.qa-btn .qa-icon { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; font-size: 15px; flex-shrink: 0; }
+.qa-btn.activate  { border-color: var(--sp-success); color: #1a6130; }
+.qa-btn.activate:hover  { background: #d3f9d8; }
+.qa-btn.activate  .qa-icon  { background: #d3f9d8; color: var(--sp-success); }
+.qa-btn.suspend   { border-color: var(--sp-warn); color: #7d4a00; }
+.qa-btn.suspend:hover   { background: #fff3bf; }
+.qa-btn.suspend   .qa-icon  { background: #fff3bf; color: var(--sp-warn); }
+.qa-btn.upgrade   { border-color: var(--sp-warn); color: #7d4a00; }
+.qa-btn.upgrade:hover   { background: #fff9db; }
+.qa-btn.upgrade   .qa-icon  { background: #fff9db; color: var(--sp-warn); }
+.qa-btn.downgrade { border-color: var(--sp-muted); color: var(--sp-muted); }
+.qa-btn.downgrade:hover { background: var(--sp-bg); }
+.qa-btn.downgrade .qa-icon  { background: var(--sp-bg); color: var(--sp-muted); }
+.qa-btn.danger    { border-color: var(--sp-danger); color: #7d1717; }
+.qa-btn.danger:hover    { background: #fff5f5; }
+.qa-btn.danger    .qa-icon  { background: #ffe3e3; color: var(--sp-danger); }
+
+/* Plan selector in upgrade form */
+.inline-plan-select { width: 100%; border: 1.5px solid var(--sp-border); border-radius: 8px; padding: 8px 12px; font-size: .82rem; margin-bottom: 8px; }
+
+/* Stats mini cards */
+.stats-mini { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.stat-mini-card {
+    padding: 16px; border-radius: 10px;
+    border: 1px solid var(--sp-border); background: var(--sp-bg);
+    text-align: center;
+}
+.stat-mini-num { font-size: 1.6rem; font-weight: 800; color: #1a1f36; line-height: 1; }
+.stat-mini-label { font-size: .72rem; color: var(--sp-muted); font-weight: 600; margin-top: 4px; text-transform: uppercase; letter-spacing: .04em; }
+
+/* Divider */
+.qa-divider { margin: 12px 0; border: none; border-top: 1px solid var(--sp-border); }
+</style>
+
+<div class="row g-3">
+
+    {# ── LEFT COLUMN ─────────────────────────────────────────────────────── #}
+    <div class="col-md-4">
+
+        {# Profile Hero #}
+        <div class="profile-hero sp-card" style="margin-bottom:16px">
+            <div class="profile-hero-banner"></div>
+            <div class="profile-hero-body">
+                <div class="profile-avatar-wrap">
+                    <img class="profile-avatar"
+                         src="https://ui-avatars.com/api/?name={{ user.firstName|url_encode }}+{{ user.lastName|url_encode }}&size=160&background=3b5bdb&color=fff"
+                         alt="{{ user.fullName }}">
+                </div>
+                <div style="padding-top:14px">
+                    <div class="profile-name">{{ user.fullName }}</div>
+                    <div class="profile-email">{{ user.email }}</div>
+                    <div class="profile-badges mt-2">
                         {% if user.status == 'active' %}
-                            <span class="badge bg-green-lt ms-1">
-                                <i class="ti ti-check"></i> Active
-                            </span>
+                            <span class="profile-badge pb-active"><i class="ti ti-circle-check"></i> Active</span>
                         {% elseif user.status == 'suspended' %}
-                            <span class="badge bg-yellow-lt ms-1">
-                                <i class="ti ti-alert-triangle"></i> Suspended
-                            </span>
+                            <span class="profile-badge pb-suspended"><i class="ti ti-player-pause"></i> Suspended</span>
                         {% else %}
-                            <span class="badge bg-red-lt ms-1">
-                                <i class="ti ti-x"></i> Deleted
-                            </span>
+                            <span class="profile-badge pb-deleted"><i class="ti ti-trash"></i> Deleted</span>
                         {% endif %}
+                        {% if user.isPremium %}
+                            <span class="profile-badge pb-premium">👑 Premium</span>
+                        {% else %}
+                            <span class="profile-badge pb-free">Free</span>
+                        {% endif %}
+                        {% for role in user.roles %}
+                            {% if role != 'ROLE_USER' %}
+                                <span class="profile-badge pb-role">{{ role|replace({'ROLE_': ''}) }}</span>
+                            {% endif %}
+                        {% endfor %}
                     </div>
-                </div>
-                <div class="card-footer">
-                    <div class="row">
-                        <div class="col">
-                            <a href="mailto:{{ user.email }}" class="btn w-100">
-                                <i class="ti ti-mail"></i>
-                                Email
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {# Quick Actions Card #}
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h3 class="card-title">Quick Actions</h3>
-                </div>
-                <div class="card-body">
-                    {# Status Actions #}
-                    {% if user.status == 'active' %}
-                        <form method="post" action="{{ path('admin_users_suspend', {id: user.id}) }}" class="mb-2">
-                            <input type="hidden" name="_token" value="{{ csrf_token('suspend' ~ user.id) }}">
-                            <button type="submit" class="btn btn-warning w-100" onclick="return confirm('Are you sure you want to suspend this user?')">
-                                <i class="ti ti-player-pause"></i> Suspend User
-                            </button>
-                        </form>
-                    {% elseif user.status == 'suspended' %}
-                        <form method="post" action="{{ path('admin_users_activate', {id: user.id}) }}" class="mb-2">
-                            <input type="hidden" name="_token" value="{{ csrf_token('activate' ~ user.id) }}">
-                            <button type="submit" class="btn btn-success w-100">
-                                <i class="ti ti-check"></i> Activate User
-                            </button>
-                        </form>
-                    {% endif %}
-
-                    {# Premium Actions #}
-                    {% if not user.isPremium %}
-                        <form method="post" action="{{ path('admin_users_premium_upgrade', {id: user.id}) }}" class="mb-2">
-                            <input type="hidden" name="_token" value="{{ csrf_token('premium' ~ user.id) }}">
-                            <div class="mb-2">
-                                <select name="plan" class="form-select">
-                                    <option value="PREMIUM_MONTHLY">Monthly Premium ($9.99/mo)</option>
-                                    <option value="PREMIUM_YEARLY">Yearly Premium ($99/yr)</option>
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-info w-100">
-                                <i class="ti ti-crown"></i> Upgrade to Premium
-                            </button>
-                        </form>
-                    {% else %}
-                        <form method="post" action="{{ path('admin_users_premium_downgrade', {id: user.id}) }}" class="mb-2">
-                            <input type="hidden" name="_token" value="{{ csrf_token('downgrade' ~ user.id) }}">
-                            <button type="submit" class="btn btn-secondary w-100" onclick="return confirm('Downgrade this user to free plan?')">
-                                <i class="ti ti-arrow-down"></i> Downgrade to Free
-                            </button>
-                        </form>
-                    {% endif %}
-
-                    <hr>
-
-                    {# Delete Action #}
-                    {% if user.status != 'deleted' %}
-                        <form method="post" action="{{ path('admin_users_delete', {id: user.id}) }}" id="deleteForm">
-                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
-                            <button type="button" class="btn btn-danger w-100" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
-                                <i class="ti ti-trash"></i> Delete User
-                            </button>
-                        </form>
-                    {% endif %}
                 </div>
             </div>
         </div>
 
-        {# User Information and Stats #}
-        <div class="col-md-8">
-            {# Account Information #}
-            <div class="card mb-3">
-                <div class="card-header">
-                    <h3 class="card-title">Account Information</h3>
-                </div>
-                <div class="card-body">
-                    <div class="datagrid">
-                        <div class="datagrid-item">
-                            <div class="datagrid-title">User ID</div>
-                            <div class="datagrid-content">#{{ user.id }}</div>
-                        </div>
-                        <div class="datagrid-item">
-                            <div class="datagrid-title">Email Address</div>
-                            <div class="datagrid-content">
-                                <a href="mailto:{{ user.email }}">{{ user.email }}</a>
-                            </div>
-                        </div>
-                        <div class="datagrid-item">
-                            <div class="datagrid-title">Full Name</div>
-                            <div class="datagrid-content">{{ user.fullName }}</div>
-                        </div>
-                        <div class="datagrid-item">
-                            <div class="datagrid-title">Account Status</div>
-                            <div class="datagrid-content">
-                                {% if user.status == 'active' %}
-                                    <span class="status status-green">
-                                        <span class="status-dot"></span>
-                                        Active
-                                    </span>
-                                {% elseif user.status == 'suspended' %}
-                                    <span class="status status-yellow">
-                                        <span class="status-dot"></span>
-                                        Suspended
-                                    </span>
-                                {% else %}
-                                    <span class="status status-red">
-                                        <span class="status-dot"></span>
-                                        Deleted
-                                    </span>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div class="datagrid-item">
-                            <div class="datagrid-title">Subscription Plan</div>
-                            <div class="datagrid-content">
-                                {% if user.isPremium %}
-                                    <span class="badge bg-yellow">
-                                        <i class="ti ti-crown"></i> {{ user.subscriptionPlan|replace({'_': ' '}) }}
-                                    </span>
-                                {% else %}
-                                    <span class="badge bg-blue">FREE</span>
-                                {% endif %}
-                            </div>
-                        </div>
-                        {% if user.subscriptionExpiry %}
-                        <div class="datagrid-item">
-                            <div class="datagrid-title">Subscription Expires</div>
-                            <div class="datagrid-content">
-                                {{ user.subscriptionExpiry|date('F j, Y - H:i') }}
-                                {% if user.subscriptionExpiry < date() %}
-                                    <span class="badge bg-red ms-2">Expired</span>
-                                {% endif %}
-                            </div>
-                        </div>
-                        {% endif %}
-                        <div class="datagrid-item">
-                            <div class="datagrid-title">User Roles</div>
-                            <div class="datagrid-content">
-                                {% for role in user.roles %}
-                                    <span class="badge bg-primary me-1">
-                                        {{ role|replace({'ROLE_': ''}) }}
-                                    </span>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        {% if user.lastPaymentStatus %}
-                        <div class="datagrid-item">
-                            <div class="datagrid-title">Last Payment</div>
-                            <div class="datagrid-content">
-                                {% if user.lastPaymentStatus == 'success' %}
-                                    <span class="badge bg-success">{{ user.lastPaymentStatus|upper }}</span>
-                                {% else %}
-                                    <span class="badge bg-danger">{{ user.lastPaymentStatus|upper }}</span>
-                                {% endif %}
-                            </div>
-                        </div>
-                        {% endif %}
-                        <div class="datagrid-item">
-                            <div class="datagrid-title">Member Since</div>
-                            <div class="datagrid-content">{{ user.createdAt|date('F j, Y') }}</div>
-                        </div>
-                    </div>
-                </div>
+        {# Quick Actions #}
+        <div class="sp-card">
+            <div class="sp-card-header">
+                <div class="sp-card-icon red"><i class="ti ti-bolt"></i></div>
+                <span class="sp-card-title">Quick Actions</span>
             </div>
+            <div class="sp-card-body">
 
-            {# Learning Statistics #}
-            {% if user.learningStats %}
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Learning Statistics</h3>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-6 col-md-3">
-                            <div class="text-center">
-                                <div class="text-muted mb-2">
-                                    <i class="ti ti-clock" style="font-size: 2rem;"></i>
-                                </div>
-                                <div class="h1">{{ user.learningStats.totalMinutesStudied }}</div>
-                                <div class="text-muted">Minutes Studied</div>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="text-center">
-                                <div class="text-muted mb-2">
-                                    <i class="ti ti-vocabulary" style="font-size: 2rem;"></i>
-                                </div>
-                                <div class="h1">{{ user.learningStats.wordsLearned }}</div>
-                                <div class="text-muted">Words Learned</div>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="text-center">
-                                <div class="text-muted mb-2">
-                                    <i class="ti ti-star" style="font-size: 2rem;"></i>
-                                </div>
-                                <div class="h1">{{ user.learningStats.totalXP }}</div>
-                                <div class="text-muted">Total XP</div>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="text-center">
-                                <div class="text-muted mb-2">
-                                    <i class="ti ti-calendar" style="font-size: 2rem;"></i>
-                                </div>
-                                <div class="h1">
-                                    {% if user.learningStats.lastStudySession %}
-                                        {{ user.learningStats.lastStudySession|date('M d') }}
-                                    {% else %}
-                                        <span class="text-muted">-</span>
-                                    {% endif %}
-                                </div>
-                                <div class="text-muted">Last Session</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                {# Status actions #}
+                {% if user.status == 'active' %}
+                    <form method="post" action="{{ path('admin_users_suspend', {id: user.id}) }}" onsubmit="return confirm('Suspend this user?')">
+                        <input type="hidden" name="_token" value="{{ csrf_token('suspend' ~ user.id) }}">
+                        <button type="submit" class="qa-btn suspend">
+                            <span class="qa-icon"><i class="ti ti-player-pause"></i></span>
+                            Suspend Account
+                        </button>
+                    </form>
+                {% elseif user.status == 'suspended' %}
+                    <form method="post" action="{{ path('admin_users_activate', {id: user.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('activate' ~ user.id) }}">
+                        <button type="submit" class="qa-btn activate">
+                            <span class="qa-icon"><i class="ti ti-circle-check"></i></span>
+                            Activate Account
+                        </button>
+                    </form>
+                {% endif %}
+
+                <hr class="qa-divider">
+
+                {# Premium actions #}
+                {% if not user.isPremium %}
+                    <form method="post" action="{{ path('admin_users_premium_upgrade', {id: user.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('premium' ~ user.id) }}">
+                        <select name="plan" class="inline-plan-select">
+                            <option value="MONTHLY">Monthly — $9.99/mo</option>
+                            <option value="YEARLY">Yearly — $99/yr</option>
+                        </select>
+                        <button type="submit" class="qa-btn upgrade">
+                            <span class="qa-icon"><i class="ti ti-crown"></i></span>
+                            Upgrade to Premium
+                        </button>
+                    </form>
+                {% else %}
+                    <form method="post" action="{{ path('admin_users_premium_downgrade', {id: user.id}) }}" onsubmit="return confirm('Downgrade to free plan?')">
+                        <input type="hidden" name="_token" value="{{ csrf_token('downgrade' ~ user.id) }}">
+                        <button type="submit" class="qa-btn downgrade">
+                            <span class="qa-icon"><i class="ti ti-arrow-down"></i></span>
+                            Downgrade to Free
+                        </button>
+                    </form>
+                {% endif %}
+
+                <hr class="qa-divider">
+
+                {# Email shortcut #}
+                <a href="mailto:{{ user.email }}" class="qa-btn" style="border-color:var(--sp-primary);color:#1a1f36">
+                    <span class="qa-icon" style="background:#edf2ff;color:var(--sp-primary)"><i class="ti ti-mail"></i></span>
+                    Send Email
+                </a>
+
+                {# Delete #}
+                {% if user.status != 'deleted' %}
+                    <form method="post" action="{{ path('admin_users_delete', {id: user.id}) }}" id="deleteForm">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
+                        <button type="button" class="qa-btn danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
+                            <span class="qa-icon"><i class="ti ti-trash"></i></span>
+                            Delete User
+                        </button>
+                    </form>
+                {% endif %}
+
+                <hr class="qa-divider">
+
+                {# ── Advanced actions ── #}
+                <a href="{{ path('admin_users_stats', {id: user.id}) }}" class="qa-btn" style="border-color:#7c3aed;color:#5b21b6">
+                    <span class="qa-icon" style="background:#f3f0ff;color:#7c3aed"><i class="ti ti-chart-bar"></i></span>
+                    Edit Learning Stats
+                </a>
+                <a href="{{ path('admin_users_notify', {id: user.id}) }}" class="qa-btn" style="border-color:#0891b2;color:#164e63">
+                    <span class="qa-icon" style="background:#ecfeff;color:#0891b2"><i class="ti ti-bell-ringing"></i></span>
+                    Send Notification
+                </a>
+                <a href="{{ path('admin_users_languages', {id: user.id}) }}" class="qa-btn" style="border-color:#059669;color:#064e3b">
+                    <span class="qa-icon" style="background:#d1fae5;color:#059669"><i class="ti ti-language"></i></span>
+                    Manage Languages
+                </a>
+                <button type="button" class="qa-btn" style="border-color:#dc2626;color:#7f1d1d;width:100%" data-bs-toggle="modal" data-bs-target="#resetPasswordModal">
+                    <span class="qa-icon" style="background:#fee2e2;color:#dc2626"><i class="ti ti-lock-open"></i></span>
+                    Reset Password
+                </button>
             </div>
-            {% endif %}
         </div>
     </div>
+
+    {# ── RIGHT COLUMN ─────────────────────────────────────────────────────── #}
+    <div class="col-md-8">
+
+        {# Account Information #}
+        <div class="sp-card">
+            <div class="sp-card-header">
+                <div class="sp-card-icon blue"><i class="ti ti-info-circle"></i></div>
+                <span class="sp-card-title">Account Information</span>
+            </div>
+            <div class="sp-card-body" style="padding-top:4px">
+                <div class="info-grid">
+                    <div class="info-row">
+                        <div class="info-label">User ID</div>
+                        <div class="info-value" style="font-family:monospace">#{{ user.id }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Member Since</div>
+                        <div class="info-value">{{ user.createdAt|date('F j, Y') }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">First Name</div>
+                        <div class="info-value">{{ user.firstName }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Last Name</div>
+                        <div class="info-value">{{ user.lastName }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Email</div>
+                        <div class="info-value"><a href="mailto:{{ user.email }}" style="color:var(--sp-primary)">{{ user.email }}</a></div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Status</div>
+                        <div class="info-value">
+                            {% if user.status == 'active' %}
+                                <span style="display:inline-flex;align-items:center;gap:5px;color:var(--sp-success);font-weight:700"><span style="width:7px;height:7px;border-radius:50%;background:var(--sp-success)"></span> Active</span>
+                            {% elseif user.status == 'suspended' %}
+                                <span style="display:inline-flex;align-items:center;gap:5px;color:var(--sp-warn);font-weight:700"><span style="width:7px;height:7px;border-radius:50%;background:var(--sp-warn)"></span> Suspended</span>
+                            {% else %}
+                                <span style="display:inline-flex;align-items:center;gap:5px;color:var(--sp-danger);font-weight:700"><span style="width:7px;height:7px;border-radius:50%;background:var(--sp-danger)"></span> Deleted</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Roles</div>
+                        <div class="info-value">
+                            <div style="display:flex;gap:4px;flex-wrap:wrap">
+                            {% for role in user.roles %}
+                                <span style="font-size:.72rem;padding:3px 8px;border-radius:5px;font-weight:700;background:#edf2ff;color:var(--sp-primary)">
+                                    {{ role|replace({'ROLE_': ''}) }}
+                                </span>
+                            {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% if user.lastPaymentStatus %}
+                    <div class="info-row">
+                        <div class="info-label">Last Payment</div>
+                        <div class="info-value">
+                            {% if user.lastPaymentStatus == 'success' %}
+                                <span style="color:var(--sp-success);font-weight:700"><i class="ti ti-check me-1"></i>{{ user.lastPaymentStatus|upper }}</span>
+                            {% else %}
+                                <span style="color:var(--sp-danger);font-weight:700"><i class="ti ti-x me-1"></i>{{ user.lastPaymentStatus|upper }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {# Subscription Card #}
+        <div class="sp-card">
+            <div class="sp-card-header">
+                <div class="sp-card-icon gold"><i class="ti ti-crown"></i></div>
+                <span class="sp-card-title">Subscription</span>
+                <div class="ms-auto">
+                    {% if user.isPremium %}
+                        <span style="font-size:.72rem;padding:4px 10px;border-radius:6px;font-weight:700;background:#fff3bf;color:#7d4a00">
+                            👑 {{ user.subscriptionPlan == 'MONTHLY' ? 'Monthly Premium' : 'Yearly Premium' }}
+                        </span>
+                    {% else %}
+                        <span style="font-size:.72rem;padding:4px 10px;border-radius:6px;font-weight:700;background:#f1f3f9;color:var(--sp-muted)">Free Plan</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="sp-card-body">
+                <div class="row g-3">
+                    <div class="col-sm-4">
+                        <div class="stat-mini-card">
+                            <div class="stat-mini-num">{{ user.subscriptionPlan }}</div>
+                            <div class="stat-mini-label">Current Plan</div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="stat-mini-card">
+                            <div class="stat-mini-num" style="font-size:1rem">
+                                {% if user.subscriptionExpiry %}
+                                    {{ user.subscriptionExpiry|date('M d, Y') }}
+                                    {% if user.subscriptionExpiry < date() %}
+                                        <span style="font-size:.7rem;padding:2px 6px;border-radius:4px;background:#ffe3e3;color:#7d1717">Expired</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span style="color:var(--sp-muted)">—</span>
+                                {% endif %}
+                            </div>
+                            <div class="stat-mini-label">Expires</div>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="stat-mini-card">
+                            <div class="stat-mini-num" style="font-size:1.4rem">
+                                {% if user.isPremium %}✅{% else %}❌{% endif %}
+                            </div>
+                            <div class="stat-mini-label">Premium Active</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Learning Stats #}
+        {% if user.learningStats %}
+        <div class="sp-card">
+            <div class="sp-card-header">
+                <div class="sp-card-icon purple"><i class="ti ti-chart-bar"></i></div>
+                <span class="sp-card-title">Learning Statistics</span>
+                <a href="{{ path('admin_users_stats', {id: user.id}) }}"
+                   style="margin-left:auto;font-size:.72rem;font-weight:700;color:#7c3aed;text-decoration:none;padding:4px 10px;border-radius:6px;background:#f3f0ff;border:1px solid #ddd6fe">
+                    <i class="ti ti-pencil"></i> Edit
+                </a>
+            </div>
+            <div class="sp-card-body">
+                <div class="stats-mini">
+                    <div class="stat-mini-card">
+                        <div class="stat-mini-num">{{ user.learningStats.totalMinutesStudied }}</div>
+                        <div class="stat-mini-label"><i class="ti ti-clock"></i> Min Studied</div>
+                    </div>
+                    <div class="stat-mini-card">
+                        <div class="stat-mini-num">{{ user.learningStats.wordsLearned }}</div>
+                        <div class="stat-mini-label"><i class="ti ti-vocabulary"></i> Words Learned</div>
+                    </div>
+                    <div class="stat-mini-card">
+                        <div class="stat-mini-num">{{ user.learningStats.totalXP }}</div>
+                        <div class="stat-mini-label"><i class="ti ti-star"></i> Total XP</div>
+                    </div>
+                    <div class="stat-mini-card">
+                        <div class="stat-mini-num" style="font-size:1rem">
+                            {% if user.learningStats.lastStudySession %}
+                                {{ user.learningStats.lastStudySession|date('M d') }}
+                            {% else %}
+                                <span style="color:var(--sp-muted)">—</span>
+                            {% endif %}
+                        </div>
+                        <div class="stat-mini-label"><i class="ti ti-calendar"></i> Last Session</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="sp-card">
+            <div class="sp-card-header">
+                <div class="sp-card-icon purple"><i class="ti ti-chart-bar"></i></div>
+                <span class="sp-card-title">Learning Statistics</span>
+                <a href="{{ path('admin_users_stats', {id: user.id}) }}"
+                   style="margin-left:auto;font-size:.72rem;font-weight:700;color:#7c3aed;text-decoration:none;padding:4px 10px;border-radius:6px;background:#f3f0ff;border:1px solid #ddd6fe">
+                    <i class="ti ti-plus"></i> Init Stats
+                </a>
+            </div>
+            <div style="padding:28px;text-align:center;color:var(--sp-muted);font-size:.82rem">
+                <i class="ti ti-chart-bar-off" style="font-size:2rem;display:block;margin-bottom:8px;opacity:.3"></i>
+                No learning stats yet. Click "Init Stats" to create them.
+            </div>
+        </div>
+        {% endif %}
+
+        {# Languages summary #}
+        {% if user.userLanguages|length > 0 %}
+        <div class="sp-card">
+            <div class="sp-card-header">
+                <div class="sp-card-icon green"><i class="ti ti-language"></i></div>
+                <span class="sp-card-title">Languages ({{ user.userLanguages|length }})</span>
+                <a href="{{ path('admin_users_languages', {id: user.id}) }}"
+                   style="margin-left:auto;font-size:.72rem;font-weight:700;color:#059669;text-decoration:none;padding:4px 10px;border-radius:6px;background:#d1fae5;border:1px solid #a7f3d0">
+                    <i class="ti ti-pencil"></i> Manage
+                </a>
+            </div>
+            <div class="sp-card-body" style="padding-top:8px;padding-bottom:12px">
+                <div style="display:flex;flex-wrap:wrap;gap:7px">
+                {% for ul in user.userLanguages %}
+                    <span style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:8px;font-size:.78rem;font-weight:700;background:#f0fdf4;border:1px solid #bbf7d0;color:#166534">
+                        {{ ul.language.name }}
+                        <span style="padding:2px 6px;border-radius:4px;background:#d1fae5;font-size:.68rem">{{ ul.proficiencyLevel }}</span>
+                        {% if ul.isNative %}<span style="font-size:.7rem">🏠</span>{% endif %}
+                    </span>
+                {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>{# end col-md-8 #}
+</div>{# end row #}
+
+{# ── Reset Password Modal ─────────────────────────────────────────────────── #}
+<div class="modal modal-blur fade" id="resetPasswordModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+        <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 16px 60px rgba(0,0,0,.2)">
+            <div class="modal-body" style="padding:28px">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
+                    <div style="width:46px;height:46px;border-radius:12px;background:#fee2e2;display:grid;place-items:center;font-size:22px;color:#dc2626;flex-shrink:0">
+                        <i class="ti ti-lock-open"></i>
+                    </div>
+                    <div>
+                        <h3 style="font-weight:800;font-size:1rem;margin:0 0 2px">Reset Password</h3>
+                        <p style="color:var(--sp-muted);font-size:.8rem;margin:0">Set a new password for <strong>{{ user.firstName }}</strong></p>
+                    </div>
+                </div>
+                <form method="post" action="{{ path('admin_users_reset_password', {id: user.id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('reset_password' ~ user.id) }}">
+                    <div style="margin-bottom:14px">
+                        <label style="font-size:.76rem;font-weight:700;color:var(--sp-muted);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:6px">New Password</label>
+                        <div style="position:relative">
+                            <input type="password" name="new_password" id="rp-input"
+                                   placeholder="Min. 6 characters"
+                                   style="width:100%;border:1.5px solid #e3e8f0;border-radius:10px;padding:9px 42px 9px 12px;font-size:.88rem;outline:none;transition:border-color .2s"
+                                   onfocus="this.style.borderColor='#3b5bdb'" onblur="this.style.borderColor='#e3e8f0'"
+                                   required minlength="6">
+                            <button type="button" onclick="toggleRpPw()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#94a3b8;font-size:15px;padding:0">
+                                <i class="ti ti-eye" id="rp-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:10px">
+                        <button type="button" class="btn btn-ghost-secondary flex-1" data-bs-dismiss="modal" style="border-radius:10px;font-weight:600">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-danger flex-1" style="border-radius:10px;font-weight:600;box-shadow:0 4px 12px rgba(220,38,38,.25)">
+                            <i class="ti ti-key me-1"></i> Reset
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal modal-blur fade" id="confirmDeleteModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+        <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 16px 60px rgba(0,0,0,.2)">
+            <div class="modal-body" style="padding:28px;text-align:center">
+                <div style="width:60px;height:60px;border-radius:50%;background:#ffe3e3;display:grid;place-items:center;margin:0 auto 16px;font-size:28px;color:#d63939">
+                    <i class="ti ti-trash"></i>
+                </div>
+                <h3 style="font-weight:800;font-size:1.1rem;margin-bottom:8px">Delete User?</h3>
+                <p style="color:var(--sp-muted);font-size:.85rem;margin-bottom:24px">
+                    This will permanently delete <strong>{{ user.fullName }}</strong> and all associated data. This action cannot be undone.
+                </p>
+                <div class="d-flex gap-3 justify-content-center">
+                    <button type="button" class="btn btn-ghost-secondary" data-bs-dismiss="modal" style="border-radius:10px;font-weight:600">
+                        Cancel
+                    </button>
+                    <button type="button" onclick="document.getElementById('deleteForm').submit()"
+                            class="btn btn-danger" style="border-radius:10px;font-weight:600;box-shadow:0 4px 12px rgba(214,57,57,.3)">
+                        <i class="ti ti-trash me-1"></i> Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+function toggleRpPw() {
+    const inp = document.getElementById('rp-input');
+    const ico = document.getElementById('rp-eye');
+    if (inp.type === 'password') { inp.type = 'text'; ico.className = 'ti ti-eye-off'; }
+    else { inp.type = 'password'; ico.className = 'ti ti-eye'; }
+}
+</script>
 {% endblock %}

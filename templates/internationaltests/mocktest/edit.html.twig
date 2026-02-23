@@ -1,0 +1,162 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Edit Mock Test - {{ parent() }}{% endblock %}
+
+{% block page_title %}
+    <i class="ti ti-pencil me-2"></i> Edit Mock Test
+{% endblock %}
+
+{% block page_actions %}
+    <div class="col-auto ms-auto d-print-none">
+        <a href="{{ path('mocktest_show', {id: mockTest.id}) }}" class="btn btn-secondary me-2">
+            <i class="ti ti-eye icon"></i>
+            View
+        </a>
+        <a href="{{ path('mocktest_index') }}" class="btn btn-secondary">
+            <i class="ti ti-arrow-left icon"></i>
+            Back to List
+        </a>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Edit Mock Test #{{ mockTest.id }}</h3>
+                    <div class="card-actions">
+                        <span class="badge {{ mockTest.isActive ? 'bg-success' : 'bg-warning' }}">
+                            {{ mockTest.isActive ? 'Active' : 'Inactive' }}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form) }}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label required">{{ form_label(form.title) }}</label>
+                            {{ form_widget(form.title, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.title) }}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label required">{{ form_label(form.testType) }}</label>
+                            {{ form_widget(form.testType, {'attr': {'class': 'form-select'}}) }}
+                            {{ form_errors(form.testType) }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label required">{{ form_label(form.durationMinutes) }}</label>
+                            <div class="input-group">
+                                {{ form_widget(form.durationMinutes, {'attr': {'class': 'form-control', 'min': '1'}}) }}
+                                <span class="input-group-text">minutes</span>
+                            </div>
+                            {{ form_errors(form.durationMinutes) }}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label required">{{ form_label(form.platformLanguageId) }}</label>
+                            {{ form_widget(form.platformLanguageId, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.platformLanguageId) }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form_label(form.isActive) }}</label>
+                        <div class="form-check form-switch">
+                            {{ form_widget(form.isActive, {'attr': {'class': 'form-check-input', 'role': 'switch'}}) }}
+                            <label class="form-check-label">Test is active</label>
+                        </div>
+                        {{ form_errors(form.isActive) }}
+                    </div>
+
+                    {# Metadata #}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Created At</label>
+                                <div class="text-muted">
+                                    <i class="ti ti-calendar me-2"></i>
+                                    {{ mockTest.createdAt|date('Y-m-d H:i:s') }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Last Updated</label>
+                                <div class="text-muted">
+                                    <i class="ti ti-clock me-2"></i>
+                                    {{ mockTest.updatedAt ? mockTest.updatedAt|date('Y-m-d H:i:s') : 'Never' }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer bg-transparent mt-3">
+                        <div class="d-flex">
+                            <a href="{{ path('mocktest_index') }}" class="btn btn-link">Cancel</a>
+                            <button type="submit" class="btn btn-primary ms-auto">
+                                <i class="ti ti-device-floppy icon"></i>
+                                Save Changes
+                            </button>
+                        </div>
+                    </div>
+
+                    {{ form_end(form) }}
+                </div>
+            </div>
+
+            {# Questions Summary #}
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="ti ti-help me-2"></i>
+                        Test Questions
+                        <span class="badge bg-blue ms-2">{{ mockTest.testQuestions|length }}</span>
+                    </h3>
+                    <div class="card-actions">
+                        <a href="{{ path('testquestion_new') }}?mockTest={{ mockTest.id }}" class="btn btn-sm btn-primary">
+                            <i class="ti ti-plus"></i>
+                            Add Question
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if mockTest.testQuestions|length > 0 %}
+                        <div class="list-group list-group-flush">
+                            {% for question in mockTest.testQuestions %}
+                                <div class="list-group-item">
+                                    <div class="row align-items-center">
+                                        <div class="col-auto">
+                                            <span class="badge bg-purple">{{ question.points }} pts</span>
+                                        </div>
+                                        <div class="col text-truncate">
+                                            <strong>{{ question.sectionCategory }}</strong>
+                                            <div class="text-muted text-truncate">{{ question.questionText }}</div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <a href="{{ path('testquestion_show', {id: question.id}) }}" 
+                                               class="btn btn-sm btn-ghost-primary">
+                                                <i class="ti ti-eye"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="ti ti-help" style="font-size: 48px; opacity: 0.2;"></i>
+                            <p class="mt-2">No questions yet. Add questions to this test.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+

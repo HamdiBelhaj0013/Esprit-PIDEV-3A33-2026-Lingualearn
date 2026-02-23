@@ -13,6 +13,11 @@ services:
             - '../src/Kernel.php'
             - '../src/Module/*/Entity/'
 
+    # Main app controllers (including User subfolder)
+    App\Controller\:
+        resource: '../src/Controller/'
+        tags: ['controller.service_arguments']
+
     # Load controllers from each module individually
     App\Module\UserManagement\Controller\:
         resource: '../src/Module/UserManagement/Controller'
@@ -37,3 +42,39 @@ services:
     App\Module\Support\Controller\:
         resource: '../src/Module/Support/Controller'
         tags: ['controller.service_arguments']
+
+    # Security - Login Success Handler for role-based redirects
+    App\Security\LoginSuccessHandler:
+        arguments:
+            $urlGenerator: '@router'
+
+    App\Module\UserManagement\Service\EmailVerificationService:
+        arguments:
+            $mailerFrom: '%env(MAILER_FROM)%'
+
+    App\Module\UserManagement\Service\PasswordResetService:
+        arguments:
+            $mailerFrom: '%env(MAILER_FROM)%'
+
+    # =========================================================
+    # STRIPE PAYMENT
+    # =========================================================
+
+    App\Module\UserManagement\Service\StripeService:
+        arguments:
+            $priceMonthly: '%env(STRIPE_PRICE_MONTHLY)%'
+            $priceYearly:  '%env(STRIPE_PRICE_YEARLY)%'
+
+    App\Module\UserManagement\Controller\StripeWebhookController:
+        arguments:
+            $webhookSecret: '%env(STRIPE_WEBHOOK_SECRET)%'
+        tags: ['controller.service_arguments']
+
+    # Security - Admin Access Event Subscriber (prevents unauthorized admin access)
+    # DISABLED - File renamed to .DISABLED
+    # App\EventSubscriber\AdminAccessSubscriber:
+    #     arguments:
+    #         $security: '@security.helper'
+    #         $urlGenerator: '@router'
+    #     tags:
+    #         - { name: kernel.event_subscriber }

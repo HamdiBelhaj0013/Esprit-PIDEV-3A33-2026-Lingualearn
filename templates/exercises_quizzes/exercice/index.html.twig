@@ -1,0 +1,184 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Liste des exercices{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    .table-vcenter td, .table-vcenter th {
+        vertical-align: middle;
+        text-align: center;
+    }
+    .btn-animated {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-animated:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .status-badge {
+        font-weight: 500;
+        letter-spacing: 0.02em;
+    }
+    .card-header-flex {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-xl">
+    <div class="page-header d-print-none mb-4">
+        <div class="row align-items-center">
+            <div class="col">
+                <h2 class="page-title text-primary">
+                    <i class="ti ti-puzzle me-2"></i> Gestion des Exercices
+                </h2>
+            </div>
+            <div class="col-auto ms-auto">
+                <a href="{{ path('exercice_new') }}" class="btn btn-primary btn-animated">
+                    <i class="ti ti-plus me-2"></i> Nouvel exercice
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-light-lt">
+            <div class="row g-2 w-100 align-items-center">
+                <div class="col-md-6">
+                    <div class="input-icon">
+                        <span class="input-icon-addon">
+                            <i class="ti ti-search"></i>
+                        </span>
+                        <input type="text" id="search" placeholder="Rechercher une question..." class="form-control form-control-rounded">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select id="ai-filter" class="form-select form-control-rounded">
+                        <option value="">Tous les types (IA/Manuel)</option>
+                        <option value="1">✨ IA générée</option>
+                        <option value="0">📝 Création manuelle</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-vcenter card-table table-hover" id="exercice-table">
+                <thead class="bg-light">
+                    <tr>
+                        <th data-field="id" class="sortable">ID <i class="ti ti-arrows-sort"></i></th>
+                        <th data-field="type" class="sortable">Type <i class="ti ti-arrows-sort"></i></th>
+                        <th data-field="question" class="sortable text-start">Question <i class="ti ti-arrows-sort"></i></th>
+                        <th data-field="aiGenerated" class="sortable text-center">IA <i class="ti ti-arrows-sort"></i></th>
+                        <th data-field="enabled" class="sortable text-center">Statut <i class="ti ti-arrows-sort"></i></th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {# Rempli par AJAX #}
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer d-flex align-items-center bg-white border-0">
+            <p class="m-0 text-muted" id="total-count">Chargement...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    let sortField = 'id';
+    let sortOrder = 'DESC';
+
+    function fetchData() {
+        const search = document.getElementById('search').value;
+        const ai = document.getElementById('ai-filter').value;
+
+        fetch(`{{ path('exercice_ajax_list') }}?search=${encodeURIComponent(search)}&ai=${ai}&sortField=${sortField}&sortOrder=${sortOrder}`)
+            .then(res => res.json())
+            .then(res => {
+                const tbody = document.querySelector('#exercice-table tbody');
+                tbody.innerHTML = '';
+                document.getElementById('total-count').textContent = `${res.data.length} exercice(s) trouvé(s)`;
+
+                res.data.forEach(ex => {
+                    const aiBadge = ex.aiGenerated 
+                        ? '<span class="badge bg-purple-lt status-badge">✨ Oui</span>' 
+                        : '<span class="badge bg-blue-lt status-badge">📝 Non</span>';
+                    
+                    const enabledBtn = `
+                        <button class="btn btn-sm btn-pill toggle-btn ${ex.enabled ? 'btn-success' : 'btn-ghost-secondary'}">
+                            ${ex.enabled ? 'Actif' : 'Inactif'}
+                        </button>
+                    `;
+
+                    tbody.innerHTML += `
+                        <tr data-id="${ex.id}">
+                            <td class="text-muted">#${ex.id}</td>
+                            <td><span class="badge bg-azure-lt">${ex.type}</span></td>
+                            <td class="text-start">
+                                <div class="fw-bold text-dark">${ex.question.substring(0,60)}${ex.question.length>60?'...':''}</div>
+                            </td>
+                            <td class="text-center">${aiBadge}</td>
+                            <td class="text-center">${enabledBtn}</td>
+                            <td class="text-center">
+                                <div class="btn-list justify-content-center">
+                                    <a href="/admin/exercice/${ex.id}/edit" class="btn btn-icon btn-ghost-primary btn-animated" title="Modifier">
+                                        <i class="ti ti-edit"></i>
+                                    </a>
+                                    <a href="/admin/exercice/${ex.id}" class="btn btn-icon btn-ghost-info btn-animated" title="Voir">
+                                        <i class="ti ti-eye"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                // Toggle enabled logic (existing)
+                document.querySelectorAll('.toggle-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const tr = btn.closest('tr');
+                        const id = tr.dataset.id;
+
+                        fetch(`/admin/exercice/${id}/toggle`, {
+                            method: 'POST',
+                            headers: {'X-Requested-With':'XMLHttpRequest'}
+                        }).then(r => r.json())
+                          .then(data => {
+                              btn.textContent = data.enabled ? 'Actif' : 'Inactif';
+                              btn.classList.toggle('btn-success', data.enabled);
+                              btn.classList.toggle('btn-ghost-secondary', !data.enabled);
+                          });
+                    });
+                });
+            });
+    }
+
+    document.getElementById('search').addEventListener('input', fetchData);
+    document.getElementById('ai-filter').addEventListener('change', fetchData);
+
+    document.querySelectorAll('#exercice-table th.sortable').forEach(th => {
+        th.style.cursor = 'pointer';
+        th.addEventListener('click', () => {
+            const field = th.dataset.field;
+            if (sortField === field) {
+                sortOrder = sortOrder === 'ASC' ? 'DESC' : 'ASC';
+            } else {
+                sortField = field;
+                sortOrder = 'ASC';
+            }
+            fetchData();
+        });
+    });
+
+    fetchData();
+});
+</script>
+{% endblock %}
+

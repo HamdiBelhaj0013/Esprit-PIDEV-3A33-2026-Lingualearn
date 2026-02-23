@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Check your email — LinguaLearn</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600&family=Fraunces:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+  :root{--blue:#2563eb;--blue-bg:#eff6ff;--green:#16a34a;--green-bg:#f0fdf4;--border:#e2e8f2;--ink:#0d1526;--muted:#7a87a0;--off:#f7f9fc}
+  body{font-family:'Sora',sans-serif;background:var(--off);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem}
+  .card{background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:2.75rem 2.25rem;max-width:460px;width:100%;text-align:center;box-shadow:0 8px 40px rgba(13,21,38,.07)}
+  .logo{font-family:'Fraunces',serif;font-size:1.5rem;color:var(--ink);text-decoration:none;display:block;margin-bottom:1.75rem}
+  .logo span{color:var(--blue)}
+  .icon{width:76px;height:76px;background:var(--blue-bg);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;font-size:2rem}
+  h1{font-family:'Fraunces',serif;font-size:1.65rem;font-weight:300;color:var(--ink);margin-bottom:.65rem}
+  h1 em{font-style:italic;color:var(--blue)}
+  .desc{font-size:.88rem;color:var(--muted);line-height:1.7;margin-bottom:1.75rem}
+  .steps{background:var(--off);border-radius:12px;padding:1.15rem 1.35rem;margin-bottom:1.75rem;text-align:left}
+  .step{display:flex;align-items:flex-start;gap:.7rem;margin-bottom:.8rem;font-size:.83rem;color:var(--ink);line-height:1.5}
+  .step:last-child{margin-bottom:0}
+  .num{width:22px;height:22px;background:var(--blue);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;flex-shrink:0;margin-top:.1rem}
+  hr{border:none;border-top:1px solid var(--border);margin:1.4rem 0}
+  .flash-ok{background:var(--green-bg);border:1.5px solid rgba(22,163,74,.2);border-radius:10px;padding:.8rem 1rem;font-size:.84rem;color:var(--green);margin-bottom:1.1rem}
+  .flash-err{background:#fef2f2;border:1.5px solid rgba(220,38,38,.2);border-radius:10px;padding:.8rem 1rem;font-size:.84rem;color:#dc2626;margin-bottom:1.1rem}
+  .resend{font-size:.82rem;color:var(--muted)}
+  .resend a{color:var(--blue);font-weight:600;text-decoration:none}
+  .resend a:hover{text-decoration:underline}
+  .back{display:inline-block;margin-top:1.1rem;font-size:.82rem;color:var(--muted);text-decoration:none}
+  .back:hover{color:var(--blue)}
+</style>
+</head>
+<body>
+<div class="card">
+  <a href="/" class="logo">Lingua<span>Learn</span></a>
+
+  <div class="icon">✉️</div>
+  <h1>Check your <em>email</em></h1>
+  <p class="desc">We sent a verification link to your inbox. Please confirm your address before logging in.</p>
+
+  <div class="steps">
+    <div class="step"><div class="num">1</div><div>Open the email from <strong>LinguaLearn</strong> in your inbox (or spam folder)</div></div>
+    <div class="step"><div class="num">2</div><div>Click <strong>"Verify my email"</strong></div></div>
+    <div class="step"><div class="num">3</div><div>You'll be redirected to the login page automatically</div></div>
+  </div>
+
+  {% for msg in app.flashes('success') %}<div class="flash-ok">✓ {{ msg }}</div>{% endfor %}
+  {% for msg in app.flashes('danger')  %}<div class="flash-err">✗ {{ msg }}</div>{% endfor %}
+
+  <hr>
+  <p class="resend">Didn't receive it? <a href="{{ path('email_verify_resend_form') }}">Resend the link</a></p>
+  <a href="{{ path('app_login') }}" class="back">← Back to login</a>
+</div>
+</body>
+</html>

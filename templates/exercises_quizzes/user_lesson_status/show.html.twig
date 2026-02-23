@@ -1,0 +1,20 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Statut utilisateur #{{ status.id }}{% endblock %}
+
+{% block content %}
+<h1>Statut utilisateur #{{ status.id }}</h1>
+
+<p><strong>Utilisateur :</strong> {{ status.user.username|default('—') }}</p>
+<p><strong>Complété :</strong> {{ status.isCompleted ? 'Oui' : 'Non' }}</p>
+<p><strong>Meilleur score :</strong> {{ status.bestQuizScore }}</p>
+<p><strong>Date de complétion :</strong> {{ status.completedAt ? status.completedAt|date('d/m/Y H:i') : '—' }}</p>
+
+<a href="{{ path('app_exercises_quizzes_user_lesson_status_edit', {'id': status.id}) }}">Modifier</a>
+<form action="{{ path('app_exercises_quizzes_user_lesson_status_delete', {'id': status.id}) }}" method="POST" style="display:inline;">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ status.id) }}">
+    <button type="submit">Supprimer</button>
+</form>
+<a href="{{ path('app_exercises_quizzes_user_lesson_status_list') }}">Retour à la liste</a>
+{% endblock %}
+

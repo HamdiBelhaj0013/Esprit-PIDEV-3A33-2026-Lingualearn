@@ -1,0 +1,120 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Progression des utilisateurs{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    .table-vcenter td, .table-vcenter th {
+        vertical-align: middle;
+        text-align: center;
+    }
+    .btn-animated {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-animated:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .progress-card {
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-xl">
+    <div class="page-header d-print-none mb-4">
+        <div class="row align-items-center">
+            <div class="col">
+                <h2 class="page-title text-primary">
+                    <i class="ti ti-chart-line me-2"></i> Progression des Utilisateurs
+                </h2>
+            </div>
+            <div class="col-auto ms-auto">
+                <a href="{{ path('app_exercises_quizzes_user_lesson_status_new') }}" class="btn btn-primary btn-animated">
+                    <i class="ti ti-plus me-2"></i> Nouveau Statut
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card progress-card">
+        <div class="table-responsive">
+            <table class="table table-vcenter card-table table-hover">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="w-1">ID</th>
+                        <th class="text-start">Utilisateur</th>
+                        <th class="text-start">Leçon</th>
+                        <th class="text-center">Statut</th>
+                        <th class="text-center">Meilleur Score</th>
+                        <th class="text-center">Complété le</th>
+                        <th class="text-center w-1">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for status in statuses %}
+                        <tr>
+                            <td class="text-muted">#{{ status.id }}</td>
+                            <td class="text-start">
+                                <div class="d-flex align-items-center">
+                                    <span class="avatar avatar-sm rounded-circle me-2 bg-blue-lt">
+                                        {{ status.user.username|slice(0, 2)|upper }}
+                                    </span>
+                                    <div class="fw-bold">{{ status.user.username|default('Utilisateur inconnu') }}</div>
+                                </div>
+                            </td>
+                            <td class="text-start">
+                                <div class="text-dark fw-medium">{{ status.lesson.title|default('Leçon supprimée') }}</div>
+                            </td>
+                            <td class="text-center">
+                                {% if status.isCompleted %}
+                                    <span class="badge bg-success-lt p-2">
+                                        <i class="ti ti-check me-1"></i> Terminé
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-warning-lt p-2">
+                                        <i class="ti ti-clock me-1"></i> En cours
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <div class="fw-bold fs-3 text-azure">{{ status.bestQuizScore }}%</div>
+                            </td>
+                            <td class="text-center text-muted">
+                                {{ status.completedAt ? status.completedAt|date('d/m/Y H:i') : '—' }}
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-list justify-content-center">
+                                    <a href="{{ path('app_exercises_quizzes_user_lesson_status_show', {'id': status.id}) }}" class="btn btn-icon btn-ghost-info btn-animated" title="Voir">
+                                        <i class="ti ti-eye"></i>
+                                    </a>
+                                    <a href="{{ path('app_exercises_quizzes_user_lesson_status_edit', {'id': status.id}) }}" class="btn btn-icon btn-ghost-primary btn-animated" title="Modifier">
+                                        <i class="ti ti-edit"></i>
+                                    </a>
+                                    <form action="{{ path('app_exercises_quizzes_user_lesson_status_delete', {'id': status.id}) }}" method="POST" style="display:inline;" onsubmit="return confirm('Confirmer la suppression ?');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ status.id) }}">
+                                        <button type="submit" class="btn btn-icon btn-ghost-danger btn-animated" title="Supprimer">
+                                            <i class="ti ti-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">
+                                <i class="ti ti-chart-bar fs-1 mb-2"></i>
+                                <p>Aucun suivi de progression trouvé.</p>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

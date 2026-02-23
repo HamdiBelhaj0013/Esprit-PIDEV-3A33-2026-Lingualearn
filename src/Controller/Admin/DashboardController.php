@@ -12,7 +12,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/admin')]
-//#[IsGranted('ROLE_ADMIN')]
+#[IsGranted('ROLE_ADMIN')]
 class DashboardController extends AbstractController
 {
     public function __construct(
@@ -44,24 +44,23 @@ class DashboardController extends AbstractController
         $userStats = $this->getUserStatistics($startDate, $endDate);
 
         // Content Statistics - Use dynamic repository lookup
-        $courseCount = $this->getEntityCount('App\Entity\Course') ?? 0;
-        $lessonCount = $this->getEntityCount('App\Entity\Lesson') ?? 0;
-        $exerciseCount = $this->getEntityCount('App\Entity\Exercise') ?? 0;
+        $courseCount = $this->getEntityCount('App\Module\PedagogicalContent\Entity\Course') ?? 0;
+        $exerciseCount = $this->getEntityCount('App\Module\ExercisesQuizzes\Entity\Exercise') ?? 0;
 
         // Course Statistics
         $courseStats = [
-            'published' => $this->getEntityCountByField('App\Entity\Course', 'status', 'published') ?? 0,
-            'draft' => $this->getEntityCountByField('App\Entity\Course', 'status', 'draft') ?? 0,
+            'published' => $this->getEntityCountByField('App\Module\PedagogicalContent\Entity\Course', 'status', 'published') ?? 0,
+            'draft' => $this->getEntityCountByField('App\Module\PedagogicalContent\Entity\Course', 'status', 'draft') ?? 0,
         ];
 
         // Forum Statistics
-        $forumPostCount = $this->getEntityCount('App\Entity\ForumPost') ?? 0;
-        $forumReplyCount = $this->getEntityCount('App\Entity\ForumReply') ?? 0;
+        $forumPostCount = $this->getEntityCount('App\Module\Forum\Entity\ForumPost') ?? 0;
+        $forumReplyCount = $this->getEntityCount('App\Module\Forum\Entity\ForumReply') ?? 0;
         $forumStats = $this->getForumStatistics();
 
         // Engagement Metrics
         $averageRating = 4.5; // Placeholder - implement when rating system exists
-        $totalEnrollments = $this->getEntityCount('App\Entity\Enrollment') ?? 0;
+        $totalEnrollments = $this->getEntityCount('App\Module\PedagogicalContent\Entity\Enrollment') ?? 0;
 
         // Recent Activity
         $recentRegistrations = $this->userRepository->findBy(
@@ -89,10 +88,8 @@ class DashboardController extends AbstractController
         $systemHealth = $this->getSystemHealthMetrics();
 
         return $this->render('admin/dashboard/index.html.twig', [
-
             'userStats' => $userStats,
             'courseCount' => $courseCount,
-            'lessonCount' => $lessonCount,
             'exerciseCount' => $exerciseCount,
             'courseStats' => $courseStats,
             'forumPostCount' => $forumPostCount,
@@ -218,7 +215,7 @@ class DashboardController extends AbstractController
     private function getForumStatistics(): array
     {
         try {
-            $forumPostRepo = $this->entityManager->getRepository('App\Entity\ForumPost');
+            $forumPostRepo = $this->entityManager->getRepository('App\Module\Forum\Entity\ForumPost');
             $today = new \DateTime('today');
 
             $qb = $forumPostRepo->createQueryBuilder('fp');

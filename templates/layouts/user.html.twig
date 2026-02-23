@@ -1,0 +1,334 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{% block page_title %}Dashboard{% endblock %}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        /* User sidebar - uses same design system as admin but with different accent */
+        .ll-user-sidebar {
+            background: var(--ll-sidebar-bg) !important;
+            border-right: 1px solid rgba(255,255,255,0.05);
+        }
+        .ll-user-sidebar .navbar-brand a {
+            text-decoration: none;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .ll-user-sidebar .navbar-brand .ll-logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--ll-primary), #7c3aed);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        .ll-user-sidebar .navbar-brand .ll-logo-text {
+            font-weight: 700;
+            font-size: 1.15rem;
+            letter-spacing: -0.02em;
+        }
+        .ll-user-sidebar .nav-link {
+            color: var(--ll-sidebar-text) !important;
+            border-radius: 8px;
+            margin: 1px 8px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: var(--ll-transition);
+        }
+        .ll-user-sidebar .nav-link:hover {
+            color: var(--ll-sidebar-text-active) !important;
+            background: var(--ll-sidebar-hover);
+        }
+        .ll-user-sidebar .nav-link.active {
+            color: var(--ll-sidebar-text-active) !important;
+            background: var(--ll-sidebar-active);
+        }
+        .ll-user-sidebar .nav-link.active .nav-link-icon {
+            color: var(--ll-primary) !important;
+        }
+        .ll-user-sidebar .nav-link-icon {
+            color: var(--ll-sidebar-text) !important;
+            opacity: 0.7;
+            width: 1.5rem;
+        }
+        .ll-user-sidebar .nav-link:hover .nav-link-icon { opacity: 1; }
+        .ll-user-sidebar .dropdown-menu {
+            background: var(--ll-sidebar-hover);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 8px;
+            padding: 0.25rem;
+            margin-left: 8px;
+            margin-right: 8px;
+        }
+        .ll-user-sidebar .dropdown-menu .dropdown-item {
+            color: var(--ll-sidebar-text);
+            border-radius: 6px;
+            padding: 0.4rem 0.75rem;
+            font-size: 0.8125rem;
+            transition: var(--ll-transition);
+        }
+        .ll-user-sidebar .dropdown-menu .dropdown-item:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.06);
+        }
+        .ll-user-sidebar .dropdown-menu .dropdown-item i { opacity: 0.6; }
+        .ll-user-sidebar .dropdown-divider { border-color: rgba(255,255,255,0.06); }
+
+        .ll-nav-section {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: rgba(148, 163, 184, 0.5);
+            padding: 1rem 1.25rem 0.4rem;
+        }
+
+        .ll-page-body { background: #f8fafc; min-height: calc(100vh - 120px); }
+        .ll-topbar { background: #fff; border-bottom: 1px solid #e5e7eb; }
+        .ll-footer { border-top: 1px solid #e5e7eb; background: #fff; }
+        .ll-footer .text-muted { font-size: 0.8125rem; }
+        .ll-page-header { padding: 1.25rem 0; }
+        .ll-page-header .page-title { font-size: 1.375rem; font-weight: 700; color: #0f172a; }
+
+        .ll-xp-card {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.15), rgba(124, 58, 237, 0.1));
+            border: 1px solid rgba(37, 99, 235, 0.15);
+            border-radius: 10px;
+        }
+    </style>
+    {% block user_styles %}{% endblock %}
+{% endblock %}
+
+{% block body %}
+    <div class="page">
+        {# ===== SIDEBAR ===== #}
+        <aside class="navbar navbar-vertical navbar-expand-lg ll-user-sidebar" data-bs-theme="dark">
+            <div class="container-fluid">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#user-sidebar-menu" aria-controls="user-sidebar-menu"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <h1 class="navbar-brand navbar-brand-autodark">
+                    <a href="{{ path('user_dashboard') }}">
+                        <span class="ll-logo-icon"><i class="ti ti-language"></i></span>
+                        <span class="ll-logo-text">LinguaLearn</span>
+                    </a>
+                </h1>
+
+                <div class="collapse navbar-collapse" id="user-sidebar-menu">
+                    <ul class="navbar-nav pt-lg-2">
+
+                        <li class="ll-nav-section">Overview</li>
+
+                        <li class="nav-item">
+                            <a class="nav-link {% if app.request.attributes.get('_route') == 'user_dashboard' %}active{% endif %}"
+                               href="{{ path('user_dashboard') }}">
+                                <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-home"></i></span>
+                                <span class="nav-link-title">Dashboard</span>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-user"></i></span>
+                                <span class="nav-link-title">My Profile</span>
+                            </a>
+                        </li>
+
+                        <li class="ll-nav-section">Learning</li>
+
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#"
+                               data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="false">
+                                <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-book-2"></i></span>
+                                <span class="nav-link-title">My Courses</span>
+                            </a>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="#"><i class="ti ti-list me-2"></i> All Courses</a>
+                                <a class="dropdown-item" href="#"><i class="ti ti-progress me-2"></i> In Progress</a>
+                                <a class="dropdown-item" href="#"><i class="ti ti-check me-2"></i> Completed</a>
+                            </div>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-clipboard-check"></i></span>
+                                <span class="nav-link-title">Exercises</span>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-certificate"></i></span>
+                                <span class="nav-link-title">Practice Tests</span>
+                            </a>
+                        </li>
+
+                        <li class="ll-nav-section">Community</li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-messages"></i></span>
+                                <span class="nav-link-title">Forum</span>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">
+                                <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-chart-line"></i></span>
+                                <span class="nav-link-title">My Progress</span>
+                            </a>
+                        </li>
+
+                        <li class="ll-nav-section">Help</li>
+
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#"
+                               data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="false">
+                                <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-help"></i></span>
+                                <span class="nav-link-title">Support</span>
+                            </a>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="#"><i class="ti ti-help-circle me-2"></i> FAQ</a>
+                                <a class="dropdown-item" href="#"><i class="ti ti-message-circle me-2"></i> Contact</a>
+                            </div>
+                        </li>
+
+                        {% if is_granted('ROLE_ADMIN') %}
+                            <li class="ll-nav-section">Administration</li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ path('admin_dashboard') }}">
+                                    <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-shield"></i></span>
+                                    <span class="nav-link-title">Admin Panel</span>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+
+                    {# XP Progress Card #}
+                    {% if app.user and app.user.learningStats %}
+                        <div class="mx-3 mt-auto mb-3 p-3 ll-xp-card">
+                            <div class="text-white small fw-bold mb-2">
+                                <i class="ti ti-flame me-1"></i> Your Progress
+                            </div>
+                            <div class="text-white" style="font-size: 1.25rem; font-weight: 700;">
+                                {{ app.user.learningStats.totalXP|number_format }} XP
+                            </div>
+                            <div class="progress mt-2" style="height: 4px; background: rgba(255,255,255,0.15);">
+                                <div class="progress-bar" style="width: {{ min(100, (app.user.learningStats.totalXP / 1000) * 100) }}%; background: var(--ll-primary);"></div>
+                            </div>
+                            <div class="small mt-1" style="color: rgba(255,255,255,0.6);">
+                                {{ app.user.learningStats.wordsLearned }} words learned
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+
+                {# Sidebar User #}
+                <div class="d-none d-lg-block" style="border-top: 1px solid rgba(255,255,255,0.06); padding: 0.75rem 1rem;">
+                    <div class="d-flex align-items-center">
+                    <span class="avatar avatar-sm me-2"
+                          style="background-image: url(https://ui-avatars.com/api/?name={{ app.user ? app.user.firstName ~ '+' ~ app.user.lastName : 'User' }}&background=2563eb&color=fff); background-size: cover;">
+                    </span>
+                        <div class="flex-fill" style="min-width: 0;">
+                            <div class="fw-bold text-white small text-truncate">
+                                {{ app.user ? app.user.fullName : 'Guest' }}
+                            </div>
+                            <div class="small text-truncate" style="color: var(--ll-sidebar-text); font-size: 0.75rem;">
+                                {% if app.user and app.user.isPremium %}
+                                    <i class="ti ti-crown" style="color: #f59e0b;"></i> Premium
+                                {% else %}
+                                    Free Plan
+                                {% endif %}
+                            </div>
+                        </div>
+                        <a href="{{ path('app_logout') }}" class="ms-2" style="color: var(--ll-sidebar-text);" title="Logout">
+                            <i class="ti ti-logout"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        {# ===== MAIN CONTENT ===== #}
+        <div class="page-wrapper">
+
+            {# Top Bar #}
+            <header class="navbar navbar-expand-md ll-topbar d-print-none">
+                <div class="container-xl">
+                    <div class="navbar-nav flex-row order-md-last">
+                        {% include 'components/_notifications.html.twig' ignore missing %}
+                        {% include 'components/_user_menu.html.twig' ignore missing %}
+                    </div>
+                    <div class="d-flex">
+                        <div class="page-pretitle" style="font-size: 0.7rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: #94a3b8;">
+                            {% block page_pretitle %}{% endblock %}
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            {# Flash Messages #}
+            {% include 'components/_flash_messages.html.twig' ignore missing %}
+
+            {# Page Header #}
+            {% block page_header %}
+                <div class="page-header d-print-none ll-page-header">
+                    <div class="container-xl">
+                        <div class="row g-2 align-items-center">
+                            <div class="col">
+                                {% block breadcrumb %}{% endblock %}
+                                <h2 class="page-title" style="font-size: 1.375rem; font-weight: 700; color: #0f172a;">
+                                    {{ block('page_title') }}
+                                </h2>
+                            </div>
+                            <div class="col-auto ms-auto d-print-none">
+                                <div class="btn-list">
+                                    {% block page_actions %}{% endblock %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endblock %}
+
+            {# Page Body #}
+            <div class="page-body ll-page-body">
+                <div class="container-xl">
+                    {% block content %}{% endblock %}
+                </div>
+            </div>
+
+            {# Footer #}
+            <footer class="footer footer-transparent d-print-none ll-footer mt-auto">
+                <div class="container-xl">
+                    <div class="row text-center align-items-center">
+                        <div class="col-12 col-lg-auto mt-3 mt-lg-0">
+                            <ul class="list-inline list-inline-dots mb-0">
+                                <li class="list-inline-item">
+                                    <a href="#" class="link-secondary text-decoration-none"><i class="ti ti-help me-1"></i>Support</a>
+                                </li>
+                                <li class="list-inline-item">
+                                    <a href="#" class="link-secondary text-decoration-none"><i class="ti ti-shield-lock me-1"></i>Privacy</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-lg-auto ms-lg-auto">
+                            <span class="text-muted">&copy; {{ 'now'|date('Y') }} LinguaLearn. All rights reserved.</span>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+{% endblock %}

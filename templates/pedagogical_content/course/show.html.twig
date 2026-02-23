@@ -1,55 +1,40 @@
-{% extends 'base.html.twig' %}
-
-{% block title %}Admin · {{ course.title }}{% endblock %}
+{% extends 'layouts/admin.html.twig' %}
 
 {% block page_title %}{{ course.title }}{% endblock %}
 
 {% block breadcrumb %}
-    <ol class="breadcrumb breadcrumb-icons" aria-label="breadcrumbs">
+    <ol class="breadcrumb" aria-label="breadcrumbs">
         <li class="breadcrumb-item">
-            <a href="{{ path('admin_dashboard') }}">
-                <i class="ti ti-home"></i> Tableau de bord
-            </a>
+            <a href="{{ path('admin_dashboard') }}"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
         </li>
-        <li class="breadcrumb-item">Contenu Pédagogique</li>
         <li class="breadcrumb-item">
-            <a href="{{ path('admin_course_index') }}">Cours</a>
+            <a href="{{ path('admin_pedagogical_content_index') }}">Pedagogical Content</a>
         </li>
-        <li class="breadcrumb-item active">{{ course.title }}</li>
+        <li class="breadcrumb-item">
+            <a href="{{ path('admin_course_index') }}">Courses</a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">{{ course.title }}</li>
     </ol>
 {% endblock %}
 
 {% block page_actions %}
-    <div class="col-auto">
-        <div class="btn-group">
-            <a href="{{ path('admin_course_edit', {'id': course.id}) }}" class="btn btn-primary">
-                <i class="ti ti-edit"></i> Modifier
-            </a>
-            <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-form-id="deleteForm{{ course.id }}">
-                <i class="ti ti-trash"></i> Supprimer
-            </button>
-        </div>
-    </div>
+    <a href="{{ path('admin_course_edit', {'id': course.id}) }}" class="btn btn-ll-primary">
+        <i class="ti ti-edit me-1"></i> Edit
+    </a>
+    <a href="{{ path('admin_course_index') }}" class="btn btn-ghost-secondary" style="border-radius: 8px;">
+        <i class="ti ti-arrow-left me-1"></i> Back to list
+    </a>
 {% endblock %}
 
-{% block body %}
-<div class="row">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-body">
-                <div class="mb-4">
-                    <h4 class="text-muted mb-2">Titre</h4>
-                    <p class="mb-0">{{ course.title }}</p>
-                </div>
+{% block content %}
+    <div class="row g-3 mt-1">
 
-                <div class="mb-4">
-                    <h4 class="text-muted mb-2">Langue</h4>
-                    <p class="mb-0">
-                        <span class="badge bg-blue">{{ course.platformLanguage.name }}</span>
-                    </p>
+        {# ── Course Details ── #}
+        <div class="col-lg-8">
+            <div class="card ll-card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="ti ti-book me-2 text-primary"></i> Course Details</h3>
                 </div>
-<<<<<<< Updated upstream
-=======
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-sm-6">
@@ -118,74 +103,110 @@
                     </div>
                 </div>
             </div>
->>>>>>> Stashed changes
 
-                <div class="mb-4">
-                    <h4 class="text-muted mb-2">Niveau</h4>
-                    <p class="mb-0">
-                        {% if course.level == 'beginner' %}
-                            <span class="badge bg-green">Débutant</span>
-                        {% elseif course.level == 'intermediate' %}
-                            <span class="badge bg-yellow">Intermédiaire</span>
-                        {% else %}
-                            <span class="badge bg-red">Avancé</span>
-                        {% endif %}
-                    </p>
+            {# ── Lessons ── #}
+            <div class="card ll-card mt-3">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="ti ti-notebook me-2 text-primary"></i> Lessons
+                        <span class="ms-2 ll-badge bg-primary-lt text-primary">{{ course.lessons|length }}</span>
+                    </h3>
+                    <div class="card-actions">
+                        <a href="{{ path('admin_lesson_new') }}" class="btn btn-ghost-primary btn-sm" style="border-radius: 6px;">
+                            <i class="ti ti-plus me-1"></i> Add Lesson
+                        </a>
+                    </div>
                 </div>
-
-                <div class="mb-4">
-                    <h4 class="text-muted mb-2">Statut</h4>
-                    <p class="mb-0">
-                        {% if course.status == 'published' %}
-                            <span class="badge bg-success">Publié</span>
-                        {% elseif course.status == 'draft' %}
-                            <span class="badge bg-warning">Brouillon</span>
-                        {% else %}
-                            <span class="badge bg-secondary">Archivé</span>
-                        {% endif %}
-                    </p>
-                </div>
-
-                <div class="mb-4">
-                    <h4 class="text-muted mb-2">Leçons</h4>
+                <div class="card-body p-0">
                     {% if course.lessons|length > 0 %}
-                        <div class="table-responsive">
-                            <table class="table table-sm table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Titre</th>
-                                        <th>Récompense XP</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for lesson in course.lessons %}
-                                        <tr>
-                                            <td>
-                                                <a href="{{ path('admin_lesson_show', {'id': lesson.id}) }}">
-                                                    {{ lesson.title }}
-                                                </a>
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-yellow">{{ lesson.xpReward }} XP</span>
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                        <div class="list-group list-group-flush">
+                            {% for lesson in course.lessons %}
+                                <div class="list-group-item">
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3" style="width: 36px; height: 36px; background: var(--ll-primary-light); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                            <span style="font-weight: 700; font-size: 0.8125rem; color: var(--ll-primary);">{{ loop.index }}</span>
+                                        </div>
+                                        <div class="flex-fill">
+                                            <div class="fw-bold" style="font-size: 0.875rem;">{{ lesson.title }}</div>
+                                            <div class="text-muted" style="font-size: 0.75rem;">
+                                                <i class="ti ti-flame me-1"></i>{{ lesson.xpReward }} XP
+                                            </div>
+                                        </div>
+                                        <div class="d-flex gap-1">
+                                            <a href="{{ path('admin_lesson_show', {'id': lesson.id}) }}"
+                                               class="btn btn-ghost-primary btn-icon btn-sm" style="border-radius: 6px; width: 30px; height: 30px;">
+                                                <i class="ti ti-eye" style="font-size: 0.875rem;"></i>
+                                            </a>
+                                            <a href="{{ path('admin_lesson_edit', {'id': lesson.id}) }}"
+                                               class="btn btn-ghost-primary btn-icon btn-sm" style="border-radius: 6px; width: 30px; height: 30px;">
+                                                <i class="ti ti-edit" style="font-size: 0.875rem;"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
                         </div>
                     {% else %}
-                        <p class="text-muted">Aucune leçon</p>
+                        <div class="ll-empty-state">
+                            <i class="ti ti-notebook-off d-block"></i>
+                            <p class="text-muted mb-1" style="font-weight: 600;">No lessons yet</p>
+                            <p class="text-muted mb-0" style="font-size: 0.8125rem;">Add lessons to this course to get started.</p>
+                        </div>
                     {% endif %}
                 </div>
             </div>
         </div>
-    </div>
-<<<<<<< Updated upstream
-</div>
 
-<form method="post" action="{{ path('admin_course_delete', {'id': course.id}) }}" style="display:none;" id="deleteForm{{ course.id }}">
-    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ course.id) }}">
-</form>
-=======
->>>>>>> Stashed changes
+        {# ── Sidebar ── #}
+        <div class="col-lg-4">
+            {# Quick Stats #}
+            <div class="card ll-card mb-3">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="ti ti-chart-dots me-2"></i> Stats</h3>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-3" style="border-bottom: 1px solid #f1f5f9;">
+                        <span class="text-muted" style="font-size: 0.8125rem;">Total Lessons</span>
+                        <span class="fw-bold" style="font-size: 1.125rem; color: var(--ll-primary);">{{ course.lessons|length }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-3" style="border-bottom: 1px solid #f1f5f9;">
+                        <span class="text-muted" style="font-size: 0.8125rem;">Total XP</span>
+                        <span class="fw-bold" style="font-size: 1.125rem; color: var(--ll-warning);">
+                            {% set totalXp = 0 %}
+                            {% for lesson in course.lessons %}
+                                {% set totalXp = totalXp + lesson.xpReward %}
+                            {% endfor %}
+                            {{ totalXp }}
+                        </span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted" style="font-size: 0.8125rem;">Course ID</span>
+                        <span class="fw-medium" style="font-size: 0.8125rem;">#{{ course.id }}</span>
+                    </div>
+                </div>
+            </div>
+
+            {# Danger Zone #}
+            <div class="card ll-card" style="border-color: #fecaca;">
+                <div class="card-header" style="border-bottom-color: #fef2f2;">
+                    <h3 class="card-title text-danger"><i class="ti ti-alert-triangle me-2"></i> Danger Zone</h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3" style="font-size: 0.8125rem;">
+                        This will permanently delete the course and all associated lessons.
+                    </p>
+                    <button type="button" class="btn btn-outline-danger w-100" style="border-radius: 8px;"
+                            data-bs-toggle="modal" data-bs-target="#deleteModal"
+                            data-delete-url="{{ path('admin_course_delete', {'id': course.id}) }}"
+                            data-item-name="{{ course.title }}">
+                        <i class="ti ti-trash me-1"></i> Delete Course
+                    </button>
+                    <form method="post" action="{{ path('admin_course_delete', {'id': course.id}) }}" style="display: none;">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ course.id) }}">
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
 {% endblock %}

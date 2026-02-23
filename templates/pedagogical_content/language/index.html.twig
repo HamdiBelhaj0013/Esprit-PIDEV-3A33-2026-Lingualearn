@@ -1,4 +1,4 @@
-﻿{% extends 'base.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
 {% block title %}Admin · Langues{% endblock %}
 
@@ -21,14 +21,12 @@
 {% endblock %}
 
 {% block page_actions %}
-<div class="col-auto">
-    <a href="{{ path('admin_language_new') }}" class="btn btn-primary shadow-sm" style="border-radius: 8px; font-weight: 600;">
-        <i class="ti ti-plus me-1"></i> Créer une langue
-    </a>
-</div>
+<a href="{{ path('admin_language_new') }}" class="btn btn-primary shadow-sm" style="border-radius: 8px; font-weight: 600;">
+    <i class="ti ti-plus me-1"></i> Créer une langue
+</a>
 {% endblock %}
 
-{% block body %}
+{% block content %}
 <div class="row g-4">
 
     <!-- Formulaire de recherche -->
@@ -96,7 +94,20 @@
     </div>
 
 </div>
+{% endblock %}
 
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.card:hover { transform: translateY(-3px); box-shadow: 0 6px 18px rgba(32,107,196,0.12); }
+.form-control:focus, .form-select:focus { border-color: #206bc4 !important; box-shadow: 0 0 0 3px rgba(32,107,196,0.15) !important; }
+.table-hover tbody tr:hover { background-color: #f0f8ff; transition: 0.2s; }
+</style>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
 <script>
 const filterForm = document.getElementById('filterForm');
 const searchInput = document.getElementById('searchInput');
@@ -141,13 +152,4 @@ function toggleStatus(id, checked) {
 function getCsrfToken(){return document.querySelector('meta[name="csrf-token"]')?.content || '';}
 attachToggleEvents();
 </script>
-
-{% block stylesheets %}
-<style>
-.card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
-.card:hover { transform: translateY(-3px); box-shadow: 0 6px 18px rgba(32,107,196,0.12); }
-.form-control:focus, .form-select:focus { border-color: #206bc4 !important; box-shadow: 0 0 0 3px rgba(32,107,196,0.15) !important; }
-.table-hover tbody tr:hover { background-color: #f0f8ff; transition: 0.2s; }
-</style>
-{% endblock %}
 {% endblock %}

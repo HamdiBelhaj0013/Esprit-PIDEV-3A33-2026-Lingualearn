@@ -2,6 +2,7 @@
 
 namespace App\Module\PedagogicalContent\Entity;
 
+use App\Module\UserManagement\Entity\User;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -15,15 +16,10 @@ class Course
     #[ORM\Column]
     private ?int $id = null;
 
-<<<<<<< Updated upstream
-    // ❌ PAS de validation ici car rempli dans le controller
-    #[ORM\Column]
-    private ?int $authorId = null;
-=======
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'courses')]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    #[Assert\NotNull(message: 'L\'auteur est obligatoire.')]
     private ?User $author = null;
->>>>>>> Stashed changes
 
     #[ORM\ManyToOne(targetEntity: PlatformLanguage::class, inversedBy: 'courses')]
     #[ORM\JoinColumn(nullable: false)]
@@ -68,19 +64,23 @@ class Course
         $this->publishedAt = new \DateTime();
     }
 
+    // ------------------------
+    // Getters & Setters
+    // ------------------------
+
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getAuthorId(): ?int
+    public function getAuthor(): ?User
     {
-        return $this->authorId;
+        return $this->author;
     }
 
-    public function setAuthorId(?int $authorId): self
+    public function setAuthor(?User $author): self
     {
-        $this->authorId = $authorId;
+        $this->author = $author;
         return $this;
     }
 

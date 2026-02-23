@@ -1,0 +1,16 @@
+{# templates/exercises_quizzes/exercice/new.html.twig #}
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Créer un exercice{% endblock %}
+
+{% block content %}
+    <h1>Créer un exercice</h1>
+
+    {# On inclut le formulaire et on passe is_edit = false #}
+    {% include 'exercises_quizzes/exercice/_form.html.twig' with {'form': form, 'is_edit': false} %}
+
+    <a href="{{ path('exercice_index') }}" class="btn btn-outline-secondary mt-3">
+        Retour à la liste
+    </a>
+{% endblock %}
+

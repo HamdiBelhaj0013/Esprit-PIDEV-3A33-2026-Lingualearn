@@ -201,8 +201,8 @@
                     <div class="course-stat-label">Lessons</div>
                 </div>
                 <div class="course-stat">
-                   {% set totalXp = lessons|column('xpReward')|sum %}
-<div class="course-stat-val">{{ totalXp }}</div>
+                    {% set totalXp = lessons|column('xpReward')|sum %}
+                    <div class="course-stat-val">{{ totalXp }}</div>
                     <div class="course-stat-label">Total XP</div>
                 </div>
                 <div class="course-stat">

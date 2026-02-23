@@ -1,65 +1,130 @@
-﻿{% extends 'base.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
-{% block title %}Admin · Modifier le cours{% endblock %}
-
-{% block page_title %}Modifier le cours{% endblock %}
+{% block page_title %}Edit Course{% endblock %}
 
 {% block breadcrumb %}
-    <ol class="breadcrumb breadcrumb-icons" aria-label="breadcrumbs">
+    <ol class="breadcrumb" aria-label="breadcrumbs">
         <li class="breadcrumb-item">
-            <a href="{{ path('admin_dashboard') }}">
-                <i class="ti ti-home"></i> Tableau de bord
-            </a>
+            <a href="{{ path('admin_dashboard') }}"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
         </li>
-        <li class="breadcrumb-item">Contenu Pédagogique</li>
         <li class="breadcrumb-item">
-            <a href="{{ path('admin_course_index') }}">Cours</a>
+            <a href="{{ path('admin_pedagogical_content_index') }}">Pedagogical Content</a>
         </li>
-        <li class="breadcrumb-item active">{{ course.title }}</li>
+        <li class="breadcrumb-item">
+            <a href="{{ path('admin_course_index') }}">Courses</a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">Edit</li>
     </ol>
 {% endblock %}
 
-{% block body %}
-<div class="row">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-body">
-                {{ form_start(form, {'attr': {'class': 'form-horizontal', 'novalidate': 'novalidate'}}) }}
+{% block page_actions %}
+    <a href="{{ path('admin_course_show', {'id': course.id}) }}" class="btn btn-ghost-primary" style="border-radius: 8px;">
+        <i class="ti ti-eye me-1"></i> View
+    </a>
+    <a href="{{ path('admin_course_index') }}" class="btn btn-ghost-secondary" style="border-radius: 8px;">
+        <i class="ti ti-arrow-left me-1"></i> Back to list
+    </a>
+{% endblock %}
+
+{% block content %}
+    <div class="row mt-2">
+        <div class="col-lg-8">
+            <div class="card ll-card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="ti ti-edit me-2 text-primary"></i> Edit: {{ course.title }}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+
                     <div class="mb-3">
-                        {{ form_label(form.title, 'Titre du cours', {'label_attr': {'class': 'form-label'}}) }}
-                        {{ form_widget(form.title, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Espagnol pour débutants'}}) }}
+                        {{ form_label(form.title, 'Title', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                        {{ form_widget(form.title, {'attr': {'class': 'form-control', 'style': 'border-radius: 8px;'}}) }}
                         {{ form_errors(form.title) }}
                     </div>
 
-                    <div class="mb-3">
-                        {{ form_label(form.platformLanguage, 'Langue', {'label_attr': {'class': 'form-label'}}) }}
-                        {{ form_widget(form.platformLanguage, {'attr': {'class': 'form-select'}}) }}
-                        {{ form_errors(form.platformLanguage) }}
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form_label(form.platformLanguage, 'Language', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                            {{ form_widget(form.platformLanguage, {'attr': {'class': 'form-select', 'style': 'border-radius: 8px;'}}) }}
+                            {{ form_errors(form.platformLanguage) }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form_label(form.level, 'Level', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                            {{ form_widget(form.level, {'attr': {'class': 'form-select', 'style': 'border-radius: 8px;'}}) }}
+                            {{ form_errors(form.level) }}
+                        </div>
                     </div>
 
                     <div class="mb-3">
-                        {{ form_label(form.level, 'Niveau', {'label_attr': {'class': 'form-label'}}) }}
-                        {{ form_widget(form.level, {'attr': {'class': 'form-select'}}) }}
-                        {{ form_errors(form.level) }}
-                    </div>
-
-                    <div class="mb-3">
-                        {{ form_label(form.status, 'Statut', {'label_attr': {'class': 'form-label'}}) }}
-                        {{ form_widget(form.status, {'attr': {'class': 'form-select'}}) }}
+                        {{ form_label(form.status, 'Status', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                        {{ form_widget(form.status, {'attr': {'class': 'form-select', 'style': 'border-radius: 8px;'}}) }}
                         {{ form_errors(form.status) }}
                     </div>
 
-                    <div class="form-footer">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="ti ti-check"></i> Enregistrer
+                    {{ form_rest(form) }}
+
+                    <div class="d-flex gap-2 mt-4 pt-3" style="border-top: 1px solid #f1f5f9;">
+                        <button type="submit" class="btn btn-ll-primary">
+                            <i class="ti ti-check me-1"></i> Save Changes
                         </button>
-                        <a href="{{ path('admin_course_index') }}" class="btn btn-secondary">
-                            <i class="ti ti-arrow-left"></i> Retour
+                        <a href="{{ path('admin_course_index') }}" class="btn btn-ghost-secondary" style="border-radius: 8px;">
+                            Cancel
                         </a>
                     </div>
-                {{ form_end(form) }}
+
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            {# Course Info Card #}
+            <div class="card ll-card mb-3">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="ti ti-info-circle me-2"></i> Course Info</h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-2 d-flex justify-content-between" style="font-size: 0.8125rem;">
+                        <span class="text-muted">ID</span>
+                        <span class="fw-medium">#{{ course.id }}</span>
+                    </div>
+                    <div class="mb-2 d-flex justify-content-between" style="font-size: 0.8125rem;">
+                        <span class="text-muted">Published</span>
+                        <span class="fw-medium">{{ course.publishedAt ? course.publishedAt|date('M d, Y') : 'N/A' }}</span>
+                    </div>
+                    <div class="mb-2 d-flex justify-content-between" style="font-size: 0.8125rem;">
+                        <span class="text-muted">Lessons</span>
+                        <span class="fw-medium">{{ course.lessons|length }}</span>
+                    </div>
+                </div>
+            </div>
+
+            {# Danger Zone #}
+            <div class="card ll-card" style="border-color: #fecaca;">
+                <div class="card-header" style="border-bottom-color: #fef2f2;">
+                    <h3 class="card-title text-danger"><i class="ti ti-alert-triangle me-2"></i> Danger Zone</h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3" style="font-size: 0.8125rem;">
+                        Permanently delete this course and all its lessons.
+                    </p>
+                    <button type="button"
+                            class="btn btn-outline-danger w-100"
+                            style="border-radius: 8px;"
+                            data-form-id="deleteFormEdit{{ course.id }}"
+                            data-bs-toggle="modal"
+                            data-bs-target="#deleteModal"
+                            data-delete-url="{{ path('admin_course_delete', {'id': course.id}) }}"
+                            data-item-name="{{ course.title }}">
+                        <i class="ti ti-trash me-1"></i> Delete Course
+                    </button>
+                    <form method="post" action="{{ path('admin_course_delete', {'id': course.id}) }}" style="display: none;" id="deleteFormEdit{{ course.id }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ course.id) }}">
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
 {% endblock %}

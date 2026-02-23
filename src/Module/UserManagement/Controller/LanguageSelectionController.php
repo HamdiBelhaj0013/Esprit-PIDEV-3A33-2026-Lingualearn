@@ -21,16 +21,21 @@ class LanguageSelectionController extends AbstractController
         private EntityManagerInterface $entityManager,
     ) {}
 
+    /**
+     * Step 1 – Show all enabled PlatformLanguages the user can enroll in.
+     */
     #[Route('/learn', name: 'language_select', methods: ['GET'])]
     public function select(): Response
     {
         /** @var \App\Module\UserManagement\Entity\User $user */
         $user = $this->getUser();
 
+        // Only show enabled platform languages
         $allLanguages = $this->entityManager
             ->getRepository(PlatformLanguage::class)
             ->findBy(['isEnabled' => true], ['name' => 'ASC']);
 
+        // IDs the user is already enrolled in
         $enrolledIds = array_map(
             fn(UserLanguage $ul) => $ul->getPlatformLanguage()->getId(),
             $user->getUserLanguages()->toArray()
@@ -42,6 +47,9 @@ class LanguageSelectionController extends AbstractController
         ]);
     }
 
+    /**
+     * Step 2 – Enroll the user in a chosen PlatformLanguage.
+     */
     #[Route('/learn/{id}/enroll', name: 'language_enroll', methods: ['POST'])]
     public function enroll(Request $request, PlatformLanguage $platformLanguage): Response
     {
@@ -58,6 +66,7 @@ class LanguageSelectionController extends AbstractController
         /** @var \App\Module\UserManagement\Entity\User $user */
         $user = $this->getUser();
 
+        // Already enrolled?
         foreach ($user->getUserLanguages() as $existing) {
             if ($existing->getPlatformLanguage() === $platformLanguage) {
                 $this->addFlash('info', 'You are already enrolled in ' . $platformLanguage->getName() . '.');
@@ -75,15 +84,20 @@ class LanguageSelectionController extends AbstractController
         $this->entityManager->flush();
 
         $this->addFlash('success', 'You are now enrolled in ' . $platformLanguage->getName() . '! Start learning below.');
+
         return $this->redirectToRoute('language_courses', ['id' => $platformLanguage->getId()]);
     }
 
+    /**
+     * Step 3 – Show published courses for an enrolled PlatformLanguage.
+     */
     #[Route('/learn/{id}/courses', name: 'language_courses', methods: ['GET'])]
     public function courses(PlatformLanguage $platformLanguage, Request $request): Response
     {
         /** @var \App\Module\UserManagement\Entity\User $user */
         $user = $this->getUser();
 
+        // Guard: user must be enrolled in this platform language
         $enrolled = false;
         foreach ($user->getUserLanguages() as $ul) {
             if ($ul->getPlatformLanguage()->getId() === $platformLanguage->getId()) {
@@ -123,6 +137,9 @@ class LanguageSelectionController extends AbstractController
         ]);
     }
 
+    /**
+     * Unenroll from a PlatformLanguage.
+     */
     #[Route('/learn/{id}/unenroll', name: 'language_unenroll', methods: ['POST'])]
     public function unenroll(Request $request, PlatformLanguage $platformLanguage): Response
     {
@@ -155,6 +172,7 @@ class LanguageSelectionController extends AbstractController
 
         $platformLanguage = $course->getPlatformLanguage();
 
+        // Guard: must be enrolled
         $enrolled = false;
         foreach ($user->getUserLanguages() as $ul) {
             if ($ul->getPlatformLanguage()->getId() === $platformLanguage->getId()) {
@@ -175,6 +193,10 @@ class LanguageSelectionController extends AbstractController
         ]);
     }
 
+    /**
+     * Interactive lesson viewer.
+     * User must be enrolled in the lesson's course language.
+     */
     #[Route('/learn/lesson/{id}', name: 'lesson_show', methods: ['GET'])]
     public function lessonShow(\App\Module\PedagogicalContent\Entity\Lesson $lesson): Response
     {
@@ -184,6 +206,7 @@ class LanguageSelectionController extends AbstractController
         $course           = $lesson->getCourse();
         $platformLanguage = $course->getPlatformLanguage();
 
+        // Guard: must be enrolled
         $enrolled = false;
         foreach ($user->getUserLanguages() as $ul) {
             if ($ul->getPlatformLanguage()->getId() === $platformLanguage->getId()) {
@@ -197,6 +220,7 @@ class LanguageSelectionController extends AbstractController
             return $this->redirectToRoute('language_select');
         }
 
+        // Ordered lesson list for prev/next navigation
         $lessons = $course->getLessons()->toArray();
         $currentIndex = array_search($lesson, $lessons, true);
         $prevLesson = $currentIndex > 0 ? $lessons[$currentIndex - 1] : null;
@@ -255,18 +279,14 @@ class LanguageSelectionController extends AbstractController
             $this->entityManager->persist($stats);
         }
 
-        // ✅ XP
+        // XP
         $xp = (int) ($lesson->getXpReward() ?? 0);
         $stats->addXP($xp);
 
-        // ✅ Minutes (Option 2: envoyées par le front)
+        // Minutes (sent by frontend)
         $minutes = (int) $request->request->get('minutes', 0);
-
-        // sécuriser un minimum / maximum
         if ($minutes < 0) $minutes = 0;
-        if ($minutes > 240) $minutes = 240; // 4h max pour éviter triche
-        // si tu veux forcer minimum 1 minute:
-        // if ($minutes === 0) $minutes = 1;
+        if ($minutes > 240) $minutes = 240; // max 4h to prevent cheating
 
         $stats->addMinutesStudied($minutes);
         $stats->updateLastStudySession();
@@ -275,8 +295,6 @@ class LanguageSelectionController extends AbstractController
 
         $this->addFlash('success', 'Lesson completed! +' . $xp . ' XP, +' . $minutes . ' min');
 
-        // ✅ REDIRECTION SÛRE (tu peux changer après)
         return $this->redirectToRoute('lesson_show', ['id' => $lesson->getId()]);
-        // ou: return $this->redirectToRoute('course_show', ['id' => $course->getId()]);
     }
 }

@@ -1,38 +1,47 @@
-﻿{% extends 'base.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
 {% block title %}Admin · Créer une langue{% endblock %}
 
-{% block page_title %}Créer une langue{% endblock %}
-
-{% block breadcrumb %}
-    <ol class="breadcrumb breadcrumb-icons" aria-label="breadcrumbs">
-        <li class="breadcrumb-item">
-            <a href="{{ path('admin_dashboard') }}">
-                <i class="ti ti-home"></i> Tableau de bord
-            </a>
-        </li>
-        <li class="breadcrumb-item">Contenu Pédagogique</li>
-        <li class="breadcrumb-item">
-            <a href="{{ path('admin_language_index') }}">Langues</a>
-        </li>
-        <li class="breadcrumb-item active">Créer une langue</li>
-    </ol>
+{% block page_title %}
+    <i class="ti ti-plus text-primary me-2"></i> Créer une langue
 {% endblock %}
 
-{% block body %}
+{% block breadcrumb %}
+<ol class="breadcrumb breadcrumb-icons p-2 rounded" style="background: rgba(32,107,196,0.1);">
+    <li class="breadcrumb-item">
+        <a href="{{ path('admin_dashboard') }}" style="color: #206bc4; text-decoration: none;">
+            <i class="ti ti-home"></i> Tableau de bord
+        </a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="{{ path('admin_pedagogical_content_index') }}" style="color: #206bc4; text-decoration: none;">Contenu Pédagogique</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="{{ path('admin_language_index') }}" style="color: #206bc4; text-decoration: none;">Langues</a>
+    </li>
+    <li class="breadcrumb-item active" style="color: #206bc4;">Créer une langue</li>
+</ol>
+{% endblock %}
+
+{% block content %}
 <div class="row">
     <div class="col-md-8">
-        <div class="card">
+        <div class="card shadow-sm border-0 rounded-3">
+            <div class="card-header bg-white border-bottom">
+                <h3 class="card-title mb-0">
+                    <i class="ti ti-forms text-primary me-2"></i> Informations de la langue
+                </h3>
+            </div>
             <div class="card-body">
                 {{ form_start(form, {'attr': {'class': 'form-horizontal', 'novalidate': 'novalidate'}}) }}
                     <div class="mb-3">
-                        {{ form_label(form.name, 'Nom de la langue', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_label(form.name, 'Nom de la langue', {'label_attr': {'class': 'form-label required'}}) }}
                         {{ form_widget(form.name, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Français'}}) }}
                         {{ form_errors(form.name) }}
                     </div>
 
                     <div class="mb-3">
-                        {{ form_label(form.code, 'Code de la langue (ISO 639-1)', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_label(form.code, 'Code de la langue (ISO 639-1)', {'label_attr': {'class': 'form-label required'}}) }}
                         {{ form_widget(form.code, {'attr': {'class': 'form-control', 'placeholder': 'Ex: fr'}}) }}
                         <small class="form-text text-muted">Code ISO à 2 caractères (ex: fr, en, es, de)</small>
                         {{ form_errors(form.code) }}
@@ -41,29 +50,64 @@
                     <div class="mb-3">
                         {{ form_label(form.flagUrl, 'URL du drapeau', {'label_attr': {'class': 'form-label'}}) }}
                         {{ form_widget(form.flagUrl, {'attr': {'class': 'form-control', 'placeholder': 'https://example.com/flag.png'}}) }}
-                        <small class="form-text text-muted">URL d\'une image du drapeau (format: PNG, JPG, SVG)</small>
+                        <small class="form-text text-muted">URL d'une image du drapeau (format: PNG, JPG, SVG)</small>
                         {{ form_errors(form.flagUrl) }}
                     </div>
 
                     <div class="mb-3">
-                        <div class="form-check">
-                            {{ form_widget(form.isEnabled, {'attr': {'class': 'form-check-input'}}) }}
+                        <div class="form-check form-switch">
+                            {{ form_widget(form.isEnabled, {'attr': {'class': 'form-check-input', 'role': 'switch'}}) }}
                             {{ form_label(form.isEnabled, 'Langue activée', {'label_attr': {'class': 'form-check-label'}}) }}
                         </div>
                         {{ form_errors(form.isEnabled) }}
                     </div>
 
-                    <div class="form-footer">
+                    <div class="form-footer mt-4 d-flex gap-2">
                         <button type="submit" class="btn btn-primary">
-                            <i class="ti ti-check"></i> Créer la langue
+                            <i class="ti ti-check me-1"></i> Créer la langue
                         </button>
                         <a href="{{ path('admin_language_index') }}" class="btn btn-secondary">
-                            <i class="ti ti-arrow-left"></i> Retour
+                            <i class="ti ti-arrow-left me-1"></i> Retour
                         </a>
                     </div>
                 {{ form_end(form) }}
             </div>
         </div>
     </div>
+    
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 rounded-3">
+            <div class="card-header bg-light">
+                <h3 class="card-title mb-0">
+                    <i class="ti ti-info-circle text-info me-2"></i> Aide
+                </h3>
+            </div>
+            <div class="card-body">
+                <p class="mb-2"><strong>Nom de la langue:</strong></p>
+                <p class="text-muted small mb-3">Le nom complet de la langue tel qu'il apparaîtra dans l'interface.</p>
+                
+                <p class="mb-2"><strong>Code ISO 639-1:</strong></p>
+                <p class="text-muted small mb-3">Code standard à 2 lettres pour identifier la langue. Exemples: fr (Français), en (Anglais), es (Espagnol).</p>
+                
+                <p class="mb-2"><strong>URL du drapeau:</strong></p>
+                <p class="text-muted small mb-3">Lien vers une image représentant le drapeau du pays. Recommandation: utiliser une image de 200x150 pixels minimum.</p>
+                
+                <p class="mb-2"><strong>Langue activée:</strong></p>
+                <p class="text-muted small mb-0">Détermine si la langue est visible et utilisable par les apprenants.</p>
+            </div>
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.form-label.required::after {
+    content: " *";
+    color: var(--ll-danger);
+}
+.card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.form-control:focus, .form-select:focus { border-color: #206bc4 !important; box-shadow: 0 0 0 3px rgba(32,107,196,0.15) !important; }
+</style>
 {% endblock %}

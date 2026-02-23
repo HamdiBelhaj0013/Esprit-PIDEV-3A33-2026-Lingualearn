@@ -5,6 +5,7 @@ namespace App\Module\UserManagement\Form;
 use App\Module\UserManagement\Entity\User;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
@@ -24,10 +25,6 @@ class UserFormType extends AbstractType
                     'placeholder' => 'user@example.com',
                     'class' => 'form-control'
                 ],
-                'constraints' => [
-                    new Assert\NotBlank(),
-                    new Assert\Email(),
-                ],
             ])
             ->add('firstName', TextType::class, [
                 'label' => 'First Name',
@@ -35,20 +32,12 @@ class UserFormType extends AbstractType
                     'placeholder' => 'John',
                     'class' => 'form-control'
                 ],
-                'constraints' => [
-                    new Assert\NotBlank(),
-                    new Assert\Length(['min' => 2, 'max' => 100]),
-                ],
             ])
             ->add('lastName', TextType::class, [
                 'label' => 'Last Name',
                 'attr' => [
                     'placeholder' => 'Doe',
                     'class' => 'form-control'
-                ],
-                'constraints' => [
-                    new Assert\NotBlank(),
-                    new Assert\Length(['min' => 2, 'max' => 100]),
                 ],
             ]);
 
@@ -61,24 +50,35 @@ class UserFormType extends AbstractType
                     'label' => 'Password',
                     'attr' => [
                         'placeholder' => 'Enter password',
-                        'class' => 'form-control'
+                        'class' => 'form-control',
+                        'autocomplete' => 'new-password'
                     ],
                 ],
                 'second_options' => [
                     'label' => 'Confirm Password',
                     'attr' => [
                         'placeholder' => 'Confirm password',
-                        'class' => 'form-control'
+                        'class' => 'form-control',
+                        'autocomplete' => 'new-password'
                     ],
                 ],
+                'invalid_message' => 'The password fields must match.',
                 'constraints' => [
-                    new Assert\NotBlank(),
-                    new Assert\Length(['min' => 6]),
+                    new Assert\NotBlank(message: 'Password is required.'),
+                    new Assert\Length([
+                        'min' => 6,
+                        'minMessage' => 'Password must be at least {{ limit }} characters long.',
+                        'max' => 4096,
+                    ]),
+                    new Assert\Regex([
+                        'pattern' => '/^(?=.*[A-Za-z])(?=.*\d).{6,}$/',
+                        'message' => 'Password must contain at least one letter and one number.'
+                    ]),
                 ],
             ]);
         }
 
-        // Add status and roles for admin
+        // Add admin-only fields
         if ($options['is_admin']) {
             $builder
                 ->add('status', ChoiceType::class, [
@@ -88,19 +88,49 @@ class UserFormType extends AbstractType
                         'Suspended' => 'suspended',
                         'Deleted' => 'deleted',
                     ],
-                    'attr' => ['class' => 'form-control'],
+                    // id is explicit so Twig templates can reference it via getElementById
+                    'attr' => ['class' => 'form-select', 'id' => 'status-select'],
                 ])
                 ->add('roles', ChoiceType::class, [
                     'label' => 'Roles',
                     'choices' => [
                         'User' => 'ROLE_USER',
-                        'Premium User' => 'ROLE_PREMIUM_USER',
                         'Teacher' => 'ROLE_TEACHER',
                         'Admin' => 'ROLE_ADMIN',
                     ],
                     'multiple' => true,
                     'expanded' => true,
+                    'by_reference' => false,
                     'attr' => ['class' => 'form-check'],
+                    'constraints' => [
+                        new Assert\Count([
+                            'min' => 1,
+                            'minMessage' => 'You must select at least one role.',
+                        ]),
+                    ],
+                ])
+                ->add('subscriptionPlan', ChoiceType::class, [
+                    'label' => 'Subscription Plan',
+                    'choices' => [
+                        'Free' => 'FREE',
+                        'Monthly Premium' => 'MONTHLY',
+                        'Yearly Premium' => 'YEARLY',
+                    ],
+                    // id is explicit so Twig JS can find it via getElementById('plan-select')
+                    'attr' => ['class' => 'form-select', 'id' => 'plan-select'],
+                ])
+                ->add('subscriptionExpiry', DateTimeType::class, [
+                    'label' => 'Subscription Expires At',
+                    'required' => false,
+                    'widget' => 'single_text',
+                    // html5 = true renders as <input type="datetime-local"> which
+                    // correctly maps to PHP DateTime. id is explicit for JS.
+                    'html5' => true,
+                    'attr' => [
+                        'class' => 'form-control',
+                        'id' => 'subscription-expiry',
+                    ],
+                    'help' => 'Leave empty for FREE plan. Required for MONTHLY and YEARLY plans.',
                 ]);
         }
     }
@@ -111,6 +141,7 @@ class UserFormType extends AbstractType
             'data_class' => User::class,
             'is_edit' => false,
             'is_admin' => false,
+            'attr' => ['novalidate' => 'novalidate'],
         ]);
     }
 }

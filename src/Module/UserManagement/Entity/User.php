@@ -7,13 +7,19 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: 'users')]
 #[ORM\HasLifecycleCallbacks]
+#[UniqueEntity(
+    fields: ['email'],
+    message: 'This email is already registered.'
+)]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -24,12 +30,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 180, unique: true)]
     #[Groups(['user:read'])]
-<<<<<<< Updated upstream
-=======
     #[Assert\NotBlank(message: 'Email is required.')]
     #[Assert\Email(message: 'Please enter a valid email address.')]
     #[Assert\Length(max: 180, maxMessage: 'Email cannot be longer than {{ limit }} characters.')]
->>>>>>> Stashed changes
     private ?string $email = null;
 
     #[ORM\Column]
@@ -40,27 +43,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 50)]
     #[Groups(['user:read'])]
-<<<<<<< Updated upstream
-    private ?string $status = 'active'; // active, suspended, deleted
-
-    #[ORM\Column(length: 100)]
-    #[Groups(['user:read'])]
-    private ?string $firstName = null;
-
-    #[ORM\Column(length: 100)]
-    #[Groups(['user:read'])]
-    private ?string $lastName = null;
-
-    #[ORM\Column(length: 50)]
-    #[Groups(['user:read'])]
-    private ?string $subscriptionPlan = 'FREE'; // FREE, PREMIUM_MONTHLY, PREMIUM_YEARLY
-=======
     #[Assert\Choice(
         choices: ['FREE', 'MONTHLY', 'YEARLY'],
         message: 'Invalid subscription plan. Must be FREE, MONTHLY, or YEARLY.'
     )]
     private ?string $subscriptionPlan = 'FREE';
->>>>>>> Stashed changes
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     #[Groups(['user:read'])]
@@ -77,8 +64,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['user:read'])]
     private ?\DateTimeInterface $createdAt = null;
 
-<<<<<<< Updated upstream
-=======
     #[ORM\Column(length: 50)]
     #[Groups(['user:read'])]
     #[Assert\NotBlank(message: 'Status is required.')]
@@ -103,7 +88,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $lastName = null;
 
     // =========================================================
-    // EMAIL VERIFICATION  (new fields)
+    // EMAIL VERIFICATION
     // =========================================================
     /** Whether the user has clicked the link in their verification email */
     #[ORM\Column(options: ['default' => false])]
@@ -118,7 +103,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?\DateTimeInterface $emailVerificationTokenExpiresAt = null;
 
     // =========================================================
-    // PASSWORD RESET  (new fields)
+    // PASSWORD RESET
     // =========================================================
     /** Random hex token included in the reset link */
     #[ORM\Column(length: 100, nullable: true)]
@@ -129,9 +114,19 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?\DateTimeInterface $passwordResetTokenExpiresAt = null;
 
     // =========================================================
-    // RELATIONS  (unchanged)
+    // STRIPE PAYMENT
     // =========================================================
->>>>>>> Stashed changes
+    /** Stripe Customer ID — created once per user on first checkout */
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $stripeCustomerId = null;
+
+    /** Stripe Subscription ID — set after checkout.session.completed webhook */
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $stripeSubscriptionId = null;
+
+    // =========================================================
+    // RELATIONS
+    // =========================================================
     #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
     #[Groups(['stats:read'])]
     private ?LearningStats $learningStats = null;
@@ -158,103 +153,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->createdAt = new \DateTime();
     }
 
-<<<<<<< Updated upstream
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
-
-    public function getEmail(): ?string
-    {
-        return $this->email;
-    }
-
-    public function setEmail(string $email): static
-    {
-        $this->email = $email;
-        return $this;
-    }
-
-    public function getUserIdentifier(): string
-    {
-        return (string) $this->email;
-    }
-
-    public function getRoles(): array
-    {
-        $roles = $this->roles;
-        $roles[] = 'ROLE_USER';
-        return array_unique($roles);
-    }
-
-    public function setRoles(array $roles): static
-    {
-        $this->roles = $roles;
-        return $this;
-    }
-
-    public function getPassword(): string
-    {
-        return $this->password;
-    }
-
-    public function setPassword(string $password): static
-    {
-        $this->password = $password;
-        return $this;
-    }
-
-    public function eraseCredentials(): void
-    {
-        // Clear temporary sensitive data if any
-    }
-
-    public function getStatus(): ?string
-    {
-        return $this->status;
-    }
-
-    public function setStatus(string $status): static
-    {
-        $this->status = $status;
-        return $this;
-    }
-
-    public function getFirstName(): ?string
-    {
-        return $this->firstName;
-    }
-
-    public function setFirstName(string $firstName): static
-    {
-        $this->firstName = $firstName;
-        return $this;
-    }
-
-    public function getLastName(): ?string
-    {
-        return $this->lastName;
-    }
-
-    public function setLastName(string $lastName): static
-    {
-        $this->lastName = $lastName;
-        return $this;
-    }
-
-    public function getFullName(): string
-    {
-        return $this->firstName . ' ' . $this->lastName;
-    }
-
-    public function getSubscriptionPlan(): ?string
-    {
-        return $this->subscriptionPlan;
-    }
-
-=======
     // =========================================================
-    // CORE GETTERS / SETTERS  (unchanged from original)
+    // CORE GETTERS / SETTERS
     // =========================================================
     public function getId(): ?int { return $this->id; }
 
@@ -288,7 +188,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getFullName(): string { return $this->firstName . ' ' . $this->lastName; }
 
     public function getSubscriptionPlan(): ?string { return $this->subscriptionPlan; }
->>>>>>> Stashed changes
     public function setSubscriptionPlan(string $subscriptionPlan): static
     {
         $this->subscriptionPlan = $subscriptionPlan;
@@ -296,15 +195,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-<<<<<<< Updated upstream
-    public function getSubscriptionExpiry(): ?\DateTimeInterface
-    {
-        return $this->subscriptionExpiry;
-    }
-
-=======
     public function getSubscriptionExpiry(): ?\DateTimeInterface { return $this->subscriptionExpiry; }
->>>>>>> Stashed changes
     public function setSubscriptionExpiry(?\DateTimeInterface $subscriptionExpiry): static
     {
         $this->subscriptionExpiry = $subscriptionExpiry;
@@ -312,35 +203,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-<<<<<<< Updated upstream
-    public function isPremium(): bool
-    {
-        return $this->isPremium;
-    }
-
-    public function setPremium(bool $isPremium): static
-    {
-        $this->isPremium = $isPremium;
-        return $this;
-    }
-
-    private function updatePremiumStatus(): void
-    {
-        if ($this->subscriptionPlan === 'FREE') {
-            $this->isPremium = false;
-        } elseif ($this->subscriptionExpiry && $this->subscriptionExpiry > new \DateTime()) {
-            $this->isPremium = true;
-        } else {
-            $this->isPremium = false;
-        }
-    }
-
-    public function getLastPaymentStatus(): ?string
-    {
-        return $this->lastPaymentStatus;
-    }
-
-=======
     public function isPremium(): bool { return $this->isPremium; }
     public function setPremium(bool $isPremium): static { $this->isPremium = $isPremium; return $this; }
 
@@ -354,62 +216,29 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     public function getLastPaymentStatus(): ?string { return $this->lastPaymentStatus; }
->>>>>>> Stashed changes
     public function setLastPaymentStatus(?string $lastPaymentStatus): static
     {
         $this->lastPaymentStatus = $lastPaymentStatus;
         return $this;
     }
 
-<<<<<<< Updated upstream
-    public function getCreatedAt(): ?\DateTimeInterface
-    {
-        return $this->createdAt;
-    }
-
-    public function setCreatedAt(\DateTimeInterface $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-        return $this;
-    }
-
-    public function getLearningStats(): ?LearningStats
-    {
-        return $this->learningStats;
-    }
-
-=======
     public function getCreatedAt(): ?\DateTimeInterface { return $this->createdAt; }
     public function setCreatedAt(\DateTimeInterface $createdAt): static { $this->createdAt = $createdAt; return $this; }
 
     public function getLearningStats(): ?LearningStats { return $this->learningStats; }
->>>>>>> Stashed changes
     public function setLearningStats(?LearningStats $learningStats): static
     {
         if ($learningStats === null && $this->learningStats !== null) {
             $this->learningStats->setUser(null);
         }
-
         if ($learningStats !== null && $learningStats->getUser() !== $this) {
             $learningStats->setUser($this);
         }
-
         $this->learningStats = $learningStats;
         return $this;
     }
 
-<<<<<<< Updated upstream
-    /**
-     * @return Collection<int, UserLanguage>
-     */
-    public function getUserLanguages(): Collection
-    {
-        return $this->userLanguages;
-    }
-
-=======
     public function getUserLanguages(): Collection { return $this->userLanguages; }
->>>>>>> Stashed changes
     public function addUserLanguage(UserLanguage $userLanguage): static
     {
         if (!$this->userLanguages->contains($userLanguage)) {
@@ -418,7 +247,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
         return $this;
     }
-
     public function removeUserLanguage(UserLanguage $userLanguage): static
     {
         if ($this->userLanguages->removeElement($userLanguage)) {
@@ -429,18 +257,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-<<<<<<< Updated upstream
-    /**
-     * @return Collection<int, Notification>
-     */
-    public function getNotifications(): Collection
-    {
-        return $this->notifications;
-    }
-
-=======
     public function getNotifications(): Collection { return $this->notifications; }
->>>>>>> Stashed changes
     public function addNotification(Notification $notification): static
     {
         if (!$this->notifications->contains($notification)) {
@@ -449,7 +266,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
         return $this;
     }
-
     public function removeNotification(Notification $notification): static
     {
         if ($this->notifications->removeElement($notification)) {
@@ -461,7 +277,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     // =========================================================
-    // EMAIL VERIFICATION METHODS  (new)
+    // EMAIL VERIFICATION METHODS
     // =========================================================
     public function isVerified(): bool { return $this->isVerified; }
     public function setIsVerified(bool $isVerified): static
@@ -496,7 +312,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     // =========================================================
-    // PASSWORD RESET METHODS  (new)
+    // PASSWORD RESET METHODS
     // =========================================================
     public function getPasswordResetToken(): ?string { return $this->passwordResetToken; }
     public function setPasswordResetToken(?string $token): static
@@ -522,4 +338,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             && $this->passwordResetTokenExpiresAt !== null
             && $this->passwordResetTokenExpiresAt > new \DateTime();
     }
+
+    // =========================================================
+    // STRIPE PAYMENT METHODS
+    // =========================================================
+    public function getStripeCustomerId(): ?string { return $this->stripeCustomerId; }
+    public function setStripeCustomerId(?string $id): static { $this->stripeCustomerId = $id; return $this; }
+
+    public function getStripeSubscriptionId(): ?string { return $this->stripeSubscriptionId; }
+    public function setStripeSubscriptionId(?string $id): static { $this->stripeSubscriptionId = $id; return $this; }
 }

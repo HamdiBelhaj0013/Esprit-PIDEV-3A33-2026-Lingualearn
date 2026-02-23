@@ -1,55 +1,83 @@
-<table class="table table-vcenter card-table" style="margin-bottom: 0;">
-    <thead style="background: linear-gradient(135deg, #206bc4 0%, #764ba2 100%); color: white;">
+<div class="table-responsive">
+    <table class="table table-vcenter ll-table">
+        <thead>
         <tr>
-            <th style="border: none; padding: 16px; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;">Titre</th>
-            <th style="border: none; padding: 16px; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;">Cours</th>
-            <th style="border: none; padding: 16px; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;">Récompense XP</th>
-            <th style="border: none; padding: 16px; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;">Statut</th>
-            <th style="border: none; padding: 16px; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 150px;">Actions</th>
+            <th>Titre</th>
+            <th>Cours</th>
+            <th>Langue</th>
+            <th>Récompense XP</th>
+            <th style="width: 140px;">Actions</th>
         </tr>
-    </thead>
-    <tbody>
+        </thead>
+        <tbody>
         {% if lessons|length > 0 %}
             {% for lesson in lessons %}
-                <tr class="lesson-row" data-lesson-id="{{ lesson.id }}" style="border-bottom: 1px solid #e9ecef; transition: all 0.2s ease; cursor: pointer;" onmouseover="this.style.backgroundColor='rgba(32, 107, 196, 0.03)'" onmouseout="this.style.backgroundColor='transparent'">
-                    <td style="padding: 16px;">
-                        <a href="{{ path('admin_lesson_show', {'id': lesson.id}) }}" style="color: #206bc4; text-decoration: none; font-weight: 500;">
+                <tr>
+                    <!-- Titre de la leçon -->
+                    <td>
+                        <a href="{{ path('admin_lesson_show', {'id': lesson.id}) }}"
+                           class="fw-medium text-decoration-none" style="color: var(--ll-primary);">
                             {{ lesson.title }}
                         </a>
                     </td>
-                    <td style="padding: 16px;">
+
+                    <!-- Cours associé -->
+                    <td>
                         {% if lesson.course %}
-                            <span class="badge" style="background: linear-gradient(135deg, #206bc4 0%, #3b7dd8 100%); color: white; padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 11px; display: inline-block;">
-                                {{ lesson.course.title }}
-                            </span>
+                            <span class="ll-badge bg-primary-lt text-primary">
+                                    {{ lesson.course.title }}
+                                </span>
                         {% else %}
-                            <span style="color: #6c757d; font-size: 12px;">N/A</span>
+                            <span class="ll-badge bg-secondary-lt text-secondary">Non assigné</span>
                         {% endif %}
                     </td>
-                    <td style="padding: 16px;">
-                        <span class="badge" style="background: linear-gradient(135deg, #ffa500 0%, #ffb84d 100%); color: white; padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 11px; display: inline-block;">
-                            {{ lesson.xpReward }} XP
-                        </span>
+
+                    <!-- Langue du cours -->
+                    <td>
+                        {% if lesson.course and lesson.course.platformLanguage %}
+                            <span class="ll-badge bg-info-lt text-info">
+                                    {{ lesson.course.platformLanguage.name }}
+                                </span>
+                        {% else %}
+                            <span class="ll-badge bg-secondary-lt text-secondary">--</span>
+                        {% endif %}
                     </td>
-                    <td style="padding: 16px;">
-                        <div class="form-check form-switch" style="margin: 0;">
-                            <input class="form-check-input toggle-status" type="checkbox" id="status{{ lesson.id }}" data-lesson-id="{{ lesson.id }}" style="width: 44px; height: 24px; margin: 0;">
-                            <label class="form-check-label" for="status{{ lesson.id }}" style="margin-left: 8px; display: none;"></label>
-                        </div>
+
+                    <!-- Récompense XP -->
+                    <td>
+                            <span class="ll-badge bg-warning-lt text-warning">
+                                {{ lesson.xpReward ?: 0 }}
+                            </span>
                     </td>
-                    <td style="padding: 16px;">
-                        <div class="btn-group btn-group-sm" role="group">
-                            <a href="{{ path('admin_lesson_show', {'id': lesson.id}) }}" class="btn btn-sm" style="background: #e9ecef; color: #206bc4; border: none; padding: 6px 12px; border-radius: 6px 0 0 6px; font-size: 11px; font-weight: 600; transition: all 0.2s;" onmouseover="this.style.backgroundColor='#dee2e6'" onmouseout="this.style.backgroundColor='#e9ecef'">
-                                <i class="ti ti-eye"></i>
+
+                    <!-- Actions -->
+                    <td>
+                        <div class="d-flex gap-1">
+                            <a href="{{ path('admin_lesson_show', {'id': lesson.id}) }}"
+                               class="btn btn-ghost-primary btn-icon btn-sm" title="Voir"
+                               style="border-radius: 6px; width: 32px; height: 32px;">
+                                <i class="ti ti-eye" style="font-size: 1rem;"></i>
                             </a>
-                            <a href="{{ path('admin_lesson_edit', {'id': lesson.id}) }}" class="btn btn-sm" style="background: #206bc4; color: white; border: none; padding: 6px 12px; font-size: 11px; font-weight: 600; transition: all 0.2s;" onmouseover="this.style.backgroundColor='#1861b5'" onmouseout="this.style.backgroundColor='#206bc4'">
-                                <i class="ti ti-edit"></i>
+                            <a href="{{ path('admin_lesson_edit', {'id': lesson.id}) }}"
+                               class="btn btn-ghost-primary btn-icon btn-sm" title="Éditer"
+                               style="border-radius: 6px; width: 32px; height: 32px;">
+                                <i class="ti ti-edit" style="font-size: 1rem;"></i>
                             </a>
-                            <button type="button" class="btn btn-sm deleteBtn" data-form-id="deleteForm{{ lesson.id }}" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" style="background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 0 6px 6px 0; font-size: 11px; font-weight: 600; transition: all 0.2s;" onmouseover="this.style.backgroundColor='#bb2d3b'" onmouseout="this.style.backgroundColor='#dc3545'">
-                                <i class="ti ti-trash"></i>
+                            <button type="button"
+                                    class="btn btn-ghost-danger btn-icon btn-sm deleteBtn"
+                                    data-form-id="deleteForm{{ lesson.id }}"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#confirmDeleteModal"
+                                    title="Supprimer"
+                                    style="border-radius: 6px; width: 32px; height: 32px;">
+                                <i class="ti ti-trash" style="font-size: 1rem;"></i>
                             </button>
                         </div>
-                        <form method="post" action="{{ path('admin_lesson_delete', {'id': lesson.id}) }}" style="display:none;" id="deleteForm{{ lesson.id }}">
+
+                        <form method="post"
+                              action="{{ path('admin_lesson_delete', {'id': lesson.id}) }}"
+                              style="display: none;"
+                              id="deleteForm{{ lesson.id }}">
                             <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ lesson.id) }}">
                         </form>
                     </td>
@@ -57,13 +85,15 @@
             {% endfor %}
         {% else %}
             <tr>
-                <td colspan="5" style="padding: 60px 20px; text-align: center; color: #6c757d;">
-                    <p style="margin: 0 0 12px 0; font-size: 32px;">
-                        <i class="ti ti-search" style="opacity: 0.4;"></i>
-                    </p>
-                    <p style="margin: 0; font-size: 14px; font-weight: 500;">Aucune leçon trouvée</p>
+                <td colspan="5">
+                    <div class="ll-empty-state">
+                        <i class="ti ti-book-off d-block"></i>
+                        <p class="text-muted mb-1" style="font-weight: 600;">Aucune leçon trouvée</p>
+                        <p class="text-muted mb-0" style="font-size: 0.8125rem;">Essayez de créer une nouvelle leçon ou ajustez vos filtres.</p>
+                    </div>
                 </td>
             </tr>
         {% endif %}
-    </tbody>
-</table>
+        </tbody>
+    </table>
+</div>

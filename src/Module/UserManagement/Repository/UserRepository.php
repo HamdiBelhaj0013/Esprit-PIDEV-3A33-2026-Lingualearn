@@ -19,40 +19,29 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         parent::__construct($registry, User::class);
     }
 
-    /**
-     * Used to upgrade (rehash) the user's password automatically over time.
-     */
+    // ── Original methods (unchanged) ─────────────────────────
+
     public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newHashedPassword): void
     {
         if (!$user instanceof User) {
             throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', $user::class));
         }
-
         $user->setPassword($newHashedPassword);
         $this->getEntityManager()->persist($user);
         $this->getEntityManager()->flush();
     }
 
-    /**
-     * Find all active users
-     *
-     * @return User[]
-     */
+    /** @return User[] */
     public function findActiveUsers(): array
     {
         return $this->createQueryBuilder('u')
             ->where('u.status = :status')
             ->setParameter('status', 'active')
             ->orderBy('u.createdAt', 'DESC')
-            ->getQuery()
-            ->getResult();
+            ->getQuery()->getResult();
     }
 
-    /**
-     * Find premium users
-     *
-     * @return User[]
-     */
+    /** @return User[] */
     public function findPremiumUsers(): array
     {
         return $this->createQueryBuilder('u')
@@ -61,16 +50,10 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->setParameter('premium', true)
             ->setParameter('status', 'active')
             ->orderBy('u.subscriptionExpiry', 'DESC')
-            ->getQuery()
-            ->getResult();
+            ->getQuery()->getResult();
     }
 
-    /**
-     * Find users with expiring subscriptions
-     *
-     * @param \DateTimeInterface $date
-     * @return User[]
-     */
+    /** @return User[] */
     public function findExpiringSubscriptions(\DateTimeInterface $date): array
     {
         return $this->createQueryBuilder('u')
@@ -79,16 +62,10 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->andWhere('u.subscriptionExpiry IS NOT NULL')
             ->setParameter('premium', true)
             ->setParameter('date', $date)
-            ->getQuery()
-            ->getResult();
+            ->getQuery()->getResult();
     }
 
-    /**
-     * Search users by name or email
-     *
-     * @param string $query
-     * @return User[]
-     */
+    /** @return User[] */
     public function searchUsers(string $query): array
     {
         return $this->createQueryBuilder('u')
@@ -97,32 +74,18 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->orWhere('u.lastName LIKE :query')
             ->setParameter('query', '%' . $query . '%')
             ->orderBy('u.lastName', 'ASC')
-            ->getQuery()
-            ->getResult();
+            ->getQuery()->getResult();
     }
 
-    /**
-     * Count users by status
-     *
-     * @param string $status
-     * @return int
-     */
     public function countByStatus(string $status): int
     {
         return (int) $this->createQueryBuilder('u')
             ->select('COUNT(u.id)')
             ->where('u.status = :status')
             ->setParameter('status', $status)
-            ->getQuery()
-            ->getSingleScalarResult();
+            ->getQuery()->getSingleScalarResult();
     }
 
-    /**
-     * Find user with learning stats
-     *
-     * @param int $id
-     * @return User|null
-     */
     public function findWithStats(int $id): ?User
     {
         return $this->createQueryBuilder('u')
@@ -130,17 +93,9 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->addSelect('ls')
             ->where('u.id = :id')
             ->setParameter('id', $id)
-            ->getQuery()
-            ->getOneOrNullResult();
+            ->getQuery()->getOneOrNullResult();
     }
 
-    /**
-     * Count users created between dates
-     *
-     * @param \DateTimeInterface $startDate
-     * @param \DateTimeInterface $endDate
-     * @return int
-     */
     public function countBetweenDates(\DateTimeInterface $startDate, \DateTimeInterface $endDate): int
     {
         return (int) $this->createQueryBuilder('u')
@@ -149,35 +104,96 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->andWhere('u.createdAt < :end')
             ->setParameter('start', $startDate)
             ->setParameter('end', $endDate)
-            ->getQuery()
-            ->getSingleScalarResult();
+            ->getQuery()->getSingleScalarResult();
     }
 
-    /**
-     * Get user registration statistics
-     *
-     * @param int $days Number of days to look back
-     * @return array
-     */
     public function getRegistrationStats(int $days = 30): array
     {
-        $startDate = new \DateTime("-{$days} days");
-
         return $this->createQueryBuilder('u')
             ->select('DATE(u.createdAt) as date, COUNT(u.id) as count')
             ->where('u.createdAt >= :startDate')
-            ->setParameter('startDate', $startDate)
+            ->setParameter('startDate', new \DateTime("-{$days} days"))
             ->groupBy('date')
             ->orderBy('date', 'ASC')
+            ->getQuery()->getResult();
+    }
+
+    /**
+     * Advanced filter + sort + pagination — original logic preserved.
+     *
+     * @return array{0: User[], 1: int}
+     */
+    public function findAdvanced(array $criteria, int $page = 1, int $limit = 20): array
+    {
+        $qb = $this->createQueryBuilder('u');
+
+        if (!empty($criteria['search'])) {
+            $qb->andWhere($qb->expr()->orX(
+                $qb->expr()->like('u.email', ':term'),
+                $qb->expr()->like('u.firstName', ':term'),
+                $qb->expr()->like('u.lastName', ':term')
+            ))->setParameter('term', '%' . $criteria['search'] . '%');
+        }
+
+        if (!empty($criteria['status'])) {
+            $qb->andWhere('u.status = :status')->setParameter('status', $criteria['status']);
+        }
+
+        if (!empty($criteria['role'])) {
+            $qb->andWhere('u.roles LIKE :role')
+                ->setParameter('role', '%"' . $criteria['role'] . '"%');
+        }
+
+        if (isset($criteria['isPremium']) && $criteria['isPremium'] !== '') {
+            $value = is_string($criteria['isPremium'])
+                ? ($criteria['isPremium'] === '1')
+                : (bool) $criteria['isPremium'];
+            $qb->andWhere('u.isPremium = :isPremium')->setParameter('isPremium', $value);
+        }
+
+        if (!empty($criteria['subscriptionPlan'])) {
+            $qb->andWhere('u.subscriptionPlan = :plan')->setParameter('plan', $criteria['subscriptionPlan']);
+        }
+
+        $allowedSorts = ['u.createdAt', 'u.firstName', 'u.lastName', 'u.email', 'u.status', 'u.isPremium', 'u.subscriptionPlan'];
+        $sortField    = in_array($criteria['sort'] ?? '', $allowedSorts, true) ? $criteria['sort'] : 'u.createdAt';
+        $direction    = in_array(strtoupper($criteria['direction'] ?? ''), ['ASC', 'DESC'], true) ? strtoupper($criteria['direction']) : 'DESC';
+
+        $qb->orderBy($sortField, $direction)
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit);
+
+        $users = $qb->getQuery()->getResult();
+
+        $qbCount = clone $qb;
+        $total   = (int) $qbCount->resetDQLPart('orderBy')
+            ->setFirstResult(null)
+            ->setMaxResults(null)
+            ->select('COUNT(u.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return [$users, $total];
+    }
+
+    // ── NEW method required by UserService::getSubscriptionBreakdown() ────
+
+    /**
+     * FEATURE 2 — CSV export summary
+     * Returns user count grouped by subscriptionPlan.
+     *
+     * @return array{plan: string, count: int}[]
+     */
+    public function countBySubscriptionPlan(): array
+    {
+        return $this->createQueryBuilder('u')
+            ->select('u.subscriptionPlan AS plan, COUNT(u.id) AS count')
+            ->groupBy('u.subscriptionPlan')
+            ->orderBy('count', 'DESC')
             ->getQuery()
             ->getResult();
     }
 
-    /**
-     * Get EntityManager for external queries
-     *
-     * @return \Doctrine\ORM\EntityManagerInterface
-     */
     public function getEntityManager(): \Doctrine\ORM\EntityManagerInterface
     {
         return parent::getEntityManager();

@@ -1,0 +1,233 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}{% block page_title %}Forum Posts{% endblock %}{% endblock %}
+
+{% block page_actions %}
+    <a href="{{ path('admin_forum_index') }}" class="btn btn-outline-secondary">
+        <i class="ti ti-arrow-left me-1"></i> Forum Overview
+    </a>
+    <a href="{{ path('admin_forum_post_new') }}" class="btn btn-primary">
+        <i class="ti ti-plus me-1"></i> New Post
+    </a>
+{% endblock %}
+
+{% block content %}
+
+    {# ===== FLASH MESSAGES ===== #}
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible fade show mb-4" role="alert">
+                <i class="ti ti-{{ label == 'error' ? 'alert-circle' : 'circle-check' }} me-2"></i>{{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    {# ===== STATS ROW ===== #}
+    <div class="row row-cards mb-4">
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="card card-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <span class="bg-blue text-white avatar">
+                                <i class="ti ti-messages"></i>
+                            </span>
+                        </div>
+                        <div class="col">
+                            <div class="font-weight-medium">Total Posts</div>
+                            <div class="text-muted fs-3 fw-bold">{{ posts|length }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="card card-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <span class="bg-green text-white avatar">
+                                <i class="ti ti-circle-check"></i>
+                            </span>
+                        </div>
+                        <div class="col">
+                            <div class="font-weight-medium">Active</div>
+                            <div class="text-muted fs-3 fw-bold">{{ posts|filter(p => p.isActive)|length }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="card card-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <span class="bg-red text-white avatar">
+                                <i class="ti ti-eye-off"></i>
+                            </span>
+                        </div>
+                        <div class="col">
+                            <div class="font-weight-medium">Inactive</div>
+                            <div class="text-muted fs-3 fw-bold">{{ posts|filter(p => not p.isActive)|length }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="card card-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <span class="bg-purple text-white avatar">
+                                <i class="ti ti-message-reply"></i>
+                            </span>
+                        </div>
+                        <div class="col">
+                            <div class="font-weight-medium">Total Replies</div>
+                            <div class="text-muted fs-3 fw-bold">
+                                {% set totalReplies = 0 %}
+                                {% for p in posts %}{% set totalReplies = totalReplies + p.replyCount %}{% endfor %}
+                                {{ totalReplies }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    {# ===== POSTS TABLE ===== #}
+    <div class="card">
+        <div class="card-header d-flex align-items-center justify-content-between">
+            <h3 class="card-title mb-0">
+                <i class="ti ti-message-square me-2"></i> All Posts
+            </h3>
+            <div class="input-group input-group-sm w-auto">
+                <input type="text" class="form-control" placeholder="Search posts…" id="searchInput">
+                <span class="input-group-text"><i class="ti ti-search"></i></span>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-vcenter card-table" id="postsTable">
+                <thead>
+                <tr>
+                    <th class="w-1">ID</th>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Language</th>
+                    <th class="text-center">Views</th>
+                    <th class="text-center">Replies</th>
+                    <th>Status</th>
+                    <th>Posted At</th>
+                    <th class="w-1">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% if posts is empty %}
+                    <tr>
+                        <td colspan="9" class="text-center text-muted py-5">
+                            <i class="ti ti-inbox fs-1 d-block mb-2"></i>
+                            No posts found.
+                        </td>
+                    </tr>
+                {% else %}
+                    {% for post in posts %}
+                        <tr>
+                            <td><span class="text-muted">#{{ post.id }}</span></td>
+                            <td>
+                                <a href="{{ path('admin_forum_post_show', {id: post.id}) }}" class="fw-medium text-reset text-decoration-none">
+                                    {{ post.title|length > 60 ? post.title|slice(0,60) ~ '…' : post.title }}
+                                </a>
+                            </td>
+                            <td>
+                                    <span class="text-muted">
+                                        <i class="ti ti-user me-1"></i>{{ post.authorId }}
+                                    </span>
+                            </td>
+                            <td>
+                                {% if post.platformLanguageId == 1 %}
+                                    <span class="badge bg-blue-lt">French</span>
+                                {% elseif post.platformLanguageId == 2 %}
+                                    <span class="badge bg-yellow-lt">English</span>
+                                {% elseif post.platformLanguageId == 3 %}
+                                    <span class="badge bg-green-lt">Arabic</span>
+                                {% elseif post.platformLanguageId == 4 %}
+                                    <span class="badge bg-red-lt">Spanish</span>
+                                {% elseif post.platformLanguageId == 5 %}
+                                    <span class="badge bg-purple-lt">German</span>
+                                {% else %}
+                                    <span class="badge bg-secondary-lt">Lang #{{ post.platformLanguageId }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <span class="text-muted"><i class="ti ti-eye me-1"></i>{{ post.viewCount }}</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="text-muted"><i class="ti ti-message-circle me-1"></i>{{ post.replyCount }}</span>
+                            </td>
+                            <td>
+                                {% if post.isActive %}
+                                    <span class="badge bg-success-lt">
+                                            <i class="ti ti-circle-check me-1"></i>Active
+                                        </span>
+                                {% else %}
+                                    <span class="badge bg-danger-lt">
+                                            <i class="ti ti-circle-x me-1"></i>Inactive
+                                        </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="text-muted small">{{ post.postedAt|date('Y-m-d H:i') }}</span>
+                            </td>
+                            <td>
+                                <div class="btn-list flex-nowrap">
+                                    <a href="{{ path('admin_forum_post_show', {id: post.id}) }}"
+                                       class="btn btn-sm btn-ghost-secondary" title="View">
+                                        <i class="ti ti-eye"></i>
+                                    </a>
+                                    <a href="{{ path('admin_forum_post_edit', {id: post.id}) }}"
+                                       class="btn btn-sm btn-ghost-warning" title="Edit">
+                                        <i class="ti ti-pencil"></i>
+                                    </a>
+                                    <form method="post"
+                                          action="{{ path('admin_forum_post_delete', {id: post.id}) }}"
+                                          class="d-inline"
+                                          onsubmit="return confirm('Delete post #{{ post.id }}? This cannot be undone.');">
+                                        <input type="hidden" name="_method" value="DELETE">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ post.id) }}">
+                                        <button type="submit" class="btn btn-sm btn-ghost-danger" title="Delete">
+                                            <i class="ti ti-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.getElementById('searchInput')?.addEventListener('keyup', function () {
+            const filter = this.value.toLowerCase();
+            document.querySelectorAll('#postsTable tbody tr').forEach(row => {
+                row.style.display = row.textContent.toLowerCase().includes(filter) ? '' : 'none';
+            });
+        });
+    </script>
+{% endblock %}

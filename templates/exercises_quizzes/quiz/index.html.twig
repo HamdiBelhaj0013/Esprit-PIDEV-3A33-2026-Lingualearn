@@ -1,0 +1,285 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Liste des quiz{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    .table-vcenter td, .table-vcenter th {
+        vertical-align: middle;
+        text-align: center;
+    }
+    .btn-animated {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-animated:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .quiz-card {
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    .sortable {
+        cursor: pointer;
+    }
+    .sortable:hover {
+        background-color: rgba(0,0,0,0.02);
+    }
+    /* Amélioration de la visibilité des champs de recherche et filtrage */
+    .form-control-rounded {
+        border-radius: 50px;
+        border: 1px solid #e2e8f0;
+        color: #1e293b !important; /* Texte plus sombre (Slate 800) */
+        font-weight: 500;
+        background-color: #ffffff;
+    }
+    .form-control-rounded::placeholder {
+        color: #94a3b8 !important; /* Placeholder plus visible (Slate 400) */
+    }
+    .form-control-rounded:focus {
+        border-color: #206bc4;
+        box-shadow: 0 0 0 0.25rem rgba(32, 107, 196, 0.15);
+    }
+    #status-filter {
+        color: #1e293b !important;
+        font-weight: 500;
+    }
+    #status-filter option {
+        color: #1e293b;
+        background-color: #fff;
+    }
+    .table thead th {
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        font-weight: 700;
+        color: #64748b; /* Slate 500 */
+        background-color: #f8fafc; /* Slate 50 */
+        border-bottom: 2px solid #e2e8f0;
+    }
+    .btn-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 0.5rem;
+    }
+    .badge {
+        font-weight: 600;
+        padding: 0.35em 0.65em;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-xl">
+    <div class="page-header d-print-none mb-4">
+        <div class="row align-items-center">
+            <div class="col">
+                <h2 class="page-title text-primary">
+                    <i class="ti ti-list-check me-2"></i> Gestion des Quiz
+                </h2>
+            </div>
+            <div class="col-auto ms-auto">
+                <a href="{{ path('quiz_new') }}" class="btn btn-primary btn-animated">
+                    <i class="ti ti-plus me-2"></i> Créer un Quiz
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card quiz-card shadow-sm border-0">
+        <div class="card-header bg-light-lt">
+            <div class="row g-2 w-100 align-items-center">
+                <div class="col-md-6">
+                    <div class="input-icon">
+                        <span class="input-icon-addon text-primary">
+                            <i class="ti ti-search fs-2"></i>
+                        </span>
+                        <input type="text" id="search" placeholder="Rechercher un quiz (titre, description)..." class="form-control form-control-rounded ps-5">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select id="status-filter" class="form-select form-control-rounded">
+                        <option value="">Tous les statuts</option>
+                        <option value="active">Actifs uniquement</option>
+                        <option value="inactive">Inactifs uniquement</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-vcenter card-table table-hover" id="quiz-table">
+                <thead class="bg-light">
+                    <tr>
+                        <th data-field="id" class="sortable w-1">ID <i class="ti ti-arrows-sort"></i></th>
+                        <th data-field="title" class="sortable text-start">Titre du Quiz <i class="ti ti-arrows-sort"></i></th>
+                        <th class="text-center">Exercices</th>
+                        <th data-field="updatedAt" class="sortable text-center">Dernière modification <i class="ti ti-arrows-sort"></i></th>
+                        <th data-field="enabled" class="sortable text-center">Statut <i class="ti ti-arrows-sort"></i></th>
+                        <th class="text-center w-1">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {# Rempli par AJAX #}
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer d-flex align-items-center bg-white border-0">
+            <p class="m-0 text-muted" id="total-count">Chargement...</p>
+        </div>
+    </div>
+</div>
+
+{# Modal de suppression #}
+{{ include('components/_delete_modal.html.twig') }}
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    let sortField = 'id';
+    let sortOrder = 'DESC';
+
+    function fetchData() {
+        const search = document.getElementById('search').value;
+        const status = document.getElementById('status-filter').value;
+        const url = new URL('{{ path('quiz_ajax_list') }}', window.location.origin);
+        url.searchParams.set('search', search);
+        if (status) {
+            url.searchParams.set('status', status);
+        }
+        url.searchParams.set('sortField', sortField);
+        url.searchParams.set('sortOrder', sortOrder);
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.querySelector('#quiz-table tbody');
+                tbody.innerHTML = '';
+                
+                if (data.quizzes.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">
+                                <i class="ti ti-mood-empty fs-1 mb-2"></i>
+                                <p>Aucun quiz trouvé.</p>
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    data.quizzes.forEach(quiz => {
+                        const row = `
+                            <tr>
+                                <td class="text-muted">#${quiz.id}</td>
+                                <td class="text-start">
+                                    <div class="fw-bold text-dark">${quiz.title}</div>
+                                    <div class="text-muted small">Créé le ${quiz.createdAt}</div>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-blue-lt">
+                                        ${quiz.exerciseCount} exercice(s)
+                                    </span>
+                                </td>
+                                <td class="text-center text-muted">
+                                    ${quiz.updatedAt}
+                                </td>
+                                <td class="text-center">
+                                    <div class="form-check form-switch justify-content-center d-flex">
+                                        <input class="form-check-input toggle-status" type="checkbox" 
+                                               data-url="${quiz.toggleUrl}" 
+                                               ${quiz.enabled ? 'checked' : ''}>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-list justify-content-center">
+                                        <a href="${quiz.showUrl}" class="btn btn-icon btn-outline-info btn-animated" title="Voir">
+                                            <i class="ti ti-eye"></i>
+                                        </a>
+                                        <a href="${quiz.editUrl}" class="btn btn-icon btn-outline-primary btn-animated" title="Modifier">
+                                            <i class="ti ti-edit"></i>
+                                        </a>
+                                        <button type="button" 
+                                                class="btn btn-icon btn-outline-danger btn-animated delete-btn" 
+                                                title="Supprimer"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#deleteModal" 
+                                                data-delete-url="${quiz.deleteUrl}" 
+                                                data-item-name="${quiz.title}">
+                                            <i class="ti ti-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                        tbody.insertAdjacentHTML('beforeend', row);
+                    });
+                }
+                document.getElementById('total-count').textContent = `${data.total} quiz au total`;
+                attachEventListeners();
+            });
+    }
+
+    function attachEventListeners() {
+        // Toggle Status
+        document.querySelectorAll('.toggle-status').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                fetch(this.dataset.url, { method: 'POST' })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.success) {
+                            this.checked = !this.checked;
+                            alert('Erreur lors du changement de statut');
+                        }
+                    });
+            });
+        });
+
+        // Delete Button Modal
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const modal = document.getElementById('deleteModal');
+                const form = modal.querySelector('#deleteForm');
+                const itemName = modal.querySelector('#deleteItemName');
+                
+                form.action = this.dataset.deleteUrl;
+                itemName.textContent = this.dataset.itemName;
+            });
+        });
+    }
+
+    // Search input
+    let timeout = null;
+    document.getElementById('search').addEventListener('input', () => {
+        clearTimeout(timeout);
+        timeout = setTimeout(fetchData, 300);
+    });
+
+    // Status filter
+    document.getElementById('status-filter').addEventListener('change', fetchData);
+
+    // Sorting
+    document.querySelectorAll('.sortable').forEach(th => {
+        th.addEventListener('click', () => {
+            const field = th.dataset.field;
+            if (sortField === field) {
+                sortOrder = sortOrder === 'ASC' ? 'DESC' : 'ASC';
+            } else {
+                sortField = field;
+                sortOrder = 'ASC';
+            }
+            
+            // Update icons
+            document.querySelectorAll('.sortable i').forEach(icon => {
+                icon.className = 'ti ti-arrows-sort';
+            });
+            const icon = th.querySelector('i');
+            icon.className = sortOrder === 'ASC' ? 'ti ti-sort-ascending' : 'ti ti-sort-descending';
+            
+            fetchData();
+        });
+    });
+
+    // Initial fetch
+    fetchData();
+});
+</script>
+{% endblock %}
+
