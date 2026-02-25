@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion des Publications - LinguLearn</title>
+    <title>Gestion des Publications - LinguaLearn</title>
 
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -596,10 +596,7 @@
                 <i class="bi bi-chat"></i>
                 <span>Commentaires</span>
             </a>
-            <a href="#" class="nav-item">
-                <i class="bi bi-people"></i>
-                <span>Utilisateurs</span>
-            </a>
+            
         </div>
 
         <div class="user-section">
@@ -796,7 +793,7 @@
                      data-id="{{ pub.id }}"
                      data-status="{% if pub.reportPub >= 1 and pub.floue > 0 %}blurred{% elseif pub.reportPub >= 1 %}reported{% else %}published{% endif %}"
                      data-title="{{ pub.titrePub|lower }}"
-                     data-author="{{ pub.utilisateur.nomU|lower }} {{ pub.utilisateur.prenomU|lower }}"
+                     data-author="{{ pub.user.fullName|lower }}"
                      data-date="{{ pub.datePub|date('Y-m-d') }}">
                     <div class="pub-image">
                         {% if pub.lienPub %}
@@ -818,7 +815,7 @@
                             <h3 class="pub-title">{{ pub.titrePub|slice(0, 40) }}{% if pub.titrePub|length > 40 %}...{% endif %}</h3>
                             <div class="pub-author">
                                 <i class="bi bi-person-circle"></i>
-                                {{ pub.utilisateur.nomU }} {{ pub.utilisateur.prenomU }}
+                                {{ pub.user.fullName }} 
                             </div>
                         </div>
 

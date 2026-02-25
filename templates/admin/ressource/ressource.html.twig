@@ -9,26 +9,23 @@
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 
-    <!-- Tabler Icons (very common in modern admin panels) -->
-    <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@latest/tabler-icons.min.css">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
     <style>
-        :root {
-            --ll-purple:      #6d28d9;     /* deeper, premium purple */
-            --ll-purple-light:#a78bfa;
-            --ll-gray-100:    #f8fafc;
-            --ll-gray-200:    #e2e8f0;
-            --ll-gray-500:    #64748b;
-            --ll-gray-700:    #334155;
-            --ll-bg:          #ffffff;
-            --ll-shadow-sm:   0 1px 3px rgba(0,0,0,0.05);
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
-            margin: 0;
-            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-            background: var(--ll-gray-100);
-            color: var(--ll-gray-700);
+            font-family: 'Inter', sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
         }
 
         .layout {
@@ -36,124 +33,97 @@
             min-height: 100vh;
         }
 
+        /* Sidebar - IDENTIQUE aux pages de gestion */
         .sidebar {
             width: 260px;
-            background: var(--ll-bg);
-            border-right: 1px solid var(--ll-gray-200);
+            background: white;
+            border-right: 1px solid #e2e8f0;
             display: flex;
             flex-direction: column;
-            box-shadow: var(--ll-shadow-sm);
+            position: fixed;
+            height: 100vh;
         }
 
-        .logo-block {
-            padding: 1.75rem 1.25rem 1.25rem;
-            border-bottom: 1px solid var(--ll-gray-200);
-            text-align: center;
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid #f1f5f9;
         }
 
         .logo {
-            font-size: 1.85rem;
-            font-weight: 700;
-            color: var(--ll-purple);
-            text-decoration: underline;
-            text-underline-offset: 5px;
-            text-decoration-thickness: 2.5px;
-            text-decoration-color: rgba(109, 40, 217, 0.35);
-            letter-spacing: -0.4px;
-        }
-
-        .admin-badge {
-            margin-top: 1rem;
-            background: #f3e8ff;
-            color: var(--ll-purple);
-            font-size: 0.72rem;
-            font-weight: 700;
-            letter-spacing: 0.7px;
-            text-transform: uppercase;
-            padding: 0.35rem 0.9rem;
-            border-radius: 999px;
-            border: 1px solid #e9d5ff;
-            display: inline-block;
-        }
-
-        .nav-section {
-            padding: 1.25rem 1.5rem 0.5rem;
-            font-size: 0.75rem;
+            font-size: 1.4rem;
             font-weight: 600;
-            color: var(--ll-gray-500);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .nav-link {
+            color: #2563eb;
             display: flex;
             align-items: center;
-            padding: 0.65rem 1.5rem;
-            color: var(--ll-gray-700);
+            gap: 8px;
+        }
+
+        .logo i {
+            font-size: 1.8rem;
+        }
+
+        .nav-menu {
+            flex: 1;
+            padding: 20px 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            margin: 4px 8px;
+            color: #64748b;
             text-decoration: none;
-            font-size: 0.96rem;
-            transition: all 0.15s ease;
-            position: relative;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            transition: all 0.2s;
         }
 
-        .nav-link:hover,
-        .nav-link.active {
-            background: #f1f5f9;
-            color: var(--ll-purple);
-        }
-
-        .nav-link.active::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 4px;
-            background: var(--ll-purple);
-        }
-
-        .nav-link i {
-            margin-right: 0.9rem;
-            font-size: 1.28rem;
-            color: var(--ll-gray-500);
+        .nav-item i {
+            margin-right: 12px;
+            font-size: 1.2rem;
             width: 24px;
-            text-align: center;
-            transition: all 0.2s ease;
         }
 
-        .nav-link:hover i,
-        .nav-link.active i {
-            color: var(--ll-purple);
-            transform: scale(1.08);
+        .nav-item:hover {
+            background: #f1f5f9;
+            color: #2563eb;
         }
 
-        .user-block {
-            margin-top: auto;
-            border-top: 1px solid var(--ll-gray-200);
-            padding: 1.25rem 1.5rem;
-            background: var(--ll-gray-100);
+        .nav-item.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        .nav-item.active i {
+            color: white;
+        }
+
+        .user-section {
+            padding: 20px;
+            border-top: 1px solid #f1f5f9;
             display: flex;
             align-items: center;
+            gap: 12px;
         }
 
         .user-avatar {
-            width: 44px;
-            height: 44px;
-            background: linear-gradient(135deg, var(--ll-purple), var(--ll-purple-light));
+            width: 40px;
+            height: 40px;
+            background: #2563eb;
             color: white;
-            border-radius: 50%;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
-            font-size: 1.2rem;
-            margin-right: 1rem;
-            box-shadow: 0 2px 8px rgba(109,40,217,0.2);
+            font-weight: 600;
         }
 
+        /* Contenu principal */
         .content-area {
+            margin-left: 260px;
             flex: 1;
-            padding: 2.5rem 2.5rem 1rem;
+            padding: 30px;
         }
 
         h1.title {
@@ -201,49 +171,61 @@
         footer {
             text-align: center;
             padding: 1.5rem;
-            color: var(--ll-gray-500);
+            color: #64748b;
             font-size: 0.9rem;
-            border-top: 1px solid var(--ll-gray-200);
+            border-top: 1px solid #e2e8f0;
             background: white;
+            margin-left: 260px;
         }
     </style>
 </head>
 <body>
 
 <div class="layout">
-
-    <!-- Enhanced Sidebar -->
+    <!-- Sidebar - IDENTIQUE aux pages de gestion -->
     <aside class="sidebar">
-
-        <div class="logo-block">
-            <div class="logo">LinguaLearn</div>
-            <div class="admin-badge">ADMIN PANEL</div>
-        </div>
-
-        <div class="nav-section">MAIN</div>
-        <a href="" class="nav-link">
-            <i class="ti ti-layout-dashboard"></i> Dashboard
-        </a>
-
-        <div class="nav-section">MANAGEMENT</div>
-
-        <div class="nav-section">CONTENT</div>
-
-        <div class="nav-section">COMMUNITY</div>
-
-        <div class="nav-section">SYSTEM</div>
-        <a href="#" class="nav-link">
-            <i class="ti ti-settings"></i> Settings
-        </a>
-
-        <div class="user-block">
-            <div class="user-avatar">A</div>
-            <div>
-                <div style="font-weight: 500;">Admin</div>
-                <div style="font-size: 0.84rem; color: var(--ll-gray-500);">Administrator</div>
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="bi bi-chat-quote-fill"></i>
+                <span>LinguLearn</span>
             </div>
         </div>
 
+        <div class="nav-menu">
+            <a href="{{ path('admin_dashboard') }}" class="nav-item">
+                <i class="bi bi-grid"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ path('admin_gestion_publications') }}" class="nav-item">
+                <i class="bi bi-newspaper"></i>
+                <span>Publications</span>
+            </a>
+            <a href="{{ path('admin_gestion_commentaires') }}" class="nav-item">
+                <i class="bi bi-chat"></i>
+                <span>Commentaires</span>
+            </a>
+           
+        </div>
+
+        <div class="user-section">
+            <div class="user-avatar">
+                {% if app.user %}
+                    {{ app.user.email|first|upper }}
+                {% else %}
+                    A
+                {% endif %}
+            </div>
+            <div>
+                <div style="font-weight: 500; font-size:0.9rem;">
+                    {% if app.user %}
+                        {{ app.user.email }}
+                    {% else %}
+                        Admin
+                    {% endif %}
+                </div>
+                <div style="font-size:0.75rem; color:#64748b;">Administrateur</div>
+            </div>
+        </div>
     </aside>
 
     <!-- Main content -->

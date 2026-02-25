@@ -567,7 +567,7 @@
             <div class="post-meta">
                 <div class="meta-item">
                     <i class="bi bi-person-circle"></i>
-                    {{ publication.utilisateur.nomU }} {{ publication.utilisateur.prenomU }}
+                    {{ publication.user.fullName }}
                 </div>
                 <div class="meta-item">
                     <i class="bi bi-calendar3"></i>
@@ -660,8 +660,8 @@
                         <div class="comment-content">
                             <div class="comment-header">
                                 <span class="comment-author">
-                                    {% if commentaire.utilisateur is defined and commentaire.utilisateur %}
-                                        {{ commentaire.utilisateur.nomU }} {{ commentaire.utilisateur.prenomU }}
+                                    {% if commentaire.user is defined and commentaire.user %}
+                                        {{ commentaire.user.fullName }}
                                     {% else %}
                                         Utilisateur
                                     {% endif %}

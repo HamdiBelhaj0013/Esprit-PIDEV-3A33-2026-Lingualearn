@@ -63,8 +63,8 @@ class DashboardController extends AbstractController
         ];
 
         // ── Forum ─────────────────────────────────────────────────────
-        $forumPostCount  = $this->getEntityCount('App\Module\Forum\Entity\ForumPost') ?? 0;
-        $forumReplyCount = $this->getEntityCount('App\Module\Forum\Entity\ForumReply') ?? 0;
+        $forumPostCount  = $this->getEntityCount('App\Entity\ForumPost') ?? 0;
+        $forumReplyCount = $this->getEntityCount('App\Entity\ForumReply') ?? 0;
         $forumStats      = $this->getForumStatistics();
 
         // ── Enrollments / ratings ─────────────────────────────────────

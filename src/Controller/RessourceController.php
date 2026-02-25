@@ -18,6 +18,7 @@ use App\Service\TranslationService ;
 
 class RessourceController extends AbstractController
 {
+
    #[Route('/ressources', name: 'ressources')]
 public function index(EntityManagerInterface $em, Request $request): Response
 {
@@ -315,7 +316,11 @@ public function gestionPublications(EntityManagerInterface $em,Request $request)
     ]);
 }
 
-
+    #[Route('ressourcesA', name: 'ressourcesA')]
+    public function typeEVAdmin(): Response
+    {
+        return $this->render('admin/ressource/ressource.html.twig');
+    }
 
 #[Route('/publication/react/{id}/{type}', name: 'react_publication', methods: ['POST'])]
 public function react(
