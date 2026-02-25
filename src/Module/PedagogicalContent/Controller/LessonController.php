@@ -3,7 +3,10 @@
 declare(strict_types=1);
 
 namespace App\Module\PedagogicalContent\Controller;
-
+use App\Media\PdfWatermarkService;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use Vich\UploaderBundle\Storage\StorageInterface;
 use App\Module\PedagogicalContent\Entity\Lesson;
 use App\Module\PedagogicalContent\Form\LessonType;
 use Doctrine\ORM\EntityManagerInterface;
@@ -155,4 +158,52 @@ class LessonController extends AbstractController
             'lesson' => $lesson,
         ]);
     }
+    #[Route('/{id}/resource', name: 'admin_lesson_resource_download', methods: ['GET'])]
+public function downloadResource(
+    \App\Module\PedagogicalContent\Entity\Lesson $lesson,
+    StorageInterface $storage,
+    PdfWatermarkService $watermarkService,
+): BinaryFileResponse {
+    // 1) vérifier qu’il y a une ressource
+    if (!$lesson->getResourceName()) {
+        throw $this->createNotFoundException('Aucune ressource pour cette leçon.');
+    }
+
+    // 2) résoudre le chemin absolu du PDF original via Vich
+    $inputPath = $storage->resolvePath($lesson, 'resourceFile');
+    if (!$inputPath || !is_file($inputPath)) {
+        throw $this->createNotFoundException('Fichier ressource introuvable.');
+    }
+
+    // 3) watermark text (personnalisé)
+    $user = $this->getUser();
+    $who = $user ? (method_exists($user, 'getUserIdentifier') ? $user->getUserIdentifier() : 'user') : 'guest';
+    $date = (new \DateTimeImmutable())->format('Y-m-d H:i');
+    $watermarkText = sprintf('Téléchargé par %s - %s', $who, $date);
+
+    // 4) dossier cache (ne pas polluer /uploads)
+    $cacheDir = $this->getParameter('kernel.project_dir') . '/var/watermarked_pdfs';
+    if (!is_dir($cacheDir)) {
+        @mkdir($cacheDir, 0775, true);
+    }
+
+    // 5) fichier output (cache par lesson + user + nom pdf)
+    $key = sha1($lesson->getId() . '|' . $who . '|' . $lesson->getResourceName());
+    $outputPath = $cacheDir . '/' . $key . '.pdf';
+
+    // 6) (re)générer si pas déjà en cache
+    // Tu peux aussi rajouter une expiration si tu veux
+    if (!is_file($outputPath)) {
+        $watermarkService->watermark($inputPath, $outputPath, $watermarkText);
+    }
+
+    // 7) réponse téléchargement
+    $response = new BinaryFileResponse($outputPath);
+    $response->setContentDisposition(
+        ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+        'lesson-resource-' . $lesson->getId() . '.pdf'
+    );
+
+    return $response;
+}
 }

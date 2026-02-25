@@ -8,6 +8,7 @@ use App\Module\PedagogicalContent\Entity\Course;
 use App\Module\PedagogicalContent\Entity\Lesson;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -15,6 +16,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\File;
 
 class LessonType extends AbstractType
 {
@@ -47,6 +49,48 @@ class LessonType extends AbstractType
                     return $course->getTitle() . ' (' . $course->getLevel() . ')';
                 },
                 'placeholder' => '-- Sélectionner un cours --',
+            ])
+
+            /**
+             * ============================
+             * VICH - CHAMPS UPLOAD
+             * ============================
+             */
+            ->add('videoFile', FileType::class, [
+                'label' => 'Vidéo (mp4/webm)',
+                'required' => false,
+                'constraints' => [
+                    new File([
+                        'maxSize' => '200M',
+                        'mimeTypes' => ['video/mp4', 'video/webm'],
+                        'mimeTypesMessage' => 'Vidéo invalide (mp4/webm).',
+                    ]),
+                ],
+            ])
+            ->add('thumbFile', FileType::class, [
+                'label' => 'Thumbnail (image)',
+                'required' => false,
+                'constraints' => [
+                    new File([
+                        'maxSize' => '3M',
+                        'mimeTypes' => ['image/jpeg', 'image/png', 'image/webp'],
+                        'mimeTypesMessage' => 'Thumbnail invalide (jpg/png/webp).',
+                    ]),
+                ],
+            ])
+            ->add('resourceFile', FileType::class, [
+                'label' => 'Ressource de leçon (PDF/PPTX)',
+                'required' => false,
+                'constraints' => [
+                    new File([
+                        'maxSize' => '20M',
+                        'mimeTypes' => [
+                            'application/pdf',
+                            'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                        ],
+                        'mimeTypesMessage' => 'Ressource invalide (PDF ou PPTX).',
+                    ]),
+                ],
             ]);
 
         // PRE_SET_DATA
