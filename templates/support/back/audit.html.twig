@@ -1,0 +1,260 @@
+{% extends 'base.html.twig' %}
+{% block title %}Audit Trail{% endblock %}
+{% block body %}
+
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--white:#ffffff;--off-white:#f7f9fc;--surface:#eef1f8;--ink:#0d1526;--ink-soft:#2c3a52;--muted:#7a87a0;--border:#e2e8f2;--blue:#2563eb;--blue-dark:#1d4ed8;--blue-bg:#eff6ff;--green:#16a34a;--green-bg:#f0fdf4;--gold:#ca8a04;--gold-bg:#fefce8;--red:#dc2626;--red-bg:#fee2e2;--sidebar-w:260px;--radius:12px;--radius-lg:20px}
+body{font-family:'Sora',sans-serif;background:var(--off-white);color:var(--ink);min-height:100vh}
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:50}
+.sidebar-logo{padding:1.5rem 1.5rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.75rem;text-decoration:none}
+.sidebar-logo-text{font-size:1.3rem;font-weight:700;color:var(--ink)}
+.sidebar-logo-text span{color:var(--blue)}
+.sidebar-nav{flex:1;padding:1rem 0;overflow-y:auto}
+.nav-section-label{font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);padding:.75rem 1.5rem .35rem;display:block}
+.nav-item{display:flex;align-items:center;gap:.75rem;padding:.65rem 1.5rem;font-size:.84rem;font-weight:500;color:var(--muted);text-decoration:none;transition:color .2s,background .2s;position:relative}
+.nav-item:hover{color:var(--ink);background:var(--off-white)}
+.nav-item.active{color:var(--blue);background:var(--blue-bg);font-weight:600}
+.nav-item.active::before{content:'';position:absolute;left:0;top:4px;bottom:4px;width:3px;background:var(--blue);border-radius:0 3px 3px 0}
+.nav-icon{font-size:1.1rem;width:20px;text-align:center}
+.main{margin-left:var(--sidebar-w);min-height:100vh;display:flex;flex-direction:column}
+.topbar{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:.85rem 2rem;display:flex;align-items:center;justify-content:space-between}
+.topbar-left{display:flex;align-items:center;gap:1rem}
+.page-heading{font-size:1.25rem;font-weight:700;color:var(--ink)}
+.page-sub{font-size:.78rem;color:var(--muted)}
+.topbar-right{display:flex;align-items:center;gap:.75rem}
+.topbar-btn{padding:.5rem 1rem;border-radius:var(--radius);font-size:.8rem;font-weight:600;text-decoration:none;border:1.5px solid var(--border);color:var(--ink-soft);background:var(--white)}
+.topbar-btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.page-content{padding:2rem;flex:1}
+.filter-bar{display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1.5rem}
+.filter-btn{padding:.45rem 1rem;border-radius:20px;font-size:.78rem;font-weight:600;text-decoration:none;border:1.5px solid var(--border);color:var(--muted);background:var(--white);transition:all .15s;cursor:pointer}
+.filter-btn:hover,.filter-btn.active{color:var(--blue);border-color:var(--blue);background:var(--blue-bg)}
+.filter-btn.danger.active{color:var(--red);border-color:var(--red);background:var(--red-bg)}
+.filter-btn.gold.active{color:var(--gold);border-color:var(--gold);background:var(--gold-bg)}
+.counts-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1rem}
+.counts-grid-2{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1.5rem}
+.count-card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius);padding:.85rem;text-align:center}
+.count-value{font-size:1.5rem;font-weight:700;color:var(--ink)}
+.count-label{font-size:.62rem;color:var(--muted);margin-top:.2rem}
+.audit-table{width:100%;border-collapse:collapse;background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.audit-table th{background:var(--surface);padding:.85rem 1rem;font-size:.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;text-align:left;border-bottom:1px solid var(--border)}
+.audit-table td{padding:.85rem 1rem;font-size:.82rem;border-bottom:1px solid var(--surface);vertical-align:middle}
+.audit-table tr:last-child td{border-bottom:none}
+.audit-table tr:hover td{background:var(--off-white)}
+.action-badge{display:inline-block;padding:.25rem .7rem;border-radius:20px;font-size:.68rem;font-weight:700;white-space:nowrap}
+.action-CREATED{background:var(--green-bg);color:var(--green)}
+.action-UPDATED{background:var(--blue-bg);color:var(--blue)}
+.action-STATUS_CHANGED{background:var(--gold-bg);color:var(--gold)}
+.action-RESPONSE_ADDED{background:#f3e8ff;color:#7c3aed}
+.action-DELETED{background:var(--red-bg);color:var(--red)}
+.action-USER_BANNED{background:var(--red-bg);color:var(--red)}
+.action-SPAM_BLOCKED{background:#fce7f3;color:#9d174d}
+.action-SATISFACTION_RATED{background:var(--gold-bg);color:var(--gold)}
+.empty-state{text-align:center;padding:3rem;color:var(--muted)}
+.empty-state-icon{font-size:2.5rem;margin-bottom:1rem}
+.old-new{display:flex;align-items:center;gap:.4rem;font-size:.75rem}
+.val-old{background:var(--red-bg);color:var(--red);padding:.15rem .5rem;border-radius:4px}
+.val-new{background:var(--green-bg);color:var(--green);padding:.15rem .5rem;border-radius:4px}
+.arrow{color:var(--muted)}
+.rec-link{color:var(--blue);text-decoration:none;font-weight:600}
+.rec-link:hover{text-decoration:underline}
+.stars-display{color:var(--gold);font-size:.9rem;letter-spacing:.1rem}
+</style>
+
+<aside class="sidebar">
+    <a href="#" class="sidebar-logo">
+        <div class="sidebar-logo-text">Lingua<span>Learn</span> <small style="font-size:.6rem;color:var(--muted)">Admin</small></div>
+    </a>
+    <nav class="sidebar-nav">
+        <span class="nav-section-label">Support Admin</span>
+        <a href="{{ path('admin_support_stats') }}" class="nav-item"><span class="nav-icon">📊</span> Statistiques</a>
+        <a href="{{ path('admin_support_audit') }}" class="nav-item active"><span class="nav-icon">📋</span> Audit Trail</a>
+        <span class="nav-section-label">Gestion</span>
+        <a href="{{ path('app_faq_index') }}" class="nav-item"><span class="nav-icon">❓</span> FAQ</a>
+        <a href="{{ path('app_user_reclamation_index') }}" class="nav-item"><span class="nav-icon">💬</span> Réclamations</a>
+        <span class="nav-section-label">Système</span>
+        <a href="{{ path('app_logout') }}" class="nav-item"><span class="nav-icon">→</span> Log Out</a>
+    </nav>
+</aside>
+
+<div class="main">
+    <header class="topbar">
+        <div class="topbar-left">
+            <div>
+                <div class="page-heading">📋 Audit Trail</div>
+                <div class="page-sub">Historique complet des actions</div>
+            </div>
+        </div>
+        <div class="topbar-right">
+            <a href="{{ path('admin_support_stats') }}" class="topbar-btn">📊 Stats</a>
+            <a href="{{ path('admin_support_audit') }}" class="topbar-btn active">📋 Audit</a>
+        </div>
+    </header>
+
+    <main class="page-content">
+
+        {# ── Compteurs ligne 1 ── #}
+        <div class="counts-grid">
+            <div class="count-card">
+                <div class="count-value" style="color:var(--green)">{{ actionCounts.CREATED ?? 0 }}</div>
+                <div class="count-label">✅ Créés</div>
+            </div>
+            <div class="count-card">
+                <div class="count-value" style="color:var(--blue)">{{ actionCounts.UPDATED ?? 0 }}</div>
+                <div class="count-label">✏️ Modifiés</div>
+            </div>
+            <div class="count-card">
+                <div class="count-value" style="color:var(--gold)">{{ actionCounts.STATUS_CHANGED ?? 0 }}</div>
+                <div class="count-label">🔄 Statuts</div>
+            </div>
+            <div class="count-card">
+                <div class="count-value" style="color:#7c3aed">{{ actionCounts.RESPONSE_ADDED ?? 0 }}</div>
+                <div class="count-label">💬 Réponses</div>
+            </div>
+        </div>
+
+        {# ── Compteurs ligne 2 ── #}
+        <div class="counts-grid-2">
+            <div class="count-card">
+                <div class="count-value" style="color:var(--red)">{{ actionCounts.DELETED ?? 0 }}</div>
+                <div class="count-label">🗑️ Supprimés</div>
+            </div>
+            <div class="count-card">
+                <div class="count-value" style="color:var(--red)">{{ actionCounts.USER_BANNED ?? 0 }}</div>
+                <div class="count-label">🚫 Bannis</div>
+            </div>
+            <div class="count-card">
+                <div class="count-value" style="color:#9d174d">{{ actionCounts.SPAM_BLOCKED ?? 0 }}</div>
+                <div class="count-label">🚦 Spam</div>
+            </div>
+            {# ── NOUVEAU : Satisfaction ── #}
+            <div class="count-card" style="border-color:#fde68a">
+                <div class="count-value" style="color:var(--gold)">{{ actionCounts.SATISFACTION_RATED ?? 0 }}</div>
+                <div class="count-label">⭐ Évaluations</div>
+            </div>
+        </div>
+
+        {# ── Filtres ── #}
+        <div class="filter-bar">
+            <a href="{{ path('admin_support_audit') }}" class="filter-btn {{ selectedAction is null ? 'active' : '' }}">
+                Toutes les actions
+            </a>
+            <a href="{{ path('admin_support_audit', {action: 'CREATED'}) }}" class="filter-btn {{ selectedAction == 'CREATED' ? 'active' : '' }}">
+                ✅ Créations
+            </a>
+            <a href="{{ path('admin_support_audit', {action: 'UPDATED'}) }}" class="filter-btn {{ selectedAction == 'UPDATED' ? 'active' : '' }}">
+                ✏️ Modifications
+            </a>
+            <a href="{{ path('admin_support_audit', {action: 'STATUS_CHANGED'}) }}" class="filter-btn {{ selectedAction == 'STATUS_CHANGED' ? 'active' : '' }}">
+                🔄 Changements statut
+            </a>
+            <a href="{{ path('admin_support_audit', {action: 'RESPONSE_ADDED'}) }}" class="filter-btn {{ selectedAction == 'RESPONSE_ADDED' ? 'active' : '' }}">
+                💬 Réponses ajoutées
+            </a>
+            <a href="{{ path('admin_support_audit', {action: 'DELETED'}) }}" class="filter-btn danger {{ selectedAction == 'DELETED' ? 'active' : '' }}">
+                🗑️ Suppressions
+            </a>
+            <a href="{{ path('admin_support_audit', {action: 'USER_BANNED'}) }}" class="filter-btn danger {{ selectedAction == 'USER_BANNED' ? 'active' : '' }}">
+                🚫 Bans
+            </a>
+            <a href="{{ path('admin_support_audit', {action: 'SPAM_BLOCKED'}) }}" class="filter-btn danger {{ selectedAction == 'SPAM_BLOCKED' ? 'active' : '' }}">
+                🚦 Spam bloqué
+            </a>
+            {# ── NOUVEAU filtre Satisfaction ── #}
+            <a href="{{ path('admin_support_audit', {action: 'SATISFACTION_RATED'}) }}" class="filter-btn gold {{ selectedAction == 'SATISFACTION_RATED' ? 'active' : '' }}">
+                ⭐ Évaluations
+            </a>
+        </div>
+
+        {# ── Table des logs ── #}
+        {% if logs is empty %}
+        <div class="empty-state">
+            <div class="empty-state-icon">📋</div>
+            <p style="font-weight:600;margin-bottom:.5rem">Aucun log trouvé</p>
+            <p style="font-size:.85rem">Les actions apparaîtront ici automatiquement</p>
+        </div>
+        {% else %}
+        <table class="audit-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Action</th>
+                    <th>Description</th>
+                    <th>Ticket</th>
+                    <th>Changement</th>
+                    <th>Effectué par</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td style="color:var(--muted);font-size:.75rem">#{{ log.id }}</td>
+                    <td>
+                        <span class="action-badge action-{{ log.action }}">
+                            {% if log.action == 'CREATED' %}✅ Créé
+                            {% elseif log.action == 'UPDATED' %}✏️ Modifié
+                            {% elseif log.action == 'STATUS_CHANGED' %}🔄 Statut
+                            {% elseif log.action == 'RESPONSE_ADDED' %}💬 Réponse
+                            {% elseif log.action == 'DELETED' %}🗑️ Supprimé
+                            {% elseif log.action == 'USER_BANNED' %}🚫 Banni
+                            {% elseif log.action == 'SPAM_BLOCKED' %}🚦 Spam
+                            {% elseif log.action == 'SATISFACTION_RATED' %}⭐ Évaluation
+                            {% else %}{{ log.action }}{% endif %}
+                        </span>
+                    </td>
+                    <td style="max-width:300px;line-height:1.4">{{ log.description }}</td>
+                    <td>
+                        {% if log.reclamation %}
+                        <a href="{{ path('app_user_reclamation_show', {id: log.reclamation.id}) }}" class="rec-link">
+                            #{{ log.reclamation.id }}
+                        </a>
+                        {% else %}
+                        <span style="color:var(--muted);font-size:.75rem">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if log.action == 'SATISFACTION_RATED' and log.newValue %}
+                            {# ── Affichage étoiles pour satisfaction ── #}
+                            <div class="stars-display">
+                                {% for i in 1..5 %}
+                                    {{ i <= log.newValue ? '★' : '☆' }}
+                                {% endfor %}
+                            </div>
+                            <div style="font-size:.72rem;color:var(--gold);font-weight:700;margin-top:.2rem">
+                                {{ log.newValue }}/5
+                            </div>
+                        {% elseif log.oldValue and log.newValue %}
+                        <div class="old-new">
+                            <span class="val-old">{{ log.oldValue }}</span>
+                            <span class="arrow">→</span>
+                            <span class="val-new">{{ log.newValue }}</span>
+                        </div>
+                        {% elseif log.newValue %}
+                        <span class="val-new">{{ log.newValue }}</span>
+                        {% else %}
+                        <span style="color:var(--muted);font-size:.75rem">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if log.performedBy %}
+                        <div style="font-size:.82rem;font-weight:600">{{ log.performedBy.fullName }}</div>
+                        <div style="font-size:.72rem;color:var(--muted)">{{ log.performedBy.email }}</div>
+                        {% else %}
+                        <span style="color:var(--muted);font-size:.75rem">Système</span>
+                        {% endif %}
+                    </td>
+                    <td style="white-space:nowrap">
+                        <div style="font-size:.82rem;font-weight:600">{{ log.createdAt|date('d/m/Y') }}</div>
+                        <div style="font-size:.72rem;color:var(--muted)">{{ log.createdAt|date('H:i:s') }}</div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+    </main>
+</div>
+
+{% endblock %}

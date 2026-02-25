@@ -2,6 +2,8 @@
 
 namespace App\Module\UserManagement\Entity;
 
+use App\Module\Support\Entity\Reclamation;
+use App\Module\Support\Entity\SupportResponse;
 use App\Module\UserManagement\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -88,6 +90,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $lastName = null;
 
     // =========================================================
+    // BAN FIELDS
+    // =========================================================
+    #[ORM\Column(options: ['default' => false])]
+    private bool $isBanned = false;
+
+    #[ORM\Column(length: 500, nullable: true)]
+    private ?string $banReason = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $bannedAt = null;
+
+    // ← NOUVEAU : date de fin du ban temporaire (7 jours)
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $bannedUntil = null;
+
+    // =========================================================
     // EMAIL VERIFICATION  (new fields)
     // =========================================================
     /** Whether the user has clicked the link in their verification email */
@@ -114,7 +132,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?\DateTimeInterface $passwordResetTokenExpiresAt = null;
 
     // =========================================================
-    // RELATIONS  (unchanged)
+    // RELATIONS
     // =========================================================
     #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
     #[Groups(['stats:read'])]
@@ -126,14 +144,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Notification::class, mappedBy: 'user', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $notifications;
 
+    #[ORM\OneToMany(targetEntity: Reclamation::class, mappedBy: 'user')]
+    private Collection $reclamations;
+
+    #[ORM\OneToMany(targetEntity: SupportResponse::class, mappedBy: 'author')]
+    private Collection $supportResponses;
+
     // =========================================================
     // CONSTRUCTOR / LIFECYCLE
     // =========================================================
     public function __construct()
     {
-        $this->userLanguages = new ArrayCollection();
-        $this->notifications = new ArrayCollection();
-        $this->roles         = ['ROLE_USER'];
+        $this->userLanguages      = new ArrayCollection();
+        $this->notifications      = new ArrayCollection();
+        $this->reclamations       = new ArrayCollection();
+        $this->supportResponses   = new ArrayCollection();
+        $this->roles              = ['ROLE_USER'];
     }
 
     #[ORM\PrePersist]
@@ -143,7 +169,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     // =========================================================
-    // CORE GETTERS / SETTERS  (unchanged from original)
+    // CORE GETTERS / SETTERS
     // =========================================================
     public function getId(): ?int { return $this->id; }
 
@@ -266,7 +292,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     // =========================================================
-    // EMAIL VERIFICATION METHODS  (new)
+    // EMAIL VERIFICATION METHODS
     // =========================================================
     public function isVerified(): bool { return $this->isVerified; }
     public function setIsVerified(bool $isVerified): static
@@ -301,7 +327,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     // =========================================================
-    // PASSWORD RESET METHODS  (new)
+    // PASSWORD RESET METHODS
     // =========================================================
     public function getPasswordResetToken(): ?string { return $this->passwordResetToken; }
     public function setPasswordResetToken(?string $token): static
@@ -326,5 +352,114 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->passwordResetToken !== null
             && $this->passwordResetTokenExpiresAt !== null
             && $this->passwordResetTokenExpiresAt > new \DateTime();
+    }
+
+    // =========================================================
+    // BAN METHODS
+    // =========================================================
+
+    /**
+     * Retourne la valeur BRUTE de isBanned (sans vérifier l'expiration)
+     * Utilisé par BanCheckSubscriber pour détecter et lever le ban expiré en DB
+     */
+    public function getIsBanned(): bool
+    {
+        return $this->isBanned;
+    }
+
+    /**
+     * Vérifie si l'user est VRAIMENT banni (ban actif ET non expiré)
+     * Si bannedUntil est dépassé → retourne false automatiquement
+     */
+    public function isBanned(): bool
+    {
+        if (!$this->isBanned) return false;
+
+        // Ban temporaire expiré → plus banni
+        if ($this->bannedUntil !== null && $this->bannedUntil < new \DateTime()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function setIsBanned(bool $isBanned): static
+    {
+        $this->isBanned = $isBanned;
+        return $this;
+    }
+
+    public function getBanReason(): ?string
+    {
+        return $this->banReason;
+    }
+
+    public function setBanReason(?string $banReason): static
+    {
+        $this->banReason = $banReason;
+        return $this;
+    }
+
+    public function getBannedAt(): ?\DateTimeInterface
+    {
+        return $this->bannedAt;
+    }
+
+    public function setBannedAt(?\DateTimeInterface $bannedAt): static
+    {
+        $this->bannedAt = $bannedAt;
+        return $this;
+    }
+
+    public function getBannedUntil(): ?\DateTimeInterface
+    {
+        return $this->bannedUntil;
+    }
+
+    public function setBannedUntil(?\DateTimeInterface $bannedUntil): static
+    {
+        $this->bannedUntil = $bannedUntil;
+        return $this;
+    }
+
+    // =========================================================
+    // RECLAMATION / SUPPORT RESPONSE METHODS
+    // =========================================================
+    public function getReclamations(): Collection { return $this->reclamations; }
+    public function addReclamation(Reclamation $reclamation): static
+    {
+        if (!$this->reclamations->contains($reclamation)) {
+            $this->reclamations->add($reclamation);
+            $reclamation->setUser($this);
+        }
+        return $this;
+    }
+    public function removeReclamation(Reclamation $reclamation): static
+    {
+        if ($this->reclamations->removeElement($reclamation)) {
+            if ($reclamation->getUser() === $this) {
+                $reclamation->setUser(null);
+            }
+        }
+        return $this;
+    }
+
+    public function getSupportResponses(): Collection { return $this->supportResponses; }
+    public function addSupportResponse(SupportResponse $supportResponse): static
+    {
+        if (!$this->supportResponses->contains($supportResponse)) {
+            $this->supportResponses->add($supportResponse);
+            $supportResponse->setAuthor($this);
+        }
+        return $this;
+    }
+    public function removeSupportResponse(SupportResponse $supportResponse): static
+    {
+        if ($this->supportResponses->removeElement($supportResponse)) {
+            if ($supportResponse->getAuthor() === $this) {
+                $supportResponse->setAuthor(null);
+            }
+        }
+        return $this;
     }
 }

@@ -1,5 +1,5 @@
 {% extends 'base.html.twig' %}
-{% block title %}Modifier la réclamation #{{ reclamation.id }}{% endblock %}
+{% block title %}Trop de réclamations{% endblock %}
 {% block body %}
 
 <aside class="sidebar" id="sidebar">
@@ -16,15 +16,8 @@
     <nav class="sidebar-nav">
         <span class="nav-section-label">Main</span>
         <a href="{{ path('user_dashboard') }}" class="nav-item"><span class="nav-icon">⊞</span> Dashboard</a>
-        <a href="#" class="nav-item"><span class="nav-icon">📚</span> My Courses</a>
-        <a href="#" class="nav-item"><span class="nav-icon">🧩</span> Practice</a>
-        <a href="#" class="nav-item"><span class="nav-icon">📝</span> Mock Tests</a>
-        <span class="nav-section-label">Account</span>
-        <a href="{{ path('user_profile') }}" class="nav-item"><span class="nav-icon">👤</span> My Profile</a>
-        <a href="{{ path('app_user_notifications') }}" class="nav-item"><span class="nav-icon">🔔</span> Notifications</a>
-        <a href="#" class="nav-item"><span class="nav-icon">👑</span> Subscription</a>
         <span class="nav-section-label">Support</span>
-        <a href="#" class="nav-item"><span class="nav-icon">❓</span> FAQ</a>
+        <a href="{{ path('app_user_faq_index') }}" class="nav-item"><span class="nav-icon">❓</span> FAQ</a>
         <a href="{{ path('app_user_reclamation_index') }}" class="nav-item active"><span class="nav-icon">💬</span> Mes réclamations</a>
         <span class="nav-section-label">System</span>
         <a href="{{ path('app_logout') }}" class="nav-item"><span class="nav-icon">→</span> Log Out</a>
@@ -37,9 +30,8 @@
         <div class="topbar-left">
             <button class="hamburger-btn" id="hamburgerBtn"><span></span><span></span><span></span></button>
             <div>
-                <a href="{{ path('app_user_reclamation_index') }}" class="back-link">← Mes réclamations</a>
-                <div class="page-heading">Modifier la réclamation #{{ reclamation.id }}</div>
-                <div class="page-sub">Modification possible tant que le statut est "En attente"</div>
+                <div class="page-heading">Limite atteinte 🚦</div>
+                <div class="page-sub">Trop de réclamations en peu de temps</div>
             </div>
         </div>
         <div class="topbar-right">
@@ -48,30 +40,48 @@
     </header>
 
     <main class="page-content">
+        <div class="spam-card">
 
-        <div class="form-card reveal">
-            <div class="form-warning-banner">
-                ⚠️ Vous modifiez une réclamation en attente. Une fois traitée, la modification ne sera plus possible.
+            <div class="spam-icon">🚦</div>
+
+            <h1 class="spam-title">Limite de réclamations atteinte</h1>
+            <p class="spam-subtitle">
+                Vous avez soumis <strong>{{ maxTickets }} réclamations</strong> en moins de
+                <strong>{{ window }} minutes</strong>.<br>
+                Merci de patienter avant d'en soumettre une nouvelle.
+            </p>
+
+            {# Compte à rebours #}
+            <div class="countdown-box">
+                <p class="countdown-label">Vous pourrez soumettre à nouveau dans</p>
+                <div class="countdown-grid">
+                    <div class="countdown-unit">
+                        <div class="countdown-value" id="cd-minutes">--</div>
+                        <div class="countdown-text">MINUTES</div>
+                    </div>
+                    <div class="countdown-sep">:</div>
+                    <div class="countdown-unit">
+                        <div class="countdown-value" id="cd-seconds">--</div>
+                        <div class="countdown-text">SECONDES</div>
+                    </div>
+                </div>
             </div>
 
-            {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'class': 'support-form'}}) }}
-                <div class="form-group">
-                    {{ form_label(form.subject, 'Sujet', {'label_attr': {'class': 'form-label'}}) }}
-                    {{ form_widget(form.subject, {'attr': {'class': 'form-select'}}) }}
-                    {{ form_errors(form.subject) }}
-                </div>
-                <div class="form-group">
-                    {{ form_label(form.messageBody, 'Description du problème', {'label_attr': {'class': 'form-label'}}) }}
-                    {{ form_widget(form.messageBody, {'attr': {'class': 'form-textarea', 'rows': 7}}) }}
-                    {{ form_errors(form.messageBody) }}
-                </div>
-                <div class="form-actions">
-                    <a href="{{ path('app_user_reclamation_index') }}" class="btn-cancel">Annuler</a>
-                    <button type="submit" class="btn-submit">💾 Enregistrer les modifications</button>
-                </div>
-            {{ form_end(form) }}
-        </div>
+            <div class="spam-actions">
+                <a href="{{ path('app_user_reclamation_index') }}" class="btn-back">
+                    ← Voir mes réclamations
+                </a>
+                <a href="{{ path('app_user_faq_index') }}" class="btn-faq">
+                    💡 Consulter la FAQ
+                </a>
+            </div>
 
+            <p class="spam-note">
+                ℹ️ Cette limite existe pour garantir la qualité du support.<br>
+                Si votre problème est urgent, consultez la <a href="{{ path('app_user_faq_index') }}">FAQ</a>.
+            </p>
+
+        </div>
     </main>
 </div>
 
@@ -87,8 +97,7 @@ body { font-family: 'Sora', sans-serif; background: var(--off-white); color: var
 .user-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--blue), var(--blue-mid)); display: flex; align-items: center; justify-content: center; font-size: .9rem; font-weight: 700; color: var(--white); flex-shrink: 0; }
 .user-info { flex: 1; min-width: 0; }
 .user-name { font-size: .85rem; font-weight: 600; color: var(--ink); }
-.user-plan { font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; margin-top: .1rem; }
-.user-plan.free { color: var(--muted); }
+.user-plan { font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; margin-top: .1rem; color: var(--muted); }
 .sidebar-nav { flex: 1; padding: 1rem 0; overflow-y: auto; }
 .nav-section-label { font-size: .6rem; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); padding: .75rem 1.5rem .35rem; display: block; }
 .nav-item { display: flex; align-items: center; gap: .75rem; padding: .65rem 1.5rem; font-size: .84rem; font-weight: 500; color: var(--muted); text-decoration: none; transition: color .2s, background .2s; position: relative; }
@@ -99,30 +108,32 @@ body { font-family: 'Sora', sans-serif; background: var(--off-white); color: var
 .main { margin-left: var(--sidebar-w); min-height: 100vh; display: flex; flex-direction: column; }
 .topbar { position: sticky; top: 0; z-index: 40; background: rgba(255,255,255,.92); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: .85rem 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .topbar-left { display: flex; align-items: center; gap: 1rem; }
-.back-link { font-size: .78rem; color: var(--blue); text-decoration: none; display: block; margin-bottom: .15rem; }
-.back-link:hover { text-decoration: underline; }
 .page-heading { font-size: 1.25rem; font-weight: 700; color: var(--ink); }
 .page-sub { font-size: .78rem; color: var(--muted); }
 .topbar-right { display: flex; align-items: center; gap: .75rem; }
 .topbar-btn { width: 38px; height: 38px; border-radius: var(--radius); border: 1.5px solid var(--border); background: transparent; display: flex; align-items: center; justify-content: center; text-decoration: none; color: var(--ink-soft); font-size: 1.1rem; }
 .hamburger-btn { display: none; width: 38px; height: 38px; border-radius: var(--radius); border: 1.5px solid var(--border); background: transparent; align-items: center; justify-content: center; cursor: pointer; flex-direction: column; gap: 4px; }
 .hamburger-btn span { width: 16px; height: 1.5px; background: var(--ink); display: block; border-radius: 2px; }
-.page-content { padding: 2rem; flex: 1; max-width: 720px; }
-.form-card { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; }
-.form-warning-banner { display: flex; align-items: center; gap: .5rem; padding: .85rem 1.25rem; background: #fffbeb; border: 1.5px solid #fde68a; border-radius: var(--radius); margin-bottom: 1.75rem; font-size: .825rem; color: #92400e; font-weight: 500; }
-.support-form { display: flex; flex-direction: column; gap: 1.4rem; }
-.form-group { display: flex; flex-direction: column; gap: .4rem; }
-.form-label { font-size: .875rem; font-weight: 600; color: var(--ink); }
-.form-select, .form-textarea { padding: .7rem 1rem; border: 1.5px solid var(--border); border-radius: var(--radius); font-size: .9rem; color: var(--ink); background: var(--off-white); width: 100%; box-sizing: border-box; font-family: inherit; outline: none; transition: border-color .15s, box-shadow .15s; }
-.form-select:focus, .form-textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
-.form-textarea { resize: vertical; min-height: 160px; }
-.form-actions { display: flex; justify-content: flex-end; gap: .75rem; padding-top: .5rem; }
-.btn-submit { display: inline-flex; align-items: center; gap: .5rem; background: var(--blue); color: #fff; padding: .7rem 1.5rem; border-radius: var(--radius); font-size: .875rem; font-weight: 600; border: none; cursor: pointer; font-family: inherit; transition: background .15s; }
-.btn-submit:hover { background: var(--blue-dark); }
-.btn-cancel { display: inline-flex; align-items: center; background: transparent; color: var(--muted); padding: .7rem 1.25rem; border-radius: var(--radius); font-size: .875rem; text-decoration: none; border: 1.5px solid var(--border); font-family: inherit; transition: all .15s; }
-.btn-cancel:hover { border-color: var(--muted); color: var(--ink); }
-.reveal { opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease; }
-.reveal.visible { opacity: 1; transform: translateY(0); }
+.page-content { padding: 2rem; flex: 1; display: flex; align-items: center; justify-content: center; }
+.spam-card { background: var(--white); border: 1.5px solid #fed7aa; border-radius: var(--radius-lg); padding: 3rem 2.5rem; max-width: 520px; width: 100%; text-align: center; box-shadow: 0 8px 32px rgba(234,88,12,.08); }
+.spam-icon { font-size: 3.5rem; margin-bottom: 1.25rem; }
+.spam-title { font-size: 1.4rem; font-weight: 700; color: #c2410c; margin-bottom: .75rem; }
+.spam-subtitle { font-size: .9rem; color: var(--muted); line-height: 1.65; margin-bottom: 2rem; }
+.spam-subtitle strong { color: var(--ink); }
+.countdown-box { background: #fff7ed; border: 1.5px solid #fed7aa; border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 2rem; }
+.countdown-label { font-size: .78rem; font-weight: 600; color: #c2410c; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 1rem; }
+.countdown-grid { display: flex; align-items: center; justify-content: center; gap: .75rem; }
+.countdown-unit { background: var(--white); border-radius: var(--radius); padding: .75rem 1.25rem; min-width: 80px; }
+.countdown-value { font-size: 2.5rem; font-weight: 700; color: #ea580c; line-height: 1; }
+.countdown-text { font-size: .65rem; font-weight: 600; color: #9ca3af; letter-spacing: .12em; margin-top: .3rem; }
+.countdown-sep { font-size: 2rem; font-weight: 700; color: #ea580c; margin-top: -.5rem; }
+.spam-actions { display: flex; gap: .75rem; justify-content: center; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.btn-back { display: inline-flex; align-items: center; gap: .4rem; padding: .65rem 1.25rem; border-radius: var(--radius); font-size: .875rem; font-weight: 600; background: var(--white); color: var(--ink-soft); text-decoration: none; border: 1.5px solid var(--border); transition: all .15s; }
+.btn-back:hover { border-color: var(--blue); color: var(--blue); }
+.btn-faq { display: inline-flex; align-items: center; gap: .4rem; padding: .65rem 1.25rem; border-radius: var(--radius); font-size: .875rem; font-weight: 600; background: var(--blue); color: #fff; text-decoration: none; transition: background .15s; }
+.btn-faq:hover { background: var(--blue-dark); }
+.spam-note { font-size: .78rem; color: var(--muted); line-height: 1.6; }
+.spam-note a { color: var(--blue); text-decoration: none; font-weight: 600; }
 @media (max-width: 768px) { :root { --sidebar-w: 0px; } .sidebar { transform: translateX(-260px); width: 260px; } .sidebar.open { transform: translateX(0); } .main { margin-left: 0; } .hamburger-btn { display: flex; } .page-content { padding: 1.25rem; } }
 .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(13,21,38,.4); z-index: 45; }
 .sidebar-overlay.visible { display: block; }
@@ -134,7 +145,27 @@ const overlay = document.getElementById('sidebarOverlay');
 const hamburger = document.getElementById('hamburgerBtn');
 if(hamburger) { hamburger.addEventListener('click', () => { sidebar.classList.toggle('open'); overlay.classList.toggle('visible'); }); }
 if(overlay) { overlay.addEventListener('click', () => { sidebar.classList.remove('open'); overlay.classList.remove('visible'); }); }
-const ro = new IntersectionObserver(entries => { entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); ro.unobserve(e.target); } }); }, {threshold:.06});
-document.querySelectorAll('.reveal').forEach(el => ro.observe(el));
+
+// Compte à rebours
+let totalSeconds = {{ waitSeconds }};
+
+function updateCountdown() {
+    if (totalSeconds <= 0) {
+        // Rediriger automatiquement quand le temps est écoulé
+        window.location.href = "{{ path('app_user_reclamation_new') }}";
+        return;
+    }
+
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+
+    document.getElementById('cd-minutes').textContent = String(minutes).padStart(2, '0');
+    document.getElementById('cd-seconds').textContent = String(seconds).padStart(2, '0');
+
+    totalSeconds--;
+}
+
+updateCountdown();
+setInterval(updateCountdown, 1000);
 </script>
 {% endblock %}
