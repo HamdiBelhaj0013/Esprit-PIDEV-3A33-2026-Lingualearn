@@ -1,65 +1,1069 @@
-{# templates/admin/ressource/ressource.html.twig #}
-{% extends 'base.html.twig' %}
+{# templates/frontoffice/ressource.html.twig #}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ressources | LinguaLearn</title>
 
-{% block title %}Ressources - Administration{% endblock %}
-{% block page_title %}Gestion des Ressources{% endblock %}
-
-{% block stylesheets %}
-    {{ parent() }}
+    <!-- Bootstrap & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+
     <style>
-        /* Custom styles for this page */
-        .cards {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 2.25rem;
-            justify-content: center;
-            margin-top: 2rem;
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --white:     #ffffff;
+            --off-white: #f7f9fc;
+            --surface:   #eef1f8;
+            --ink:       #0d1526;
+            --ink-soft:  #2c3a52;
+            --muted:     #7a87a0;
+            --border:    #e2e8f2;
+
+            --blue:      #2563eb;
+            --blue-dark: #1d4ed8;
+            --blue-bg:   #eff6ff;
+
+            --radius:    12px;
+            --radius-lg: 20px;
+            --radius-xl: 28px;
+
+            /* Language accent palette */
+            --c-en: #2563eb;
+            --c-fr: #7c3aed;
+            --c-es: #ea580c;
+            --c-de: #16a34a;
+            --c-ar: #dc2626;
+            --c-zh: #ca8a04;
+            --c-pt: #0891b2;
+            --c-it: #be185d;
         }
 
-        .card-link {
-            width: 280px;
-            height: 164px;
-            background: linear-gradient(135deg, #6d28d9, #a78bfa);
-            color: white;
-            border-radius: 12px;
-            text-decoration: none;
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Sora', sans-serif;
+            background: #f8fafc;
+            color: var(--ink);
+            overflow-x: hidden;
+            padding-top: 70px;
+        }
+
+        /* ─── NAV STYLE DU DESIGN FOURNI ─── */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 1.1rem 5vw;
             display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.3s, box-shadow 0.3s;
+            background: rgba(255,255,255,.95);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 1px 0 var(--border);
+        }
+
+        .nav-logo {
+            font-family: 'Fraunces', serif;
+            font-size: 1.4rem;
+            font-weight: 400;
+            color: var(--ink);
+            text-decoration: none;
+            letter-spacing: -.01em;
+        }
+
+        .nav-logo span {
+            color: var(--blue);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            font-size: .82rem;
+            font-weight: 500;
+            color: var(--muted);
+            text-decoration: none;
+            letter-spacing: .01em;
+            transition: color .2s;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--ink);
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: .6rem;
+            align-items: center;
+        }
+
+        .btn-ghost {
+            padding: .48rem 1.25rem;
+            border-radius: 100px;
+            border: 1.5px solid var(--border);
+            background: transparent;
+            color: var(--ink-soft);
+            font-family: 'Sora', sans-serif;
+            font-size: .79rem;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: border-color .2s, color .2s, background .2s;
+            display: inline-block;
+        }
+
+        .btn-ghost:hover {
+            border-color: var(--blue);
+            color: var(--blue);
+            background: var(--blue-bg);
+        }
+
+        .btn-primary {
+            padding: .52rem 1.35rem;
+            border-radius: 100px;
+            background: var(--blue);
+            border: none;
+            color: var(--white);
+            font-family: 'Sora', sans-serif;
+            font-size: .79rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background .2s, transform .2s, box-shadow .2s;
+            display: inline-block;
+        }
+
+        .btn-primary:hover {
+            background: var(--blue-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(37,99,235,.28);
+        }
+
+        /* User info quand connecté */
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--ink);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--blue), #7c3aed);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .logout-btn {
+            color: var(--muted);
+            font-size: 1rem;
+            transition: color 0.2s;
+        }
+
+        .logout-btn:hover {
+            color: #ef4444;
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .hamburger span {
+            width: 22px;
+            height: 2px;
+            background: var(--ink);
+            display: block;
+            border-radius: 2px;
+        }
+
+        /* ─── MOBILE MENU ─── */
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(255,255,255,.98);
+            backdrop-filter: blur(20px);
+            z-index: 2000;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            font-size: 1.32rem;
+            gap: 1.75rem;
+        }
+
+        .mobile-menu.open {
+            display: flex;
+        }
+
+        .mobile-menu a {
+            font-family: 'Fraunces', serif;
+            font-size: 2rem;
+            font-weight: 300;
+            color: var(--ink);
+            text-decoration: none;
+            transition: color .2s;
+        }
+
+        .mobile-menu a:hover {
+            color: var(--blue);
+        }
+
+        .mobile-close {
+            position: absolute;
+            top: 1.5rem;
+            right: 2rem;
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 1.4rem;
+            cursor: pointer;
+        }
+
+        .mobile-actions {
+            display: flex;
+            gap: .75rem;
+            margin-top: 1rem;
+        }
+
+        /* Layout principal - 3 colonnes */
+        .main-layout {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 280px 1fr 320px;
+            gap: 20px;
+        }
+
+        /* Sidebar gauche */
+        .left-sidebar {
+            position: sticky;
+            top: 90px;
+            height: fit-content;
+        }
+
+        .menu-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 8px;
+            color: var(--ink-soft);
+            text-decoration: none;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+        }
+
+        .menu-item:hover {
+            background: var(--blue-bg);
+            color: var(--blue);
+        }
+
+        .menu-item i {
+            font-size: 1.2rem;
+            width: 24px;
+        }
+
+        /* Bouton Ajouter */
+        .create-post-btn {
+            background: var(--blue);
+            color: white;
+            border: none;
+            border-radius: 100px;
+            padding: 12px 20px;
+            width: 100%;
             font-weight: 600;
-            box-shadow: 0 4px 14px rgba(109,40,217,0.18);
-            transition: all 0.25s ease;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            transition: all 0.2s;
+            text-decoration: none;
+            font-family: 'Sora', sans-serif;
         }
 
-        .card-link:hover {
-            transform: translateY(-7px);
-            box-shadow: 0 12px 28px rgba(109,40,217,0.28);
+        .create-post-btn:hover {
+            background: var(--blue-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(37,99,235,.28);
+            color: white;
         }
 
-        .card-link i {
-            font-size: 3.2rem;
-            margin-bottom: 0.9rem;
+        /* Feed central */
+        .feed-container {
+            width: 100%;
+        }
+
+        /* Barre de recherche */
+        .search-box {
+            background: white;
+            border: 1.5px solid var(--border);
+            border-radius: 100px;
+            padding: 10px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .search-box i {
+            color: var(--muted);
+        }
+
+        .search-box input {
+            border: none;
+            width: 100%;
+            outline: none;
+            background: transparent;
+            font-family: 'Sora', sans-serif;
+        }
+
+        /* Posts */
+        .post {
+            background: white;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-lg);
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .post-header {
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .post-author {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--blue), #7c3aed);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .author-details h4 {
+            margin: 0;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--ink);
+        }
+
+        .post-time {
+            font-size: 0.75rem;
+            color: var(--muted);
+        }
+
+        .post-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .post-actions button,
+        .post-actions a {
+            background: none;
+            border: none;
+            color: var(--muted);
+            padding: 6px;
+            border-radius: 6px;
+        }
+
+        .post-actions button:hover,
+        .post-actions a:hover {
+            background: var(--blue-bg);
+            color: var(--blue);
+        }
+
+        .post-content {
+            padding: 0 16px 12px;
+        }
+
+        .post-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--ink);
+            margin-bottom: 6px;
+        }
+
+        .post-text {
+            font-size: 0.9rem;
+            color: var(--ink-soft);
+            line-height: 1.5;
+        }
+
+        .post-image {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            margin: 8px 0;
+        }
+
+        .post-stats {
+            padding: 8px 16px;
+            border-top: 1.5px solid var(--border);
+            border-bottom: 1.5px solid var(--border);
+            font-size: 0.8rem;
+            color: var(--muted);
+            display: flex;
+            gap: 16px;
+        }
+
+        .post-reactions {
+            padding: 4px 16px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .reaction-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            padding: 8px;
+            border-radius: 8px;
+            color: var(--muted);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .reaction-btn:hover {
+            background: var(--off-white);
+        }
+
+        .reaction-btn.like:hover {
+            color: var(--blue);
+        }
+
+        .reaction-btn.dislike:hover {
+            color: #ef4444;
+        }
+
+        /* Commentaires */
+        .comments-section {
+            padding: 16px;
+            background: var(--off-white);
+            border-top: 1.5px solid var(--border);
+        }
+
+        .comment-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .comment-input input {
+            flex: 1;
+            border: 1.5px solid var(--border);
+            border-radius: 100px;
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            outline: none;
+            font-family: 'Sora', sans-serif;
+        }
+
+        .comment-input input:focus {
+            border-color: var(--blue);
+        }
+
+        .comment-input button {
+            background: var(--blue);
+            color: white;
+            border: none;
+            border-radius: 100px;
+            padding: 8px 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: background .2s;
+        }
+
+        .comment-input button:hover {
+            background: var(--blue-dark);
+        }
+
+        .comment {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .comment-avatar {
+            width: 32px;
+            height: 32px;
+            background: var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--muted);
+        }
+
+        .comment-content {
+            flex: 1;
+            background: white;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            padding: 10px 12px;
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .comment-author {
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: var(--ink);
+        }
+
+        .comment-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .comment-actions button,
+        .comment-actions a {
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 0.75rem;
+        }
+
+        .comment-text {
+            font-size: 0.85rem;
+            color: var(--ink-soft);
+            margin-bottom: 4px;
+        }
+
+        .comment-date {
+            font-size: 0.7rem;
+            color: var(--muted);
+        }
+
+        /* Sidebar droite */
+        .right-sidebar {
+            position: sticky;
+            top: 90px;
+            height: fit-content;
+        }
+
+        .trending-card {
+            background: white;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+        }
+
+        .trending-card h5 {
+            margin: 0 0 16px 0;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--ink);
+        }
+
+        .trending-item {
+            padding: 12px 0;
+            border-bottom: 1.5px solid var(--border);
+        }
+
+        .trending-item:last-child {
+            border-bottom: none;
+        }
+
+        .trending-tag {
+            font-weight: 600;
+            color: var(--blue);
+            font-size: 0.9rem;
+        }
+
+        .trending-count {
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        /* Loader */
+        .loader {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Notifications - REPOSITIONNÉES À GAUCHE */
+        .notif-badge {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;  /* Changé de right à left */
+            background: var(--blue);
+            color: white;
+            border: none;
+            border-radius: 100px;
+            padding: 12px 24px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            z-index: 1000;
+            box-shadow: 0 6px 18px rgba(37,99,235,0.3);
+            cursor: pointer;
+            font-family: 'Sora', sans-serif;
+        }
+
+        .notif-badge:hover {
+            background: var(--blue-dark);
+            transform: translateY(-2px);
+        }
+
+        /* Container des notifications repositionné à gauche */
+        #notification-container {
+            position: fixed;
+            bottom: 80px;
+            left: 20px;  /* Changé de right à left */
+            z-index: 9999;
+            width: 320px;
+        }
+
+        /* Historique des notifications repositionné à gauche */
+        #notification-history {
+            display: none;
+            position: fixed;
+            bottom: 80px;
+            left: 20px;  /* Changé de right à left */
+            background: white;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            width: 280px;
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 9998;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .blurred {
+            filter: blur(4px);
+        }
+
+        /* Pagination cachée */
+        .pagination {
+            display: none;
+        }
+
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+            .left-sidebar, .right-sidebar {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links, .nav-actions {
+                display: none;
+            }
+            .hamburger {
+                display: flex;
+            }
+            
+            /* Ajustement pour mobile */
+            .notif-badge {
+                bottom: 20px;
+                left: 20px;
+                padding: 10px 20px;
+                font-size: 0.85rem;
+            }
+            
+            #notification-container {
+                bottom: 70px;
+                left: 20px;
+                width: calc(100% - 40px);
+            }
+            
+            #notification-history {
+                bottom: 70px;
+                left: 20px;
+                width: calc(100% - 40px);
+            }
         }
     </style>
-{% endblock %}
+</head>
+<body>
 
-{% block page_actions %}
-    {# No page actions needed #}
-{% endblock %}
+    <!-- Navbar du design fourni avec logique de connexion -->
+    <nav class="nav" id="navbar">
+        <a href="{{ path('user_dashboard') }}" class="nav-logo">Lingua<span>Learn</span></a>
+        <ul class="nav-links">
+            <li><a href="{{ path('user_dashboard') }}">Home</a></li>
+            <li><a href="{{ path('ressources') }}" class="active">Ressources</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#about">About</a></li>
+        </ul>
+        <div class="nav-actions">
+            {% if app.user %}
+                {# Utilisateur connecté - afficher l'email avec email #}
+                <div class="user-info">
+                    <div class="user-avatar">
+                        {{ app.user.email|first|upper }}
+                    </div>
+                    <span>{{ app.user.email }}</span>
+                    <a href="{{ path('app_logout') }}" class="logout-btn" title="Déconnexion">
+                        <i class="bi bi-box-arrow-right"></i>
+                    </a>
+                </div>
+            {% else %}
+                {# Utilisateur non connecté - afficher boutons de connexion #}
+                <a href="{{ path('app_login') }}" class="btn-ghost">Log In</a>
+                <a href="{{ path('app_register') }}" class="btn-primary">Sign Up</a>
+            {% endif %}
+        </div>
+        <button class="hamburger" id="hamburger" aria-label="Open menu">
+            <span></span><span></span><span></span>
+        </button>
+    </nav>
 
-{% block content %}
-    <div class="cards">
-        <a href="{{ path('admin_gestion_publications') }}" class="card-link">
-            <i class="ti ti-file-text"></i>
-            Gestion Publications
-        </a>
-
-        <a href="{{ path('admin_gestion_commentaires') }}" class="card-link">
-            <i class="ti ti-messages"></i>
-            Gestion Commentaires
-        </a>
+    <!-- Mobile Menu avec la même logique -->
+    <div class="mobile-menu" id="mobileMenu">
+        <button class="mobile-close" id="mobileClose">✕</button>
+        <a href="{{ path('user_dashboard') }}" class="mobile-link">Home</a>
+        <a href="{{ path('ressources') }}" class="mobile-link">Ressources</a>
+        <a href="#features" class="mobile-link">Features</a>
+        <a href="#about" class="mobile-link">About</a>
+        <div class="mobile-actions">
+            {% if app.user %}
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                    <span style="color: var(--ink); font-size: 1rem;">{{ app.user.email }}</span>
+                    <a href="{{ path('app_logout') }}" class="btn-ghost" style="color: #ef4444; border-color: #ef4444;">
+                        <i class="bi bi-box-arrow-right"></i> Déconnexion
+                    </a>
+                </div>
+            {% else %}
+                <a href="{{ path('app_login') }}" class="btn-ghost">Log In</a>
+                <a href="{{ path('app_register') }}" class="btn-primary">Sign Up</a>
+            {% endif %}
+        </div>
     </div>
-{% endblock %}
+
+    {% include 'frontoffice/ressource/chat.html.twig' %}
+
+    <!-- Notifications - REPOSITIONNÉES À GAUCHE -->
+    <button id="btn-notifications" class="notif-badge">
+        <i class="bi bi-bell"></i> <span id="notification-count">0</span>
+    </button>
+
+    <div id="notification-container"></div>
+    <div id="notification-history"></div>
+
+    <!-- Layout principal -->
+    <div class="main-layout">
+        
+        <!-- Sidebar gauche -->
+        <aside class="left-sidebar">
+            <a href="{{ path('ajout_publication') }}" class="create-post-btn">
+                <i class="bi bi-plus-lg"></i>
+                Nouvelle publication
+            </a>
+            
+            <div class="menu-card">
+                <a href="{{ path('user_dashboard') }}" class="menu-item">
+                    <i class="bi bi-house-door"></i>
+                    <span>Accueil</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="bi bi-people"></i>
+                    <span>Communauté</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="bi bi-bookmark"></i>
+                    <span>Favoris</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="bi bi-gear"></i>
+                    <span>Paramètres</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Feed central -->
+        <main class="feed-container">
+            
+            <!-- Barre de recherche -->
+            <div class="search-box">
+                <i class="bi bi-search"></i>
+                <input type="text" id="search-publication" placeholder="Rechercher dans les publications...">
+            </div>
+
+            <!-- Liste des publications -->
+            <div id="publications-container">
+                {% if publications is defined and publications is not empty %}
+                    {% for pub in publications %}
+                        {% include 'frontoffice/ressource/post_card.html.twig' with {'pub': pub} %}
+                    {% endfor %}
+                {% else %}
+                    <div class="post" style="text-align: center; padding: 40px;">
+                        <i class="bi bi-inbox" style="font-size: 3rem; color: var(--muted);"></i>
+                        <p style="color: var(--muted); margin-top: 16px;">Aucune publication pour le moment</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Loader -->
+            <div class="loader">
+                <div class="spinner"></div>
+            </div>
+
+            <!-- Fin -->
+            <div id="end-message" style="text-align: center; padding: 20px; color: var(--muted); display: none;">
+                <i class="bi bi-check-circle"></i> Fin des publications
+            </div>
+        </main>
+
+        <!-- Sidebar droite -->
+        <aside class="right-sidebar">
+            <div class="trending-card">
+                <h5>Tendances</h5>
+                <div class="trending-item">
+                    <div class="trending-tag">#Apprentissage</div>
+                    <div class="trending-count">125 publications</div>
+                </div>
+                <div class="trending-item">
+                    <div class="trending-tag">#Langues</div>
+                    <div class="trending-count">89 publications</div>
+                </div>
+                <div class="trending-item">
+                    <div class="trending-tag">#Tunisie</div>
+                    <div class="trending-count">67 publications</div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Pagination cachée mais nécessaire pour le scroll infini -->
+    <div style="display: none;">
+        {% if totalPages > 1 %}
+            <ul class="pagination">
+                {% for i in 1..totalPages %}
+                    <li><a href="{{ path('ressources', {'page': i}) }}">{{ i }}</a></li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+
+    <script>
+        // ==================== FONCTIONS EXISTANTES ====================
+        function validateAddComment(pubId) {
+            const input = document.getElementById(`add-comment-input-${pubId}`);
+            const value = input.value.trim();
+            if (!value) { alert("Le commentaire ne peut pas être vide !"); input.focus(); return false; }
+            if (value.length > 300) { alert("300 caractères maximum !"); input.focus(); return false; }
+            return true;
+        }
+
+        function validateEditComment(commentId) {
+            const input = document.getElementById(`edit-comment-input-${commentId}`);
+            const value = input.value.trim();
+            if (!value) { alert("Le commentaire ne peut pas être vide !"); input.focus(); return false; }
+            if (value.length > 300) { alert("300 caractères maximum !"); input.focus(); return false; }
+            return true;
+        }
+
+        // Recherche
+        document.getElementById('search-publication').addEventListener('input', function() {
+            const query = this.value.toLowerCase();
+            document.querySelectorAll('.post').forEach(post => {
+                const titre = post.querySelector('.post-title')?.textContent.toLowerCase() || '';
+                const contenu = post.querySelector('.post-text')?.textContent.toLowerCase() || '';
+                post.style.display = (titre.includes(query) || contenu.includes(query)) ? '' : 'none';
+            });
+        });
+
+        // Réactions
+        function react(pubId, type) {
+            const url = "{{ path('react_publication', {'id': 'ID', 'type': 'TYPE'}) }}".replace('ID', pubId).replace('TYPE', type);
+            fetch(url, { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(r => r.json())
+                .then(d => {
+                    document.getElementById('likes-count-' + pubId).innerText = d.likes;
+                    document.getElementById('dislikes-count-' + pubId).innerText = d.dislikes;
+                });
+        }
+
+        // Signalement
+        function signalPublication(pubId) {
+            fetch(`/publication/signal/${pubId}`, { method: 'POST', headers: {'X-Requested-With': 'XMLHttpRequest'} })
+                .then(r => r.json())
+                .then(d => { document.getElementById(`report-count-${pubId}`).innerText = d.report; showNotification('Publication signalée'); });
+        }
+
+        // Notifications
+        const notifContainer = document.getElementById('notification-container');
+        const notifHistory = document.getElementById('notification-history');
+        const btnNotif = document.getElementById('btn-notifications');
+        const notificationCountSpan = document.getElementById('notification-count');
+        let notificationsCount = 0;
+
+        function showNotification(message) {
+            notificationsCount++; notificationCountSpan.innerText = notificationsCount;
+            const notif = document.createElement('div'); 
+            notif.style.cssText = 'background:white; border-left:4px solid #2563eb; border-radius:8px; padding:12px; margin-bottom:8px; box-shadow:0 4px 12px rgba(0,0,0,0.1); display:flex; justify-content:space-between; align-items:center;';
+            notif.innerHTML = `<span>${message}</span><button onclick="this.parentElement.remove(); notificationsCount--; notificationCountSpan.innerText=notificationsCount;" style="background:none;border:none;font-size:1.2rem;">×</button>`;
+            notifContainer.appendChild(notif);
+            
+            let saved = JSON.parse(localStorage.getItem('notifHistory')) || [];
+            saved.push(message); localStorage.setItem('notifHistory', JSON.stringify(saved));
+            
+            const histItem = document.createElement('div'); histItem.innerText = message; histItem.style.padding = '8px'; histItem.style.borderBottom = '1px solid var(--border)';
+            notifHistory.appendChild(histItem);
+            
+            setTimeout(() => { if(notifContainer.contains(notif)) { notifContainer.removeChild(notif); notificationsCount--; notificationCountSpan.innerText = notificationsCount; } }, 10000);
+        }
+
+        btnNotif.onclick = () => notifHistory.style.display = notifHistory.style.display === 'none' ? 'block' : 'none';
+
+        document.addEventListener("DOMContentLoaded", function() {
+            {% for message in app.flashes('notification') %} showNotification("{{ message|e('js') }}"); {% endfor %}
+            let saved = JSON.parse(localStorage.getItem('notifHistory')) || [];
+            saved.forEach(msg => { const h = document.createElement('div'); h.innerText = msg; h.style.padding = '8px'; h.style.borderBottom = '1px solid var(--border)'; notifHistory.appendChild(h); });
+            notificationsCount = saved.length; notificationCountSpan.innerText = notificationsCount;
+        });
+
+        // ==================== MOBILE MENU ====================
+        document.getElementById('hamburger').addEventListener('click', () =>
+            document.getElementById('mobileMenu').classList.add('open')
+        );
+        document.getElementById('mobileClose').addEventListener('click', () =>
+            document.getElementById('mobileMenu').classList.remove('open')
+        );
+        document.querySelectorAll('.mobile-link').forEach(l =>
+            l.addEventListener('click', () => document.getElementById('mobileMenu').classList.remove('open'))
+        );
+
+        // Nav scroll state
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            navbar.classList.toggle('scrolled', window.scrollY > 50);
+        }, { passive: true });
+
+        // ==================== SCROLL INFINI ====================
+        let currentPage = {{ currentPage|default(1) }};
+        const totalPages = {{ totalPages|default(1) }};
+        let loading = false;
+        let endReached = currentPage >= totalPages;
+        const loader = document.querySelector('.loader');
+        const endMessage = document.getElementById('end-message');
+
+        window.addEventListener('scroll', function() {
+            if (loading || endReached) return;
+            
+            const scrollPosition = window.innerHeight + window.scrollY;
+            const documentHeight = document.documentElement.scrollHeight;
+            
+            if (scrollPosition >= documentHeight - 300) {
+                loadMorePublications();
+            }
+        });
+
+        function loadMorePublications() {
+            if (currentPage >= totalPages) {
+                endReached = true;
+                endMessage.style.display = 'block';
+                return;
+            }
+
+            loading = true;
+            loader.style.display = 'block';
+
+            const nextPage = currentPage + 1;
+            
+            fetch('{{ path('ressources') }}?page=' + nextPage, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                const temp = document.createElement('div');
+                temp.innerHTML = html;
+                
+                const newPosts = temp.querySelectorAll('#publications-container .post');
+                
+                if (newPosts.length > 0) {
+                    newPosts.forEach(post => {
+                        document.getElementById('publications-container').appendChild(post);
+                    });
+                    currentPage = nextPage;
+                } else {
+                    endReached = true;
+                    endMessage.style.display = 'block';
+                }
+                
+                loader.style.display = 'none';
+                loading = false;
+            })
+            .catch(error => {
+                console.error('Erreur de chargement:', error);
+                loader.style.display = 'none';
+                loading = false;
+            });
+        }
+    </script>
+</body>
+</html>
