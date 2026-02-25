@@ -3,6 +3,7 @@
 {% block title %}Résultat du quiz — {{ lesson.title }}{% endblock %}
 {% block page_title %}Résultat du quiz{% endblock %}
 
+<<<<<<< Updated upstream
 {% block stylesheets %}
     {{ parent() }}
     {{ include('exercises_quizzes/_eq_styles.html.twig') }}
@@ -43,4 +44,130 @@
         </div>
     </div>
 </div>
+=======
+{% block content %}
+<div class="container py-4">
+    <div class="card mx-auto mb-4" style="max-width: 640px;">
+        <div class="card-body text-center py-5">
+            {% if result.passed %}
+                <div class="mb-3">
+                    <span class="display-4 text-success">✓</span>
+                </div>
+                <h2 class="h4 text-success mb-2">Quiz réussi</h2>
+            {% else %}
+                <div class="mb-3">
+                    <span class="display-4 text-danger">✗</span>
+                </div>
+                <h2 class="h4 text-danger mb-2">Quiz non réussi</h2>
+            {% endif %}
+            <p class="display-6 fw-bold {{ result.passed ? 'text-success' : 'text-danger' }} mb-1">{{ result.score }} %</p>
+            {% if result.secondChanceUsed is defined and result.secondChanceUsed %}
+                <p class="text-info small mb-1">Meilleur score (après 2ᵉ chance) : <strong>{{ result.bestScore|default(result.score) }} %</strong></p>
+                <p class="text-muted small mb-2">Vous avez utilisé votre deuxième chance. Votre score officiel est le meilleur des deux tentatives.</p>
+            {% endif %}
+            <p class="text-muted small mb-4">{{ result.correct }} bonne(s) réponse(s) sur {{ result.total }}. Score minimum requis : {{ result.passingScore }}%.</p>
+            <div class="d-flex justify-content-center gap-2 flex-wrap">
+                <a href="{{ path('learn_skills_index') }}" class="btn btn-primary">Analyser mes compétences</a>
+                <a href="{{ path('learn_practice') }}" class="btn btn-outline-primary">Retour à la liste des quiz</a>
+                <a href="{{ path('learn_lesson_quiz_play', { id: lesson.id }) }}" class="btn btn-outline-primary">Rejouer le quiz</a>
+                <a href="{{ path('lesson_show', { id: lesson.id }) }}" class="btn btn-outline-secondary">Voir la leçon</a>
+                {% if attempt and attempt.state == 'second_chance_available' %}
+                    <a href="{{ path('learn_lesson_quiz_second_chance_start', { id: lesson.id, attemptId: attempt.id }) }}" class="btn btn-warning">Deuxième chance 🎲</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if wrongExerciseAttempts is defined and wrongExerciseAttempts|length > 0 %}
+        <div class="card mx-auto mb-4" style="max-width: 640px;">
+            <div class="card-header">
+                <h2 class="h6 mb-0">Réponses incorrectes — Explication IA</h2>
+            </div>
+            <div class="card-body">
+                {% for exerciseAttempt in wrongExerciseAttempts %}
+                    {% set ex = exerciseAttempt.exercise %}
+                    {% set feedback = aiFeedbackByExerciseId[ex.id] ?? null %}
+                    <div class="border rounded p-3 mb-3 ai-feedback-block" data-attempt-id="{{ attempt.id }}" data-exercise-id="{{ ex.id }}">
+                        <p class="fw-semibold mb-1">{{ ex.question }}</p>
+                        <p class="small text-muted mb-1">Votre réponse : <span class="text-danger">{{ exerciseAttempt.givenAnswer ?? '(vide)' }}</span></p>
+                        <p class="small text-muted mb-2">Bonne réponse : <span class="text-success">{{ ex.correctAnswer }}</span></p>
+
+                        {% if feedback %}
+                            <div class="ai-feedback-content border-start border-primary border-3 ps-3">
+                                <p class="small mb-1"><strong>Explication :</strong> {{ feedback.aiExplanation }}</p>
+                                {% if feedback.aiCorrection %}<p class="small mb-1"><strong>Correction :</strong> {{ feedback.aiCorrection }}</p>{% endif %}
+                                {% if feedback.aiTip %}<p class="small mb-1"><strong>Astuce :</strong> {{ feedback.aiTip }}</p>{% endif %}
+                                {% if feedback.aiExample %}<p class="small mb-0"><strong>Exemple :</strong> {{ feedback.aiExample }}</p>{% endif %}
+                            </div>
+                        {% else %}
+                            <div class="ai-feedback-placeholder d-none">
+                                <p class="small text-secondary mb-0"></p>
+                            </div>
+                            <p class="small text-muted mb-2 ai-unavailable-message">Explication IA non générée.</p>
+                            <button type="button" class="btn btn-sm btn-outline-primary btn-generate-ai" data-attempt-id="{{ attempt.id }}" data-exercise-id="{{ ex.id }}">
+                                Générer explication IA
+                            </button>
+                            <p class="small text-muted mt-2 ai-error-message d-none"></p>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+(function() {
+    var feedbackUrlTemplate = '{{ path('learn_quiz_ai_feedback_generate', { attemptId: attempt.id, exerciseId: 0 }) }}';
+    document.querySelectorAll('.btn-generate-ai').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var attemptId = this.dataset.attemptId;
+            var exerciseId = this.dataset.exerciseId;
+            var block = this.closest('.ai-feedback-block');
+            var unavailableMsg = block.querySelector('.ai-unavailable-message');
+            var errorMsg = block.querySelector('.ai-error-message');
+            btn.disabled = true;
+            btn.textContent = 'Génération…';
+            if (errorMsg) { errorMsg.classList.add('d-none'); errorMsg.textContent = ''; }
+            var url = feedbackUrlTemplate.replace('/exercise/0/', '/exercise/' + exerciseId + '/');
+            fetch(url, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/json', 'Accept': 'application/json' }
+            }).then(function(r) { return r.json(); }).then(function(data) {
+                if (data.explanation || data.message) {
+                    if (unavailableMsg) unavailableMsg.classList.add('d-none');
+                    var content = block.querySelector('.ai-feedback-content');
+                    if (!content) {
+                        content = document.createElement('div');
+                        content.className = 'ai-feedback-content border-start border-primary border-3 ps-3 mt-2';
+                        var parts = [];
+                        if (data.explanation) parts.push('<p class="small mb-1"><strong>Explication :</strong> ' + escapeHtml(data.explanation) + '</p>');
+                        if (data.correction) parts.push('<p class="small mb-1"><strong>Correction :</strong> ' + escapeHtml(data.correction) + '</p>');
+                        if (data.tip) parts.push('<p class="small mb-1"><strong>Astuce :</strong> ' + escapeHtml(data.tip) + '</p>');
+                        if (data.example) parts.push('<p class="small mb-0"><strong>Exemple :</strong> ' + escapeHtml(data.example) + '</p>');
+                        if (parts.length === 0 && data.message) parts.push('<p class="small text-muted mb-0">' + escapeHtml(data.message) + '</p>');
+                        content.innerHTML = parts.join('');
+                        btn.parentNode.insertBefore(content, btn);
+                        btn.remove();
+                    }
+                } else if (data.message && errorMsg) {
+                    errorMsg.textContent = data.message;
+                    errorMsg.classList.remove('d-none');
+                }
+            }).catch(function() {
+                if (errorMsg) { errorMsg.textContent = 'Service indisponible. Réessayez plus tard.'; errorMsg.classList.remove('d-none'); }
+            }).finally(function() {
+                btn.disabled = false;
+                btn.textContent = 'Générer explication IA';
+            });
+        });
+    });
+    function escapeHtml(s) {
+        var d = document.createElement('div');
+        d.textContent = s;
+        return d.innerHTML;
+    }
+})();
+</script>
+>>>>>>> Stashed changes
 {% endblock %}

@@ -1,0 +1,58 @@
+{% extends 'layouts/user.html.twig' %}
+
+{% block title %}Deuxième chance — {{ lesson.title }}{% endblock %}
+{% block page_title %}Exercice de rattrapage{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .eq-learn-card { max-width: 720px; margin: 0 auto; }
+        .eq-exercice-block { margin-bottom: 1.5rem; padding: 1.25rem; background: #fff; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .eq-exercice-block label.option { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.65rem 0.85rem; border-radius: 8px; cursor: pointer; }
+        .eq-exercice-block label.option:hover { background: #eff6ff; }
+        .eq-exercice-block input[type="radio"] { margin-top: 0.25rem; }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="eq-learn-card card">
+        <div class="card-header">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <h2 class="card-title mb-0"><i class="ti ti-dice me-2"></i>Deuxième chance</h2>
+                <div class="d-flex gap-2">
+                    <a href="{{ path('learn_practice') }}" class="btn btn-ghost-secondary btn-sm">Retour aux quiz</a>
+                    <a href="{{ path('lesson_show', { id: lesson.id }) }}" class="btn btn-ghost-secondary btn-sm">Voir la leçon</a>
+                </div>
+            </div>
+            <p class="mb-0 mt-2 text-muted small">Exercice de rattrapage (aléatoire parmi vos erreurs). Une seule question.</p>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{{ path('learn_lesson_quiz_second_chance_submit', { id: lesson.id, attemptId: attempt.id }) }}">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('learn_quiz_second_chance') }}">
+                <div class="eq-exercice-block">
+                    <p class="fw-bold text-dark mb-3"><span class="text-primary">Q1.</span> {{ exercise.question }}</p>
+                    {% if exercise.type == 'multiple_choice' and exercise.options is defined and exercise.options|length > 0 %}
+                        <div class="ps-2">
+                            {% for option in exercise.options %}
+                                <label class="option">
+                                    <input type="radio" name="answer" value="{{ option }}" required>
+                                    <span>{{ option }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <input type="text" name="answer" class="form-control" placeholder="Votre réponse" required>
+                    {% endif %}
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                    <a href="{{ path('learn_practice') }}" class="btn btn-outline-secondary">Annuler</a>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="ti ti-send me-2"></i> Valider la réponse
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
