@@ -50,6 +50,22 @@
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
+                            <label class="form-label required">{{ form_label(form.testCategory) }}</label>
+                            {{ form_widget(form.testCategory, {'attr': {'class': 'form-select'}}) }}
+                            {{ form_errors(form.testCategory) }}
+                            <small class="form-hint">Type de questions : QCM, Writing, Speaking ou Listening</small>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label required">{{ form_label(form.level) }}</label>
+                            {{ form_widget(form.level, {'attr': {'class': 'form-select'}}) }}
+                            {{ form_errors(form.level) }}
+                            <small class="form-hint">Niveau de difficulté du test</small>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
                             <label class="form-label required">{{ form_label(form.durationMinutes) }}</label>
                             <div class="input-group">
                                 {{ form_widget(form.durationMinutes, {'attr': {'class': 'form-control', 'min': '1'}}) }}
@@ -58,10 +74,12 @@
                             {{ form_errors(form.durationMinutes) }}
                         </div>
 
+                        {# ✅ MODIFIÉ : Remplacé platformLanguageId (champ texte) par platformLanguage (select) #}
                         <div class="col-md-6 mb-3">
-                            <label class="form-label required">{{ form_label(form.platformLanguageId) }}</label>
-                            {{ form_widget(form.platformLanguageId, {'attr': {'class': 'form-control'}}) }}
-                            {{ form_errors(form.platformLanguageId) }}
+                            <label class="form-label required">{{ form_label(form.platformLanguage) }}</label>
+                            {{ form_widget(form.platformLanguage, {'attr': {'class': 'form-select'}}) }}
+                            {{ form_errors(form.platformLanguage) }}
+                            <small class="form-hint">Select the platform language for this test</small>
                         </div>
                     </div>
 
@@ -159,4 +177,3 @@
         </div>
     </div>
 {% endblock %}
-

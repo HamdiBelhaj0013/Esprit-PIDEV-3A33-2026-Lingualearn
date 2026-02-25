@@ -13,21 +13,95 @@ class MockTestRepository extends ServiceEntityRepository
         parent::__construct($registry, MockTest::class);
     }
 
-    /**
-     * Recherche avec filtre et tri
-     */
+    /** Trouver les tests actifs par niveau ET langue */
+    public function findActiveByLevelAndLanguage(string $level, int $langId): array
+    {
+        return $this->createQueryBuilder('m')
+            ->where('m.level = :level')
+            ->andWhere('m.isActive = true')
+            ->andWhere('m.platformLanguage = :langId')
+            ->setParameter('level', $level)
+            ->setParameter('langId', $langId)
+            ->orderBy('m.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /** Compter les tests actifs par niveau pour une langue */
+    public function countActiveByLevelAndLanguage(int $langId): array
+    {
+        $result = $this->createQueryBuilder('m')
+            ->select('m.level, COUNT(m.id) as total')
+            ->where('m.isActive = true')
+            ->andWhere('m.platformLanguage = :langId')
+            ->setParameter('langId', $langId)
+            ->groupBy('m.level')
+            ->getQuery()
+            ->getResult();
+
+        $counts = [];
+        foreach ($result as $row) {
+            $counts[$row['level']] = (int)$row['total'];
+        }
+        return $counts;
+    }
+
+    /** Ancien findActiveByLevel (compatibilité) */
+    public function findActiveByLevel(string $level): array
+    {
+        return $this->createQueryBuilder('m')
+            ->where('m.level = :level')
+            ->andWhere('m.isActive = true')
+            ->setParameter('level', $level)
+            ->orderBy('m.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /** countActiveByLevel (compatibilité) */
+    public function countActiveByLevel(): array
+    {
+        $result = $this->createQueryBuilder('m')
+            ->select('m.level, COUNT(m.id) as total')
+            ->where('m.isActive = true')
+            ->groupBy('m.level')
+            ->getQuery()
+            ->getResult();
+
+        $counts = [];
+        foreach ($result as $row) {
+            $counts[$row['level']] = (int)$row['total'];
+        }
+        return $counts;
+    }
+
+    /** Types de test par niveau */
+    public function findTestTypesByLevel(string $level): array
+    {
+        $result = $this->createQueryBuilder('m')
+            ->select('DISTINCT m.testType')
+            ->where('m.level = :level')
+            ->andWhere('m.isActive = true')
+            ->setParameter('level', $level)
+            ->orderBy('m.testType', 'ASC')
+            ->getQuery()
+            ->getScalarResult();
+
+        return array_column($result, 'testType');
+    }
+
+    /** Recherche avec filtres (back-office) */
     public function findWithFilters(
         ?string $searchTerm = null,
         ?string $testType = null,
-        ?bool $isActive = null,
-        string $sortBy = 'createdAt',
-        string $sortOrder = 'DESC'
+        ?bool   $isActive = null,
+        string  $sortBy = 'createdAt',
+        string  $sortOrder = 'DESC'
     ): array {
         $qb = $this->createQueryBuilder('m')
             ->leftJoin('m.testQuestions', 'q')
             ->addSelect('q');
 
-        // Recherche par texte
         if ($searchTerm) {
             $qb->andWhere(
                 $qb->expr()->orX(
@@ -37,21 +111,18 @@ class MockTestRepository extends ServiceEntityRepository
             )->setParameter('search', '%' . $searchTerm . '%');
         }
 
-        // Filtre par type de test
         if ($testType) {
             $qb->andWhere('m.testType = :testType')
                 ->setParameter('testType', $testType);
         }
 
-        // Filtre par statut actif/inactif
         if ($isActive !== null) {
             $qb->andWhere('m.isActive = :isActive')
                 ->setParameter('isActive', $isActive);
         }
 
-        // Tri
-        $allowedSortFields = ['id', 'title', 'testType', 'durationMinutes', 'createdAt', 'updatedAt'];
-        if (in_array($sortBy, $allowedSortFields)) {
+        $allowed = ['id', 'title', 'testType', 'level', 'durationMinutes', 'createdAt', 'updatedAt'];
+        if (in_array($sortBy, $allowed)) {
             $qb->orderBy('m.' . $sortBy, strtoupper($sortOrder) === 'DESC' ? 'DESC' : 'ASC');
         } else {
             $qb->orderBy('m.createdAt', 'DESC');
@@ -60,9 +131,6 @@ class MockTestRepository extends ServiceEntityRepository
         return $qb->getQuery()->getResult();
     }
 
-    /**
-     * Obtenir tous les types de test uniques
-     */
     public function findAllTestTypes(): array
     {
         $result = $this->createQueryBuilder('m')
@@ -74,13 +142,10 @@ class MockTestRepository extends ServiceEntityRepository
         return array_column($result, 'testType');
     }
 
-    /**
-     * Statistiques des tests
-     */
     public function getStatistics(): array
     {
-        $total = $this->count([]);
-        $active = $this->count(['isActive' => true]);
+        $total    = $this->count([]);
+        $active   = $this->count(['isActive' => true]);
         $inactive = $this->count(['isActive' => false]);
 
         $qb = $this->createQueryBuilder('m')
@@ -90,44 +155,32 @@ class MockTestRepository extends ServiceEntityRepository
             ->getSingleResult();
 
         return [
-            'total' => $total,
-            'active' => $active,
-            'inactive' => $inactive,
-            'totalQuestions' => $qb['totalQuestions'] ?? 0
+            'total'          => $total,
+            'active'         => $active,
+            'inactive'       => $inactive,
+            'totalQuestions' => $qb['totalQuestions'] ?? 0,
         ];
     }
 
-    /**
-     * Recherche paginée
-     */
     public function findPaginatedWithFilters(
-        int $page = 1,
-        int $limit = 10,
+        int     $page = 1,
+        int     $limit = 10,
         ?string $searchTerm = null,
         ?string $testType = null,
-        ?bool $isActive = null,
-        string $sortBy = 'createdAt',
-        string $sortOrder = 'DESC'
+        ?bool   $isActive = null,
+        string  $sortBy = 'createdAt',
+        string  $sortOrder = 'DESC'
     ): array {
-        $offset = ($page - 1) * $limit;
-
-        $results = $this->findWithFilters(
-            $searchTerm,
-            $testType,
-            $isActive,
-            $sortBy,
-            $sortOrder
-        );
-
-        $total = count($results);
-        $paginated = array_slice($results, $offset, $limit);
+        $offset  = ($page - 1) * $limit;
+        $results = $this->findWithFilters($searchTerm, $testType, $isActive, $sortBy, $sortOrder);
+        $total   = count($results);
 
         return [
-            'data' => $paginated,
+            'data'  => array_slice($results, $offset, $limit),
             'total' => $total,
-            'page' => $page,
+            'page'  => $page,
             'limit' => $limit,
-            'pages' => ceil($total / $limit)
+            'pages' => ceil($total / $limit),
         ];
     }
 }

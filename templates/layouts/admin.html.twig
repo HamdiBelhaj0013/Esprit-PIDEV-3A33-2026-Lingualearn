@@ -496,7 +496,7 @@
 
                         {# International Tests #}
                         <li class="nav-item dropdown" data-aos="fade-right" data-aos-duration="400" data-aos-delay="250">
-                            <a class="nav-link dropdown-toggle {% if 'mocktest_' in app.request.attributes.get('_route', '') or 'testquestion_' in app.request.attributes.get('_route', '') %}active{% endif %}"
+                            <a class="nav-link dropdown-toggle {% if 'mocktest_' in app.request.attributes.get('_route', '') or 'testquestion_' in app.request.attributes.get('_route', '') or 'testresult_' in app.request.attributes.get('_route', '') %}active{% endif %}"
                                href="#" data-bs-toggle="dropdown" data-bs-auto-close="false"
                                role="button" aria-expanded="false">
                                 <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-certificate"></i></span>
@@ -515,6 +515,13 @@
                                 </a>
                                 <a class="dropdown-item" href="{{ path('testquestion_new') }}">
                                     <i class="ti ti-plus me-2"></i> New Question
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="{{ path('testresult_index') }}">
+                                    <i class="ti ti-chart-bar me-2"></i> Test Results
+                                </a>
+                                <a class="dropdown-item" href="{{ path('testresult_new') }}">
+                                    <i class="ti ti-plus me-2"></i> New Test Result
                                 </a>
                             </div>
                         </li>
