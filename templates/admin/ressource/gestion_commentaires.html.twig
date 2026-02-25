@@ -1,174 +1,26 @@
 {# templates/admin/ressource/gestion_commentaire.html.twig #}
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion des Commentaires - LinguaLearn</title>
+{% extends 'layouts/admin.html.twig' %}
 
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+{% block page_title %}Gestion des Commentaires{% endblock %}
 
-    <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+{% block breadcrumb %}
+    <ol class="breadcrumb" aria-label="breadcrumbs">
+        <li class="breadcrumb-item">
+            <a href="{{ path('admin_dashboard') }}"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
+        </li>
+        <li class="breadcrumb-item">
+            <a href="{{ path('ressourcesA') }}">Ressources</a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">Commentaires</li>
+    </ol>
+{% endblock %}
 
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+{% block page_actions %}
+    {# No actions needed #}
+{% endblock %}
 
+{% block admin_styles %}
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #f8fafc;
-            color: #1e293b;
-        }
-
-        .layout {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* Sidebar - IDENTIQUE à gestion_publication */
-        .sidebar {
-            width: 260px;
-            background: white;
-            border-right: 1px solid #e2e8f0;
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            height: 100vh;
-        }
-
-        .sidebar-header {
-            padding: 24px 20px;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
-        .logo {
-            font-size: 1.4rem;
-            font-weight: 600;
-            color: #2563eb;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .logo i {
-            font-size: 1.8rem;
-        }
-
-        .nav-menu {
-            flex: 1;
-            padding: 20px 0;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            padding: 10px 20px;
-            margin: 4px 8px;
-            color: #64748b;
-            text-decoration: none;
-            font-size: 0.9rem;
-            border-radius: 8px;
-            transition: all 0.2s;
-        }
-
-        .nav-item i {
-            margin-right: 12px;
-            font-size: 1.2rem;
-            width: 24px;
-        }
-
-        .nav-item:hover {
-            background: #f1f5f9;
-            color: #2563eb;
-        }
-
-        .nav-item.active {
-            background: #2563eb;
-            color: white;
-        }
-
-        .nav-item.active i {
-            color: white;
-        }
-
-        .user-section {
-            padding: 20px;
-            border-top: 1px solid #f1f5f9;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            background: #2563eb;
-            color: white;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-        }
-
-        /* Contenu principal */
-        .content-area {
-            margin-left: 260px;
-            flex: 1;
-            padding: 30px;
-        }
-
-        /* En-tête */
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-
-        .page-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #1e293b;
-        }
-
-        .btn-primary {
-            background: #2563eb;
-            border: none;
-            padding: 10px 18px;
-            border-radius: 10px;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-primary:hover {
-            background: #1d4ed8;
-        }
-
-        .btn-outline-primary {
-            border: 1px solid #2563eb;
-            color: #2563eb;
-            background: white;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-weight: 500;
-        }
-
-        .btn-outline-primary:hover {
-            background: #2563eb;
-            color: white;
-        }
-
         /* Statistiques */
         .stats-grid {
             display: grid;
@@ -425,16 +277,6 @@
             color: white;
         }
 
-        .btn-edit {
-            background: #eef2ff;
-            color: #2563eb;
-        }
-
-        .btn-edit:hover {
-            background: #2563eb;
-            color: white;
-        }
-
         .notification-toast {
             position: fixed;
             top: 20px;
@@ -465,339 +307,290 @@
         }
 
         @media (max-width: 768px) {
-            .sidebar {
-                display: none;
-            }
-            
-            .content-area {
-                margin-left: 0;
-                padding: 20px;
-            }
-            
             .comments-grid {
                 grid-template-columns: 1fr;
             }
         }
     </style>
-</head>
-<body>
+{% endblock %}
 
-<div class="layout">
-    <!-- Sidebar - IDENTIQUE à gestion_publication -->
-    <aside class="sidebar">
-        <div class="sidebar-header">
-            <div class="logo">
-                <i class="bi bi-chat-quote-fill"></i>
-                <span>LinguLearn</span>
-            </div>
-        </div>
-
-        <div class="nav-menu">
-            <a href="{{ path('admin_dashboard') }}" class="nav-item">
-                <i class="bi bi-grid"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="{{ path('admin_gestion_publications') }}" class="nav-item">
-                <i class="bi bi-newspaper"></i>
-                <span>Publications</span>
-            </a>
-            <a href="{{ path('admin_gestion_commentaires') }}" class="nav-item active">
-                <i class="bi bi-chat"></i>
-                <span>Commentaires</span>
-            </a>
-           
-           
-        </div>
-
-        <div class="user-section">
-            <div class="user-avatar">
-                {% if app.user %}
-                    {{ app.user.email|first|upper }}
-                {% else %}
-                    A
-                {% endif %}
-            </div>
-            <div>
-                <div style="font-weight: 500; font-size:0.9rem;">
-                    {% if app.user %}
-                        {{ app.user.email }}
-                    {% else %}
-                        Admin
-                    {% endif %}
-                </div>
-                <div style="font-size:0.75rem; color:#64748b;">Administrateur</div>
-            </div>
-        </div>
-    </aside>
-
-    <!-- Contenu principal -->
-    <main class="content-area">
-        
-        <!-- En-tête -->
-        <div class="page-header">
-            <h1 class="page-title">
-                <i class="bi bi-chat me-2" style="color: #2563eb;"></i>
-                Gestion des Commentaires
-            </h1>
-        </div>
+{% block content %}
+    <div class="row g-3 mt-1">
 
         <!-- Statistiques -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="bi bi-chat"></i>
+        <div class="col-12">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="ti ti-message"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ commentaires|length }}</h3>
+                        <p>Total commentaires</p>
+                    </div>
                 </div>
-                <div class="stat-info">
-                    <h3>{{ commentaires|length }}</h3>
-                    <p>Total commentaires</p>
+                
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #fee2e2; color: #991b1b;">
+                        <i class="ti ti-flag"></i>
+                    </div>
+                    <div class="stat-info">
+                        {% set signalCount = 0 %}
+                        {% for comment in commentaires %}
+                            {% if comment.signalCount is defined and comment.signalCount > 0 %}
+                                {% set signalCount = signalCount + 1 %}
+                            {% endif %}
+                        {% endfor %}
+                        <h3>{{ signalCount }}</h3>
+                        <p>Signalés</p>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-icon" style="background: #fee2e2; color: #991b1b;">
-                    <i class="bi bi-flag-fill"></i>
+                
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #dcfce7; color: #166534;">
+                        <i class="ti ti-file-text"></i>
+                    </div>
+                    <div class="stat-info">
+                        {% set uniquePublications = 0 %}
+                        {% for comment in commentaires %}
+                            {% if comment.publication is defined %}
+                                {% set uniquePublications = uniquePublications + 1 %}
+                            {% endif %}
+                        {% endfor %}
+                        <h3>{{ uniquePublications }}</h3>
+                        <p>Publications concernées</p>
+                    </div>
                 </div>
-                <div class="stat-info">
-                    {% set signalCount = 0 %}
-                    {% for comment in commentaires %}
-                        {% if comment.signalCount is defined and comment.signalCount > 0 %}
-                            {% set signalCount = signalCount + 1 %}
-                        {% endif %}
-                    {% endfor %}
-                    <h3>{{ signalCount }}</h3>
-                    <p>Signalés</p>
-                </div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-icon" style="background: #dcfce7; color: #166534;">
-                    <i class="bi bi-newspaper"></i>
-                </div>
-                <div class="stat-info">
-                    {% set uniquePublications = 0 %}
-                    {% for comment in commentaires %}
-                        {% if comment.publication is defined %}
-                            {% set uniquePublications = uniquePublications + 1 %}
-                        {% endif %}
-                    {% endfor %}
-                    <h3>{{ uniquePublications }}</h3>
-                    <p>Publications concernées</p>
-                </div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-icon" style="background: #fef9c3; color: #854d0e;">
-                    <i class="bi bi-people"></i>
-                </div>
-                <div class="stat-info">
-                    {% set uniqueUsers = 0 %}
-                    {% for comment in commentaires %}
-                        {% if comment.user is defined %}
-                            {% set uniqueUsers = uniqueUsers + 1 %}
-                        {% endif %}
-                    {% endfor %}
-                    <h3>{{ uniqueUsers }}</h3>
-                    <p>Contributeurs</p>
+                
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #fef9c3; color: #854d0e;">
+                        <i class="ti ti-users"></i>
+                    </div>
+                    <div class="stat-info">
+                        {% set uniqueUsers = 0 %}
+                        {% for comment in commentaires %}
+                            {% if comment.user is defined %}
+                                {% set uniqueUsers = uniqueUsers + 1 %}
+                            {% endif %}
+                        {% endfor %}
+                        <h3>{{ uniqueUsers }}</h3>
+                        <p>Contributeurs</p>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Recherche et filtres -->
-        <div class="filters-section">
-            <div class="search-box">
-                <i class="bi bi-search me-2"></i>
-                <input type="text" id="search-input" placeholder="Rechercher par auteur, contenu...">
+        <div class="col-12">
+            <div class="filters-section">
+                <div class="search-box">
+                    <i class="ti ti-search me-2"></i>
+                    <input type="text" id="search-input" placeholder="Rechercher par auteur, contenu...">
+                </div>
+                
+                <select id="filter-status" class="filter-select">
+                    <option value="all">Tous les statuts</option>
+                    <option value="reported">Signalés</option>
+                    <option value="normal">Normaux</option>
+                </select>
+                
+                <select id="filter-date" class="filter-select">
+                    <option value="all">Toutes les dates</option>
+                    <option value="today">Aujourd'hui</option>
+                    <option value="week">Cette semaine</option>
+                    <option value="month">Ce mois</option>
+                </select>
+                
+                <span class="filter-badge" id="result-count">
+                    <i class="ti ti-files"></i>
+                    <span id="comment-count">{{ commentaires|length }}</span> commentaires
+                </span>
             </div>
-            
-            <select id="filter-status" class="filter-select">
-                <option value="all">Tous les statuts</option>
-                <option value="reported">Signalés</option>
-                <option value="normal">Normaux</option>
-            </select>
-            
-            <select id="filter-date" class="filter-select">
-                <option value="all">Toutes les dates</option>
-                <option value="today">Aujourd'hui</option>
-                <option value="week">Cette semaine</option>
-                <option value="month">Ce mois</option>
-            </select>
-            
-            <span class="filter-badge" id="result-count">
-                <i class="bi bi-files"></i>
-                <span id="comment-count">{{ commentaires|length }}</span> commentaires
-            </span>
         </div>
 
         <!-- Grid des commentaires -->
-        <div class="comments-grid" id="comments-grid">
-            {% for comment in commentaires %}
-                <div class="comment-card comment-item" 
-                     data-id="{{ comment.id }}"
-                     data-status="{% if comment.signalCount is defined and comment.signalCount > 0 %}reported{% else %}normal{% endif %}"
-                     data-author="{{ comment.user.fullName|lower }}"
-                     data-content="{{ comment.contenu|lower }}"
-                     data-date="{{ comment.dateComment|date('Y-m-d') }}">
-                    
-                    <div class="comment-header">
-                        <div class="comment-avatar">
-                            {{ comment.user.fullName|first|upper }}
-                        </div>
-                        <div class="comment-author-info">
-                            <div class="comment-author">{{ comment.user.fullName }}</div>
-                            <div class="comment-meta">
-                                <span><i class="bi bi-calendar3 me-1"></i>{{ comment.dateComment|date('d/m/Y H:i') }}</span>
-                                {% if comment.signalCount is defined and comment.signalCount > 0 %}
-                                    <span class="comment-badge badge-reported">
-                                        <i class="bi bi-flag-fill me-1"></i>
-                                        Signalé ({{ comment.signalCount }})
-                                    </span>
-                                {% endif %}
+        <div class="col-12">
+            <div class="card ll-card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="ti ti-message me-2 text-primary"></i>
+                        Tous les commentaires
+                        <span class="ms-2 ll-badge bg-primary-lt text-primary">{{ commentaires|length }}</span>
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="comments-grid" id="comments-grid">
+                        {% for comment in commentaires %}
+                            <div class="comment-card comment-item" 
+                                 data-id="{{ comment.id }}"
+                                 data-status="{% if comment.signalCount is defined and comment.signalCount > 0 %}reported{% else %}normal{% endif %}"
+                                 data-author="{{ comment.user.fullName|lower }}"
+                                 data-content="{{ comment.contenu|lower }}"
+                                 data-date="{{ comment.dateComment|date('Y-m-d') }}">
+                                
+                                <div class="comment-header">
+                                    <div class="comment-avatar">
+                                        {{ comment.user.fullName|first|upper }}
+                                    </div>
+                                    <div class="comment-author-info">
+                                        <div class="comment-author">{{ comment.user.fullName }}</div>
+                                        <div class="comment-meta">
+                                            <span><i class="ti ti-calendar me-1"></i>{{ comment.dateComment|date('d/m/Y H:i') }}</span>
+                                            {% if comment.signalCount is defined and comment.signalCount > 0 %}
+                                                <span class="comment-badge badge-reported">
+                                                    <i class="ti ti-flag me-1"></i>
+                                                    Signalé ({{ comment.signalCount }})
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="comment-content">
+                                    <div class="comment-text">
+                                        {{ comment.contenu }}
+                                    </div>
+
+                                    <div class="comment-reference">
+                                        <div class="reference-label">
+                                            <i class="ti ti-file-text"></i>
+                                            Publication:
+                                        </div>
+                                        <div class="reference-title">
+                                            {% if comment.publication is defined %}
+                                                <a href="{{ path('admin_show_publication', {'id': comment.publication.id}) }}" style="color: #2563eb; text-decoration: none;">
+                                                    {{ comment.publication.titrePub }}
+                                                </a>
+                                            {% else %}
+                                                Publication non disponible
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="comment-actions">
+                                    {% if comment.signalCount is defined and comment.signalCount > 0 %}
+                                        <form method="POST" action="{{ path('admin_ignorer_signalement', {'id': comment.id}) }}" style="flex:1;">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('ignore' ~ comment.id) }}">
+                                            <button class="action-btn btn-ignore" onclick="return confirm('Ignorer les signalements ?')">
+                                                <i class="ti ti-check"></i>
+                                                Ignorer
+                                            </button>
+                                        </form>
+                                    {% endif %}
+
+                                    <form method="POST" action="{{ path('admin_supprimer_commentaire', {'id': comment.id}) }}" style="flex:1;">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ comment.id) }}">
+                                        <button class="action-btn btn-delete" onclick="return confirm('Supprimer ce commentaire ?')">
+                                            <i class="ti ti-trash"></i>
+                                            Supprimer
+                                        </button>
+                                    </form>
+
+                                    {% if comment.publication is defined %}
+                                        <a href="{{ path('admin_show_publication', {'id': comment.publication.id}) }}" class="action-btn btn-view" style="flex:1;">
+                                            <i class="ti ti-eye"></i>
+                                            Voir pub
+                                        </a>
+                                    {% endif %}
+                                </div>
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="comment-content">
-                        <div class="comment-text">
-                            {{ comment.contenu }}
-                        </div>
-
-                        <div class="comment-reference">
-                            <div class="reference-label">
-                                <i class="bi bi-newspaper"></i>
-                                Publication:
+                        {% else %}
+                            <div style="grid-column: 1/-1; text-align: center; padding: 60px;">
+                                <i class="ti ti-inbox" style="font-size: 4rem; color: #cbd5e1;"></i>
+                                <h4 class="mt-3 text-muted">Aucun commentaire</h4>
                             </div>
-                            <div class="reference-title">
-                                {% if comment.publication is defined %}
-                                    <a href="{{ path('admin_show_publication', {'id': comment.publication.id}) }}" style="color: #2563eb; text-decoration: none;">
-                                        {{ comment.publication.titrePub }}
-                                    </a>
-                                {% else %}
-                                    Publication non disponible
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="comment-actions">
-                        {% if comment.signalCount is defined and comment.signalCount > 0 %}
-                            <form method="POST" action="{{ path('admin_ignorer_signalement', {'id': comment.id}) }}" style="flex:1;">
-                                <input type="hidden" name="_token" value="{{ csrf_token('ignore' ~ comment.id) }}">
-                                <button class="action-btn btn-ignore" onclick="return confirm('Ignorer les signalements ?')">
-                                    <i class="bi bi-check-circle"></i>
-                                    Ignorer
-                                </button>
-                            </form>
-                        {% endif %}
-
-                        <form method="POST" action="{{ path('admin_supprimer_commentaire', {'id': comment.id}) }}" style="flex:1;">
-                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ comment.id) }}">
-                            <button class="action-btn btn-delete" onclick="return confirm('Supprimer ce commentaire ?')">
-                                <i class="bi bi-trash"></i>
-                                Supprimer
-                            </button>
-                        </form>
-
-                        {% if comment.publication is defined %}
-                            <a href="{{ path('admin_show_publication', {'id': comment.publication.id}) }}" class="action-btn btn-view" style="flex:1;">
-                                <i class="bi bi-eye"></i>
-                                Voir pub
-                            </a>
-                        {% endif %}
+                        {% endfor %}
                     </div>
                 </div>
-            {% else %}
-                <div style="grid-column: 1/-1; text-align: center; padding: 60px; background: white; border-radius: 16px;">
-                    <i class="bi bi-inbox" style="font-size: 4rem; color: #cbd5e1;"></i>
-                    <h4 class="mt-3 text-muted">Aucun commentaire</h4>
-                </div>
-            {% endfor %}
-        </div>
-    </main>
-</div>
-
-<!-- Scripts -->
-<script>
-    // === NOTIFICATIONS ===
-    function showNotification(message, type = 'success') {
-        const toast = document.createElement('div');
-        toast.className = 'notification-toast' + (type === 'error' ? ' error' : '');
-        toast.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <i class="bi bi-${type === 'success' ? 'check-circle-fill' : 'exclamation-circle-fill'}" 
-                   style="color: ${type === 'success' ? '#10b981' : '#ef4444'};"></i>
-                <span>${message}</span>
             </div>
-        `;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
-    }
+        </div>
 
-    // === RECHERCHE ET FILTRES ===
-    function filterComments() {
-        const searchTerm = document.getElementById('search-input').value.toLowerCase();
-        const statusFilter = document.getElementById('filter-status').value;
-        const dateFilter = document.getElementById('filter-date').value;
-        
-        const comments = document.querySelectorAll('.comment-item');
-        let visibleCount = 0;
-        
-        const today = new Date();
-        const oneWeekAgo = new Date(today);
-        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-        const oneMonthAgo = new Date(today);
-        oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-        
-        comments.forEach(comment => {
-            const author = comment.dataset.author || '';
-            const content = comment.dataset.content || '';
-            const status = comment.dataset.status;
-            const commentDate = new Date(comment.dataset.date);
-            
-            // Filtre recherche
-            const matchesSearch = searchTerm === '' || 
-                                 author.includes(searchTerm) || 
-                                 content.includes(searchTerm);
-            
-            // Filtre statut
-            let matchesStatus = true;
-            if (statusFilter !== 'all') {
-                matchesStatus = status === statusFilter;
-            }
-            
-            // Filtre date
-            let matchesDate = true;
-            if (dateFilter === 'today') {
-                matchesDate = commentDate.toDateString() === today.toDateString();
-            } else if (dateFilter === 'week') {
-                matchesDate = commentDate >= oneWeekAgo;
-            } else if (dateFilter === 'month') {
-                matchesDate = commentDate >= oneMonthAgo;
-            }
-            
-            if (matchesSearch && matchesStatus && matchesDate) {
-                comment.style.display = 'block';
-                visibleCount++;
-            } else {
-                comment.style.display = 'none';
-            }
-        });
-        
-        document.getElementById('comment-count').textContent = visibleCount;
-    }
+    </div>
+{% endblock %}
 
-    document.getElementById('search-input').addEventListener('input', filterComments);
-    document.getElementById('filter-status').addEventListener('change', filterComments);
-    document.getElementById('filter-date').addEventListener('change', filterComments);
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        // === NOTIFICATIONS ===
+        function showNotification(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = 'notification-toast' + (type === 'error' ? ' error' : '');
+            toast.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <i class="ti ti-${type === 'success' ? 'circle-check' : 'alert-circle'}" 
+                       style="color: ${type === 'success' ? '#10b981' : '#ef4444'};"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
 
-    // === FLASH MESSAGES ===
-    {% for message in app.flashes('error') %}
-        showNotification("{{ message|e('js') }}", 'error');
-    {% endfor %}
-    
-    {% for message in app.flashes('success') %}
-        showNotification("{{ message|e('js') }}", 'success');
-    {% endfor %}
-</script>
+        // === RECHERCHE ET FILTRES ===
+        function filterComments() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const statusFilter = document.getElementById('filter-status').value;
+            const dateFilter = document.getElementById('filter-date').value;
+            
+            const comments = document.querySelectorAll('.comment-item');
+            let visibleCount = 0;
+            
+            const today = new Date();
+            const oneWeekAgo = new Date(today);
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            const oneMonthAgo = new Date(today);
+            oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+            
+            comments.forEach(comment => {
+                const author = comment.dataset.author || '';
+                const content = comment.dataset.content || '';
+                const status = comment.dataset.status;
+                const commentDate = new Date(comment.dataset.date);
+                
+                // Filtre recherche
+                const matchesSearch = searchTerm === '' || 
+                                     author.includes(searchTerm) || 
+                                     content.includes(searchTerm);
+                
+                // Filtre statut
+                let matchesStatus = true;
+                if (statusFilter !== 'all') {
+                    matchesStatus = status === statusFilter;
+                }
+                
+                // Filtre date
+                let matchesDate = true;
+                if (dateFilter === 'today') {
+                    matchesDate = commentDate.toDateString() === today.toDateString();
+                } else if (dateFilter === 'week') {
+                    matchesDate = commentDate >= oneWeekAgo;
+                } else if (dateFilter === 'month') {
+                    matchesDate = commentDate >= oneMonthAgo;
+                }
+                
+                if (matchesSearch && matchesStatus && matchesDate) {
+                    comment.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    comment.style.display = 'none';
+                }
+            });
+            
+            document.getElementById('comment-count').textContent = visibleCount;
+        }
 
-</body>
-</html>
+        document.getElementById('search-input').addEventListener('input', filterComments);
+        document.getElementById('filter-status').addEventListener('change', filterComments);
+        document.getElementById('filter-date').addEventListener('change', filterComments);
+
+        // === FLASH MESSAGES ===
+        {% for message in app.flashes('error') %}
+            showNotification("{{ message|e('js') }}", 'error');
+        {% endfor %}
+        
+        {% for message in app.flashes('success') %}
+            showNotification("{{ message|e('js') }}", 'success');
+        {% endfor %}
+    </script>
+{% endblock %}
