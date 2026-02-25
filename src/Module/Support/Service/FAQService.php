@@ -113,4 +113,16 @@ class FAQService
         
         return $subjects;
     }
+    // Ajoute cette méthode dans ton FAQService existant
+public function getSubjectsWithLabels(): array
+{
+    return [
+        'payment'   => 'Paiement',
+        'technical' => 'Technique',
+        'content'   => 'Contenu',
+        'premium'   => 'Premium',
+        'account'   => 'Compte',
+        'other'     => 'Autre',
+    ];
+}
 }

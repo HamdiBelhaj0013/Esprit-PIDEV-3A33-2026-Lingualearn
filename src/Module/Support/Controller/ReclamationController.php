@@ -1,5 +1,4 @@
 <?php
-// src/Module/Support/Controller/ReclamationController.php
 
 namespace App\Module\Support\Controller;
 
@@ -7,6 +6,7 @@ use App\Module\Support\Entity\Reclamation;
 use App\Module\Support\Entity\SupportResponse;
 use App\Module\Support\Form\ReclamationType;
 use App\Module\Support\Form\SupportResponseType;
+use App\Module\Support\Service\NotificationService;
 use App\Module\Support\Service\ReclamationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -21,7 +21,8 @@ class ReclamationController extends AbstractController
 {
     public function __construct(
         private ReclamationService $reclamationService,
-        private EntityManagerInterface $entityManager
+        private EntityManagerInterface $entityManager,
+        private NotificationService $notificationService
     ) {}
 
     #[Route('/', name: 'app_reclamation_index', methods: ['GET'])]
@@ -34,7 +35,6 @@ class ReclamationController extends AbstractController
         $page = (int) $request->query->get('page', 1);
         $limit = (int) $request->query->get('limit', 10);
 
-        // Admin sees all reclamations
         $result = $this->reclamationService->searchPaginated($search, $status, null, $sort, $order, $page, $limit);
 
         return $this->render('support/reclamation/index.html.twig', [
@@ -73,9 +73,6 @@ class ReclamationController extends AbstractController
     #[Route('/{id}', name: 'app_reclamation_show', methods: ['GET', 'POST'])]
     public function show(Request $request, Reclamation $reclamation): Response
     {
-        // Admin can view all reclamations
-
-        // Handle response submission
         $response = new SupportResponse();
         $response->setAuthor($this->getUser());
 
@@ -85,6 +82,9 @@ class ReclamationController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $this->reclamationService->addResponse($reclamation, $response);
 
+            // Notifier le user que l'admin a répondu
+            $this->notificationService->notifyResponseAdded($reclamation);
+
             // Update status if specified
             $newStatus = $form->get('status')->getData();
             if ($newStatus) {
@@ -93,6 +93,9 @@ class ReclamationController extends AbstractController
                     : (string) $newStatus;
                 $reclamation->setStatus($statusValue);
                 $this->entityManager->flush();
+
+                // Notifier le user du changement de statut
+                $this->notificationService->notifyStatusChanged($reclamation, $statusValue);
             }
 
             $this->addFlash('success', 'Réponse envoyée avec succès.');
@@ -101,7 +104,7 @@ class ReclamationController extends AbstractController
 
         return $this->render('support/reclamation/show.html.twig', [
             'reclamation' => $reclamation,
-            'can_modify' => true, // Admin can always modify
+            'can_modify' => true,
             'response_form' => $form->createView(),
         ]);
     }

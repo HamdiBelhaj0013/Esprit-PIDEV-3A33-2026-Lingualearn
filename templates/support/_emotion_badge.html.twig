@@ -1,0 +1,90 @@
+{#
+    Usage dans n'importe quel template admin :
+    {{ include('support/back/reclamation/_emotion_badge.html.twig', {reclamation: rec}) }}
+#}
+
+<div class="emotion-wrapper" id="emotionWrapper-{{ reclamation.id }}">
+    <button type="button"
+            class="btn-emotion"
+            id="btnEmotion-{{ reclamation.id }}"
+            onclick="analyzeEmotion({{ reclamation.id }})">
+        🧠 Analyser émotion
+    </button>
+</div>
+
+<style>
+.btn-emotion {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    padding: .28rem .75rem;
+    border-radius: 999px;
+    border: 1.5px solid #e2e8f2;
+    background: #f8fafc;
+    font-size: .72rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    color: #7a87a0;
+    transition: all .2s;
+}
+.btn-emotion:hover { border-color: #7c3aed; color: #7c3aed; background: #f5f3ff; }
+.btn-emotion:disabled { opacity: .6; cursor: wait; }
+
+.emotion-result {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .28rem .75rem;
+    border-radius: 999px;
+    font-size: .75rem;
+    font-weight: 700;
+    border: 1.5px solid;
+}
+.emotion-green  { background:#f0fdf4; color:#16a34a; border-color:#bbf7d0; }
+.emotion-red    { background:#fee2e2; color:#dc2626; border-color:#fecaca; }
+.emotion-orange { background:#fff7ed; color:#ea580c; border-color:#fed7aa; }
+.emotion-blue   { background:#eff6ff; color:#2563eb; border-color:#bfdbfe; }
+.emotion-gray   { background:#f1f5f9; color:#64748b; border-color:#cbd5e1; }
+
+.emotion-source {
+    font-size: .6rem;
+    padding: .1rem .4rem;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #94a3b8;
+    margin-left: .2rem;
+}
+</style>
+
+<script>
+if (typeof analyzeEmotion === 'undefined') {
+    async function analyzeEmotion(id) {
+        const btn     = document.getElementById(`btnEmotion-${id}`);
+        const wrapper = document.getElementById(`emotionWrapper-${id}`);
+
+        btn.disabled     = true;
+        btn.textContent  = '⏳ Analyse en cours...';
+
+        try {
+            const res  = await fetch(`/admin/support/emotion/${id}/analyze`, { method: 'POST' });
+            const data = await res.json();
+
+            const sourceLabel = data.source === 'ollama'
+                ? '<span class="emotion-source">🤖 Ollama AI</span>'
+                : '<span class="emotion-source">🔤 Mots-clés</span>';
+
+            wrapper.innerHTML = `
+                <span class="emotion-result emotion-${data.color}">
+                    ${data.emoji} ${data.label}
+                </span>
+                ${sourceLabel}
+            `;
+        } catch(e) {
+            btn.disabled    = false;
+            btn.textContent = '❌ Réessayer';
+            setTimeout(() => { btn.textContent = '🧠 Analyser émotion'; }, 2000);
+        }
+    }
+}
+</script>

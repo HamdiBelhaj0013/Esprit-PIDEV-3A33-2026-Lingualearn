@@ -47,9 +47,6 @@
             "./migrations/.gitignore"
         ]
     },
-    "knplabs/knp-paginator-bundle": {
-        "version": "v6.10.0"
-    },
     "phpunit/phpunit": {
         "version": "11.5",
         "recipe": {
@@ -65,17 +62,14 @@
             "./bin/phpunit"
         ]
     },
-    "stripe/stripe-php": {
-        "version": "19.3",
+    "pusher/pusher-php-server": {
+        "version": "7.2",
         "recipe": {
             "repo": "github.com/symfony/recipes-contrib",
             "branch": "main",
-            "version": "19.0",
-            "ref": "d6829c693e3927a8972c7671d74a1a5c505712b0"
-        },
-        "files": [
-            "./config/packages/stripe.yaml"
-        ]
+            "version": "3.0",
+            "ref": "8dd3ea817217453e14ab596317177465211e01d2"
+        }
     },
     "symfony/asset-mapper": {
         "version": "7.4",
@@ -173,15 +167,6 @@
             "./config/packages/mailer.yaml"
         ]
     },
-    "symfony/mailtrap-mailer": {
-        "version": "7.4",
-        "recipe": {
-            "repo": "github.com/symfony/recipes",
-            "branch": "main",
-            "version": "7.2",
-            "ref": "e1d25e0fab8778b977233aff6762d3791eab3155"
-        }
-    },
     "symfony/maker-bundle": {
         "version": "1.65",
         "recipe": {
@@ -190,6 +175,18 @@
             "version": "1.0",
             "ref": "fadbfe33303a76e25cb63401050439aa9b1a9c7f"
         }
+    },
+    "symfony/mercure-bundle": {
+        "version": "0.4",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "0.3",
+            "ref": "528285147494380298f8f991ee8c47abebaf79db"
+        },
+        "files": [
+            "./config/packages/mercure.yaml"
+        ]
     },
     "symfony/messenger": {
         "version": "7.4",
@@ -306,15 +303,6 @@
             "./templates/base.html.twig"
         ]
     },
-    "symfony/uid": {
-        "version": "7.4",
-        "recipe": {
-            "repo": "github.com/symfony/recipes",
-            "branch": "main",
-            "version": "7.0",
-            "ref": "0df5844274d871b37fc3816c57a768ffc60a43a5"
-        }
-    },
     "symfony/ux-turbo": {
         "version": "2.32",
         "recipe": {
@@ -380,22 +368,19 @@
             "./webpack.config.js"
         ]
     },
-    "twig/extra-bundle": {
-        "version": "v3.23.0"
-    },
-    "vich/uploader-bundle": {
-        "version": "2.9",
+    "symfony/workflow": {
+        "version": "7.4",
         "recipe": {
-            "repo": "github.com/symfony/recipes-contrib",
+            "repo": "github.com/symfony/recipes",
             "branch": "main",
-            "version": "1.13",
-            "ref": "1b3064c2f6b255c2bc2f56461aaeb76b11e07e36"
+            "version": "3.3",
+            "ref": "3b2f8ca32a07fcb00f899649053943fa3d8bbfb6"
         },
         "files": [
-            "./config/packages/vich_uploader.yaml"
+            "./config/packages/workflow.yaml"
         ]
     },
-    "winzou/state-machine-bundle": {
-        "version": "v0.6.3"
+    "twig/extra-bundle": {
+        "version": "v3.23.0"
     }
 }

@@ -1,0 +1,30 @@
+framework:
+    workflows:
+        support_ticket:
+            type: 'state_machine'
+            audit_trail:
+                enabled: true
+            marking_store:
+                type: 'method'
+                property: 'status'
+            supports:
+                - App\Module\Support\Entity\Reclamation
+            initial_marking: PENDING
+            places:
+                - PENDING
+                - IN_PROGRESS
+                - RESOLVED
+                - CLOSED
+            transitions:
+                start_processing:
+                    from: PENDING
+                    to:   IN_PROGRESS
+                resolve:
+                    from: [PENDING, IN_PROGRESS]
+                    to:   RESOLVED
+                close:
+                    from: [PENDING, IN_PROGRESS, RESOLVED]
+                    to:   CLOSED
+                reopen:
+                    from: [RESOLVED, CLOSED]
+                    to:   IN_PROGRESS
