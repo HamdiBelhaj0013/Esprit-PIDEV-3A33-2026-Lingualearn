@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate Verification - {{ certificate.user.firstName }} {{ certificate.user.lastName }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Fraunces:wght@600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --blue: #2563eb;
+            --green: #16a34a;
+            --orange: #ea580c;
+            --violet: #7c3aed;
+            --gold: #ca8a04;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --muted: #64748b;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Sora', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .logo {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        h1 {
+            font-family: 'Fraunces', serif;
+            font-size: 2.5rem;
+            color: var(--blue);
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: var(--muted);
+            font-size: 1.1rem;
+        }
+        .certificate-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 60px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            border: 3px solid var(--blue);
+            margin-bottom: 30px;
+        }
+        .cert-title {
+            font-family: 'Fraunces', serif;
+            font-size: 2rem;
+            text-align: center;
+            color: var(--text);
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .cert-content {
+            text-align: center;
+            font-size: 1.1rem;
+            line-height: 2;
+        }
+        .recipient-label {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+        .recipient-name {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--blue);
+            margin: 20px 0;
+            border-bottom: 3px solid var(--blue);
+            display: inline-block;
+            padding-bottom: 10px;
+        }
+        .language-name {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--green);
+            margin: 20px 0;
+        }
+        .score-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--orange);
+            margin: 20px 0;
+        }
+        .cert-footer {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #e2e8f0;
+        }
+        .cert-info {
+            text-align: center;
+        }
+        .cert-info-label {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+        .cert-info-value {
+            font-weight: 600;
+            color: var(--text);
+        }
+        .actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .btn-primary {
+            background: var(--blue);
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+        }
+        .btn-facebook {
+            background: #1877f2;
+            color: white;
+        }
+        .btn-facebook:hover {
+            background: #166fe5;
+            transform: translateY(-2px);
+        }
+        .verified-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #dcfce7;
+            color: var(--green);
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+        @media (max-width: 768px) {
+            .certificate-card {
+                padding: 30px 20px;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            .recipient-name {
+                font-size: 1.8rem;
+            }
+            .language-name, .score-value {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🎓</div>
+            <h1>LinguaLearn Certificate</h1>
+            <p class="subtitle">Official Certificate Verification</p>
+        </div>
+
+        <div style="text-align: center;">
+            <div class="verified-badge">
+                <span style="font-size: 1.2rem;">✓</span>
+                <span>Verified Certificate</span>
+            </div>
+        </div>
+
+        <div class="certificate-card">
+            <div class="cert-title">Certificate of Achievement</div>
+            
+            <div class="cert-content">
+                <div class="recipient-label">This is to certify that</div>
+                <div class="recipient-name">{{ certificate.user.firstName }} {{ certificate.user.lastName }}</div>
+                
+                <p style="margin: 30px 0;">
+                    has successfully completed all three proficiency levels<br>
+                    (Beginner, Intermediate, and Advanced) in
+                </p>
+                
+                <div class="language-name">{{ certificate.language.name }}</div>
+                
+                <p style="margin: 30px 0;">
+                    with an average score of
+                </p>
+                
+                <div class="score-value">{{ certificate.avgScore }}/20</div>
+            </div>
+
+            <div class="cert-footer">
+                <div class="cert-info">
+                    <div class="cert-info-label">Issue Date</div>
+                    <div class="cert-info-value">{{ certificate.issuedAt|date('F d, Y') }}</div>
+                </div>
+                
+                <div class="cert-info">
+                    <div class="cert-info-label">Verification Code</div>
+                    <div class="cert-info-value">{{ certificate.uniqueCode }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="actions">
+            <a href="{{ path('certificate_download', {code: certificate.uniqueCode}) }}" class="btn btn-primary">
+                <span>📥</span>
+                <span>Download PDF</span>
+            </a>
+            <a href="https://www.facebook.com/sharer/sharer.php?u={{ url('certificate_view', {code: certificate.uniqueCode})|url_encode }}" 
+               target="_blank" 
+               class="btn btn-facebook">
+                <span>📘</span>
+                <span>Share on Facebook</span>
+            </a>
+        </div>
+    </div>
+</body>
+</html>
+

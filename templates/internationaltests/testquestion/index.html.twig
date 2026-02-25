@@ -227,15 +227,10 @@
                                    class="btn btn-sm btn-ghost-primary" title="Edit">
                                     <i class="ti ti-pencil"></i>
                                 </a>
-                                <form method="post" 
-                                      action="{{ path('testquestion_delete', {id: question.id}) }}" 
-                                      style="display:inline;" 
-                                      onsubmit="return confirm('Are you sure?');">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ question.id) }}">
-                                    <button type="submit" class="btn btn-sm btn-ghost-danger" title="Delete">
-                                        <i class="ti ti-trash"></i>
-                                    </button>
-                                </form>
+                                <button type="button" class="btn btn-sm btn-ghost-danger" title="Delete"
+                                        onclick="openDeleteModal('{{ question.id }}', '{{ question.questionText|slice(0,40)|e('js') }}...', '{{ path('testquestion_delete', {id: question.id}) }}', '{{ csrf_token('delete' ~ question.id) }}')">
+                                    <i class="ti ti-trash"></i>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -460,19 +455,13 @@
             bulkActivateBtn.addEventListener('click', function() {
                 const ids = getSelectedIds();
                 if (ids.length === 0) return;
-
-                if (confirm(`Activate ${ids.length} question(s)?`)) {
-                    performBulkAction(ids, 'activate');
-                }
+                openBulkModal('activate', ids);
             });
 
             bulkDeactivateBtn.addEventListener('click', function() {
                 const ids = getSelectedIds();
                 if (ids.length === 0) return;
-
-                if (confirm(`Deactivate ${ids.length} question(s)?`)) {
-                    performBulkAction(ids, 'deactivate');
-                }
+                openBulkModal('deactivate', ids);
             });
 
             function performBulkAction(ids, action) {
@@ -566,6 +555,83 @@
             attachStatusToggleListeners();
             attachCheckboxListeners();
         });
+    {# ═══ MODALE DELETE INDIVIDUEL ═══ #}
+    <div id="deleteModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-icon">🗑️</div>
+            <h3 class="modal-title">Delete Question</h3>
+            <p class="modal-msg">Are you sure you want to delete:<br><strong id="modalQuestionName"></strong><br>This action <strong>cannot be undone</strong>.</p>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">
+                    <i class="ti ti-x me-1"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-danger" onclick="document.getElementById('deleteForm').submit()">
+                    <i class="ti ti-trash me-1"></i> Yes, Delete
+                </button>
+            </div>
+        </div>
+    </div>
+    <form id="deleteForm" method="post" style="display:none;">
+        <input type="hidden" name="_token" id="deleteToken">
+    </form>
+
+    {# ═══ MODALE BULK ACTION ═══ #}
+    <div id="bulkModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-icon" id="bulkModalIcon">⚡</div>
+            <h3 class="modal-title" id="bulkModalTitle">Confirm Action</h3>
+            <p class="modal-msg" id="bulkModalMsg">Are you sure?</p>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeBulkModal()">
+                    <i class="ti ti-x me-1"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-primary" id="bulkConfirmBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
+    .modal-overlay.show-modal { display:flex; }
+    .modal-box { background:#fff; border-radius:16px; padding:2.5rem 2rem; max-width:440px; width:90%; text-align:center; box-shadow:0 24px 60px rgba(0,0,0,.18); animation:modalIn .25s ease; }
+    @keyframes modalIn { from{transform:translateY(-20px);opacity:0} to{transform:translateY(0);opacity:1} }
+    .modal-icon { font-size:3rem; margin-bottom:1rem; }
+    .modal-title { font-size:1.3rem; font-weight:700; color:#1a1a2e; margin-bottom:.5rem; }
+    .modal-msg { color:#6c757d; font-size:.9rem; margin-bottom:1.75rem; line-height:1.6; }
+    .modal-actions { display:flex; gap:.75rem; justify-content:center; }
+    .modal-actions .btn { min-width:130px; border-radius:8px; font-weight:600; padding:.65rem 1.25rem; }
+    </style>
+
+    <script>
+    function openDeleteModal(id, name, action, token) {
+        document.getElementById('modalQuestionName').textContent = '"' + name + '"';
+        document.getElementById('deleteForm').action = action;
+        document.getElementById('deleteToken').value = token;
+        document.getElementById('deleteModal').classList.add('show-modal');
+    }
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').classList.remove('show-modal');
+    }
+
+    let _bulkIds = [], _bulkAction = '';
+    function openBulkModal(action, ids) {
+        _bulkIds = ids; _bulkAction = action;
+        const isActivate = action === 'activate';
+        document.getElementById('bulkModalIcon').textContent = isActivate ? '✅' : '⏸️';
+        document.getElementById('bulkModalTitle').textContent = isActivate ? 'Activate Questions' : 'Deactivate Questions';
+        document.getElementById('bulkModalMsg').innerHTML = 'Are you sure you want to <strong>' + action + '</strong> <strong>' + ids.length + ' question(s)</strong>?';
+        const btn = document.getElementById('bulkConfirmBtn');
+        btn.className = 'btn ' + (isActivate ? 'btn-success' : 'btn-warning');
+        btn.innerHTML = (isActivate ? '✅' : '⏸️') + ' Yes, ' + (isActivate ? 'Activate' : 'Deactivate');
+        btn.onclick = function() { performBulkAction(_bulkIds, _bulkAction); closeBulkModal(); };
+        document.getElementById('bulkModal').classList.add('show-modal');
+    }
+    function closeBulkModal() {
+        document.getElementById('bulkModal').classList.remove('show-modal');
+    }
+
+    document.getElementById('deleteModal').addEventListener('click', function(e) { if(e.target===this) closeDeleteModal(); });
+    document.getElementById('bulkModal').addEventListener('click', function(e) { if(e.target===this) closeBulkModal(); });
     </script>
 {% endblock %}
 

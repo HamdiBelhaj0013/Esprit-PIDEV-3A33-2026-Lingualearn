@@ -1,0 +1,149 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Test Result #{{ testResult.id }} - {{ parent() }}{% endblock %}
+
+{% block page_title %}
+    <i class="ti ti-chart-bar me-2"></i> Test Result #{{ testResult.id }}
+{% endblock %}
+
+{% block page_actions %}
+    <div class="col-auto ms-auto d-print-none">
+        <a href="{{ path('testresult_edit', {id: testResult.id}) }}" class="btn btn-primary me-2">
+            <i class="ti ti-pencil icon"></i> Edit
+        </a>
+        <a href="{{ path('testresult_index') }}" class="btn btn-secondary">
+            <i class="ti ti-arrow-left icon"></i> Back to List
+        </a>
+    </div>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header"><h3 class="card-title">Test Result Information</h3></div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">User</label>
+                        <div class="h4"><i class="ti ti-user text-blue me-2"></i>{{ testResult.user.email }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Mock Test</label>
+                        <div class="h4">
+                            <a href="{{ path('mocktest_show', {id: testResult.mockTest.id}) }}" class="text-reset">
+                                <i class="ti ti-file-text text-purple me-2"></i>{{ testResult.mockTest.title }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Overall Score</label>
+                        <div class="h2"><span class="badge bg-success badge-lg">{{ testResult.overallScore }}</span></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">AI Predicted Score</label>
+                        <div class="h2">
+                            {% if testResult.aiPredictedScore %}
+                                <span class="badge bg-blue badge-lg">{{ testResult.aiPredictedScore }}</span>
+                            {% else %}
+                                <span class="text-muted">Not available</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Date Taken</label>
+                        <div><i class="ti ti-calendar me-2"></i>{{ testResult.dateTaken|date('Y-m-d H:i:s') }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Last Updated</label>
+                        <div><i class="ti ti-clock me-2"></i>{{ testResult.updatedAt ? testResult.updatedAt|date('Y-m-d H:i:s') : 'Never' }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if testResult.aiWeaknessReport %}
+        <div class="card mt-3">
+            <div class="card-header"><h3 class="card-title"><i class="ti ti-brain me-2"></i>AI Weakness Report</h3></div>
+            <div class="card-body">
+                <pre class="bg-light p-3 rounded"><code>{{ testResult.aiWeaknessReport|json_encode(constant('JSON_PRETTY_PRINT')) }}</code></pre>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header"><h3 class="card-title">Quick Stats</h3></div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="text-muted">Result ID</div>
+                    <div class="h3 mb-0">#{{ testResult.id }}</div>
+                </div>
+                <div class="mb-3">
+                    <div class="text-muted">Test Type</div>
+                    <div class="h4 mb-0"><span class="badge bg-azure-lt">{{ testResult.mockTest.testType }}</span></div>
+                </div>
+                <div>
+                    <div class="text-muted">Test Duration</div>
+                    <div class="h4 mb-0"><i class="ti ti-clock text-green me-2"></i>{{ testResult.mockTest.durationMinutes }} min</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header"><h3 class="card-title">Actions</h3></div>
+            <div class="list-group list-group-flush">
+                <a href="{{ path('testresult_edit', {id: testResult.id}) }}" class="list-group-item list-group-item-action">
+                    <i class="ti ti-pencil me-2"></i> Edit Result
+                </a>
+                <a href="{{ path('mocktest_show', {id: testResult.mockTest.id}) }}" class="list-group-item list-group-item-action">
+                    <i class="ti ti-file-text me-2"></i> View Mock Test
+                </a>
+                <div class="list-group-item">
+                    <button type="button" class="btn btn-ghost-danger w-100" onclick="document.getElementById('deleteModal').classList.add('show-modal')">
+                        <i class="ti ti-trash me-2"></i> Delete Result
+                    </button>
+                    <form id="deleteForm" method="post" action="{{ path('testresult_delete', {id: testResult.id}) }}" style="display:none;">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ testResult.id) }}">
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ═══ MODALE PROFESSIONNELLE ═══ #}
+<div id="deleteModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-icon">🗑️</div>
+        <h3 class="modal-title">Delete Test Result</h3>
+        <p class="modal-msg">Are you sure you want to delete this test result?<br>This action <strong>cannot be undone</strong>.</p>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" onclick="document.getElementById('deleteModal').classList.remove('show-modal')">
+                Cancel
+            </button>
+            <button type="button" class="btn btn-danger" onclick="document.getElementById('deleteForm').submit()">
+                <i class="ti ti-trash me-1"></i> Yes, Delete
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
+.modal-overlay.show-modal { display:flex; }
+.modal-box { background:#fff; border-radius:16px; padding:2.5rem 2rem; max-width:420px; width:90%; text-align:center; box-shadow:0 24px 60px rgba(0,0,0,.18); animation:modalIn .25s ease; }
+@keyframes modalIn { from{transform:translateY(-20px);opacity:0} to{transform:translateY(0);opacity:1} }
+.modal-icon { font-size:3rem; margin-bottom:1rem; }
+.modal-title { font-size:1.25rem; font-weight:700; color:#1a1a2e; margin-bottom:.5rem; }
+.modal-msg { color:#6c757d; font-size:.9rem; margin-bottom:1.75rem; line-height:1.6; }
+.modal-actions { display:flex; gap:.75rem; justify-content:center; }
+.modal-actions .btn { min-width:120px; border-radius:8px; font-weight:600; padding:.6rem 1.25rem; }
+</style>
+{% endblock %}

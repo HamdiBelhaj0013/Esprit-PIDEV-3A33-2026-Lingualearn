@@ -1,106 +1,318 @@
 {% extends 'layouts/admin.html.twig' %}
 
-{% block title %}Create Test Question - {{ parent() }}{% endblock %}
+{% block title %}Create Question - {{ parent() }}{% endblock %}
 
 {% block page_title %}
-    <i class="ti ti-help me-2"></i> Create Test Question
+    <i class="ti ti-plus me-2"></i> Create Test Question
+    {% if mockTest %}<small class="text-muted fs-4">— {{ mockTest.title }}</small>{% endif %}
 {% endblock %}
 
-{% block breadcrumb %}
-    <ol class="breadcrumb breadcrumb-arrows" aria-label="breadcrumbs">
-        <li class="breadcrumb-item"><a href="{{ path('testquestion_index') }}">Test Questions</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Create</li>
-    </ol>
-{% endblock %}
-
-{% block content %}
-    <div class="row">
-        <div class="col-md-10 mx-auto">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Question Information</h3>
-                </div>
-                <div class="card-body">
-                    {{ form_start(form) }}
-                        <div class="mb-3">
-                            {{ form_label(form.mockTest, null, {'label_attr': {'class': 'form-label required'}}) }}
-                            {{ form_widget(form.mockTest, {'attr': {'class': 'form-select'}}) }}
-                            {{ form_errors(form.mockTest) }}
-                            <small class="form-hint">Select the mock test this question belongs to</small>
-                        </div>
-
-                        <div class="mb-3">
-                            {{ form_label(form.sectionCategory, null, {'label_attr': {'class': 'form-label required'}}) }}
-                            {{ form_widget(form.sectionCategory, {'attr': {'class': 'form-control', 'placeholder': 'e.g., Reading, Listening, Writing, Speaking'}}) }}
-                            {{ form_errors(form.sectionCategory) }}
-                            <small class="form-hint">Category or section of the test (e.g., Reading, Listening, etc.)</small>
-                        </div>
-
-                        <div class="mb-3">
-                            {{ form_label(form.questionText, null, {'label_attr': {'class': 'form-label required'}}) }}
-                            {{ form_widget(form.questionText, {'attr': {'class': 'form-control', 'rows': 4, 'placeholder': 'Enter the question text'}}) }}
-                            {{ form_errors(form.questionText) }}
-                        </div>
-
-                        <div class="mb-3">
-                            {{ form_label(form.options, null, {'label_attr': {'class': 'form-label required'}}) }}
-                            {{ form_widget(form.options, {'attr': {'class': 'form-control', 'rows': 6, 'placeholder': '["Option A", "Option B", "Option C", "Option D"]'}}) }}
-                            {{ form_errors(form.options) }}
-                            <small class="form-hint">Enter options as a JSON array. Example: ["Option A", "Option B", "Option C", "Option D"]</small>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-8">
-                                <div class="mb-3">
-                                    {{ form_label(form.correctAnswer, null, {'label_attr': {'class': 'form-label required'}}) }}
-                                    {{ form_widget(form.correctAnswer, {'attr': {'class': 'form-control', 'placeholder': 'Enter the correct answer'}}) }}
-                                    {{ form_errors(form.correctAnswer) }}
-                                    <small class="form-hint">The correct answer for this question</small>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    {{ form_label(form.points, null, {'label_attr': {'class': 'form-label required'}}) }}
-                                    {{ form_widget(form.points, {'attr': {'class': 'form-control', 'placeholder': '10'}}) }}
-                                    {{ form_errors(form.points) }}
-                                    <small class="form-hint">Points for this question</small>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="card-footer text-end">
-                            <div class="d-flex">
-                                <a href="{{ path('testquestion_index') }}" class="btn btn-link">Cancel</a>
-                                <button type="submit" class="btn btn-primary ms-auto">
-                                    <i class="ti ti-device-floppy"></i>
-                                    Create Question
-                                </button>
-                            </div>
-                        </div>
-                    {{ form_end(form) }}
-                </div>
-            </div>
-        </div>
+{% block page_actions %}
+    <div class="col-auto ms-auto d-print-none">
+        {% if mockTest %}
+            <a href="{{ path('mocktest_show', {id: mockTest.id}) }}" class="btn btn-secondary">
+                <i class="ti ti-arrow-left icon"></i> Back to Test
+            </a>
+        {% else %}
+            <a href="{{ path('testquestion_index') }}" class="btn btn-secondary">
+                <i class="ti ti-arrow-left icon"></i> Back to List
+            </a>
+        {% endif %}
     </div>
 {% endblock %}
 
-{% block javascripts %}
+{% block content %}
+{% set type = testCategory|lower %}
+
+<div class="row">
+
+    {# ── Sidebar INFORMATIONS — en haut à droite ── #}
+    <div class="col-md-3 order-md-2 mb-3">
+        <div class="card h-auto">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="ti ti-info-circle me-2 text-blue"></i>Informations
+                </h3>
+            </div>
+            <div class="card-body">
+                {% if mockTest %}
+                <div class="mb-2 d-flex align-items-center gap-2">
+                    <i class="ti ti-file-text text-muted"></i>
+                    <div>
+                        <div class="text-muted small">Test</div>
+                        <strong class="small">{{ mockTest.title }}</strong>
+                    </div>
+                </div>
+                <div class="mb-2 d-flex align-items-center gap-2">
+                    <i class="ti ti-tag text-muted"></i>
+                    <div>
+                        <div class="text-muted small">Type</div>
+                        <span class="badge bg-azure-lt">{{ mockTest.testType }}</span>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <i class="ti ti-category text-muted"></i>
+                    <div>
+                        <div class="text-muted small">Catégorie</div>
+                        <span class="badge
+                            {% if type == 'qcm' %}bg-blue-lt
+                            {% elseif type == 'writing' %}bg-orange-lt
+                            {% elseif type == 'speaking' %}bg-purple-lt
+                            {% elseif type == 'listening' %}bg-green-lt
+                            {% endif %}">
+                            {{ mockTest.testCategory }}
+                        </span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {# ── Formulaire principal ── #}
+    <div class="col-md-9 order-md-1">
+        <div class="card">
+            <div class="card-header d-flex align-items-center gap-3">
+                <h3 class="card-title mb-0">
+                    {% if type == 'qcm' %}📋 QCM
+                    {% elseif type == 'writing' %}✍️ Writing
+                    {% elseif type == 'speaking' %}🎙️ Speaking
+                    {% elseif type == 'listening' %}🎧 Listening
+                    {% else %}Question{% endif %}
+                </h3>
+                <span class="badge ms-auto
+                    {% if type == 'qcm' %}bg-blue-lt
+                    {% elseif type == 'writing' %}bg-orange-lt
+                    {% elseif type == 'speaking' %}bg-purple-lt
+                    {% elseif type == 'listening' %}bg-green-lt
+                    {% endif %}" style="font-size:.8rem;padding:.4rem .85rem;">
+                    {{ testCategory }}
+                </span>
+            </div>
+
+            <div class="card-body">
+                {{ form_start(form, {'attr': {'id': 'question-form', 'novalidate': 'novalidate'}}) }}
+
+                {# mockTest — rendu ONCE, caché si pré-sélectionné #}
+                <div {% if mockTest %}style="display:none"{% endif %} class="mb-3">
+                    <label class="form-label required">Mock Test</label>
+                    {{ form_widget(form.mockTest) }}
+                    {{ form_errors(form.mockTest) }}
+                </div>
+
+                {# Points #}
+                <div class="mb-4" style="max-width:180px">
+                    <label class="form-label required">Points</label>
+                    {{ form_widget(form.points) }}
+                    {{ form_errors(form.points) }}
+                </div>
+
+                {# Question text #}
+                <div class="mb-4">
+                    <label class="form-label required">
+                        {% if type == 'listening' %}Question de compréhension
+                        {% elseif type == 'writing' %}Consigne
+                        {% elseif type == 'speaking' %}Titre de la session
+                        {% else %}Question{% endif %}
+                    </label>
+                    {{ form_widget(form.questionText) }}
+                    {{ form_errors(form.questionText) }}
+                </div>
+
+                {# ── QCM ── #}
+                <div id="section-qcm" {% if type != 'qcm' %}style="display:none"{% endif %}>
+                    <div class="mb-4">
+                        <label class="form-label">Texte de lecture <span class="badge bg-secondary ms-1">Optionnel</span></label>
+                        {{ form_widget(form.readingPassage) }}
+                        {{ form_errors(form.readingPassage) }}
+                        <small class="form-hint">Affiché au-dessus de la question lors du test.</small>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="is_multiple" onchange="toggleMultiple()">
+                            <label class="form-check-label" for="is_multiple">
+                                <strong>Choix multiples</strong> — plusieurs bonnes réponses
+                            </label>
+                        </div>
+                    </div>
+                    <div class="card bg-light mb-3">
+                        <div class="card-header d-flex align-items-center justify-content-between">
+                            <span><strong>Propositions de réponse</strong></span>
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addOption()">
+                                <i class="ti ti-plus icon"></i> Ajouter
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div id="options-builder"></div>
+                            <p id="no-options-msg" class="text-muted text-center py-2 mb-0" style="display:none">Cliquez sur "Ajouter" pour commencer</p>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label required">Bonne(s) réponse(s)</label>
+                        <div id="correct-answers-display" class="correct-answers-wrap">
+                            <span class="text-muted small">Ajoutez des propositions puis sélectionnez la/les bonne(s)</span>
+                        </div>
+                        <small class="form-hint">Cliquez pour sélectionner / désélectionner</small>
+                    </div>
+                </div>
+
+                {# ── Writing + Speaking ── #}
+                <div id="section-writing-speaking" {% if type != 'writing' and type != 'speaking' %}style="display:none"{% endif %} class="mb-4">
+                    <label class="form-label required">
+                        {% if type == 'speaking' %}Sujet de conversation{% else %}Sujet de rédaction{% endif %}
+                    </label>
+                    {{ form_widget(form.writingSubject) }}
+                    {{ form_errors(form.writingSubject) }}
+                    <small class="form-hint">
+                        {% if type == 'speaking' %}Ex : "Talk about your daily routine and hobbies."
+                        {% else %}Ex : "Rédigez 150 mots sur votre ville natale."{% endif %}
+                    </small>
+                </div>
+
+                {# ── Listening ── #}
+                <div id="section-listening" {% if type != 'listening' %}style="display:none"{% endif %} class="mb-4">
+                    <label class="form-label required">Texte audio (Text-to-Speech)</label>
+                    {{ form_widget(form.audioText) }}
+                    {{ form_errors(form.audioText) }}
+                    <small class="form-hint">Ce texte sera lu à voix haute par ElevenLabs.</small>
+                </div>
+
+                {# Champs cachés gérés par JS #}
+                <div style="display:none">
+                    {{ form_widget(form.options) }}
+                    {{ form_widget(form.correctAnswer) }}
+                </div>
+
+            </div>
+
+            {# ── Footer fixe avec Active + boutons ── #}
+            <div class="card-footer bg-white border-top sticky-bottom">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="form-check form-switch mb-0">
+                        {{ form_widget(form.isActive, {'attr': {'class': 'form-check-input'}}) }}
+                        <label class="form-check-label" for="{{ form.isActive.vars.id }}">Active</label>
+                    </div>
+                    <div class="d-flex gap-2">
+                        {% if mockTest %}
+                            <a href="{{ path('mocktest_show', {id: mockTest.id}) }}" class="btn btn-ghost-secondary">
+                                <i class="ti ti-x icon"></i> Annuler
+                            </a>
+                        {% else %}
+                            <a href="{{ path('testquestion_index') }}" class="btn btn-ghost-secondary">
+                                <i class="ti ti-x icon"></i> Annuler
+                            </a>
+                        {% endif %}
+                        <button type="submit" class="btn btn-primary">
+                            <i class="ti ti-device-floppy icon"></i> Créer la question
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {{ form_end(form) }}
+        </div>
+    </div>
+
+</div>
+
+<style>
+.sticky-bottom { position: sticky; bottom: 0; z-index: 10; box-shadow: 0 -2px 8px rgba(0,0,0,.06); padding: .85rem 1.25rem; }
+.option-row{display:flex;align-items:center;gap:.6rem;margin-bottom:.6rem;}
+.option-letter-badge{width:30px;height:30px;border-radius:50%;background:#e2e8f0;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0;color:#374151;}
+.option-input{flex:1;border:1.5px solid #e2e8f0;border-radius:8px;padding:.5rem .85rem;font-size:.88rem;outline:none;transition:border-color .2s;font-family:inherit;}
+.option-input:focus{border-color:#2563eb;box-shadow:0 0 0 2px rgba(37,99,235,.1);}
+.option-remove{background:transparent;border:none;color:#9ca3af;cursor:pointer;font-size:1rem;padding:.2rem .4rem;border-radius:6px;}
+.option-remove:hover{color:#dc2626;background:#fef2f2;}
+.correct-answers-wrap{display:flex;flex-wrap:wrap;gap:.5rem;min-height:44px;padding:.5rem;border:1.5px solid #e2e8f0;border-radius:8px;background:#f8fafc;}
+.correct-toggle{padding:.4rem .9rem;border-radius:100px;border:1.5px solid #e2e8f0;cursor:pointer;font-size:.82rem;background:#fff;transition:all .2s;font-family:inherit;}
+.correct-toggle:hover{border-color:#2563eb;background:#eff6ff;color:#2563eb;}
+.correct-toggle.selected{border-color:#16a34a;background:#f0fdf4;color:#16a34a;font-weight:600;}
+.correct-toggle.selected::before{content:'✓ ';}
+</style>
+
+{% if type == 'qcm' %}
 <script>
-    // Helper to format JSON in the options field
-    document.addEventListener('DOMContentLoaded', function() {
-        const optionsField = document.querySelector('textarea[name*="[options]"]');
-        if (optionsField) {
-            optionsField.addEventListener('blur', function() {
-                try {
-                    const parsed = JSON.parse(this.value);
-                    this.value = JSON.stringify(parsed, null, 2);
-                } catch (e) {
-                    // Invalid JSON, don't format
-                }
-            });
-        }
-    });
+const LETTERS  = ['A','B','C','D','E','F','G','H'];
+let options    = [];
+let correctSet = new Set();
+let isMultiple = false;
+
+function toggleMultiple() {
+    isMultiple = document.getElementById('is_multiple').checked;
+    correctSet.clear();
+    renderCorrectAnswers();
+}
+function addOption(text = '') {
+    options.push({ id: Date.now() + Math.random(), text });
+    renderOptions(); renderCorrectAnswers();
+    setTimeout(() => {
+        const inputs = document.querySelectorAll('.option-input');
+        if (inputs.length) inputs[inputs.length-1].focus();
+    }, 50);
+}
+function removeOption(id) {
+    const idx = options.findIndex(o => o.id === id);
+    if (idx < 0) return;
+    options.splice(idx, 1);
+    const ns = new Set();
+    correctSet.forEach(i => { if (i !== idx) ns.add(i > idx ? i-1 : i); });
+    correctSet = ns;
+    renderOptions(); renderCorrectAnswers();
+}
+function updateText(id, val) {
+    const o = options.find(o => o.id === id);
+    if (o) o.text = val;
+    renderCorrectAnswers(); syncJson();
+}
+function renderOptions() {
+    const builder = document.getElementById('options-builder');
+    const noMsg   = document.getElementById('no-options-msg');
+    if (!options.length) { builder.innerHTML = ''; noMsg.style.display = 'block'; syncJson(); return; }
+    noMsg.style.display = 'none';
+    builder.innerHTML = options.map((o, i) => `
+        <div class="option-row">
+            <div class="option-letter-badge">${LETTERS[i]||i+1}</div>
+            <input type="text" class="option-input" value="${esc(o.text)}"
+                placeholder="Option ${LETTERS[i]||i+1}..."
+                oninput="updateText(${JSON.stringify(o.id)}, this.value)">
+            <button type="button" class="option-remove" onclick="removeOption(${JSON.stringify(o.id)})">✕</button>
+        </div>`).join('');
+    syncJson();
+}
+function renderCorrectAnswers() {
+    const wrap = document.getElementById('correct-answers-display');
+    if (!options.length) {
+        wrap.innerHTML = '<span class="text-muted small">Ajoutez des propositions puis sélectionnez la/les bonne(s)</span>';
+        syncCorrect(); return;
+    }
+    wrap.innerHTML = options.map((o, i) => {
+        const label = o.text || `Option ${LETTERS[i]}`;
+        return `<button type="button" class="correct-toggle ${correctSet.has(i)?'selected':''}" onclick="toggleCorrect(${i})">${LETTERS[i]}. ${esc(label)}</button>`;
+    }).join('');
+    syncCorrect();
+}
+function toggleCorrect(idx) {
+    if (isMultiple) { correctSet.has(idx) ? correctSet.delete(idx) : correctSet.add(idx); }
+    else { correctSet.clear(); correctSet.add(idx); }
+    renderCorrectAnswers();
+}
+function syncJson() {
+    const optionsField = document.querySelector('textarea[name="test_question[options]"]');
+    if (optionsField) {
+        optionsField.value = JSON.stringify(options.map(o => o.text));
+    }
+}
+function syncCorrect() {
+    const vals = [...correctSet].sort().map(i => options[i]?.text ?? '').filter(Boolean);
+    const correctField = document.querySelector('textarea[name="test_question[correctAnswer]"]');
+    if (correctField) {
+        correctField.value = vals.join('|');
+    }
+}
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+document.getElementById('question-form').addEventListener('submit', () => { syncJson(); syncCorrect(); });
+addOption(); addOption(); addOption(); addOption();
 </script>
+{% endif %}
+
 {% endblock %}
-
-

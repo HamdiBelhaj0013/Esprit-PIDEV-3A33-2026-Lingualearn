@@ -93,3 +93,21 @@ services:
     #         $urlGenerator: '@router'
     #     tags:
     #         - { name: kernel.event_subscriber }
+
+
+    # Gemini Listening Service
+    App\Module\InternationalTests\Service\GeminiListeningService:
+        arguments:
+            $geminiApiKey: '%env(GEMINI_API_KEY)%'
+
+    # Gemini Writing Service
+    App\Module\InternationalTests\Service\GeminiWritingService:
+        arguments:
+            $geminiApiKey: '%env(GEMINI_API_KEY)%'
+
+    App\Module\InternationalTests\Service\AssemblyAiService:
+        arguments:
+            $assemblyAiApiKey: '%env(ASSEMBLYAI_API_KEY)%'
+    App\Module\InternationalTests\Service\GeminiSpeakingService:
+        arguments:
+            $geminiApiKey: '%env(GEMINI_API_KEY)%'
