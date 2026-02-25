@@ -1,0 +1,263 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Ticket Management - Admin{% endblock %}
+
+{% block page_title %}
+    <i class="ti ti-ticket me-2"></i> All Support Tickets
+{% endblock %}
+
+{% block content %}
+
+{% if is_granted('ROLE_ADMIN') %}
+<div class="d-flex gap-2 mb-3">
+    <a href="{{ path('admin_support_stats') }}" class="btn btn-outline-primary">
+        <i class="ti ti-chart-bar"></i> Statistiques avancées
+    </a>
+    <a href="{{ path('admin_support_audit') }}" class="btn btn-outline-secondary">
+        <i class="ti ti-history"></i> Audit Trail
+    </a>
+</div>
+{% endif %}
+
+<div class="row">
+    <div class="col-12">
+        <div class="card mb-3">
+            <div class="card-body">
+                <form method="get" class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <div class="input-icon">
+                            <span class="input-icon-addon"><i class="ti ti-search"></i></span>
+                            <input type="text" name="search" class="form-control" 
+                                   placeholder="Search tickets..." value="{{ search }}">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <select name="status" class="form-select">
+                            <option value="">All Status</option>
+                            <option value="PENDING" {% if status == 'PENDING' %}selected{% endif %}>Pending</option>
+                            <option value="IN_PROGRESS" {% if status == 'IN_PROGRESS' %}selected{% endif %}>In Progress</option>
+                            <option value="RESOLVED" {% if status == 'RESOLVED' %}selected{% endif %}>Resolved</option>
+                            <option value="CLOSED" {% if status == 'CLOSED' %}selected{% endif %}>Closed</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select name="sort" class="form-select">
+                            <option value="submittedAt" {% if sort == 'submittedAt' %}selected{% endif %}>Sort by Date</option>
+                            <option value="status" {% if sort == 'status' %}selected{% endif %}>Sort by Status</option>
+                            <option value="subject" {% if sort == 'subject' %}selected{% endif %}>Sort by Subject</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select name="order" class="form-select">
+                            <option value="DESC" {% if order == 'DESC' %}selected{% endif %}>Descending</option>
+                            <option value="ASC" {% if order == 'ASC' %}selected{% endif %}>Ascending</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="ti ti-filter"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    All Tickets
+                    {% if total > 0 %}
+                        <span class="badge bg-azure ms-2">{{ total }}</span>
+                    {% endif %}
+                </h3>
+                {% if pages > 1 %}
+                    <div class="card-actions">
+                        <span class="text-muted">Page {{ page }} / {{ pages }}</span>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="card-body">
+                {% if reclamations|length > 0 %}
+                <div class="table-responsive">
+                    <table class="table table-vcenter table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Subject</th>
+                                <th>User</th>
+                                <th>
+                                    🎯 Priorité
+                                </th>
+                                <th>⏱️ SLA</th>
+                                <th>Status</th>
+                                <th>Responses</th>
+                                <th>Submitted</th>
+                                <th style="width:1%;white-space:nowrap">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for reclamation in reclamations %}
+                            <tr {% if reclamation.isLate() %}style="background:#fff5f5"{% endif %}>
+                                <td><strong>#{{ reclamation.id }}</strong></td>
+
+                                <td>
+                                    <a href="{{ path('app_reclamation_show', {'id': reclamation.id}) }}"
+                                       class="text-reset text-decoration-none">
+                                        <div class="text-truncate" style="max-width:250px">
+                                            {% if reclamation.subject == 'payment' %}
+                                                <span class="badge bg-primary me-2">Payment</span>
+                                            {% elseif reclamation.subject == 'technical' %}
+                                                <span class="badge bg-info me-2">Technical</span>
+                                            {% elseif reclamation.subject == 'content' %}
+                                                <span class="badge bg-warning me-2">Content</span>
+                                            {% elseif reclamation.subject == 'premium' %}
+                                                <span class="badge bg-danger me-2">Premium</span>
+                                            {% elseif reclamation.subject == 'account' %}
+                                                <span class="badge bg-success me-2">Account</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary me-2">{{ reclamation.subject }}</span>
+                                            {% endif %}
+                                            {{ reclamation.messageBody|slice(0, 40) }}...
+                                        </div>
+                                    </a>
+                                </td>
+
+                                <td>
+                                    {% if reclamation.user %}
+                                        {{ reclamation.user.email }}
+                                    {% else %}
+                                        <span class="text-muted">Anonymous</span>
+                                    {% endif %}
+                                </td>
+
+                                {# ── COLONNE PRIORITÉ ── #}
+                                <td>
+                                    {% if reclamation.priority == 'URGENT' %}
+                                        <span class="badge bg-red">🔴 URGENT</span>
+                                    {% elseif reclamation.priority == 'HIGH' %}
+                                        <span class="badge bg-orange">🟠 HIGH</span>
+                                    {% elseif reclamation.priority == 'MEDIUM' %}
+                                        <span class="badge bg-blue">🟡 MEDIUM</span>
+                                    {% elseif reclamation.priority == 'LOW' %}
+                                        <span class="badge bg-green">🟢 LOW</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ reclamation.priority }}</span>
+                                    {% endif %}
+                                </td>
+
+                                {# ── COLONNE SLA ── #}
+                                <td>
+                                    {% if reclamation.isLate() %}
+                                        <span class="badge bg-red">
+                                            🚨 EN RETARD
+                                        </span>
+                                    {% elseif reclamation.slaDeadline and reclamation.status in ['PENDING', 'IN_PROGRESS'] %}
+                                        {% set remaining = reclamation.remainingHours %}
+                                        {% if remaining <= 2 %}
+                                            <span class="badge bg-orange" title="SLA deadline: {{ reclamation.slaDeadline|date('d/m H:i') }}">
+                                                ⚠️ {{ remaining }}h restantes
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-teal" title="SLA deadline: {{ reclamation.slaDeadline|date('d/m H:i') }}">
+                                                ✅ {{ remaining }}h restantes
+                                            </span>
+                                        {% endif %}
+                                    {% elseif reclamation.status in ['RESOLVED', 'CLOSED'] %}
+                                        <span class="badge bg-green">✅ Traité</span>
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {% if reclamation.status == 'PENDING' %}
+                                        <span class="badge bg-yellow">Pending</span>
+                                    {% elseif reclamation.status == 'IN_PROGRESS' %}
+                                        <span class="badge bg-blue">In Progress</span>
+                                    {% elseif reclamation.status == 'RESOLVED' %}
+                                        <span class="badge bg-green">Resolved</span>
+                                        {% if reclamation.hasBeenRated() %}
+                                            <br><small class="text-muted">⭐ {{ reclamation.satisfactionScore }}/5</small>
+                                        {% endif %}
+                                    {% elseif reclamation.status == 'CLOSED' %}
+                                        <span class="badge bg-secondary">Closed</span>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    <span class="badge bg-azure-lt">{{ reclamation.responses|length }}</span>
+                                </td>
+
+                                <td>{{ reclamation.submittedAt|date('d/m/Y H:i') }}</td>
+
+                                <td style="white-space:nowrap">
+                                    <a href="{{ path('app_reclamation_show', {'id': reclamation.id}) }}"
+                                       class="btn btn-sm btn-primary">
+                                        <i class="ti ti-eye"></i>
+                                    </a>
+                                    {% if is_granted('ROLE_ADMIN') %}
+                                        <form method="post"
+                                              action="{{ path('app_reclamation_delete', {'id': reclamation.id}) }}"
+                                              class="d-inline">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reclamation.id) }}">
+                                            <button type="submit" class="btn btn-sm btn-danger"
+                                                    onclick="return confirm('Are you sure?')">
+                                                <i class="ti ti-trash"></i>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if pages > 1 %}
+                <div class="d-flex justify-content-center mt-3">
+                    <ul class="pagination">
+                        <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+                            <a class="page-link" href="{{ path('app_reclamation_index', app.request.query.all|merge({'page': page - 1})) }}">
+                                <i class="ti ti-chevron-left"></i>
+                            </a>
+                        </li>
+                        {% for p in 1..pages %}
+                            <li class="page-item {% if p == page %}active{% endif %}">
+                                <a class="page-link" href="{{ path('app_reclamation_index', app.request.query.all|merge({'page': p})) }}">{{ p }}</a>
+                            </li>
+                        {% endfor %}
+                        <li class="page-item {% if page >= pages %}disabled{% endif %}">
+                            <a class="page-link" href="{{ path('app_reclamation_index', app.request.query.all|merge({'page': page + 1})) }}">
+                                <i class="ti ti-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                {% endif %}
+
+                {% else %}
+                <div class="empty">
+                    <div class="empty-icon"><i class="ti ti-ticket-off"></i></div>
+                    <p class="empty-title">No tickets found</p>
+                    <p class="empty-subtitle text-muted">
+                        {% if search or status %}No results for your search.{% else %}No support tickets available.{% endif %}
+                    </p>
+                    <div class="empty-action">
+                        {% if search or status %}
+                            <a href="{{ path('app_reclamation_index') }}" class="btn btn-outline-primary me-2">
+                                <i class="ti ti-arrow-back"></i> Clear filters
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,59 @@
+{#
+   Inclure ce fragment dans ta sidebar front :
+   {{ include('support/front/notifications/_badge.html.twig') }}
+
+   Remplace la ligne 🔔 Notifications dans index.html.twig par :
+   <a href="{{ path('app_user_notifications') }}" class="nav-item">
+       <span class="nav-icon">🔔</span>
+       Notifications
+       {{ include('support/front/notifications/_badge.html.twig') }}
+   </a>
+#}
+
+<span class="notif-badge-wrap" id="notifBadgeWrap" style="margin-left:auto;display:none">
+    <span class="notif-badge" id="notifBadge">0</span>
+</span>
+
+<style>
+.notif-badge-wrap { display: inline-flex; align-items: center; }
+.notif-badge {
+    background: #dc2626;
+    color: #fff;
+    font-size: .6rem;
+    font-weight: 700;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5px;
+    animation: pulse 2s infinite;
+}
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50%       { transform: scale(1.15); }
+}
+</style>
+
+<script>
+// Polling toutes les 30 secondes pour mettre à jour le badge
+async function updateNotifBadge() {
+    try {
+        const res   = await fetch('/support/notifications/unread-count');
+        const data  = await res.json();
+        const badge = document.getElementById('notifBadge');
+        const wrap  = document.getElementById('notifBadgeWrap');
+        if (badge && wrap) {
+            if (data.count > 0) {
+                badge.textContent = data.count > 99 ? '99+' : data.count;
+                wrap.style.display = 'inline-flex';
+            } else {
+                wrap.style.display = 'none';
+            }
+        }
+    } catch(e) {}
+}
+updateNotifBadge();
+setInterval(updateNotifBadge, 30000);
+</script>

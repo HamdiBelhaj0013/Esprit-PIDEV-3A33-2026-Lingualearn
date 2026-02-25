@@ -1,5 +1,4 @@
 <?php
-// src/Module/Support/Service/ReclamationService.php
 
 namespace App\Module\Support\Service;
 
@@ -16,20 +15,31 @@ class ReclamationService
     private EntityManagerInterface $entityManager;
     private ReclamationRepository $reclamationRepository;
     private SupportResponseRepository $responseRepository;
+    private BadWordService $badWordService;
+    private BanService $banService;
 
+    // UN SEUL constructeur
     public function __construct(
-        EntityManagerInterface $entityManager,
-        ReclamationRepository $reclamationRepository,
-        SupportResponseRepository $responseRepository
+        EntityManagerInterface    $entityManager,
+        ReclamationRepository     $reclamationRepository,
+        SupportResponseRepository $responseRepository,
+        BadWordService            $badWordService,
+        BanService                $banService
     ) {
-        $this->entityManager = $entityManager;
+        $this->entityManager         = $entityManager;
         $this->reclamationRepository = $reclamationRepository;
-        $this->responseRepository = $responseRepository;
+        $this->responseRepository    = $responseRepository;
+        $this->badWordService        = $badWordService;
+        $this->banService            = $banService;
     }
 
+    // =========================================================
     // CRUD
+    // =========================================================
     public function create(Reclamation $reclamation): void
     {
+        $reclamation->setSubmittedAt(new \DateTime());
+        $reclamation->setStatus(TicketStatus::PENDING->value);
         $this->entityManager->persist($reclamation);
         $this->entityManager->flush();
     }
@@ -55,40 +65,53 @@ class ReclamationService
         return $this->reclamationRepository->findAll();
     }
 
-    // Méthodes spécifiques
+    // =========================================================
+    // METHODES SPECIFIQUES
+    // =========================================================
     public function getUserReclamations(User $user): array
     {
-        return $this->reclamationRepository->findBy(['user' => $user], ['submittedAt' => 'DESC']);
+        return $this->reclamationRepository->findBy(
+            ['user' => $user],
+            ['submittedAt' => 'DESC']
+        );
     }
 
     public function findByStatus(string $status): array
     {
-        return $this->reclamationRepository->findBy(['status' => $status], ['submittedAt' => 'DESC']);
+        return $this->reclamationRepository->findBy(
+            ['status' => $status],
+            ['submittedAt' => 'DESC']
+        );
     }
 
     public function addResponse(Reclamation $reclamation, SupportResponse $response): void
     {
         $response->setReclamation($reclamation);
         $response->setRespondedAt(new \DateTime());
-        
         $this->entityManager->persist($response);
         $this->entityManager->flush();
     }
 
     public function canModify(Reclamation $reclamation, ?User $user = null): bool
     {
-        // When authentication is disabled, allow modification if the ticket is PENDING
         if ($user === null) {
             return $reclamation->getStatus() === TicketStatus::PENDING->value;
         }
 
-        // If user provided, ensure owner and pending
-        return $reclamation->getUser() && $reclamation->getUser()->getId() === $user->getId()
+        return $reclamation->getUser()
+            && $reclamation->getUser()->getId() === $user->getId()
             && $reclamation->getStatus() === TicketStatus::PENDING->value;
     }
 
-    public function searchPaginated(?string $search, ?string $status, ?User $user, string $sort = 'submittedAt', string $order = 'DESC', int $page = 1, int $limit = 10): array
-    {
+    public function searchPaginated(
+        ?string $search,
+        ?string $status,
+        ?User   $user,
+        string  $sort  = 'submittedAt',
+        string  $order = 'DESC',
+        int     $page  = 1,
+        int     $limit = 10
+    ): array {
         $qb = $this->entityManager->createQueryBuilder();
         $qb->select('r')->from(Reclamation::class, 'r');
 
@@ -129,20 +152,21 @@ class ReclamationService
             'items' => $items,
             'total' => $total,
             'pages' => (int) ceil($total / $limit),
-            'page' => $page,
+            'page'  => $page,
             'limit' => $limit,
         ];
     }
+
     public function getStatistics(): array
     {
         $all = $this->findAll();
-        
+
         return [
-            'total' => count($all),
-            'pending' => count(array_filter($all, fn($r) => $r->getStatus() === TicketStatus::PENDING)),
-            'in_progress' => count(array_filter($all, fn($r) => $r->getStatus() === TicketStatus::IN_PROGRESS)),
-            'resolved' => count(array_filter($all, fn($r) => $r->getStatus() === TicketStatus::RESOLVED)),
-            'closed' => count(array_filter($all, fn($r) => $r->getStatus() === TicketStatus::CLOSED)),
+            'total'       => count($all),
+            'pending'     => count(array_filter($all, fn($r) => $r->getStatus() === TicketStatus::PENDING->value)),
+            'in_progress' => count(array_filter($all, fn($r) => $r->getStatus() === TicketStatus::IN_PROGRESS->value)),
+            'resolved'    => count(array_filter($all, fn($r) => $r->getStatus() === TicketStatus::RESOLVED->value)),
+            'closed'      => count(array_filter($all, fn($r) => $r->getStatus() === TicketStatus::CLOSED->value)),
         ];
     }
 }
