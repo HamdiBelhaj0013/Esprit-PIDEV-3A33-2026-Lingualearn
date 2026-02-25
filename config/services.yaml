@@ -60,19 +60,10 @@ services:
     # STRIPE PAYMENT
     # =========================================================
 
-    # The Stripe SDK client. Autowiring cannot resolve \Stripe\StripeClient
-    # automatically because it is a third-party class with no interface.
-    # We define it explicitly here so it can be injected anywhere that
-    # type-hints \Stripe\StripeClient.
     Stripe\StripeClient:
         arguments:
             - '%env(STRIPE_SECRET_KEY)%'
 
-    # StripeService: needs price IDs from env + the StripeClient above.
-    # The `calls` block resolves the circular dependency with UserService:
-    #   UserService  →  StripeService  (constructor injection — fine)
-    #   StripeService → UserService    (setter injection — done here)
-    # Symfony calls setUserService() automatically after both services are built.
     App\Module\UserManagement\Service\StripeService:
         arguments:
             $priceMonthly: '%env(STRIPE_PRICE_MONTHLY)%'
@@ -85,22 +76,14 @@ services:
             $webhookSecret: '%env(STRIPE_WEBHOOK_SECRET)%'
         tags: ['controller.service_arguments']
 
-    # Security - Admin Access Event Subscriber (prevents unauthorized admin access)
-    # DISABLED - File renamed to .DISABLED
-    # App\EventSubscriber\AdminAccessSubscriber:
-    #     arguments:
-    #         $security: '@security.helper'
-    #         $urlGenerator: '@router'
-    #     tags:
-    #         - { name: kernel.event_subscriber }
+    # =========================================================
+    # INTERNATIONAL TESTS
+    # =========================================================
 
-
-    # Gemini Listening Service
     App\Module\InternationalTests\Service\GeminiListeningService:
         arguments:
             $geminiApiKey: '%env(GEMINI_API_KEY)%'
 
-    # Gemini Writing Service
     App\Module\InternationalTests\Service\GeminiWritingService:
         arguments:
             $geminiApiKey: '%env(GEMINI_API_KEY)%'
@@ -108,6 +91,27 @@ services:
     App\Module\InternationalTests\Service\AssemblyAiService:
         arguments:
             $assemblyAiApiKey: '%env(ASSEMBLYAI_API_KEY)%'
+
     App\Module\InternationalTests\Service\GeminiSpeakingService:
         arguments:
             $geminiApiKey: '%env(GEMINI_API_KEY)%'
+
+    # =========================================================
+    # EXERCISES & QUIZZES - AI
+    # =========================================================
+
+    App\Module\ExercisesQuizzes\Client\HuggingFaceInferenceClient:
+        arguments:
+            $baseUrl: '%env(HUGGINGFACE_API_URL)%'
+            $model: '%env(HUGGINGFACE_MODEL)%'
+            $apiToken: '%env(HUGGINGFACE_API_TOKEN)%'
+
+    App\Module\ExercisesQuizzes\Client\HuggingFaceAiCoachClient:
+        arguments:
+            $baseUrl: '%env(HUGGINGFACE_API_URL)%'
+            $model: '%env(HUGGINGFACE_MODEL)%'
+            $apiToken: '%env(HUGGINGFACE_API_TOKEN)%'
+
+
+    App\Module\ExercisesQuizzes\Client\AiCoachClientInterface:
+        alias: App\Module\ExercisesQuizzes\Client\HuggingFaceAiCoachClient

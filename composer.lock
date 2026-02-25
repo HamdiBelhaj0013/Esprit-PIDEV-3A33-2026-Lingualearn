@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9ec18c165bf351d728737147b700c881",
+    "content-hash": "8ff5d6ca2619bd822b7cff81302af77e",
     "packages": [
         {
             "name": "composer/semver",
@@ -8788,6 +8788,114 @@
                 "source": "https://github.com/webmozarts/assert/tree/2.1.2"
             },
             "time": "2026-01-13T14:02:24+00:00"
+        },
+        {
+            "name": "winzou/state-machine",
+            "version": "0.4.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/winzou/state-machine.git",
+                "reference": "b7ced0a415a07a2368e4f67dffaa600a5773fb86"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/winzou/state-machine/zipball/b7ced0a415a07a2368e4f67dffaa600a5773fb86",
+                "reference": "b7ced0a415a07a2368e4f67dffaa600a5773fb86",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.4|^8.0|^8.1",
+                "symfony/event-dispatcher": "^4.4|^5.4|^6.0|^7.0",
+                "symfony/expression-language": "^4.4|^5.4|^6.0|^7.0",
+                "symfony/property-access": "^4.4|^5.4|^6.0|^7.0"
+            },
+            "require-dev": {
+                "phpspec/phpspec": "^5.0|^6.0|^7.1",
+                "twig/twig": "^2.10|^3.0"
+            },
+            "suggest": {
+                "twig/twig": "Access the state machine in your twig templates (^2.10|^3.0)"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "SM": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Alexandre Bacco",
+                    "email": "alexandre.bacco@gmail.com",
+                    "homepage": "http://alex.bacco.fr"
+                }
+            ],
+            "description": "A very lightweight yet powerful PHP state machine",
+            "homepage": "https://github.com/winzou/StateMachine",
+            "keywords": [
+                "callback",
+                "event",
+                "state",
+                "statemachine"
+            ],
+            "support": {
+                "issues": "https://github.com/winzou/state-machine/issues",
+                "source": "https://github.com/winzou/state-machine/tree/0.4.4"
+            },
+            "time": "2024-01-29T09:14:41+00:00"
+        },
+        {
+            "name": "winzou/state-machine-bundle",
+            "version": "v0.6.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/winzou/StateMachineBundle.git",
+                "reference": "10e8d8750a7a9224dcc8796a4b88a55b4d20d8d6"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/winzou/StateMachineBundle/zipball/10e8d8750a7a9224dcc8796a4b88a55b4d20d8d6",
+                "reference": "10e8d8750a7a9224dcc8796a4b88a55b4d20d8d6",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.4|^8.0|^8.1",
+                "symfony/framework-bundle": "^4.4|^5.4|^6.0|^7.0",
+                "winzou/state-machine": "~0.4"
+            },
+            "require-dev": {
+                "phpspec/phpspec": "^5.0|^6.0|^7.0"
+            },
+            "type": "symfony-bundle",
+            "autoload": {
+                "psr-4": {
+                    "winzou\\Bundle\\StateMachineBundle\\": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Alexandre Bacco",
+                    "homepage": "http://alex.bacco.fr"
+                }
+            ],
+            "description": "Bundle for the very lightweight yet powerful PHP state machine",
+            "keywords": [
+                "bundle",
+                "statemachine",
+                "symfony"
+            ],
+            "support": {
+                "issues": "https://github.com/winzou/StateMachineBundle/issues",
+                "source": "https://github.com/winzou/StateMachineBundle/tree/v0.6.3"
+            },
+            "time": "2025-09-08T08:20:46+00:00"
         }
     ],
     "packages-dev": [

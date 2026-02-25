@@ -2,16 +2,6 @@
 
 namespace App\Module\ExercisesQuizzes\Controller;
 
-<<<<<<< Updated upstream
-use App\Module\ExercisesQuizzes\Entity\Exercice;
-use App\Module\ExercisesQuizzes\Entity\Quiz;
-use App\Module\ExercisesQuizzes\Entity\UserLessonStatus;
-use App\Module\ExercisesQuizzes\Repository\ExerciceRepository;
-use App\Module\ExercisesQuizzes\Repository\QuizRepository;
-use App\Module\ExercisesQuizzes\Repository\UserLessonStatusRepository;
-use App\Module\PedagogicalContent\Entity\Lesson;
-use Doctrine\ORM\EntityManagerInterface;
-=======
 use App\Module\ExercisesQuizzes\Entity\ExerciseAttempt;
 use App\Module\ExercisesQuizzes\Entity\Exercice;
 use App\Module\ExercisesQuizzes\Entity\QuizAttempt;
@@ -26,7 +16,6 @@ use App\Module\ExercisesQuizzes\Service\SecondChanceService;
 use App\Module\PedagogicalContent\Entity\Lesson;
 use Doctrine\ORM\EntityManagerInterface;
 use SM\Factory\FactoryInterface as StateMachineFactoryInterface;
->>>>>>> Stashed changes
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -34,40 +23,19 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 /**
-<<<<<<< Updated upstream
- * Contrôleur front : jouer un quiz lié à une leçon (sans modifier les autres modules).
-=======
  * Front : jouer un quiz lié à une leçon.
->>>>>>> Stashed changes
  */
 #[IsGranted('ROLE_USER')]
 #[Route('/learn/lesson/{id}/quiz', name: 'learn_lesson_quiz_', requirements: ['id' => '\d+'])]
 class UserQuizController extends AbstractController
 {
     private const SESSION_QUIZ_RESULT = 'learn_quiz_result_';
-<<<<<<< Updated upstream
-=======
     private const GRAPH_QUIZ_ATTEMPT = 'quiz_attempt';
->>>>>>> Stashed changes
 
     public function __construct(
         private QuizRepository $quizRepository,
         private ExerciceRepository $exerciceRepository,
         private UserLessonStatusRepository $userLessonStatusRepository,
-<<<<<<< Updated upstream
-        private EntityManagerInterface $em,
-    ) {}
-
-    /**
-     * Affiche le quiz de la leçon (formulaire des exercices).
-     */
-    #[Route('', name: 'play', methods: ['GET'])]
-    public function play(Lesson $lesson): Response
-    {
-        $user = $this->getUser();
-
-        $quiz = $this->quizRepository->findOneByLessonAndEnabled($lesson);
-=======
         private QuizAttemptRepository $quizAttemptRepository,
         private ExerciseAiFeedbackRepository $aiFeedbackRepository,
         private EntityManagerInterface $em,
@@ -90,7 +58,6 @@ class UserQuizController extends AbstractController
             $quiz = $this->quizRepository->findOneByLessonAndEnabled($lesson);
         }
 
->>>>>>> Stashed changes
         if (!$quiz) {
             $this->addFlash('warning', 'Aucun quiz disponible pour cette leçon.');
             return $this->redirectToRoute('learn_practice');
@@ -114,12 +81,6 @@ class UserQuizController extends AbstractController
         ]);
     }
 
-<<<<<<< Updated upstream
-    /**
-     * Soumet les réponses, calcule le score, met à jour UserLessonStatus, redirige vers la page résultat.
-     */
-=======
->>>>>>> Stashed changes
     #[Route('/submit', name: 'submit', methods: ['POST'])]
     public function submit(Request $request, Lesson $lesson): Response
     {
@@ -127,15 +88,11 @@ class UserQuizController extends AbstractController
 
         if (!$this->isCsrfTokenValid('learn_quiz_submit', $request->request->get('_csrf_token'))) {
             $this->addFlash('danger', 'Token de sécurité invalide.');
-<<<<<<< Updated upstream
-            return $this->redirectToRoute('learn_lesson_quiz_play', ['id' => $lesson->getId()]);
-=======
             $params = ['id' => $lesson->getId()];
             if ($request->request->getInt('_quiz_id', 0) > 0) {
                 $params['quiz'] = $request->request->get('_quiz_id');
             }
             return $this->redirectToRoute('learn_lesson_quiz_play', $params);
->>>>>>> Stashed changes
         }
 
         $quiz = $this->quizRepository->findOneByLessonAndEnabled($lesson);
@@ -144,8 +101,6 @@ class UserQuizController extends AbstractController
             return $this->redirectToRoute('learn_practice');
         }
 
-<<<<<<< Updated upstream
-=======
         $quizId = $request->request->getInt('_quiz_id', 0);
         if ($quizId > 0) {
             $quizByRequest = $this->quizRepository->find($quizId);
@@ -154,7 +109,6 @@ class UserQuizController extends AbstractController
             }
         }
 
->>>>>>> Stashed changes
         $exercices = $this->exerciceRepository->findEnabledByQuiz($quiz);
         if (empty($exercices)) {
             $this->addFlash('warning', 'Ce quiz n\'a pas d\'exercices activés.');
@@ -162,9 +116,6 @@ class UserQuizController extends AbstractController
         }
 
         $answers = $request->request->all('answers') ?? [];
-<<<<<<< Updated upstream
-        $correct = 0;
-=======
         $total = count($exercices);
         $correct = 0;
 
@@ -176,21 +127,11 @@ class UserQuizController extends AbstractController
         $attempt->setState(QuizAttempt::STATE_IN_PROGRESS);
         $this->em->persist($attempt);
 
->>>>>>> Stashed changes
         foreach ($exercices as $exercice) {
             $userAnswer = $answers[$exercice->getId()] ?? '';
             $normalizedUser = Exercice::normalizeOption((string) $userAnswer);
             $normalizedCorrect = Exercice::normalizeOption((string) $exercice->getCorrectAnswer());
-<<<<<<< Updated upstream
-            if ($normalizedUser !== '' && $normalizedUser === $normalizedCorrect) {
-                $correct++;
-            }
-        }
 
-        $total = count($exercices);
-        $score = $total > 0 ? (int) round(($correct / $total) * 100) : 0;
-        $passed = $score >= $quiz->getPassingScore();
-=======
             $isCorrect = $normalizedUser !== '' && $normalizedUser === $normalizedCorrect;
             if ($isCorrect) {
                 $correct++;
@@ -220,7 +161,6 @@ class UserQuizController extends AbstractController
             $sm->apply('unlock_second');
         }
         $this->em->flush();
->>>>>>> Stashed changes
 
         $status = $this->userLessonStatusRepository->findOneBy(['user' => $user, 'lesson' => $lesson]);
         if (!$status) {
@@ -229,14 +169,6 @@ class UserQuizController extends AbstractController
             $status->setLesson($lesson);
             $this->em->persist($status);
         }
-<<<<<<< Updated upstream
-        $status->setLastQuizScore($score);
-        if ($score > $status->getBestQuizScore()) {
-            $status->setBestQuizScore($score);
-        }
-        $this->em->flush();
-
-=======
         if (method_exists($status, 'setLastQuizScore')) {
             $status->setLastQuizScore($score);
         }
@@ -247,45 +179,27 @@ class UserQuizController extends AbstractController
 
         $this->quizPlanningService->markDoneForUserAndQuiz($user, $quiz);
 
->>>>>>> Stashed changes
         $request->getSession()->set(self::SESSION_QUIZ_RESULT . $lesson->getId(), [
             'score' => $score,
             'correct' => $correct,
             'total' => $total,
             'passed' => $passed,
             'passingScore' => $quiz->getPassingScore(),
-<<<<<<< Updated upstream
-=======
             'attemptId' => $attempt->getId(),
->>>>>>> Stashed changes
         ]);
 
         return $this->redirectToRoute('learn_lesson_quiz_result', ['id' => $lesson->getId()]);
     }
 
-<<<<<<< Updated upstream
-    /**
-     * Affiche le résultat du quiz (données en session).
-     */
     #[Route('/result', name: 'result', methods: ['GET'])]
     public function result(Request $request, Lesson $lesson): Response
     {
-        $user = $this->getUser();
-
-=======
-    #[Route('/result', name: 'result', methods: ['GET'])]
-    public function result(Request $request, Lesson $lesson): Response
-    {
->>>>>>> Stashed changes
         $key = self::SESSION_QUIZ_RESULT . $lesson->getId();
         $result = $request->getSession()->get($key);
         if (!$result) {
             $this->addFlash('info', 'Aucun résultat de quiz enregistré.');
             return $this->redirectToRoute('learn_practice');
         }
-<<<<<<< Updated upstream
-        $request->getSession()->remove($key);
-=======
         // Ne pas supprimer la clé de session pour permettre le rechargement (feedback IA en cache)
         $attempt = null;
         $wrongExerciseAttempts = [];
@@ -301,7 +215,6 @@ class UserQuizController extends AbstractController
                 $aiFeedbackByExerciseId = $this->aiFeedbackRepository->findByUserAndAttempt($this->getUser(), $attempt);
             }
         }
->>>>>>> Stashed changes
 
         $course = $lesson->getCourse();
         $language = $course->getPlatformLanguage();
@@ -311,23 +224,6 @@ class UserQuizController extends AbstractController
             'course' => $course,
             'language' => $language,
             'result' => $result,
-<<<<<<< Updated upstream
-        ]);
-    }
-
-    private function isEnrolledInLesson(object $user, Lesson $lesson): bool
-    {
-        $course = $lesson->getCourse();
-        $platformLanguage = $course->getPlatformLanguage();
-        foreach ($user->getUserLanguages() as $ul) {
-            if ($ul->getPlatformLanguage()->getId() === $platformLanguage->getId()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-=======
             'attempt' => $attempt,
             'wrongExerciseAttempts' => $wrongExerciseAttempts,
             'aiFeedbackByExerciseId' => $aiFeedbackByExerciseId,
@@ -441,5 +337,4 @@ class UserQuizController extends AbstractController
 
         return $this->redirectToRoute('learn_lesson_quiz_result', ['id' => $lesson->getId()]);
     }
->>>>>>> Stashed changes
 }

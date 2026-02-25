@@ -1521,6 +1521,55 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     script_attributes?: array<string, scalar|Param|null>,
  *     link_attributes?: array<string, scalar|Param|null>,
  * }
+ * @psalm-type WinzouStateMachineConfig = array<string, array{ // Default: []
+ *         class: scalar|Param|null,
+ *         graph?: scalar|Param|null, // Default: "default"
+ *         property_path?: scalar|Param|null, // Default: "state"
+ *         state_machine_class?: scalar|Param|null, // Default: "SM\\StateMachine\\StateMachine"
+ *         states?: array<string, scalar|Param|null>,
+ *         transitions?: array<string, array{ // Default: []
+ *             from?: list<scalar|Param|null>,
+ *             to?: scalar|Param|null,
+ *         }>,
+ *         callbacks?: array{
+ *             guard?: array<string, array{ // Default: []
+ *                 on?: mixed,
+ *                 from?: mixed,
+ *                 to?: mixed,
+ *                 excluded_on?: mixed,
+ *                 excluded_from?: mixed,
+ *                 excluded_to?: mixed,
+ *                 do?: mixed,
+ *                 disabled?: scalar|Param|null, // Default: false
+ *                 priority?: scalar|Param|null, // Default: 0
+ *                 args?: list<scalar|Param|null>,
+ *             }>,
+ *             before?: array<string, array{ // Default: []
+ *                 on?: mixed,
+ *                 from?: mixed,
+ *                 to?: mixed,
+ *                 excluded_on?: mixed,
+ *                 excluded_from?: mixed,
+ *                 excluded_to?: mixed,
+ *                 do?: mixed,
+ *                 disabled?: scalar|Param|null, // Default: false
+ *                 priority?: scalar|Param|null, // Default: 0
+ *                 args?: list<scalar|Param|null>,
+ *             }>,
+ *             after?: array<string, array{ // Default: []
+ *                 on?: mixed,
+ *                 from?: mixed,
+ *                 to?: mixed,
+ *                 excluded_on?: mixed,
+ *                 excluded_from?: mixed,
+ *                 excluded_to?: mixed,
+ *                 do?: mixed,
+ *                 disabled?: scalar|Param|null, // Default: false
+ *                 priority?: scalar|Param|null, // Default: 0
+ *                 args?: list<scalar|Param|null>,
+ *             }>,
+ *         },
+ *     }>
  * @psalm-type ConfigType = array{
  *     imports?: ImportsConfig,
  *     parameters?: ParametersConfig,
@@ -1535,6 +1584,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     security?: SecurityConfig,
  *     monolog?: MonologConfig,
  *     webpack_encore?: WebpackEncoreConfig,
+ *     winzou_state_machine?: WinzouStateMachineConfig,
  *     "when@dev"?: array{
  *         imports?: ImportsConfig,
  *         parameters?: ParametersConfig,
@@ -1552,6 +1602,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         monolog?: MonologConfig,
  *         maker?: MakerConfig,
  *         webpack_encore?: WebpackEncoreConfig,
+ *         winzou_state_machine?: WinzouStateMachineConfig,
  *     },
  *     "when@prod"?: array{
  *         imports?: ImportsConfig,
@@ -1567,6 +1618,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         security?: SecurityConfig,
  *         monolog?: MonologConfig,
  *         webpack_encore?: WebpackEncoreConfig,
+ *         winzou_state_machine?: WinzouStateMachineConfig,
  *     },
  *     "when@test"?: array{
  *         imports?: ImportsConfig,
@@ -1583,6 +1635,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         security?: SecurityConfig,
  *         monolog?: MonologConfig,
  *         webpack_encore?: WebpackEncoreConfig,
+ *         winzou_state_machine?: WinzouStateMachineConfig,
  *     },
  *     ...<string, ExtensionType|array{ // extra keys must follow the when@%env% pattern or match an extension alias
  *         imports?: ImportsConfig,
