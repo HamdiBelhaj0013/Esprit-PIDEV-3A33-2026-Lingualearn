@@ -115,3 +115,11 @@ services:
 
     App\Module\ExercisesQuizzes\Client\AiCoachClientInterface:
         alias: App\Module\ExercisesQuizzes\Client\HuggingFaceAiCoachClient
+
+    
+    App\Service\NotificationService:
+        arguments:
+            $appId: '%env(PUSHER_APP_ID)%'
+            $key: '%env(PUSHER_APP_KEY)%'
+            $secret: '%env(PUSHER_APP_SECRET)%'
+            $cluster: '%env(PUSHER_APP_CLUSTER)%'

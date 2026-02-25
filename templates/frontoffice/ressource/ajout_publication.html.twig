@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajouter Publication - LinguaLearn</title>
+
+    <!-- Bootstrap & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --white:     #ffffff;
+            --off-white: #f7f9fc;
+            --surface:   #eef1f8;
+            --ink:       #0d1526;
+            --ink-soft:  #2c3a52;
+            --muted:     #7a87a0;
+            --border:    #e2e8f2;
+
+            --blue:      #2563eb;
+            --blue-dark: #1d4ed8;
+            --blue-bg:   #eff6ff;
+
+            --radius:    12px;
+            --radius-lg: 20px;
+            --radius-xl: 28px;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Sora', sans-serif;
+            min-height: 100vh;
+            background: #f8fafc;
+            margin: 0;
+            padding-top: 70px;
+        }
+
+        /* ─── NAV STYLE DU DESIGN FOURNI ─── */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 1.1rem 5vw;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.3s, box-shadow 0.3s;
+            background: rgba(255,255,255,.95);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 1px 0 var(--border);
+        }
+
+        .nav-logo {
+            font-family: 'Fraunces', serif;
+            font-size: 1.4rem;
+            font-weight: 400;
+            color: var(--ink);
+            text-decoration: none;
+            letter-spacing: -.01em;
+        }
+
+        .nav-logo span {
+            color: var(--blue);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            font-size: .82rem;
+            font-weight: 500;
+            color: var(--muted);
+            text-decoration: none;
+            letter-spacing: .01em;
+            transition: color .2s;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--ink);
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: .6rem;
+            align-items: center;
+        }
+
+        .btn-ghost {
+            padding: .48rem 1.25rem;
+            border-radius: 100px;
+            border: 1.5px solid var(--border);
+            background: transparent;
+            color: var(--ink-soft);
+            font-family: 'Sora', sans-serif;
+            font-size: .79rem;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: border-color .2s, color .2s, background .2s;
+            display: inline-block;
+        }
+
+        .btn-ghost:hover {
+            border-color: var(--blue);
+            color: var(--blue);
+            background: var(--blue-bg);
+        }
+
+        .btn-primary {
+            padding: .52rem 1.35rem;
+            border-radius: 100px;
+            background: var(--blue);
+            border: none;
+            color: var(--white);
+            font-family: 'Sora', sans-serif;
+            font-size: .79rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background .2s, transform .2s, box-shadow .2s;
+            display: inline-block;
+        }
+
+        .btn-primary:hover {
+            background: var(--blue-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(37,99,235,.28);
+        }
+
+        /* User info quand connecté */
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--ink);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--blue), #7c3aed);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .logout-btn {
+            color: var(--muted);
+            font-size: 1rem;
+            transition: color 0.2s;
+        }
+
+        .logout-btn:hover {
+            color: #ef4444;
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .hamburger span {
+            width: 22px;
+            height: 2px;
+            background: var(--ink);
+            display: block;
+            border-radius: 2px;
+        }
+
+        /* ─── MOBILE MENU ─── */
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(255,255,255,.98);
+            backdrop-filter: blur(20px);
+            z-index: 2000;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.75rem;
+        }
+
+        .mobile-menu.open {
+            display: flex;
+        }
+
+        .mobile-menu a {
+            font-family: 'Fraunces', serif;
+            font-size: 2rem;
+            font-weight: 300;
+            color: var(--ink);
+            text-decoration: none;
+            transition: color .2s;
+        }
+
+        .mobile-menu a:hover {
+            color: var(--blue);
+        }
+
+        .mobile-close {
+            position: absolute;
+            top: 1.5rem;
+            right: 2rem;
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 1.4rem;
+            cursor: pointer;
+        }
+
+        .mobile-actions {
+            display: flex;
+            gap: .75rem;
+            margin-top: 1rem;
+        }
+
+        /* Formulaire d'ajout */
+        .add-post-container {
+            max-width: 680px;
+            margin: 20px auto 40px;
+            padding: 0 20px;
+        }
+
+        .add-post-card {
+            background: white;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+        }
+
+        .add-post-card h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--ink);
+            margin-bottom: 8px;
+        }
+
+        .add-post-card .subtitle {
+            color: var(--muted);
+            font-size: 0.95rem;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 1.5px solid var(--border);
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--ink);
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+        }
+
+        .form-control {
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            padding: 12px 16px;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            font-family: 'Sora', sans-serif;
+        }
+
+        .form-control:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+            outline: none;
+        }
+
+        .form-control-lg {
+            padding: 14px 18px;
+            font-size: 1rem;
+        }
+
+        /* Boutons d'action */
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin: 24px 0;
+            flex-wrap: wrap;
+        }
+
+        .btn-ai {
+            background: white;
+            border: 1.5px solid var(--border);
+            border-radius: 100px;
+            padding: 12px 24px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            color: var(--ink);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            cursor: pointer;
+            font-family: 'Sora', sans-serif;
+        }
+
+        .btn-ai:hover {
+            border-color: var(--blue);
+            background: var(--blue-bg);
+            color: var(--blue);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37,99,235,0.1);
+        }
+
+        .btn-ai i {
+            color: var(--blue);
+        }
+
+        .btn-ai-warning {
+            border-color: #f97316;
+        }
+
+        .btn-ai-warning i {
+            color: #f97316;
+        }
+
+        .btn-ai-warning:hover {
+            border-color: #f97316;
+            color: #f97316;
+        }
+
+        /* Prévisualisation image */
+        .preview-container {
+            border: 2px dashed var(--blue);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            background: var(--blue-bg);
+            margin: 24px 0;
+            text-align: center;
+        }
+
+        .preview-img {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: var(--radius);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .preview-success {
+            color: #059669;
+            font-size: 0.9rem;
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        /* Upload manuel */
+        .upload-manual {
+            margin: 24px 0;
+            padding: 20px;
+            background: var(--off-white);
+            border-radius: var(--radius);
+            border: 1.5px solid var(--border);
+        }
+
+        .upload-manual small {
+            color: var(--muted);
+            display: block;
+            margin-top: 8px;
+        }
+
+        /* Bouton publier - TAILLE AJUSTÉE */
+        .btn-publish {
+            background: var(--blue);
+            color: white;
+            border: none;
+            border-radius: 100px;
+            padding: 14px 32px;
+            font-weight: 600;
+            font-size: 1rem;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.2s;
+            cursor: pointer;
+            font-family: 'Sora', sans-serif;
+        }
+
+        .btn-publish:hover {
+            background: var(--blue-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(37,99,235,0.3);
+        }
+
+        .btn-publish:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Alertes */
+        .alert-toast {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: white;
+            border-left: 4px solid var(--blue);
+            border-radius: 8px;
+            padding: 16px 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+            max-width: 350px;
+        }
+
+        .alert-toast.error {
+            border-left-color: #ef4444;
+        }
+
+        .alert-toast.success {
+            border-left-color: #10b981;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links, .nav-actions {
+                display: none;
+            }
+            .hamburger {
+                display: flex;
+            }
+            
+            .add-post-card {
+                padding: 20px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .btn-ai {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar du design fourni avec logique de connexion -->
+    <nav class="nav" id="navbar">
+        <a href="{{ path('user_dashboard') }}" class="nav-logo">Lingua<span>Learn</span></a>
+        <ul class="nav-links">
+            <li><a href="{{ path('user_dashboard') }}">Home</a></li>
+            <li><a href="{{ path('ressources') }}" class="active">Ressources</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#about">About</a></li>
+        </ul>
+        <div class="nav-actions">
+            {% if app.user %}
+                {# Utilisateur connecté - afficher l'email avec getEmailU #}
+                <div class="user-info">
+                    <div class="user-avatar">
+                        {{ app.user.email|first|upper }}
+                    </div>
+                    <span>{{ app.user.email }}</span>
+                    <a href="{{ path('app_logout') }}" class="logout-btn" title="Déconnexion">
+                        <i class="bi bi-box-arrow-right"></i>
+                    </a>
+                </div>
+            {% else %}
+                {# Utilisateur non connecté - afficher boutons de connexion #}
+                <a href="{{ path('app_login') }}" class="btn-ghost">Log In</a>
+                <a href="{{ path('app_register') }}" class="btn-primary">Sign Up</a>
+            {% endif %}
+        </div>
+        <button class="hamburger" id="hamburger" aria-label="Open menu">
+            <span></span><span></span><span></span>
+        </button>
+    </nav>
+
+    <!-- Mobile Menu avec la même logique -->
+    <div class="mobile-menu" id="mobileMenu">
+        <button class="mobile-close" id="mobileClose">✕</button>
+        <a href="{{ path('user_dashboard') }}" class="mobile-link">Home</a>
+        <a href="{{ path('ressources') }}" class="mobile-link">Ressources</a>
+        <a href="#features" class="mobile-link">Features</a>
+        <a href="#about" class="mobile-link">About</a>
+        <div class="mobile-actions">
+            {% if app.user %}
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                    <span style="color: var(--ink); font-size: 1rem;">{{ app.user.email }}</span>
+                    <a href="{{ path('app_logout') }}" class="btn-ghost" style="color: #ef4444; border-color: #ef4444;">
+                        <i class="bi bi-box-arrow-right"></i> Déconnexion
+                    </a>
+                </div>
+            {% else %}
+                <a href="{{ path('app_login') }}" class="btn-ghost">Log In</a>
+                <a href="{{ path('app_register') }}" class="btn-primary">Sign Up</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Notifications Toast -->
+    <div id="notification-toast" style="display: none;"></div>
+
+    {% for message in app.flashes('error') %}
+        <script>
+            showNotification("{{ message|e('js') }}", 'error');
+        </script>
+    {% endfor %}
+
+    {% for message in app.flashes('success') %}
+        <script>
+            showNotification("{{ message|e('js') }}", 'success');
+        </script>
+    {% endfor %}
+
+    <!-- Formulaire d'ajout -->
+    <main class="add-post-container">
+        <div class="add-post-card">
+            <h2>Ajouter une publication</h2>
+            <p class="subtitle">Partage ton savoir avec la communauté LinguLearn</p>
+
+            <form action="{{ path('traitement_publication') }}" method="POST" enctype="multipart/form-data" id="publication-form">
+                
+                <!-- Titre -->
+                <div class="mb-4">
+                    <label class="form-label">Titre de la publication</label>
+                    <input type="text" 
+                           name="titre" 
+                           class="form-control form-control-lg" 
+                           placeholder="Ex: Comment apprendre une langue rapidement ?"
+                           required
+                           minlength="5"
+                           id="titre-input">
+                    <small class="text-muted mt-1">Minimum 5 caractères</small>
+                </div>
+
+                <!-- Contenu -->
+                <div class="mb-4">
+                    <label class="form-label">Contenu</label>
+                    <textarea name="contenu" 
+                              rows="6" 
+                              class="form-control form-control-lg" 
+                              placeholder="Décris ton sujet en détail..."
+                              required
+                              minlength="10"
+                              id="contenu-input"></textarea>
+                    <small class="text-muted mt-1">Minimum 10 caractères</small>
+                </div>
+
+                <!-- Boutons IA -->
+                <div class="action-buttons">
+                    <button type="button" id="ameliorer-btn" class="btn-ai">
+                        <i class="bi bi-lightning-fill"></i>
+                        Améliorer avec l'IA
+                    </button>
+
+                    <button type="button" id="image-ai-btn" class="btn-ai btn-ai-warning">
+                        <i class="bi bi-stars"></i>
+                        Générer une image IA
+                    </button>
+                </div>
+
+                <!-- Prévisualisation image IA -->
+                <div id="container-preview" class="preview-container" style="display:none;">
+                    <img id="preview-ai-image" src="" class="preview-img" alt="Image générée par IA">
+                    <div class="preview-success">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Image générée avec succès</span>
+                    </div>
+                </div>
+
+                <input type="hidden" name="media_ai_filename" id="media-ai-filename">
+
+                <!-- Upload manuel -->
+                <div class="upload-manual">
+                    <label class="form-label">Ou télécharger une image manuellement</label>
+                    <input type="file" id="file-input" name="media" class="form-control" accept="image/jpeg,image/png">
+                    <small>Formats acceptés : JPG, PNG • Taille max : 2 Mo</small>
+                </div>
+
+                <!-- Bouton publier -->
+                <div class="mt-5">
+                    <button type="submit" class="btn-publish" id="publish-btn">
+                        <i class="bi bi-send-fill"></i>
+                        Publier la publication
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // === MOBILE MENU ===
+        document.getElementById('hamburger').addEventListener('click', () =>
+            document.getElementById('mobileMenu').classList.add('open')
+        );
+        document.getElementById('mobileClose').addEventListener('click', () =>
+            document.getElementById('mobileMenu').classList.remove('open')
+        );
+        document.querySelectorAll('.mobile-link').forEach(l =>
+            l.addEventListener('click', () => document.getElementById('mobileMenu').classList.remove('open'))
+        );
+
+        // Nav scroll state
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            navbar.classList.toggle('scrolled', window.scrollY > 50);
+        }, { passive: true });
+
+        // === FONCTION DE NOTIFICATION ===
+        function showNotification(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `alert-toast ${type}`;
+            toast.innerHTML = `
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi ${type === 'error' ? 'bi-exclamation-triangle-fill' : type === 'success' ? 'bi-check-circle-fill' : 'bi-info-circle-fill'}"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideIn 0.3s reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+        }
+
+        // === AMÉLIORATION IA ===
+        document.getElementById('ameliorer-btn').addEventListener('click', function() {
+            const titre = document.querySelector('input[name="titre"]').value;
+            const contenu = document.querySelector('textarea[name="contenu"]').value;
+
+            if (!titre && !contenu) {
+                showNotification("Veuillez saisir le titre ou le contenu avant d'améliorer !", 'error');
+                return;
+            }
+
+            const btn = this;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Amélioration...';
+            btn.disabled = true;
+
+            fetch("{{ path('ameliorer_publication') }}", {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: new URLSearchParams({
+                    titre: titre,
+                    contenu: contenu
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    showNotification(data.error, 'error');
+                    return;
+                }
+
+                if (data.titre) document.querySelector('input[name="titre"]').value = data.titre;
+                if (data.contenu) document.querySelector('textarea[name="contenu"]').value = data.contenu;
+                
+                showNotification('Publication améliorée avec succès !', 'success');
+            })
+            .catch(err => {
+                console.error(err);
+                showNotification("Erreur lors de l'appel à l'IA.", 'error');
+            })
+            .finally(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
+        });
+
+        // === GÉNÉRATION IMAGE IA ===
+        document.getElementById('image-ai-btn').addEventListener('click', function() {
+            const titre = document.querySelector('input[name="titre"]').value;
+            const contenu = document.querySelector('textarea[name="contenu"]').value;
+
+            if (!titre) {
+                showNotification("Saisissez au moins un titre pour générer une image !", 'error');
+                return;
+            }
+
+            const btn = this;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Génération...';
+            btn.disabled = true;
+
+            fetch("{{ path('generer_image_ai') }}", {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ titre: titre, contenu: contenu })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.image_url) {
+                    document.getElementById('container-preview').style.display = "block";
+                    document.getElementById('preview-ai-image').src = window.location.origin + data.image_url;
+
+                    const filename = data.image_url.split('/').pop();
+                    document.getElementById('media-ai-filename').value = filename;
+
+                    // Vider l'input file
+                    document.getElementById('file-input').value = "";
+                    
+                    showNotification('Image générée avec succès !', 'success');
+                } else {
+                    showNotification(data.error || "Erreur génération image.", 'error');
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                showNotification("Erreur serveur IA.", 'error');
+            })
+            .finally(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
+        });
+
+        // === VALIDATION FORMULAIRE ===
+        document.getElementById('publication-form').addEventListener('submit', function(e) {
+            const titre = document.querySelector('input[name="titre"]').value.trim();
+            const contenu = document.querySelector('textarea[name="contenu"]').value.trim();
+            const media = document.querySelector('input[name="media"]').files[0];
+            const mediaAI = document.getElementById('media-ai-filename').value;
+
+            // Validation titre
+            if (titre.length < 5) {
+                showNotification("Le titre doit contenir au moins 5 caractères !", 'error');
+                e.preventDefault();
+                return;
+            }
+
+            // Validation contenu
+            if (contenu.length < 10) {
+                showNotification("Le contenu doit contenir au moins 10 caractères !", 'error');
+                e.preventDefault();
+                return;
+            }
+
+            // Validation fichier si upload manuel
+            if (media) {
+                const allowedTypes = ['image/jpeg', 'image/png'];
+                if (!allowedTypes.includes(media.type)) {
+                    showNotification("Format d’image invalide (jpg, png uniquement).", 'error');
+                    e.preventDefault();
+                    return;
+                }
+                if (media.size > 2 * 1024 * 1024) {
+                    showNotification("L’image ne doit pas dépasser 2 Mo.", 'error');
+                    e.preventDefault();
+                    return;
+                }
+            }
+
+            // Vérifier qu'il y a une image (soit upload, soit IA)
+            if (!media && !mediaAI) {
+                showNotification("Vous devez ajouter une image ou générer une image IA !", 'error');
+                e.preventDefault();
+                return;
+            }
+
+            // Désactiver le bouton pendant l'envoi
+            const publishBtn = document.getElementById('publish-btn');
+            publishBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Publication en cours...';
+            publishBtn.disabled = true;
+        });
+
+        // Prévisualisation fichier
+        document.getElementById('file-input').addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                // Si un fichier est sélectionné, on cache la preview IA
+                document.getElementById('container-preview').style.display = 'none';
+                document.getElementById('media-ai-filename').value = '';
+            }
+        });
+
+        // Compteurs de caractères
+        document.getElementById('titre-input').addEventListener('input', function() {
+            const length = this.value.length;
+            const small = this.nextElementSibling;
+            if (length < 5) {
+                small.style.color = '#ef4444';
+            } else {
+                small.style.color = 'var(--muted)';
+            }
+        });
+
+        document.getElementById('contenu-input').addEventListener('input', function() {
+            const length = this.value.length;
+            const small = this.nextElementSibling;
+            if (length < 10) {
+                small.style.color = '#ef4444';
+            } else {
+                small.style.color = 'var(--muted)';
+            }
+        });
+    </script>
+
+</body>
+</html>

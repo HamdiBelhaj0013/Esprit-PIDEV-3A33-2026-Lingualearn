@@ -1,0 +1,304 @@
+<div class="post" data-publication-id="{{ pub.id }}">
+    <!-- En-tête -->
+    <div class="post-header">
+        <div class="post-author">
+            <div class="avatar">
+                <i class="bi bi-person"></i>
+            </div>
+            <div class="author-details">
+                <h4>Membre LinguLearn</h4>
+                <div class="post-time">
+                    {{ pub.datePub|date('d/m/Y H:i') }}
+                </div>
+            </div>
+        </div>
+
+        <div class="post-actions">
+            <a href="{{ path('modifier_publication', {'id': pub.id}) }}" title="Modifier">
+                <i class="bi bi-pencil"></i>
+            </a>
+
+            <form method="post" action="{{ path('supprimer_publication', {id: pub.id}) }}"
+                  onsubmit="return confirm('Supprimer cette publication ?');" style="display:inline;">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ pub.id) }}">
+                <button type="submit" title="Supprimer">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </form>
+
+            <button onclick="signalPublication({{ pub.id }})" title="Signaler">
+                <i class="bi bi-flag"></i>
+                <span id="report-count-{{ pub.id }}">{{ pub.reportPub ?: 0 }}</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Image -->
+    {% if pub.lienPub %}
+        <img src="{{ asset('uploads/' ~ pub.lienPub) }}" class="post-image" alt="{{ pub.titrePub }}">
+    {% endif %}
+
+    <!-- Contenu -->
+    <div class="post-content {{ pub.floue > 0 ? 'blurred' : '' }}">
+        <div class="post-title" id="pub-titre-{{ pub.id }}">{{ pub.titrePub }}</div>
+        <div class="post-text" id="pub-contenu-{{ pub.id }}">{{ pub.contenuPub }}</div>
+
+        {# ======= BOUTONS TRADUCTION PUBLICATION ======= #}
+        <div class="traduction-bar" style="margin-top: 10px;">
+            <span style="font-size:13px; font-weight:600; color:#555;">
+                <i class="bi bi-translate"></i> Traduire :
+            </span>
+            <button class="btn-lang" onclick="traduirePublication({{ pub.id }}, 'en', this)">🇬🇧 EN</button>
+            <button class="btn-lang" onclick="traduirePublication({{ pub.id }}, 'ar', this)">🇸🇦 AR</button>
+            <button class="btn-lang" onclick="traduirePublication({{ pub.id }}, 'es', this)">🇪🇸 ES</button>
+            <button class="btn-lang" onclick="traduirePublication({{ pub.id }}, 'de', this)">🇩🇪 DE</button>
+            <button class="btn-lang" onclick="traduirePublication({{ pub.id }}, 'it', this)">🇮🇹 IT</button>
+            <button class="btn-original" onclick="resetPublication({{ pub.id }})">🔄 Original</button>
+        </div>
+
+        {# Zone traduction publication #}
+        <div id="traduction-pub-{{ pub.id }}" class="traduction-result" style="display:none;">
+            <div id="titre-traduit-{{ pub.id }}" class="traduction-titre"></div>
+            <div id="contenu-traduit-{{ pub.id }}" class="traduction-contenu"></div>
+        </div>
+        {# ============================================= #}
+    </div>
+
+    <!-- Stats -->
+    <div class="post-stats">
+        <span><i class="bi bi-hand-thumbs-up"></i> <span id="likes-count-{{ pub.id }}">{{ pub.likes }}</span></span>
+        <span><i class="bi bi-hand-thumbs-down"></i> <span id="dislikes-count-{{ pub.id }}">{{ pub.dislikes }}</span></span>
+    </div>
+
+    <!-- Réactions -->
+    <div class="post-reactions">
+        <button class="reaction-btn like" onclick="react({{ pub.id }}, 'like')">
+            <i class="bi bi-hand-thumbs-up"></i> J'aime
+        </button>
+        <button class="reaction-btn dislike" onclick="react({{ pub.id }}, 'dislike')">
+            <i class="bi bi-hand-thumbs-down"></i> Je n'aime pas
+        </button>
+    </div>
+
+    <!-- Commentaires -->
+    <div class="comments-section">
+        <form action="{{ path('ajouter_commentaire', {'id': pub.id}) }}" method="post"
+              onsubmit="return validateAddComment({{ pub.id }})">
+            <div class="comment-input">
+                <input type="text" id="add-comment-input-{{ pub.id }}" name="contenu"
+                       placeholder="Écrire un commentaire..." maxlength="300">
+                <button type="submit">Publier</button>
+            </div>
+        </form>
+
+        {% if pub.commentaires is defined %}
+            {% for com in pub.commentaires %}
+                <div class="comment" id="comment-{{ com.id }}">
+                    <div class="comment-avatar">
+                        <i class="bi bi-person"></i>
+                    </div>
+                    <div class="comment-content">
+                        <div class="comment-header">
+                            <span class="comment-author">Membre</span>
+                            <div class="comment-actions">
+
+                                {# ======= BOUTONS TRADUCTION COMMENTAIRE ======= #}
+                                <div class="traduction-bar-comment" style="display:inline-flex; gap:4px; align-items:center;">
+                                    <i class="bi bi-translate" style="cursor:pointer; color:#2563eb;"
+                                       title="Traduire ce commentaire"
+                                       onclick="toggleTraductionComment({{ com.id }})"></i>
+
+                                    <div id="lang-buttons-{{ com.id }}" style="display:none; gap:3px;">
+                                        <button class="btn-lang-sm" onclick="traduireCommentaire({{ com.id }}, 'en', this)">🇬🇧</button>
+                                        <button class="btn-lang-sm" onclick="traduireCommentaire({{ com.id }}, 'ar', this)">🇸🇦</button>
+                                        <button class="btn-lang-sm" onclick="traduireCommentaire({{ com.id }}, 'es', this)">🇪🇸</button>
+                                        <button class="btn-lang-sm" onclick="traduireCommentaire({{ com.id }}, 'de', this)">🇩🇪</button>
+                                        <button class="btn-original-sm" onclick="resetCommentaire({{ com.id }})">🔄</button>
+                                    </div>
+                                </div>
+                                {# ============================================= #}
+
+                                <button onclick="document.getElementById('edit-comment-{{ com.id }}').classList.toggle('d-none')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+
+                                <form method="post" action="{{ path('supprimer_commentaire', {'id': com.id}) }}"
+                                      onsubmit="return confirm('Supprimer ce commentaire ?');" style="display:inline;">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_comment' ~ com.id) }}">
+                                    <button type="submit">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="comment-text" id="comment-content-{{ com.id }}">{{ com.contenuC }}</div>
+
+                        {# Zone traduction commentaire #}
+                        <div id="traduction-com-{{ com.id }}" class="traduction-result-comment" style="display:none;"></div>
+
+                        <div class="comment-date">{{ com.dateCom|date('d/m/Y H:i') }}</div>
+
+                        <form id="edit-comment-{{ com.id }}" method="post"
+                              action="{{ path('modifier_commentaire', {'id': com.id}) }}"
+                              class="d-none" style="margin-top: 8px;"
+                              onsubmit="return validateEditComment({{ com.id }})">
+                            <div class="comment-input">
+                                <input type="text" id="edit-comment-input-{{ com.id }}" name="contenu"
+                                       value="{{ com.contenuC }}" maxlength="300">
+                                <button type="submit">OK</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+</div>
+
+{# ============================================================ #}
+{# CSS                                                           #}
+{# ============================================================ #}
+<style>
+.btn-lang {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 12px;
+    margin: 2px;
+    transition: background 0.2s;
+}
+.btn-lang:hover { background: #1d4ed8; }
+.btn-lang:disabled { background: #aaa; cursor: not-allowed; }
+
+.btn-original {
+    background: #e5e7eb;
+    color: #333;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 12px;
+    margin: 2px;
+}
+.btn-original:hover { background: #d1d5db; }
+
+.btn-lang-sm {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 2px 6px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 11px;
+    transition: background 0.2s;
+}
+.btn-lang-sm:hover { background: #1d4ed8; }
+
+.btn-original-sm {
+    background: #e5e7eb;
+    color: #333;
+    border: none;
+    padding: 2px 6px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 11px;
+}
+
+.traduction-result {
+    background: #eff6ff;
+    border-left: 4px solid #2563eb;
+    padding: 10px 14px;
+    margin-top: 8px;
+    border-radius: 6px;
+}
+.traduction-titre {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #1e3a8a;
+}
+.traduction-contenu {
+    font-size: 13px;
+    color: #374151;
+    line-height: 1.6;
+}
+.traduction-result-comment {
+    background: #f0fdf4;
+    border-left: 3px solid #16a34a;
+    padding: 6px 10px;
+    margin-top: 5px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #166534;
+}
+</style>
+
+{# ============================================================ #}
+{# JAVASCRIPT                                                    #}
+{# ============================================================ #}
+<script>
+// ===== TRADUCTION PUBLICATION =====
+
+function traduirePublication(id, lang, bouton) {
+    bouton.disabled = true;
+    const original = bouton.textContent;
+    bouton.textContent = '⏳';
+
+    fetch(/publication/traduire/${id}/${lang})
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) {
+                alert('Erreur : ' + data.error);
+                return;
+            }
+            document.getElementById('titre-traduit-' + id).innerHTML = '<strong>' + data.titre + '</strong>';
+            document.getElementById('contenu-traduit-' + id).textContent = data.contenu;
+            document.getElementById('traduction-pub-' + id).style.display = 'block';
+        })
+        .catch(() => alert('Erreur réseau'))
+        .finally(() => {
+            bouton.disabled = false;
+            bouton.textContent = original;
+        });
+}
+
+function resetPublication(id) {
+    document.getElementById('traduction-pub-' + id).style.display = 'none';
+}
+
+// ===== TRADUCTION COMMENTAIRE =====
+
+function toggleTraductionComment(id) {
+    const btns = document.getElementById('lang-buttons-' + id);
+    btns.style.display = btns.style.display === 'none' ? 'inline-flex' : 'none';
+}
+
+function traduireCommentaire(id, lang, bouton) {
+    bouton.disabled = true;
+
+    fetch(/commentaire/traduire/${id}/${lang})
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) {
+                alert('Erreur : ' + data.error);
+                return;
+            }
+            const zone = document.getElementById('traduction-com-' + id);
+            zone.textContent = data.contenu;
+            zone.style.display = 'block';
+        })
+        .catch(() => alert('Erreur réseau'))
+        .finally(() => { bouton.disabled = false; });
+}
+
+function resetCommentaire(id) {
+    const zone = document.getElementById('traduction-com-' + id);
+    zone.style.display = 'none';
+    zone.textContent = '';
+    document.getElementById('lang-buttons-' + id).style.display = 'none';
+}
+</script>

@@ -1,0 +1,894 @@
+{# templates/admin/ressource/show_publication.html.twig #}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ publication.titrePub }} - LinguLearn</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar identique */
+        .sidebar {
+            width: 260px;
+            background: white;
+            border-right: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .logo {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #2563eb;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo i {
+            font-size: 1.8rem;
+        }
+
+        .nav-menu {
+            flex: 1;
+            padding: 20px 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            margin: 4px 8px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .nav-item i {
+            margin-right: 12px;
+            font-size: 1.2rem;
+            width: 24px;
+        }
+
+        .nav-item:hover {
+            background: #f1f5f9;
+            color: #2563eb;
+        }
+
+        .nav-item.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        .nav-item.active i {
+            color: white;
+        }
+
+        .user-section {
+            padding: 20px;
+            border-top: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: #2563eb;
+            color: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        /* Contenu principal */
+        .content-area {
+            margin-left: 260px;
+            flex: 1;
+            padding: 30px;
+        }
+
+        /* Fil d'Ariane */
+        .breadcrumb {
+            background: none;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+
+        .breadcrumb a {
+            color: #64748b;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            color: #2563eb;
+        }
+
+        .breadcrumb .active {
+            color: #2563eb;
+            font-weight: 500;
+        }
+
+        /* Carte de publication */
+        .post-card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .post-header {
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .post-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0;
+        }
+
+        .post-meta {
+            display: flex;
+            gap: 20px;
+            padding: 15px 20px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.9rem;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #475569;
+        }
+
+        .meta-item i {
+            color: #2563eb;
+        }
+
+        .post-image {
+            width: 100%;
+            max-height: 400px;
+            object-fit: cover;
+        }
+
+        .post-content {
+            padding: 30px;
+            line-height: 1.8;
+            color: #334155;
+        }
+
+        .post-stats {
+            padding: 20px;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-large {
+            text-align: center;
+        }
+
+        .stat-large .number {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2563eb;
+        }
+
+        .stat-large .label {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        /* Actions */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .btn-back {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .btn-back:hover {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+
+        .btn-edit {
+            background: #eef2ff;
+            color: #2563eb;
+        }
+
+        .btn-edit:hover {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .btn-delete:hover {
+            background: #991b1b;
+            color: white;
+        }
+
+        .btn-blur {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .btn-blur:hover {
+            background: #475569;
+            color: white;
+        }
+
+        /* Section commentaires */
+        .comments-section {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            padding: 20px;
+        }
+
+        .comments-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e2e8f0;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .comments-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .comment-item {
+            display: flex;
+            gap: 15px;
+            padding: 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            background: white;
+        }
+
+        .comment-avatar {
+            width: 40px;
+            height: 40px;
+            background: #2563eb;
+            color: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .comment-content {
+            flex: 1;
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .comment-author {
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .comment-date {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        .comment-text {
+            color: #334155;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .comment-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .comment-action-btn {
+            background: none;
+            border: none;
+            color: #64748b;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .comment-action-btn:hover {
+            background: #f1f5f9;
+            color: #2563eb;
+        }
+
+        .add-comment-form {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        .notification-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 12px;
+            padding: 14px 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            z-index: 9999;
+            border-left: 4px solid #10b981;
+            animation: slideIn 0.3s ease;
+            min-width: 280px;
+        }
+
+        .notification-toast.error {
+            border-left-color: #ef4444;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .badge-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .badge-published {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-reported {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-blurred {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            
+            .content-area {
+                margin-left: 0;
+                padding: 20px;
+            }
+            
+            .post-meta {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .action-buttons {
+                width: 100%;
+                justify-content: flex-start;
+            }
+            
+            .post-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="layout">
+    <!-- Sidebar identique -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="bi bi-chat-quote-fill"></i>
+                <span>LinguLearn</span>
+            </div>
+        </div>
+
+        <div class="nav-menu">
+            <a href="#" class="nav-item">
+                <i class="bi bi-grid"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ path('admin_gestion_publications') }}" class="nav-item active">
+                <i class="bi bi-newspaper"></i>
+                <span>Publications</span>
+            </a>
+            <a href="{{ path('admin_gestion_commentaires') }}" class="nav-item">
+                <i class="bi bi-chat"></i>
+                <span>Commentaires</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="bi bi-people"></i>
+                <span>Utilisateurs</span>
+            </a>
+        </div>
+
+        <div class="user-section">
+            <div class="user-avatar">A</div>
+            <div>
+                <div style="font-weight: 500; font-size:0.9rem;">Admin</div>
+                <div style="font-size:0.75rem; color:#64748b;">admin@lingulearn.tn</div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Contenu principal -->
+    <main class="content-area">
+        
+        <!-- Fil d'Ariane -->
+        <nav class="breadcrumb">
+            <a href="{{ path('admin_gestion_publications') }}">Publications</a>
+            <i class="bi bi-chevron-right mx-2" style="color: #94a3b8;"></i>
+            <span class="active">{{ publication.titrePub|slice(0, 50) }}</span>
+        </nav>
+
+        <!-- Carte de la publication -->
+        <div class="post-card">
+            <div class="post-header">
+                <h1 class="post-title">{{ publication.titrePub }}</h1>
+                <div class="action-buttons">
+                    <a href="{{ path('admin_gestion_publications') }}" class="btn-action btn-back">
+                        <i class="bi bi-arrow-left"></i>
+                        Retour
+                    </a>
+                    
+                    <button class="btn-action btn-edit btn-modifier"
+                            data-id="{{ publication.id }}"
+                            data-titre="{{ publication.titrePub|e('html_attr') }}"
+                            data-contenu="{{ publication.contenuPub|e('html_attr') }}">
+                        <i class="bi bi-pencil"></i>
+                        Modifier
+                    </button>
+                    
+                    {% if publication.reportPub >= 1 %}
+                        <button class="btn-action btn-blur" onclick="flouterPublication({{ publication.id }})">
+                            <i class="bi bi-{{ publication.floue > 0 ? 'eye' : 'eye-slash' }}"></i>
+                            {{ publication.floue > 0 ? 'Déflouter' : 'Flouter' }}
+                        </button>
+                    {% endif %}
+                    
+                    <form method="POST" action="{{ path('supprimer_publication', {id: publication.id}) }}" style="display:inline;">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ publication.id) }}">
+                        <input type="hidden" name="redirect" value="admin">
+                        <button class="btn-action btn-delete" onclick="return confirm('Supprimer cette publication ?')">
+                            <i class="bi bi-trash"></i>
+                            Supprimer
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="post-meta">
+                <div class="meta-item">
+                    <i class="bi bi-person-circle"></i>
+                    {{ publication.utilisateur.nomU }} {{ publication.utilisateur.prenomU }}
+                </div>
+                <div class="meta-item">
+                    <i class="bi bi-calendar3"></i>
+                    {{ publication.datePub|date('d/m/Y H:i') }}
+                </div>
+                <div class="meta-item">
+                    <i class="bi bi-tag"></i>
+                    {{ publication.typePub }}
+                </div>
+                <div class="meta-item">
+                    {% if publication.reportPub >= 1 and publication.floue > 0 %}
+                        <span class="badge-status badge-blurred">
+                            <i class="bi bi-eye-slash"></i>
+                            Floutée
+                        </span>
+                    {% elseif publication.reportPub >= 1 %}
+                        <span class="badge-status badge-reported">
+                            <i class="bi bi-flag-fill"></i>
+                            Signalée ({{ publication.reportPub }})
+                        </span>
+                    {% else %}
+                        <span class="badge-status badge-published">
+                            <i class="bi bi-check-circle"></i>
+                            Publiée
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if publication.lienPub %}
+                <img src="{{ asset('uploads/' ~ publication.lienPub) }}" class="post-image" alt="{{ publication.titrePub }}">
+            {% endif %}
+
+            <div class="post-content">
+                {{ publication.contenuPub|nl2br }}
+            </div>
+
+            <div class="post-stats">
+                <div class="stat-large">
+                    <div class="number">{{ publication.likes }}</div>
+                    <div class="label">J'aime</div>
+                </div>
+                <div class="stat-large">
+                    <div class="number">{{ publication.dislikes }}</div>
+                    <div class="label">Je n'aime pas</div>
+                </div>
+                <div class="stat-large">
+                    <div class="number">{{ publication.commentaires|length }}</div>
+                    <div class="label">Commentaires</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section commentaires -->
+        <div class="comments-section">
+            <div class="comments-header">
+                <h3 class="comments-title">
+                    <i class="bi bi-chat me-2" style="color: #2563eb;"></i>
+                    Commentaires ({{ publication.commentaires|length }})
+                </h3>
+                <button class="btn btn-primary btn-sm" onclick="toggleCommentForm()">
+                    <i class="bi bi-plus-lg"></i>
+                    Ajouter un commentaire
+                </button>
+            </div>
+
+            <!-- Formulaire d'ajout de commentaire -->
+            <div id="add-comment-form" class="add-comment-form" style="display: none;">
+                <form method="POST" action="{{ path('ajouter_commentaire', {id: publication.id}) }}" onsubmit="return handleCommentSubmit(this, event)">
+                    <input type="hidden" name="redirect" value="admin">
+                    <input type="hidden" name="_token" value="{{ csrf_token('comment' ~ publication.id) }}">
+                    <div class="mb-3">
+                        <label class="form-label">Votre commentaire</label>
+                        <textarea name="contenu" class="form-control" rows="3" required placeholder="Écrire un commentaire..."></textarea>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">Publier</button>
+                        <button type="button" class="btn btn-light" onclick="toggleCommentForm()">Annuler</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Liste des commentaires -->
+            {% if publication.commentaires is defined and publication.commentaires|length > 0 %}
+                {% for commentaire in publication.commentaires|sort((a, b) => b.dateCom <=> a.dateCom) %}
+                    <div class="comment-item" id="comment-{{ commentaire.id }}">
+                        <div class="comment-avatar">
+                            <i class="bi bi-person"></i>
+                        </div>
+                        <div class="comment-content">
+                            <div class="comment-header">
+                                <span class="comment-author">
+                                    {% if commentaire.utilisateur is defined and commentaire.utilisateur %}
+                                        {{ commentaire.utilisateur.nomU }} {{ commentaire.utilisateur.prenomU }}
+                                    {% else %}
+                                        Utilisateur
+                                    {% endif %}
+                                </span>
+                                <span class="comment-date">
+                                    <i class="bi bi-clock me-1"></i>
+                                    {{ commentaire.dateCom|date('d/m/Y H:i') }}
+                                </span>
+                            </div>
+                            <div class="comment-text" id="comment-text-{{ commentaire.id }}">
+                                {{ commentaire.contenuC }}
+                            </div>
+                            <div class="comment-actions">
+                                <button class="comment-action-btn" onclick="toggleTraduction({{ commentaire.id }})">
+                                    <i class="bi bi-translate"></i>
+                                    Traduire
+                                </button>
+                                
+                                <button class="comment-action-btn" onclick="showEditForm({{ commentaire.id }})">
+                                    <i class="bi bi-pencil"></i>
+                                    Modifier
+                                </button>
+                                
+                                <form method="POST" action="{{ path('supprimer_commentaire', {id: commentaire.id}) }}" 
+                                      style="display:inline;" onsubmit="return confirm('Supprimer ce commentaire ?')">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_comment' ~ commentaire.id) }}">
+                                    <input type="hidden" name="redirect" value="admin">
+                                    <button class="comment-action-btn" type="submit">
+                                        <i class="bi bi-trash"></i>
+                                        Supprimer
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- Formulaire d'édition (caché) -->
+                            <div id="edit-form-{{ commentaire.id }}" style="display: none; margin-top: 15px;">
+                                <form method="POST" action="{{ path('modifier_commentaire', {id: commentaire.id}) }}" onsubmit="return handleEditSubmit(this, event, {{ commentaire.id }})">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('edit_comment' ~ commentaire.id) }}">
+                                    <input type="hidden" name="redirect" value="admin">
+                                    <textarea name="contenu" class="form-control mb-2" rows="2">{{ commentaire.contenuC }}</textarea>
+                                    <div class="d-flex gap-2">
+                                        <button type="submit" class="btn btn-primary btn-sm">Enregistrer</button>
+                                        <button type="button" class="btn btn-light btn-sm" onclick="hideEditForm({{ commentaire.id }})">Annuler</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-chat" style="font-size: 2rem; color: #cbd5e1;"></i>
+                    <p class="text-muted mt-2">Aucun commentaire pour le moment</p>
+                </div>
+            {% endif %}
+        </div>
+    </main>
+</div>
+
+<!-- Formulaire de modification (caché) - pour redirection depuis le bouton modifier -->
+<div id="form-mod-publication" style="display: none;">
+    <form method="POST" action="" enctype="multipart/form-data" id="mod-publication-form">
+        <input type="hidden" name="redirect" value="admin">
+        <input type="hidden" name="id" id="mod-id">
+        <input type="hidden" name="titre" id="mod-titre">
+        <input type="hidden" name="contenu" id="mod-contenu">
+    </form>
+</div>
+
+<script>
+    // === NOTIFICATIONS ===
+    function showNotification(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = 'notification-toast' + (type === 'error' ? ' error' : '');
+        toast.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <i class="bi bi-${type === 'success' ? 'check-circle-fill' : 'exclamation-circle-fill'}" 
+                   style="color: ${type === 'success' ? '#10b981' : '#ef4444'};"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    // === GESTIONNAIRE COMMENTAIRES - SANS REDIRECTION ===
+    function handleCommentSubmit(form, event) {
+        event.preventDefault();
+        
+        const formData = new FormData(form);
+        
+        fetch(form.action, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (response.ok) {
+                showNotification('Commentaire ajouté avec succès !');
+                form.reset();
+                document.getElementById('add-comment-form').style.display = 'none';
+                // Recharger la page pour voir le nouveau commentaire
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showNotification('Erreur lors de l\'ajout du commentaire', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            showNotification('Erreur lors de l\'ajout du commentaire', 'error');
+        });
+        
+        return false;
+    }
+
+    function handleEditSubmit(form, event, commentId) {
+        event.preventDefault();
+        
+        const formData = new FormData(form);
+        
+        fetch(form.action, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (response.ok) {
+                showNotification('Commentaire modifié avec succès !');
+                hideEditForm(commentId);
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showNotification('Erreur lors de la modification', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            showNotification('Erreur lors de la modification', 'error');
+        });
+        
+        return false;
+    }
+
+    // === TRADUCTION COMMENTAIRE ===
+    function toggleTraduction(commentId) {
+        const commentEl = document.getElementById('comment-text-' + commentId);
+        const originalText = commentEl.innerText;
+        
+        // Si déjà traduit, on remet l'original
+        if (commentEl.classList.contains('translated')) {
+            commentEl.innerText = commentEl.dataset.original;
+            commentEl.classList.remove('translated');
+            return;
+        }
+        
+        // Sauvegarder l'original
+        commentEl.dataset.original = originalText;
+        
+        fetch(`/commentaire/traduire/${commentId}/en`, {
+            headers: {'X-Requested-With': 'XMLHttpRequest'}
+        })
+        .then(resp => resp.json())
+        .then(data => {
+            if (data.contenu) {
+                commentEl.innerText = data.contenu;
+                commentEl.classList.add('translated');
+            }
+        })
+        .catch(err => console.error(err));
+    }
+
+    // === FORMULAIRES ===
+    function toggleCommentForm() {
+        const form = document.getElementById('add-comment-form');
+        form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function showEditForm(commentId) {
+        document.getElementById('edit-form-' + commentId).style.display = 'block';
+    }
+
+    function hideEditForm(commentId) {
+        document.getElementById('edit-form-' + commentId).style.display = 'none';
+    }
+
+    // === MODIFICATION PUBLICATION ===
+    document.querySelectorAll('.btn-modifier').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const id = this.dataset.id;
+            const titre = this.dataset.titre;
+            const contenu = this.dataset.contenu;
+
+            const formMod = document.getElementById('mod-publication-form');
+            if (formMod) {
+                document.getElementById('mod-id').value = id;
+                document.getElementById('mod-titre').value = titre;
+                document.getElementById('mod-contenu').value = contenu;
+                formMod.action = "{{ path('modifier_publication', {'id': 'ID_PLACEHOLDER'}) }}".replace('ID_PLACEHOLDER', id);
+                formMod.submit();
+            }
+        });
+    });
+
+    // === FLOUTAGE ===
+    function flouterPublication(pubId) {
+        fetch(`/publication/flouter/${pubId}`, {
+            method: 'POST',
+            headers: {'X-Requested-With': 'XMLHttpRequest'}
+        })
+        .then(resp => resp.json())
+        .then(data => {
+            showNotification(data.floue > 0 ? 'Publication floutée' : 'Flou retiré', 'success');
+            setTimeout(() => location.reload(), 1000);
+        })
+        .catch(err => {
+            console.error(err);
+            showNotification('Erreur', 'error');
+        });
+    }
+
+    // === FLASH MESSAGES ===
+    {% for message in app.flashes('error') %}
+        showNotification("{{ message|e('js') }}", 'error');
+    {% endfor %}
+    
+    {% for message in app.flashes('success') %}
+        showNotification("{{ message|e('js') }}", 'success');
+    {% endfor %}
+</script>
+
+</body>
+</html>
