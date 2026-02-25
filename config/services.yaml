@@ -60,10 +60,25 @@ services:
     # STRIPE PAYMENT
     # =========================================================
 
+    # The Stripe SDK client. Autowiring cannot resolve \Stripe\StripeClient
+    # automatically because it is a third-party class with no interface.
+    # We define it explicitly here so it can be injected anywhere that
+    # type-hints \Stripe\StripeClient.
+    Stripe\StripeClient:
+        arguments:
+            - '%env(STRIPE_SECRET_KEY)%'
+
+    # StripeService: needs price IDs from env + the StripeClient above.
+    # The `calls` block resolves the circular dependency with UserService:
+    #   UserService  →  StripeService  (constructor injection — fine)
+    #   StripeService → UserService    (setter injection — done here)
+    # Symfony calls setUserService() automatically after both services are built.
     App\Module\UserManagement\Service\StripeService:
         arguments:
             $priceMonthly: '%env(STRIPE_PRICE_MONTHLY)%'
             $priceYearly:  '%env(STRIPE_PRICE_YEARLY)%'
+        calls:
+            - setUserService: ['@App\Module\UserManagement\Service\UserService']
 
     App\Module\UserManagement\Controller\StripeWebhookController:
         arguments:

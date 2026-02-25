@@ -7,6 +7,7 @@ use App\Module\UserManagement\Entity\User;
 use App\Module\UserManagement\Entity\UserLanguage;
 use App\Module\UserManagement\Form\UserFormType;
 use App\Module\UserManagement\Repository\UserRepository;
+use App\Module\UserManagement\Service\StripeService;
 use App\Module\UserManagement\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -26,10 +27,11 @@ class UserController extends AbstractController
         private UserRepository $userRepository,
         private EntityManagerInterface $entityManager,
         private UserPasswordHasherInterface $passwordHasher,
+        private StripeService $stripeService,
     ) {}
 
     // =========================================================
-    //  CORE CRUD  (unchanged from original)
+    //  LIST
     // =========================================================
 
     #[Route('', name: 'index', methods: ['GET'])]
@@ -64,6 +66,10 @@ class UserController extends AbstractController
         ]);
     }
 
+    // =========================================================
+    //  CREATE
+    // =========================================================
+
     #[Route('/new', name: 'new', methods: ['GET', 'POST'])]
     public function new(Request $request): Response
     {
@@ -74,14 +80,20 @@ class UserController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $plain = $form->get('plainPassword')->getData();
             $user->setPassword($this->passwordHasher->hashPassword($user, $plain));
+            $user->setSubscriptionPlan('FREE');
             $this->entityManager->persist($user);
             $this->entityManager->flush();
-            $this->addFlash('success', 'User created successfully!');
-            return $this->redirectToRoute('admin_users_index');
+            $this->userService->initLearningStats($user);
+            $this->addFlash('success', sprintf('User %s created successfully!', $user->getFullName()));
+            return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
         }
 
         return $this->render('user_management/new.html.twig', ['user' => $user, 'form' => $form]);
     }
+
+    // =========================================================
+    //  READ
+    // =========================================================
 
     #[Route('/{id}', name: 'show', methods: ['GET'])]
     public function show(int $id): Response
@@ -90,9 +102,12 @@ class UserController extends AbstractController
         if (!$user) {
             throw $this->createNotFoundException('User not found');
         }
-
         return $this->render('user_management/show.html.twig', ['user' => $user]);
     }
+
+    // =========================================================
+    //  EDIT — reuses new.html.twig (switches mode via user.id)
+    // =========================================================
 
     #[Route('/{id}/edit', name: 'edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, User $user): Response
@@ -101,11 +116,10 @@ class UserController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            if ($form->has('plainPassword')) {
-                $plain = $form->get('plainPassword')->getData();
-                if ($plain) {
-                    $user->setPassword($this->passwordHasher->hashPassword($user, $plain));
-                }
+            // Password is optional on edit — only update if the field was filled
+            $plain = $form->get('plainPassword')->getData();
+            if (!empty($plain)) {
+                $user->setPassword($this->passwordHasher->hashPassword($user, $plain));
             }
             $this->entityManager->flush();
             $this->addFlash('success', 'User updated successfully!');
@@ -114,6 +128,10 @@ class UserController extends AbstractController
 
         return $this->render('user_management/edit.html.twig', ['user' => $user, 'form' => $form]);
     }
+
+    // =========================================================
+    //  DELETE
+    // =========================================================
 
     #[Route('/{id}/delete', name: 'delete', methods: ['POST'])]
     public function delete(Request $request, User $user): Response
@@ -124,6 +142,10 @@ class UserController extends AbstractController
         }
         return $this->redirectToRoute('admin_users_index');
     }
+
+    // =========================================================
+    //  STATUS ACTIONS
+    // =========================================================
 
     #[Route('/{id}/activate', name: 'activate', methods: ['POST'])]
     public function activate(Request $request, User $user): Response
@@ -145,40 +167,153 @@ class UserController extends AbstractController
         return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
     }
 
-    #[Route('/{id}/premium/upgrade', name: 'premium_upgrade', methods: ['POST'])]
-    public function upgradePremium(Request $request, User $user): Response
+    // =========================================================
+    //  PREMIUM — Grant / Revoke via Stripe
+    //
+    //  Grant  → creates Stripe trial subscription + upgrades DB
+    //  Revoke → cancels Stripe subscription + downgrades DB to FREE
+    //
+    //  Both routes are called from new.html.twig (edit mode card 4).
+    //  CSRF tokens match exactly what the template generates.
+    // =========================================================
+
+    #[Route('/{id}/premium/grant/{plan}', name: 'grant_premium', methods: ['POST'])]
+    public function grantPremium(Request $request, User $user, string $plan): Response
     {
-        if ($this->isCsrfTokenValid('premium' . $user->getId(), $request->request->get('_token'))) {
-            $plan   = $request->request->get('plan', 'MONTHLY');
-            $expiry = new \DateTime();
-            $expiry->modify($plan === 'YEARLY' ? '+1 year' : '+1 month');
-            $this->userService->upgradeToPremium($user, $plan, $expiry);
-            $this->addFlash('success', 'User upgraded to premium successfully!');
+        $plan = strtoupper($plan);
+
+        if (!in_array($plan, ['MONTHLY', 'YEARLY'], true)) {
+            $this->addFlash('danger', 'Invalid plan selected.');
+            return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
         }
+
+        if (!$this->isCsrfTokenValid('grant_premium_' . $user->getId(), $request->request->get('_token'))) {
+            $this->addFlash('danger', 'Invalid security token.');
+            return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
+        }
+
+        try {
+            $this->stripeService->adminGrantPremium($user, $plan);
+            $this->addFlash('success', sprintf(
+                '%s granted %s premium access.',
+                $user->getFullName(),
+                strtolower($plan)
+            ));
+        } catch (\Throwable $e) {
+            $this->addFlash('danger', 'Could not grant premium: ' . $e->getMessage());
+        }
+
         return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
     }
 
-    #[Route('/{id}/premium/downgrade', name: 'premium_downgrade', methods: ['POST'])]
-    public function downgradePremium(Request $request, User $user): Response
+    #[Route('/{id}/premium/revoke', name: 'revoke_premium', methods: ['POST'])]
+    public function revokePremium(Request $request, User $user): Response
     {
-        if ($this->isCsrfTokenValid('downgrade' . $user->getId(), $request->request->get('_token'))) {
-            $this->userService->downgradeToFree($user);
-            $this->addFlash('info', 'User downgraded to free plan.');
+        if (!$this->isCsrfTokenValid('revoke_premium_' . $user->getId(), $request->request->get('_token'))) {
+            $this->addFlash('danger', 'Invalid security token.');
+            return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
         }
+
+        try {
+            $this->stripeService->adminRevokePremium($user);
+            $this->addFlash('warning', sprintf(
+                'Premium revoked for %s. Stripe subscription cancelled.',
+                $user->getFullName()
+            ));
+        } catch (\Throwable $e) {
+            $this->addFlash('danger', 'Could not revoke premium: ' . $e->getMessage());
+        }
+
+        return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
+    }
+
+
+    // =========================================================
+    //  PREMIUM — Free Trial
+    // =========================================================
+
+    #[Route('/{id}/premium/trial', name: 'free_trial', methods: ['POST'])]
+    public function freeTrial(Request $request, User $user): Response
+    {
+        if (!$this->isCsrfTokenValid('free_trial_' . $user->getId(), $request->request->get('_token'))) {
+            $this->addFlash('danger', 'Invalid security token.');
+            return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
+        }
+
+        if ($user->isPremium()) {
+            $this->addFlash('warning', 'User already has premium access.');
+            return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
+        }
+
+        $days = max(1, min(365, (int) $request->request->get('trial_days', 7)));
+        $plan = strtoupper($request->request->get('plan', 'MONTHLY'));
+        if (!in_array($plan, ['MONTHLY', 'YEARLY'], true)) {
+            $plan = 'MONTHLY';
+        }
+
+        try {
+            $this->stripeService->adminGrantTrial($user, $plan, $days);
+            $this->addFlash('success', sprintf(
+                '🎁 %d-day free trial (%s) granted to %s.',
+                $days, strtolower($plan), $user->getFullName()
+            ));
+        } catch (\Throwable $e) {
+            $this->addFlash('danger', 'Could not start trial: ' . $e->getMessage());
+        }
+
         return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
     }
 
     // =========================================================
-    //  ADVANCED FEATURE 1 — BULK ACTIONS
-    //  Suspend / activate / delete multiple users at once.
-    //  Receives a JSON-encoded list of IDs + action via POST.
+    //  PREMIUM — Change Plan (upgrade / downgrade)
+    // =========================================================
+
+    #[Route('/{id}/premium/change/{plan}', name: 'change_plan', methods: ['POST'])]
+    public function changePlan(Request $request, User $user, string $plan): Response
+    {
+        $plan = strtoupper($plan);
+
+        if (!in_array($plan, ['MONTHLY', 'YEARLY'], true)) {
+            $this->addFlash('danger', 'Invalid plan.');
+            return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
+        }
+
+        if (!$this->isCsrfTokenValid('change_plan_' . $user->getId(), $request->request->get('_token'))) {
+            $this->addFlash('danger', 'Invalid security token.');
+            return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
+        }
+
+        if (!$user->isPremium()) {
+            $this->addFlash('warning', 'User is not on a premium plan.');
+            return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
+        }
+
+        if ($user->getSubscriptionPlan() === $plan) {
+            $this->addFlash('info', sprintf('User is already on the %s plan.', strtolower($plan)));
+            return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
+        }
+
+        try {
+            $this->stripeService->adminChangePlan($user, $plan);
+            $this->addFlash('success', sprintf(
+                '%s switched to %s plan.',
+                $user->getFullName(), strtolower($plan)
+            ));
+        } catch (\Throwable $e) {
+            $this->addFlash('danger', 'Could not change plan: ' . $e->getMessage());
+        }
+
+        return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
+    }
+
+    // =========================================================
+    //  BULK ACTIONS
     // =========================================================
 
     #[Route('/bulk', name: 'bulk', methods: ['POST'])]
     public function bulk(Request $request): Response
     {
-        // IDs come from checkbox form (array) or JS fetch (JSON body)
-        $ids    = $request->request->all('ids');          // from HTML form
+        $ids    = $request->request->all('ids');
         $action = $request->request->get('bulk_action');
 
         if (empty($ids) || !in_array($action, ['activate', 'suspend', 'delete'], true)) {
@@ -186,27 +321,21 @@ class UserController extends AbstractController
             return $this->redirectToRoute('admin_users_index');
         }
 
-        // Validate CSRF once for the bulk operation
         if (!$this->isCsrfTokenValid('bulk_action', $request->request->get('_token'))) {
             $this->addFlash('danger', 'Invalid security token.');
             return $this->redirectToRoute('admin_users_index');
         }
 
-        $users     = $this->userRepository->findBy(['id' => $ids]);
         $processed = 0;
-
-        foreach ($users as $user) {
-            // Never let admin remove their own account via bulk
+        foreach ($this->userRepository->findBy(['id' => $ids]) as $user) {
             if ($user === $this->getUser()) {
                 continue;
             }
-
             match ($action) {
                 'activate' => $this->userService->activateUser($user),
                 'suspend'  => $this->userService->suspendUser($user),
                 'delete'   => $this->userService->deleteUser($user),
             };
-
             $processed++;
         }
 
@@ -215,15 +344,12 @@ class UserController extends AbstractController
     }
 
     // =========================================================
-    //  ADVANCED FEATURE 2 — CSV EXPORT
-    //  Streams a CSV of ALL users matching the current filters.
-    //  No memory limit issues — uses StreamedResponse + fputcsv.
+    //  CSV EXPORT
     // =========================================================
 
     #[Route('/export/csv', name: 'export_csv', methods: ['GET'])]
     public function exportCsv(Request $request): StreamedResponse
     {
-        // Re-use the same filter logic as index() so export matches the view
         $filters = [
             'search'           => trim($request->query->get('search', '')) ?: null,
             'status'           => $request->query->get('status'),
@@ -232,34 +358,22 @@ class UserController extends AbstractController
             'isPremium'        => $request->query->get('isPremium') !== null
                 ? filter_var($request->query->get('isPremium'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE)
                 : null,
-            'sort'             => $request->query->get('sort', 'u.createdAt'),
-            'direction'        => $request->query->get('direction', 'DESC'),
+            'sort'      => $request->query->get('sort', 'u.createdAt'),
+            'direction' => $request->query->get('direction', 'DESC'),
         ];
         $criteria = array_filter($filters, fn($v) => $v !== null && $v !== '');
-
-        // Fetch all (page 1, large limit — adjust if you have millions of users)
-        [$users] = $this->userRepository->findAdvanced($criteria, 1, 100000);
-
-        $filename = 'users_export_' . date('Ymd_His') . '.csv';
+        [$users]  = $this->userRepository->findAdvanced($criteria, 1, 100000);
 
         $response = new StreamedResponse(function () use ($users) {
             $handle = fopen('php://output', 'w');
-
-            // UTF-8 BOM so Excel opens it correctly
             fputs($handle, "\xEF\xBB\xBF");
-
-            // Header row
             fputcsv($handle, [
-                'ID', 'First Name', 'Last Name', 'Email',
-                'Status', 'Roles', 'Subscription Plan',
-                'Is Premium', 'Subscription Expiry',
-                'Created At', 'Total XP', 'Words Learned', 'Minutes Studied',
+                'ID', 'First Name', 'Last Name', 'Email', 'Status', 'Roles',
+                'Subscription Plan', 'Is Premium', 'Subscription Expiry', 'Created At',
+                'Total XP', 'Words Learned', 'Minutes Studied',
             ]);
-
             foreach ($users as $user) {
-                /** @var User $user */
                 $stats = $user->getLearningStats();
-
                 fputcsv($handle, [
                     $user->getId(),
                     $user->getFirstName(),
@@ -276,58 +390,41 @@ class UserController extends AbstractController
                     $stats?->getTotalMinutesStudied() ?? 0,
                 ]);
             }
-
             fclose($handle);
         });
 
         $response->headers->set('Content-Type', 'text/csv; charset=utf-8');
-        $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
-
+        $response->headers->set('Content-Disposition', 'attachment; filename="users_export_' . date('Ymd_His') . '.csv"');
         return $response;
     }
 
     // =========================================================
-    //  ADVANCED FEATURE 3 — LEARNING STATS MANAGEMENT
-    //  Admin can manually edit XP / words / minutes for a user.
-    //  Useful for correcting data or awarding bonus XP.
+    //  LEARNING STATS
     // =========================================================
 
     #[Route('/{id}/stats', name: 'stats', methods: ['GET', 'POST'])]
     public function stats(Request $request, User $user): Response
     {
-        $stats = $user->getLearningStats();
-
-        // Create stats record if it doesn't exist yet (lazy init)
-        if (!$stats) {
-            $stats = $this->userService->initLearningStats($user);
-        }
+        $stats = $user->getLearningStats() ?? $this->userService->initLearningStats($user);
 
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('stats' . $user->getId(), $request->request->get('_token'))) {
                 $this->addFlash('danger', 'Invalid security token.');
                 return $this->redirectToRoute('admin_users_stats', ['id' => $user->getId()]);
             }
-
             $stats->setTotalXP(max(0, (int) $request->request->get('totalXP', 0)));
             $stats->setWordsLearned(max(0, (int) $request->request->get('wordsLearned', 0)));
             $stats->setTotalMinutesStudied(max(0, (int) $request->request->get('totalMinutesStudied', 0)));
-
             $this->entityManager->flush();
             $this->addFlash('success', 'Learning stats updated successfully!');
-
             return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
         }
 
-        return $this->render('user_management/stats.html.twig', [
-            'user'  => $user,
-            'stats' => $stats,
-        ]);
+        return $this->render('user_management/stats.html.twig', ['user' => $user, 'stats' => $stats]);
     }
 
     // =========================================================
-    //  ADVANCED FEATURE 4 — NOTIFICATION SENDER
-    //  Admin sends a targeted notification to a specific user.
-    //  Uses the existing Notification entity — no new table needed.
+    //  NOTIFICATIONS
     // =========================================================
 
     #[Route('/{id}/notify', name: 'notify', methods: ['GET', 'POST'])]
@@ -347,7 +444,6 @@ class UserController extends AbstractController
                 return $this->redirectToRoute('admin_users_notify', ['id' => $user->getId()]);
             }
 
-            // Allowed types to prevent arbitrary data
             if (!in_array($type, ['info', 'warning', 'success', 'premium', 'system'], true)) {
                 $type = 'info';
             }
@@ -357,24 +453,20 @@ class UserController extends AbstractController
             $notification->setType($type);
             $notification->setMessage($message);
             $notification->setMetadata([
-                'sender'    => 'admin',
-                'admin_id'  => $this->getUser()?->getId(),
-                'sent_at'   => (new \DateTime())->format(\DateTime::ATOM),
+                'sender'   => 'admin',
+                'admin_id' => $this->getUser()?->getId(),
+                'sent_at'  => (new \DateTime())->format(\DateTime::ATOM),
             ]);
 
             $this->entityManager->persist($notification);
             $this->entityManager->flush();
-
             $this->addFlash('success', sprintf('Notification sent to %s.', $user->getFullName()));
             return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
         }
 
-        // Show last 10 notifications for context
-        $recentNotifications = $this->userService->getRecentNotifications($user, 10);
-
         return $this->render('user_management/notify.html.twig', [
             'user'                => $user,
-            'recentNotifications' => $recentNotifications,
+            'recentNotifications' => $this->userService->getRecentNotifications($user, 10),
             'notificationTypes'   => [
                 'info'    => 'ℹ️ Info',
                 'warning' => '⚠️ Warning',
@@ -386,15 +478,12 @@ class UserController extends AbstractController
     }
 
     // =========================================================
-    //  ADVANCED FEATURE 5 — USER LANGUAGE MANAGEMENT
-    //  Assign languages + proficiency levels to a user.
-    //  Fully uses the existing UserLanguage & Language entities.
+    //  LANGUAGE MANAGEMENT
     // =========================================================
 
     #[Route('/{id}/languages', name: 'languages', methods: ['GET', 'POST'])]
     public function languages(Request $request, User $user): Response
     {
-        // Show all enabled platform languages for the dropdown
         $availableLanguages = $this->entityManager
             ->getRepository(\App\Module\PedagogicalContent\Entity\PlatformLanguage::class)
             ->findBy(['isEnabled' => true], ['name' => 'ASC']);
@@ -407,14 +496,12 @@ class UserController extends AbstractController
 
             $action = $request->request->get('action');
 
-            // --- Add a language ---
             if ($action === 'add') {
                 $languageId  = (int) $request->request->get('language_id');
                 $proficiency = $request->request->get('proficiency_level', 'A1');
                 $isNative    = (bool) $request->request->get('is_native', false);
 
-                $allowedLevels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'native'];
-                if (!in_array($proficiency, $allowedLevels, true)) {
+                if (!in_array($proficiency, ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'native'], true)) {
                     $proficiency = 'A1';
                 }
 
@@ -427,7 +514,6 @@ class UserController extends AbstractController
                     return $this->redirectToRoute('admin_users_languages', ['id' => $user->getId()]);
                 }
 
-                // Prevent duplicates
                 foreach ($user->getUserLanguages() as $existing) {
                     if ($existing->getPlatformLanguage() === $platformLanguage) {
                         $this->addFlash('warning', 'This language is already assigned to the user.');
@@ -440,19 +526,15 @@ class UserController extends AbstractController
                 $userLanguage->setPlatformLanguage($platformLanguage);
                 $userLanguage->setProficiencyLevel($isNative ? 'native' : $proficiency);
                 $userLanguage->setIsNative($isNative);
-
                 $this->entityManager->persist($userLanguage);
                 $this->entityManager->flush();
-
                 $this->addFlash('success', 'Language added successfully!');
             }
 
-            // --- Remove a language ---
             if ($action === 'remove') {
-                $userLanguageId = (int) $request->request->get('user_language_id');
-                $userLanguage   = $this->entityManager
+                $userLanguage = $this->entityManager
                     ->getRepository(\App\Module\UserManagement\Entity\UserLanguage::class)
-                    ->find($userLanguageId);
+                    ->find((int) $request->request->get('user_language_id'));
 
                 if ($userLanguage && $userLanguage->getUser() === $user) {
                     $this->entityManager->remove($userLanguage);
@@ -471,11 +553,8 @@ class UserController extends AbstractController
         ]);
     }
 
-
     // =========================================================
-    //  ADVANCED FEATURE 6 — PASSWORD RESET BY ADMIN
-    //  Admin sets a temporary password for a user.
-    //  More controlled than a "forgot password" email flow.
+    //  ADMIN PASSWORD RESET
     // =========================================================
 
     #[Route('/{id}/reset-password', name: 'reset_password', methods: ['POST'])]
@@ -493,10 +572,8 @@ class UserController extends AbstractController
             return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
         }
 
-        $hashed = $this->passwordHasher->hashPassword($user, $newPassword);
-        $user->setPassword($hashed);
+        $user->setPassword($this->passwordHasher->hashPassword($user, $newPassword));
         $this->entityManager->flush();
-
         $this->addFlash('success', sprintf('Password reset for %s.', $user->getFullName()));
         return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
     }

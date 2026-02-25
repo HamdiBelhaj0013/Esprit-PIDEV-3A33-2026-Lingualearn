@@ -1,24 +1,23 @@
 {% extends 'layouts/admin.html.twig' %}
 
 {% block title %}Command Center — LinguaLearn{% endblock %}
-
 {% block stylesheets %}{{ parent() }}{% endblock %}
 
 {% block page_title %}
     <span style="display:flex;align-items:center;gap:10px;font-size:1rem;font-weight:800;letter-spacing:-.01em">
-    <span style="width:9px;height:9px;border-radius:50%;background:#10b981;box-shadow:0 0 0 0 rgba(16,185,129,.4);animation:livepulse 2s ease infinite;flex-shrink:0"></span>
-    Command Center
-    <span style="font-size:.72rem;font-weight:600;padding:3px 10px;border-radius:6px;background:rgba(59,130,246,.12);color:#3b82f6;border:1px solid rgba(59,130,246,.25)">LIVE</span>
-</span>
+        <span style="width:9px;height:9px;border-radius:50%;background:#10b981;box-shadow:0 0 0 0 rgba(16,185,129,.4);animation:livepulse 2s ease infinite;flex-shrink:0"></span>
+        Command Center
+        <span style="font-size:.72rem;font-weight:600;padding:3px 10px;border-radius:6px;background:rgba(59,130,246,.12);color:#3b82f6;border:1px solid rgba(59,130,246,.25)">LIVE</span>
+    </span>
 {% endblock %}
 
 {% block page_actions %}
     <div class="col-auto ms-auto d-print-none" style="display:flex;gap:8px;align-items:center">
         {% if dateRange is defined %}
             <span style="font-size:.74rem;color:#6b7280;background:#f9fafb;border:1px solid #e5e7eb;padding:6px 12px;border-radius:8px">
-        <i class="ti ti-calendar-stats" style="color:#3b82f6"></i>
-        {{ dateRange.start|date('M d') }} – {{ dateRange.end|date('M d, Y') }}
-    </span>
+                <i class="ti ti-calendar-stats" style="color:#3b82f6"></i>
+                {{ dateRange.start|date('M d, Y') }} – {{ dateRange.end|date('M d, Y') }}
+            </span>
         {% endif %}
         <button data-bs-toggle="modal" data-bs-target="#dateRangeModal"
                 style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:9px;border:1px solid #e5e7eb;background:#ffffff;color:#6b7280;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .2s"
@@ -28,9 +27,9 @@
         </button>
         <a href="{{ path('admin_dashboard_export') }}"
            style="display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border-radius:9px;background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;font-size:.78rem;font-weight:700;text-decoration:none;box-shadow:0 4px 14px rgba(59,130,246,.35);transition:all .2s"
-           onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 6px 20px rgba(59,130,246,.45)'"
-           onmouseout="this.style.transform='';this.style.boxShadow='0 4px 14px rgba(59,130,246,.35)'">
-            <i class="ti ti-download"></i> Export
+           onmouseover="this.style.transform='translateY(-1px)'"
+           onmouseout="this.style.transform=''">
+            <i class="ti ti-download"></i> Export CSV
         </a>
         <button id="refreshBtn"
                 style="width:34px;height:34px;border-radius:9px;border:1px solid #e5e7eb;background:#ffffff;color:#9ca3af;cursor:pointer;display:grid;place-items:center;font-size:16px;transition:all .2s"
@@ -43,67 +42,28 @@
 
 {% block content %}
     <style>
-        /* ═══ LIGHT COMMAND CENTER ═══════════════════════════════════════ */
         :root{
-            /* Backgrounds */
-            --d-bg:  #f1f5f9;
-            --d-s1:  #ffffff;
-            --d-s2:  #f8fafc;
-            --d-s3:  #e2e8f0;
-
-            /* Borders */
-            --d-b1:  rgba(0,0,0,.07);
-            --d-b2:  rgba(0,0,0,.13);
-
-            /* Text */
-            --d-txt: #0f172a;
-            --d-mut: #64748b;
-
-            /* Accent palette */
-            --d-bl:  #3b82f6;
-            --d-gr:  #10b981;
-            --d-am:  #f59e0b;
-            --d-rd:  #ef4444;
-            --d-pu:  #8b5cf6;
-            --d-cy:  #06b6d4;
-            --d-pk:  #ec4899;
+            --d-bg:#f1f5f9;--d-s1:#ffffff;--d-b1:rgba(0,0,0,.07);--d-b2:rgba(0,0,0,.13);
+            --d-txt:#0f172a;--d-mut:#64748b;
+            --d-bl:#3b82f6;--d-gr:#10b981;--d-am:#f59e0b;--d-rd:#ef4444;
+            --d-pu:#8b5cf6;--d-cy:#06b6d4;--d-pk:#ec4899;
         }
-
         .page-wrapper,.page-body{background:var(--d-bg)!important}
         .container-xl{max-width:1480px}
-
-        /* Subtle dot grid */
-        .db-grid-bg{
-            position:fixed;inset:0;pointer-events:none;z-index:0;
-            background-image: radial-gradient(circle, #cbd5e1 1px, transparent 1px);
-            background-size: 28px 28px;
-            opacity: 0.5;
-        }
+        .db-grid-bg{position:fixed;inset:0;pointer-events:none;z-index:0;background-image:radial-gradient(circle,#cbd5e1 1px,transparent 1px);background-size:28px 28px;opacity:.5}
 
         @keyframes livepulse{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.4)}50%{box-shadow:0 0 0 8px transparent}}
         @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
-        @keyframes countUp{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
         @keyframes spin{to{transform:rotate(360deg)}}
-        @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
-
         .fu{animation:fadeUp .5s ease both}
         .d1{animation-delay:.04s}.d2{animation-delay:.08s}.d3{animation-delay:.12s}.d4{animation-delay:.16s}
         .d5{animation-delay:.20s}.d6{animation-delay:.24s}.d7{animation-delay:.28s}.d8{animation-delay:.32s}
-        .d9{animation-delay:.36s}.d10{animation-delay:.4s}.d11{animation-delay:.44s}.d12{animation-delay:.48s}
+        .d9{animation-delay:.36s}.d10{animation-delay:.4s}.d11{animation-delay:.44s}
         .spinning{animation:spin .7s linear infinite}
 
-        /* ── Card base ── */
-        .dc{
-            background:var(--d-s1);
-            border:1px solid var(--d-b1);
-            border-radius:16px;overflow:hidden;position:relative;
-            transition:border-color .3s,box-shadow .3s;
-            box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
-        }
-        .dc:hover{
-            border-color:var(--d-b2);
-            box-shadow: 0 4px 16px rgba(0,0,0,.1);
-        }
+        /* Cards */
+        .dc{background:var(--d-s1);border:1px solid var(--d-b1);border-radius:16px;overflow:hidden;position:relative;transition:border-color .3s,box-shadow .3s;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+        .dc:hover{border-color:var(--d-b2);box-shadow:0 4px 16px rgba(0,0,0,.1)}
         .dc::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;opacity:0;transition:opacity .35s}
         .dc:hover::after{opacity:1}
         .dc.ab::after{background:linear-gradient(90deg,transparent,var(--d-bl),transparent)}
@@ -112,51 +72,38 @@
         .dc.ar::after{background:linear-gradient(90deg,transparent,var(--d-rd),transparent)}
         .dc.ap::after{background:linear-gradient(90deg,transparent,var(--d-pu),transparent)}
         .dc.ac::after{background:linear-gradient(90deg,transparent,var(--d-cy),transparent)}
-        .dc.apk::after{background:linear-gradient(90deg,transparent,var(--d-pk),transparent)}
 
-        /* ── KPI strip ── */
+        /* KPI */
         .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
         @media(max-width:1100px){.kpi-row{grid-template-columns:repeat(2,1fr)}}
         @media(max-width:560px){.kpi-row{grid-template-columns:1fr}}
-
         .kc{padding:22px;cursor:default;position:relative;overflow:hidden}
         .kc::before{content:'';position:absolute;width:130px;height:130px;border-radius:50%;right:-35px;bottom:-35px;opacity:.06;transition:transform .4s,opacity .4s}
         .kc:hover::before{transform:scale(1.5);opacity:.11}
         .kc.kb::before{background:var(--d-bl)}.kc.kg::before{background:var(--d-gr)}
         .kc.ka::before{background:var(--d-am)}.kc.kp::before{background:var(--d-pu)}
-
         .kc-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
         .kc-ico{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;font-size:19px;flex-shrink:0}
         .kc-ico.ib{background:rgba(59,130,246,.12);color:#2563eb}
         .kc-ico.ig{background:rgba(16,185,129,.12);color:#059669}
         .kc-ico.ia{background:rgba(245,158,11,.12);color:#d97706}
         .kc-ico.ip{background:rgba(139,92,246,.12);color:#7c3aed}
-        .kc-ico.ic{background:rgba(6,182,212,.12);color:#0891b2}
-        .kc-ico.ir{background:rgba(239,68,68,.12);color:#dc2626}
-        .kc-ico.ipk{background:rgba(236,72,153,.12);color:#db2777}
-
         .badge-kpi{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:5px;font-size:.68rem;font-weight:700}
         .bup{background:rgba(16,185,129,.12);color:#059669}
         .bdn{background:rgba(239,68,68,.12);color:#dc2626}
         .bnu{background:rgba(100,116,139,.12);color:#475569}
-
-        /* KPI values — solid dark text (no gradient on light bg for readability) */
         .kc-val{font-size:2.2rem;font-weight:900;line-height:1;color:var(--d-txt);letter-spacing:-.04em;margin-bottom:5px;font-variant-numeric:tabular-nums}
         .kc-lbl{font-size:.73rem;color:var(--d-mut);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
         .kc-sub{font-size:.7rem;color:var(--d-mut);margin-top:7px}
-
-        /* Gradient text util — adjusted for light backgrounds */
         .gb{background:linear-gradient(135deg,#2563eb,#0891b2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
         .gg{background:linear-gradient(135deg,#059669,#10b981);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
         .ga{background:linear-gradient(135deg,#d97706,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
         .gp{background:linear-gradient(135deg,#7c3aed,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
         .gc{background:linear-gradient(135deg,#0891b2,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-
-        /* Progress bars */
         .dp{height:4px;border-radius:99px;background:#e2e8f0;overflow:hidden;margin-top:10px}
         .dpf{height:100%;border-radius:99px;transition:width 1.6s cubic-bezier(.4,0,.2,1);width:0}
 
-        /* ── Section header ── */
+        /* Section header */
         .dsh{display:flex;align-items:center;justify-content:space-between;padding:15px 20px 13px;border-bottom:1px solid var(--d-b1)}
         .dsh-l{display:flex;align-items:center;gap:10px}
         .dsh-ic{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;font-size:13px}
@@ -165,28 +112,27 @@
         .dsh-a{font-size:.71rem;color:var(--d-mut);text-decoration:none;display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:5px;border:1px solid var(--d-b1);transition:all .2s}
         .dsh-a:hover{border-color:var(--d-bl);color:var(--d-bl);background:#eff6ff}
 
-        /* ── Main bento ── */
+        /* Bento grids */
         .bento-a{display:grid;grid-template-columns:1fr 1fr 300px;gap:12px;margin-bottom:12px}
         @media(max-width:1100px){.bento-a{grid-template-columns:1fr 1fr}}
         @media(max-width:700px){.bento-a{grid-template-columns:1fr}}
         .span2{grid-column:span 2}
-        @media(max-width:1100px){.span2{grid-column:span 2}}
         @media(max-width:700px){.span2{grid-column:span 1}}
-
         .bento-b{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
         @media(max-width:992px){.bento-b{grid-template-columns:1fr 1fr}}
         @media(max-width:560px){.bento-b{grid-template-columns:1fr}}
 
-        /* ── Tabs ── */
+        /* Tabs */
         .dtabs{display:flex;gap:3px}
         .dtab{padding:4px 11px;border-radius:6px;font-size:.71rem;font-weight:700;border:1px solid #e5e7eb;background:#f8fafc;color:#64748b;cursor:pointer;transition:all .2s}
         .dtab.on,.dtab:hover{background:var(--d-bl);color:#fff;border-color:var(--d-bl)}
 
-        /* ── Chart ── */
-        .dc-chart{padding:14px 18px 18px}
-        .dc-chart canvas{max-height:250px}
+        /* Charts */
+        .dc-chart{padding:14px 18px 18px;position:relative}
+        .dc-chart canvas{max-height:240px}
+        .chart-total{position:absolute;top:14px;right:18px;font-size:.72rem;color:var(--d-mut);font-weight:600}
 
-        /* ── Revenue ring ── */
+        /* Revenue ring */
         .ring-wrap{padding:18px;display:flex;flex-direction:column;align-items:center;gap:14px}
         .ring-cw{position:relative;width:150px;height:150px}
         .ring-c{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none}
@@ -199,7 +145,7 @@
         .rll{color:var(--d-mut);display:flex;align-items:center}
         .rlv{color:var(--d-txt);font-weight:700}
 
-        /* ── Feed ── */
+        /* Feed */
         .feed-i{display:flex;align-items:center;gap:11px;padding:10px 18px;transition:background .15s}
         .feed-i:hover{background:#f8fafc}
         .feed-av{width:33px;height:33px;border-radius:9px;object-fit:cover;flex-shrink:0;border:1px solid #e2e8f0}
@@ -208,9 +154,9 @@
         .feed-t{font-size:.66rem;color:#94a3b8;margin-left:auto;white-space:nowrap;flex-shrink:0}
         .feed-b{padding:2px 6px;border-radius:4px;font-size:.62rem;font-weight:700;margin-left:5px}
         .fb-p{background:rgba(245,158,11,.12);color:#b45309}
-        .fb-a{background:rgba(16,185,129,.12);color:#059669}
+        .fb-f{background:rgba(100,116,139,.1);color:#475569}
 
-        /* ── Content rows ── */
+        /* Content rows */
         .cr{display:flex;align-items:center;padding:11px 18px;border-bottom:1px solid var(--d-b1);gap:12px}
         .cr:last-child{border-bottom:none}
         .cr-ic{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;font-size:14px;flex-shrink:0}
@@ -218,28 +164,35 @@
         .cr-s{font-size:.69rem;color:var(--d-mut)}
         .cr-v{font-size:1.05rem;font-weight:900;color:var(--d-txt);margin-left:auto;letter-spacing:-.02em}
 
-        /* ── Health ── */
+        /* Health */
         .hi{display:flex;align-items:center;justify-content:space-between;padding:9px 18px;border-bottom:1px solid var(--d-b1)}
         .hi:last-child{border-bottom:none}
         .hi-l{font-size:.76rem;color:var(--d-mut);display:flex;align-items:center;gap:7px}
         .hi-v{font-size:.8rem;font-weight:700;color:var(--d-txt)}
 
-        /* ── Quick actions ── */
+        /* Quick actions */
         .qa-g{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:14px 18px}
-        .qa-i{padding:13px 11px;border-radius:10px;text-decoration:none;display:flex;flex-direction:column;gap:5px;border:1px solid #e5e7eb;background:#f8fafc;transition:all .2s;cursor:pointer}
+        .qa-i{padding:13px 11px;border-radius:10px;text-decoration:none;display:flex;flex-direction:column;gap:5px;border:1px solid #e5e7eb;background:#f8fafc;transition:all .2s}
         .qa-i:hover{border-color:#bfdbfe;background:#eff6ff;transform:translateY(-2px);box-shadow:0 4px 12px rgba(59,130,246,.12)}
         .qa-i-ico{font-size:17px}
         .qa-i-n{font-size:.71rem;font-weight:700;color:var(--d-txt)}
         .qa-i-s{font-size:.65rem;color:var(--d-mut)}
 
-        /* ── Pending alerts ── */
-        .alert-row{display:flex;align-items:center;gap:10px;padding:10px 18px;border-bottom:1px solid var(--d-b1);transition:background .15s}
-        .alert-row:last-child{border-bottom:none}
-        .alert-row:hover{background:#f8fafc}
-        .alert-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+        /* Stat mini-badges under chart */
+        .chart-stats{display:flex;gap:12px;padding:0 18px 14px;flex-wrap:wrap}
+        .cs-item{font-size:.72rem;color:var(--d-mut);display:flex;align-items:center;gap:4px}
+        .cs-val{font-weight:700;color:var(--d-txt)}
 
-        /* ── Modal light ── */
-        .db-modal .modal-content{background:var(--d-s1);border:1px solid #e2e8f0;border-radius:16px;color:var(--d-txt);box-shadow:0 20px 60px rgba(0,0,0,.15)}
+        /* Plan distribution row */
+        .plan-bar-row{display:flex;align-items:center;gap:10px;padding:8px 18px;border-bottom:1px solid var(--d-b1)}
+        .plan-bar-row:last-child{border-bottom:none}
+        .plan-bar-name{font-size:.75rem;font-weight:600;color:var(--d-txt);width:60px;flex-shrink:0}
+        .plan-bar-track{flex:1;height:6px;border-radius:99px;background:#e2e8f0;overflow:hidden}
+        .plan-bar-fill{height:100%;border-radius:99px;transition:width 1.4s cubic-bezier(.4,0,.2,1);width:0}
+        .plan-bar-val{font-size:.72rem;font-weight:700;color:var(--d-txt);width:32px;text-align:right;flex-shrink:0}
+
+        /* Modal */
+        .db-modal .modal-content{background:var(--d-s1);border:1px solid #e2e8f0;border-radius:16px;color:var(--d-txt)}
         .db-modal .modal-header{border-bottom:1px solid #e2e8f0}
         .db-modal .form-control{background:#f8fafc;border-color:#e2e8f0;color:var(--d-txt);border-radius:9px}
         .db-modal .form-label{font-size:.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em}
@@ -248,45 +201,65 @@
 
     <div class="db-grid-bg"></div>
 
-    {# ═══ KPI STRIP ═══════════════════════════════════════════════ #}
+    {# ═══ KPI STRIP ═══════════════════════════════════════════════════ #}
+    {% set total     = userStats.total|default(0) %}
+    {% set active    = userStats.active|default(0) %}
+    {% set suspended = userStats.suspended|default(0) %}
+    {% set premium   = userStats.premium|default(0) %}
+    {% set trend     = userStats.totalTrend|default(0) %}
+    {% set newLast7  = userStats.newLast7|default(0) %}
+    {% set newLast30 = userStats.newLast30|default(0) %}
+
     <div class="kpi-row" style="position:relative;z-index:1">
 
+        {# Total users #}
         <div class="dc kc kb ab fu d1">
             <div class="kc-top">
                 <div class="kc-ico ib"><i class="ti ti-users"></i></div>
-                <span class="badge-kpi {{ (userStats.totalTrend ?? 0) >= 0 ? 'bup' : 'bdn' }}">
-                <i class="ti ti-trending-{{ (userStats.totalTrend ?? 0) >= 0 ? 'up' : 'down' }}"></i>
-                {{ (userStats.totalTrend ?? 0)|abs }}%
+                <span class="badge-kpi {{ trend >= 0 ? 'bup' : 'bdn' }}">
+                <i class="ti ti-trending-{{ trend >= 0 ? 'up' : 'down' }}"></i>
+                {{ trend|abs }}%
             </span>
             </div>
-            <div class="kc-val gb" data-count="{{ userStats.total|default(0) }}">0</div>
+            <div class="kc-val gb" data-count="{{ total }}">0</div>
             <div class="kc-lbl">Total Users</div>
-            <div class="kc-sub">{{ userStats.active|default(0) }} active &middot; {{ userStats.suspended|default(0) }} suspended</div>
-            <div class="dp"><div class="dpf" style="background:var(--d-bl)" data-w="{{ userStats.total > 0 ? ((userStats.active / userStats.total)*100)|round : 0 }}"></div></div>
+            <div class="kc-sub">
+                +{{ newLast7 }} this week &middot; +{{ newLast30 }} this month
+            </div>
+            <div class="dp"><div class="dpf" style="background:var(--d-bl)" data-w="{{ total > 0 ? ((active/total)*100)|round : 0 }}"></div></div>
         </div>
 
+        {# Active users #}
         <div class="dc kc kg ag fu d2">
             <div class="kc-top">
                 <div class="kc-ico ig"><i class="ti ti-user-check"></i></div>
-                <span class="badge-kpi bup">{{ userStats.total > 0 ? ((userStats.active / userStats.total)*100)|number_format(0) : 0 }}% active</span>
+                <span class="badge-kpi bup">
+                {{ total > 0 ? ((active/total)*100)|number_format(1) : 0 }}% of total
+            </span>
             </div>
-            <div class="kc-val gg" data-count="{{ userStats.active|default(0) }}">0</div>
+            <div class="kc-val gg" data-count="{{ active }}">0</div>
             <div class="kc-lbl">Active Users</div>
-            <div class="kc-sub">{{ userStats.premium|default(0) }} premium members</div>
-            <div class="dp"><div class="dpf" style="background:var(--d-gr)" data-w="{{ userStats.total > 0 ? ((userStats.active / userStats.total)*100)|round : 0 }}"></div></div>
+            <div class="kc-sub">
+                {{ suspended }} suspended &middot; {{ userStats.deleted|default(0) }} deleted
+            </div>
+            <div class="dp"><div class="dpf" style="background:var(--d-gr)" data-w="{{ total > 0 ? ((active/total)*100)|round : 0 }}"></div></div>
         </div>
 
+        {# Premium #}
         <div class="dc kc ka aa fu d3">
             <div class="kc-top">
                 <div class="kc-ico ia"><i class="ti ti-crown"></i></div>
-                <span class="badge-kpi bup">${{ revenueStats.thisMonth|default(0)|number_format(0) }} MRR</span>
+                <span class="badge-kpi bnu">${{ revenueStats.thisMonth|default(0)|number_format(2) }} MRR</span>
             </div>
-            <div class="kc-val ga" data-count="{{ userStats.premium|default(0) }}">0</div>
+            <div class="kc-val ga" data-count="{{ premium }}">0</div>
             <div class="kc-lbl">Premium Members</div>
-            <div class="kc-sub">${{ userStats.premiumRevenue|default(0)|number_format(0) }} total ARR</div>
-            <div class="dp"><div class="dpf" style="background:var(--d-am)" data-w="{{ userStats.total > 0 ? ((userStats.premium / userStats.total)*100)|round : 0 }}"></div></div>
+            <div class="kc-sub">
+                {{ userStats.payingPremium|default(0) }} stripe &middot; {{ userStats.adminGranted|default(0) }} admin
+            </div>
+            <div class="dp"><div class="dpf" style="background:var(--d-am)" data-w="{{ total > 0 ? ((premium/total)*100)|round : 0 }}"></div></div>
         </div>
 
+        {# Courses #}
         <div class="dc kc kp ap fu d4">
             <div class="kc-top">
                 <div class="kc-ico ip"><i class="ti ti-books"></i></div>
@@ -294,67 +267,122 @@
             </div>
             <div class="kc-val gp" data-count="{{ courseCount|default(0) }}">0</div>
             <div class="kc-lbl">Total Courses</div>
-            <div class="kc-sub">{{ exerciseCount|default(0) }} exercises &middot; {{ totalEnrollments|default(0)|number_format }} enrolled</div>
-            <div class="dp"><div class="dpf" style="background:var(--d-pu)" data-w="{{ courseCount > 0 and courseStats.published is defined ? ((courseStats.published / courseCount)*100)|round : 0 }}"></div></div>
+            <div class="kc-sub">
+                {{ exerciseCount|default(0) }} exercises &middot; {{ totalEnrollments|default(0)|number_format }} enrolled
+            </div>
+            <div class="dp">
+                <div class="dpf" style="background:var(--d-pu)"
+                     data-w="{{ (courseCount|default(0)) > 0 ? ((courseStats.published|default(0)/courseCount)*100)|round : 0 }}">
+                </div>
+            </div>
         </div>
 
     </div>
 
-    {# ═══ MAIN BENTO ═══════════════════════════════════════════════ #}
+    {# ═══ MAIN BENTO ═══════════════════════════════════════════════════ #}
     <div class="bento-a" style="position:relative;z-index:1">
 
-        {# Growth chart — spans 2 cols #}
+        {# ── User Growth Chart ── #}
         <div class="dc ab span2 fu d5">
             <div class="dsh">
                 <div class="dsh-l">
                     <div class="dsh-ic" style="background:rgba(59,130,246,.12);color:#2563eb"><i class="ti ti-chart-area-line"></i></div>
-                    <div><div class="dsh-t">User Growth</div><div class="dsh-s">Registrations over time</div></div>
+                    <div>
+                        <div class="dsh-t">User Growth</div>
+                        <div class="dsh-s">
+                            <span id="chartRangeLabel">All time — {{ total }} total users</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="dtabs">
-                    <button class="dtab on" data-p="7d">7D</button>
+                    <button class="dtab" data-p="7d">7D</button>
                     <button class="dtab" data-p="30d">30D</button>
                     <button class="dtab" data-p="90d">90D</button>
+                    <button class="dtab" data-p="1y">1Y</button>
+                    <button class="dtab on" data-p="all">All</button>
                 </div>
             </div>
-            <div class="dc-chart"><canvas id="growthChart"></canvas></div>
+            <div class="dc-chart">
+                <div class="chart-total" id="chartPeriodTotal"></div>
+                <canvas id="growthChart"></canvas>
+            </div>
+            <div class="chart-stats">
+                <div class="cs-item"><span class="cs-val">+{{ newLast7 }}</span> last 7 days</div>
+                <div class="cs-item"><span class="cs-val">+{{ newLast30 }}</span> last 30 days</div>
+                <div class="cs-item"><span class="cs-val">{{ total }}</span> total registered</div>
+                {% if dateRange is defined %}
+                    <div class="cs-item">
+                        <span class="cs-val">{{ userStats.newInPeriod|default(0) }}</span>
+                        in selected range
+                    </div>
+                {% endif %}
+            </div>
         </div>
 
-        {# Revenue ring #}
+        {# ── Revenue Ring ── #}
         <div class="dc ag fu d6">
             <div class="dsh">
                 <div class="dsh-l">
                     <div class="dsh-ic" style="background:rgba(16,185,129,.12);color:#059669"><i class="ti ti-wallet"></i></div>
                     <div><div class="dsh-t">Revenue</div><div class="dsh-s">Subscription breakdown</div></div>
                 </div>
-                {% if revenueStats is defined %}
-                    <span class="badge-kpi {{ revenueStats.growth >= 0 ? 'bup' : 'bdn' }}">
-                <i class="ti ti-trending-{{ revenueStats.growth >= 0 ? 'up' : 'down' }}"></i>
-                {{ revenueStats.growth >= 0 ? '+' : '' }}{{ revenueStats.growth }}%
+                <span class="badge-kpi {{ revenueStats.growth|default(0) >= 0 ? 'bup' : 'bdn' }}">
+                <i class="ti ti-trending-{{ revenueStats.growth|default(0) >= 0 ? 'up' : 'down' }}"></i>
+                {{ revenueStats.growth|default(0) >= 0 ? '+' : '' }}{{ revenueStats.growth|default(0) }}%
             </span>
-                {% endif %}
             </div>
+
+            {% set mrr         = revenueStats.thisMonth|default(0) %}
+            {% set monthly_cnt = revenueStats.monthlyCount|default(0) %}
+            {% set yearly_cnt  = revenueStats.yearlyCount|default(0) %}
+            {% set gross       = (monthly_cnt * 9.99) + (yearly_cnt * 99.99) %}
+            {% set tax         = gross * 0.18 %}
+            {% set net         = gross - tax %}
+
             <div class="ring-wrap">
                 <div class="ring-cw">
                     <canvas id="revenueChart" width="150" height="150"></canvas>
                     <div class="ring-c">
-                        <div class="rv">${{ revenueStats.thisMonth|default(0)|number_format(0) }}</div>
-                        <div class="rl">this month</div>
+                        <div class="rv">${{ mrr|number_format(0) }}</div>
+                        <div class="rl">MRR</div>
                     </div>
                 </div>
+
+                <div style="width:100%;display:flex;gap:6px;margin-bottom:2px">
+                    <div style="flex:1;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.18);border-radius:8px;padding:7px 10px;text-align:center">
+                        <div style="font-size:1rem;font-weight:900;color:#059669">{{ monthly_cnt }}</div>
+                        <div style="font-size:.63rem;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Monthly</div>
+                        <div style="font-size:.65rem;color:#059669;font-weight:700">$9.99/mo</div>
+                    </div>
+                    <div style="flex:1;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.18);border-radius:8px;padding:7px 10px;text-align:center">
+                        <div style="font-size:1rem;font-weight:900;color:#d97706">{{ yearly_cnt }}</div>
+                        <div style="font-size:.63rem;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Yearly</div>
+                        <div style="font-size:.65rem;color:#d97706;font-weight:700">$99.99/yr</div>
+                    </div>
+                </div>
+
                 <div class="rev-leg">
                     <div class="rli">
-                        <span class="rll"><span class="rld" style="background:var(--d-gr)"></span>This Month</span>
-                        <span class="rlv">${{ revenueStats.thisMonth|default(0)|number_format(0) }}</span>
+                        <span class="rll"><span class="rld" style="background:var(--d-gr)"></span>MRR</span>
+                        <span class="rlv">${{ mrr|number_format(2) }}</span>
                     </div>
                     <div class="rli">
-                        <span class="rll"><span class="rld" style="background:var(--d-bl)"></span>Last Month</span>
-                        <span class="rlv">${{ revenueStats.lastMonth|default(0)|number_format(0) }}</span>
+                        <span class="rll"><span class="rld" style="background:#6366f1"></span>Gross Billed</span>
+                        <span class="rlv">${{ gross|number_format(2) }}</span>
                     </div>
                     <div class="rli">
-                        <span class="rll"><span class="rld" style="background:var(--d-am)"></span>Growth</span>
-                        <span class="rlv" style="color:{{ revenueStats.growth|default(0) >= 0 ? '#059669' : '#dc2626' }}">
-                        {{ revenueStats.growth|default(0) >= 0 ? '+' : '' }}{{ revenueStats.growth|default(0) }}%
+                        <span class="rll"><span class="rld" style="background:var(--d-rd)"></span>Tax (18%)</span>
+                        <span class="rlv" style="color:#dc2626">−${{ tax|number_format(2) }}</span>
+                    </div>
+                    <div class="rli" style="border-top:2px solid var(--d-b2);padding-top:7px;margin-top:2px">
+                    <span class="rll" style="color:var(--d-txt);font-weight:700">
+                        <span class="rld" style="background:var(--d-gr)"></span>Net Revenue
                     </span>
+                        <span class="rlv" style="color:#059669">${{ net|number_format(2) }}</span>
+                    </div>
+                    <div class="rli">
+                        <span class="rll"><span class="rld" style="background:#94a3b8"></span>Last Month MRR</span>
+                        <span class="rlv">${{ revenueStats.lastMonth|default(0)|number_format(2) }}</span>
                     </div>
                 </div>
             </div>
@@ -362,51 +390,98 @@
 
     </div>
 
-    {# ═══ BOTTOM BENTO ═══════════════════════════════════════════════ #}
+    {# ═══ BOTTOM BENTO ════════════════════════════════════════════════ #}
     <div class="bento-b" style="position:relative;z-index:1">
 
-        {# Recent Registrations #}
+        {# ── Recent Registrations ── #}
         <div class="dc ac fu d7">
             <div class="dsh">
                 <div class="dsh-l">
                     <div class="dsh-ic" style="background:rgba(6,182,212,.12);color:#0891b2"><i class="ti ti-user-plus"></i></div>
-                    <div><div class="dsh-t">New Members</div><div class="dsh-s">Latest registrations</div></div>
+                    <div>
+                        <div class="dsh-t">New Members</div>
+                        <div class="dsh-s">+{{ newLast7 }} this week &middot; +{{ newLast30 }} this month</div>
+                    </div>
                 </div>
                 <a href="{{ path('admin_users_index') }}" class="dsh-a">All <i class="ti ti-arrow-right"></i></a>
             </div>
-            <div>
-                {% if recentRegistrations is defined and recentRegistrations|length > 0 %}
-                    {% for user in recentRegistrations|slice(0,7) %}
-                        <div class="feed-i fu d{{ 8 + loop.index0 }}">
-                            <img class="feed-av"
-                                 src="https://ui-avatars.com/api/?name={{ user.firstName|url_encode }}+{{ user.lastName|url_encode }}&background={{ ['3b82f6','10b981','f59e0b','8b5cf6','06b6d4','ef4444','ec4899'][loop.index0 % 7] }}&color=fff&size=66"
-                                 alt="{{ user.fullName }}">
-                            <div style="min-width:0;flex:1">
-                                <div class="feed-n">
-                                    {{ user.fullName }}
-                                    <span class="feed-b {{ user.isPremium ? 'fb-p' : 'fb-a' }}">{{ user.isPremium ? '👑' : '●' }}</span>
-                                </div>
-                                <div class="feed-e" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ user.email }}</div>
+            {% if recentRegistrations|length > 0 %}
+                {% set colors = ['3b82f6','10b981','f59e0b','8b5cf6','06b6d4','ef4444','ec4899'] %}
+                {% for user in recentRegistrations|slice(0,7) %}
+                    <div class="feed-i">
+                        <img class="feed-av"
+                             src="https://ui-avatars.com/api/?name={{ (user.firstName ~ '+' ~ user.lastName)|url_encode }}&background={{ colors[loop.index0 % 7] }}&color=fff&size=66"
+                             alt="{{ user.fullName }}">
+                        <div style="min-width:0;flex:1">
+                            <div class="feed-n">
+                                {{ user.fullName }}
+                                <span class="feed-b {{ user.isPremium ? 'fb-p' : 'fb-f' }}">
+                                {{ user.isPremium ? '👑 Premium' : 'Free' }}
+                            </span>
                             </div>
-                            <div class="feed-t">{{ user.createdAt|date('M d') }}</div>
+                            <div class="feed-e" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ user.email }}</div>
                         </div>
-                    {% endfor %}
-                {% else %}
-                    <div style="padding:40px 18px;text-align:center;color:var(--d-mut);font-size:.8rem">
-                        <i class="ti ti-user-off" style="font-size:2.2rem;display:block;margin-bottom:8px;opacity:.35"></i>
-                        No recent registrations
+                        <div class="feed-t">{{ user.createdAt|date('M d, Y') }}</div>
                     </div>
-                {% endif %}
-            </div>
+                {% endfor %}
+            {% else %}
+                <div style="padding:40px 18px;text-align:center;color:var(--d-mut);font-size:.8rem">
+                    <i class="ti ti-user-off" style="font-size:2.2rem;display:block;margin-bottom:8px;opacity:.35"></i>
+                    No users yet
+                </div>
+            {% endif %}
         </div>
 
-        {# Content & Engagement #}
+        {# ── Plan Distribution + Content ── #}
         <div class="dc ap fu d8">
             <div class="dsh">
                 <div class="dsh-l">
-                    <div class="dsh-ic" style="background:rgba(139,92,246,.12);color:#7c3aed"><i class="ti ti-books"></i></div>
-                    <div><div class="dsh-t">Content & Engagement</div><div class="dsh-s">Platform metrics</div></div>
+                    <div class="dsh-ic" style="background:rgba(139,92,246,.12);color:#7c3aed"><i class="ti ti-chart-pie"></i></div>
+                    <div><div class="dsh-t">Plan Distribution</div><div class="dsh-s">{{ total }} users total</div></div>
                 </div>
+            </div>
+
+            {# Plan bars — all live from planDistribution #}
+            {% set planTotal = (planDistribution.FREE|default(0)) + (planDistribution.MONTHLY|default(0)) + (planDistribution.YEARLY|default(0)) %}
+            <div class="plan-bar-row">
+                <div class="plan-bar-name" style="color:#64748b">FREE</div>
+                <div class="plan-bar-track">
+                    <div class="plan-bar-fill" style="background:#94a3b8"
+                         data-w="{{ planTotal > 0 ? ((planDistribution.FREE|default(0)/planTotal)*100)|round : 0 }}"></div>
+                </div>
+                <div class="plan-bar-val">{{ planDistribution.FREE|default(0) }}</div>
+            </div>
+            <div class="plan-bar-row">
+                <div class="plan-bar-name" style="color:#059669">MONTHLY</div>
+                <div class="plan-bar-track">
+                    <div class="plan-bar-fill" style="background:#10b981"
+                         data-w="{{ planTotal > 0 ? ((planDistribution.MONTHLY|default(0)/planTotal)*100)|round : 0 }}"></div>
+                </div>
+                <div class="plan-bar-val">{{ planDistribution.MONTHLY|default(0) }}</div>
+            </div>
+            <div class="plan-bar-row">
+                <div class="plan-bar-name" style="color:#d97706">YEARLY</div>
+                <div class="plan-bar-track">
+                    <div class="plan-bar-fill" style="background:#f59e0b"
+                         data-w="{{ planTotal > 0 ? ((planDistribution.YEARLY|default(0)/planTotal)*100)|round : 0 }}"></div>
+                </div>
+                <div class="plan-bar-val">{{ planDistribution.YEARLY|default(0) }}</div>
+            </div>
+
+            {# Plan doughnut #}
+            <div style="display:flex;justify-content:center;padding:12px 0 4px">
+                <div style="position:relative;width:110px;height:110px">
+                    <canvas id="planChart" width="110" height="110"></canvas>
+                    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center">
+                        <div style="font-size:1.1rem;font-weight:900;color:var(--d-txt)">{{ total }}</div>
+                        <div style="font-size:.58rem;color:var(--d-mut);text-transform:uppercase;letter-spacing:.05em">users</div>
+                    </div>
+                </div>
+            </div>
+
+            {# Content divider #}
+            <div style="padding:10px 18px 4px;border-top:1px solid var(--d-b1);margin-top:6px">
+                <div style="font-size:.7rem;font-weight:700;color:var(--d-mut);text-transform:uppercase;letter-spacing:.07em">Content</div>
             </div>
             <div class="cr">
                 <div class="cr-ic" style="background:rgba(139,92,246,.12);color:#7c3aed"><i class="ti ti-books"></i></div>
@@ -424,37 +499,20 @@
                 <div class="cr-v gg">{{ totalEnrollments|default(0)|number_format }}</div>
             </div>
             <div class="cr">
-                <div class="cr-ic" style="background:rgba(245,158,11,.12);color:#d97706"><i class="ti ti-star-filled"></i></div>
-                <div>
-                    <div class="cr-n">Avg Rating</div>
-                    <div class="cr-s">
-                        {% if averageRating is defined and averageRating %}
-                            {% for i in 1..5 %}<i class="ti ti-star{{ i <= averageRating|round ? '-filled' : '' }}" style="color:#f59e0b;font-size:10px"></i>{% endfor %}
-                        {% else %}No ratings yet{% endif %}
-                    </div>
-                </div>
-                <div class="cr-v ga">{{ averageRating is defined and averageRating ? averageRating|number_format(1) : '—' }}</div>
-            </div>
-            <div class="cr">
                 <div class="cr-ic" style="background:rgba(6,182,212,.12);color:#0891b2"><i class="ti ti-messages"></i></div>
                 <div><div class="cr-n">Forum Posts</div><div class="cr-s">{{ forumStats.todayPosts|default(0) }} today &middot; {{ forumReplyCount|default(0) }} replies</div></div>
                 <div class="cr-v gc">{{ forumPostCount|default(0) }}</div>
             </div>
-            <div class="cr">
-                <div class="cr-ic" style="background:rgba(236,72,153,.12);color:#db2777"><i class="ti ti-message-2"></i></div>
-                <div><div class="cr-n">Most Active</div><div class="cr-s">Top forum contributor</div></div>
-                <div style="margin-left:auto;font-size:.75rem;font-weight:700;color:var(--d-txt)">{{ forumStats.mostActiveUser|default('N/A') }}</div>
-            </div>
         </div>
 
-        {# Health + Alerts + Quick Actions #}
+        {# ── Health + Quick Actions ── #}
         <div class="dc ar fu d9" style="display:flex;flex-direction:column">
             <div class="dsh">
                 <div class="dsh-l">
                     <div class="dsh-ic" style="background:rgba(239,68,68,.12);color:#dc2626"><i class="ti ti-heartbeat"></i></div>
                     <div><div class="dsh-t">System Health</div><div class="dsh-s">Infrastructure status</div></div>
                 </div>
-                <span class="badge-kpi bup"><i class="ti ti-check"></i> All systems go</span>
+                <span class="badge-kpi bup"><i class="ti ti-check"></i> OK</span>
             </div>
 
             {% if systemHealth is defined %}
@@ -462,7 +520,7 @@
                     <span class="hi-l"><i class="ti ti-cpu" style="color:#2563eb"></i> Server Load</span>
                     <div style="display:flex;align-items:center;gap:8px">
                         <div style="width:64px;height:4px;border-radius:99px;background:#e2e8f0;overflow:hidden">
-                            <div style="height:100%;border-radius:99px;width:{{ systemHealth.serverLoad }}%;background:{% if systemHealth.serverLoad < 50 %}#10b981{% elseif systemHealth.serverLoad < 80 %}#f59e0b{% else %}#ef4444{% endif %};transition:width 1.5s ease"></div>
+                            <div style="height:100%;border-radius:99px;width:{{ systemHealth.serverLoad }}%;background:{% if systemHealth.serverLoad < 50 %}#10b981{% elseif systemHealth.serverLoad < 80 %}#f59e0b{% else %}#ef4444{% endif %}"></div>
                         </div>
                         <span class="hi-v">{{ systemHealth.serverLoad }}%</span>
                     </div>
@@ -472,10 +530,10 @@
                     <span class="hi-v">{{ systemHealth.databaseSize }}</span>
                 </div>
                 <div class="hi">
-                    <span class="hi-l"><i class="ti ti-bolt" style="color:#d97706"></i> Cache Hit Rate</span>
+                    <span class="hi-l"><i class="ti ti-bolt" style="color:#d97706"></i> Cache Hit</span>
                     <div style="display:flex;align-items:center;gap:8px">
                         <div style="width:64px;height:4px;border-radius:99px;background:#e2e8f0;overflow:hidden">
-                            <div style="height:100%;border-radius:99px;width:{{ systemHealth.cacheHitRate }}%;background:#10b981;transition:width 1.5s ease"></div>
+                            <div style="height:100%;border-radius:99px;width:{{ systemHealth.cacheHitRate }}%;background:#10b981"></div>
                         </div>
                         <span class="hi-v">{{ systemHealth.cacheHitRate }}%</span>
                     </div>
@@ -486,34 +544,20 @@
                 </div>
             {% endif %}
 
-            {# Pending alerts #}
+            {# Alerts — only shown when there's actually something to flag #}
             {% if pendingUsersCount > 0 or flaggedContentCount > 0 or openTicketsCount > 0 %}
                 <hr style="border-color:var(--d-b1);margin:0">
                 <div class="dsh" style="padding-bottom:8px">
                     <div class="dsh-l">
                         <div class="dsh-ic" style="background:rgba(245,158,11,.12);color:#d97706"><i class="ti ti-alert-triangle"></i></div>
-                        <div><div class="dsh-t">Alerts</div></div>
+                        <div><div class="dsh-t">Needs Attention</div></div>
                     </div>
                 </div>
                 {% if pendingUsersCount > 0 %}
-                    <div class="alert-row">
-                        <span class="alert-dot" style="background:#f59e0b"></span>
+                    <div style="display:flex;align-items:center;gap:10px;padding:9px 18px;border-bottom:1px solid var(--d-b1)">
+                        <span style="width:8px;height:8px;border-radius:50%;background:#f59e0b;flex-shrink:0"></span>
                         <span style="font-size:.76rem;color:var(--d-txt);flex:1">Pending users</span>
                         <span style="font-size:.72rem;font-weight:700;color:#d97706">{{ pendingUsersCount }}</span>
-                    </div>
-                {% endif %}
-                {% if flaggedContentCount > 0 %}
-                    <div class="alert-row">
-                        <span class="alert-dot" style="background:#ef4444"></span>
-                        <span style="font-size:.76rem;color:var(--d-txt);flex:1">Flagged content</span>
-                        <span style="font-size:.72rem;font-weight:700;color:#dc2626">{{ flaggedContentCount }}</span>
-                    </div>
-                {% endif %}
-                {% if openTicketsCount > 0 %}
-                    <div class="alert-row">
-                        <span class="alert-dot" style="background:#3b82f6"></span>
-                        <span style="font-size:.76rem;color:var(--d-txt);flex:1">Open tickets</span>
-                        <span style="font-size:.72rem;font-weight:700;color:#2563eb">{{ openTicketsCount }}</span>
                     </div>
                 {% endif %}
             {% endif %}
@@ -534,24 +578,24 @@
                 <a href="{{ path('admin_users_index') }}" class="qa-i">
                     <span class="qa-i-ico" style="color:#059669">📋</span>
                     <span class="qa-i-n">All Users</span>
-                    <span class="qa-i-s">{{ userStats.total|default(0) }} total</span>
+                    <span class="qa-i-s">{{ total }} total</span>
                 </a>
                 <a href="{{ path('admin_users_index', {status: 'suspended'}) }}" class="qa-i">
                     <span class="qa-i-ico" style="color:#d97706">⚠️</span>
                     <span class="qa-i-n">Suspended</span>
-                    <span class="qa-i-s">{{ userStats.suspended|default(0) }} users</span>
+                    <span class="qa-i-s">{{ suspended }} users</span>
                 </a>
                 <a href="{{ path('admin_dashboard_export') }}" class="qa-i">
                     <span class="qa-i-ico" style="color:#7c3aed">📊</span>
                     <span class="qa-i-n">Export CSV</span>
-                    <span class="qa-i-s">Download report</span>
+                    <span class="qa-i-s">Full report</span>
                 </a>
             </div>
         </div>
 
     </div>
 
-    {# Date Range Modal #}
+    {# ── Date Range Modal ── #}
     <div class="modal modal-blur fade db-modal" id="dateRangeModal" tabindex="-1">
         <div class="modal-dialog modal-sm modal-dialog-centered">
             <div class="modal-content">
@@ -565,22 +609,27 @@
                     <div class="modal-body" style="padding:18px">
                         <div class="mb-3">
                             <label class="form-label">Start Date</label>
-                            <input type="date" class="form-control" name="start_date" value="{{ dateRange.start|default('now')|date('Y-m-d') }}">
+                            <input type="date" class="form-control" name="start_date"
+                                   value="{{ dateRange.start|date('Y-m-d') }}">
                         </div>
                         <div>
                             <label class="form-label">End Date</label>
-                            <input type="date" class="form-control" name="end_date" value="{{ dateRange.end|default('now')|date('Y-m-d') }}">
+                            <input type="date" class="form-control" name="end_date"
+                                   value="{{ dateRange.end|date('Y-m-d') }}">
                         </div>
                         <div style="display:flex;gap:6px;margin-top:14px;flex-wrap:wrap">
                             <button type="button" class="dtab" onclick="setRange(7)">Last 7D</button>
                             <button type="button" class="dtab" onclick="setRange(30)">Last 30D</button>
                             <button type="button" class="dtab" onclick="setRange(90)">Last 90D</button>
+                            <button type="button" class="dtab" onclick="setRange(365)">Last 1Y</button>
                         </div>
                     </div>
                     <div class="modal-footer" style="border-color:#e2e8f0;padding:12px 18px">
-                        <button type="button" style="background:none;border:none;color:#64748b;font-size:.8rem;cursor:pointer" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" style="display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border-radius:8px;background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;font-size:.78rem;font-weight:700;border:none;cursor:pointer">
-                            Apply Range
+                        <button type="button" style="background:none;border:none;color:#64748b;font-size:.8rem;cursor:pointer"
+                                data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit"
+                                style="padding:7px 16px;border-radius:8px;background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;font-size:.78rem;font-weight:700;border:none;cursor:pointer">
+                            Apply
                         </button>
                     </div>
                 </form>
@@ -596,129 +645,226 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
 
-            /* ── Number counters ─────────────────────────────────────── */
+            /* ── Animated number counters ──────────────────────────── */
             function countTo(el, target, ms) {
-                const ease = t => 1 - Math.pow(1-t, 3);
+                const ease = t => 1 - Math.pow(1 - t, 3);
                 const start = performance.now();
                 (function step(now) {
-                    const t = Math.min((now-start)/ms, 1);
-                    el.textContent = Math.round(ease(t)*target).toLocaleString();
+                    const t = Math.min((now - start) / ms, 1);
+                    el.textContent = Math.round(ease(t) * target).toLocaleString();
                     if (t < 1) requestAnimationFrame(step);
                 })(performance.now());
             }
-            document.querySelectorAll('[data-count]').forEach((el,i) => {
-                setTimeout(() => countTo(el, parseInt(el.dataset.count)||0, 1300), i*110+250);
+            document.querySelectorAll('[data-count]').forEach((el, i) => {
+                setTimeout(() => countTo(el, parseInt(el.dataset.count) || 0, 1300), i * 110 + 250);
             });
 
-            /* ── Progress bars ──────────────────────────────────────── */
+            /* ── Progress bars ─────────────────────────────────────── */
             setTimeout(() => {
-                document.querySelectorAll('.dpf[data-w]').forEach((b,i) => {
-                    setTimeout(() => { b.style.width = b.dataset.w+'%'; }, i*70);
+                document.querySelectorAll('.dpf[data-w], .plan-bar-fill[data-w]').forEach((b, i) => {
+                    setTimeout(() => { b.style.width = b.dataset.w + '%'; }, i * 60);
                 });
-            }, 350);
+            }, 400);
 
-            /* ── Chart defaults ─────────────────────────────────────── */
+            /* ── Chart.js defaults ─────────────────────────────────── */
             Chart.defaults.color = '#64748b';
             Chart.defaults.font.size = 11;
 
-            /* ── User Growth Chart ──────────────────────────────────── */
-            {% if userGrowthData is defined %}
+            /* ── User Growth Chart ─────────────────────────────────── */
             const gEl = document.getElementById('growthChart');
-            if (gEl) {
-                const ctx2 = gEl.getContext('2d');
-                const grad = ctx2.createLinearGradient(0,0,0,250);
-                grad.addColorStop(0,   'rgba(59,130,246,.25)');
-                grad.addColorStop(0.55,'rgba(59,130,246,.06)');
-                grad.addColorStop(1,   'rgba(59,130,246,0)');
+            let growthChart = null;
 
-                const growthChart = new Chart(gEl, {
-                    type:'line',
-                    data:{
-                        labels: {{ userGrowthData.labels|json_encode|raw }},
-                        datasets:[{
-                            label:'New Users',
-                            data: {{ userGrowthData.data|json_encode|raw }},
-                            borderColor:'#3b82f6',borderWidth:2.5,
-                            backgroundColor:grad,tension:0.45,fill:true,
-                            pointRadius:0,pointHoverRadius:5,
-                            pointHoverBackgroundColor:'#3b82f6',
-                            pointHoverBorderColor:'#fff',pointHoverBorderWidth:2
+            function buildGrowthGrad(ctx) {
+                const g = ctx.createLinearGradient(0, 0, 0, 240);
+                g.addColorStop(0,   'rgba(59,130,246,.22)');
+                g.addColorStop(0.6, 'rgba(59,130,246,.05)');
+                g.addColorStop(1,   'rgba(59,130,246,0)');
+                return g;
+            }
+
+            function updatePeriodTotal(data) {
+                const total = (data || []).reduce((a, b) => a + b, 0);
+                const el = document.getElementById('chartPeriodTotal');
+                if (el) el.textContent = total > 0 ? total.toLocaleString() + ' registrations' : '';
+                const lbl = document.getElementById('chartRangeLabel');
+                if (lbl) lbl.textContent = 'Showing ' + total.toLocaleString() + ' registrations';
+            }
+
+            if (gEl) {
+                const ctx = gEl.getContext('2d');
+
+                /* Initial data — "all time" so SQL-imported users are visible immediately */
+                const initLabels = {{ userGrowthData.labels|json_encode|raw }};
+                const initData   = {{ userGrowthData.data|json_encode|raw }};
+
+                growthChart = new Chart(gEl, {
+                    type: 'line',
+                    data: {
+                        labels: initLabels,
+                        datasets: [{
+                            label: 'New Users',
+                            data: initData,
+                            borderColor: '#3b82f6',
+                            borderWidth: 2.5,
+                            backgroundColor: buildGrowthGrad(ctx),
+                            tension: 0.45,
+                            fill: true,
+                            pointRadius: 0,
+                            pointHoverRadius: 5,
+                            pointHoverBackgroundColor: '#3b82f6',
+                            pointHoverBorderColor: '#fff',
+                            pointHoverBorderWidth: 2,
                         }]
                     },
-                    options:{
-                        responsive:true,maintainAspectRatio:false,
-                        interaction:{mode:'index',intersect:false},
-                        plugins:{
-                            legend:{display:false},
-                            tooltip:{
-                                backgroundColor:'#1e293b',borderColor:'rgba(59,130,246,.3)',borderWidth:1,
-                                padding:12,titleColor:'#f1f5f9',bodyColor:'#93c5fd',
-                                callbacks:{label:c=>`  ${c.parsed.y} users`}
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: '#1e293b',
+                                borderColor: 'rgba(59,130,246,.3)',
+                                borderWidth: 1,
+                                padding: 12,
+                                titleColor: '#f1f5f9',
+                                bodyColor: '#93c5fd',
+                                callbacks: { label: c => `  ${c.parsed.y} new users` }
                             }
                         },
-                        scales:{
-                            y:{beginAtZero:true,ticks:{precision:0,color:'#94a3b8'},grid:{color:'rgba(0,0,0,.05)',drawBorder:false},border:{display:false}},
-                            x:{grid:{display:false},ticks:{color:'#94a3b8',maxTicksLimit:8},border:{display:false}}
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { precision: 0, color: '#94a3b8' },
+                                grid: { color: 'rgba(0,0,0,.05)', drawBorder: false },
+                                border: { display: false }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: '#94a3b8', maxTicksLimit: 10 },
+                                border: { display: false }
+                            }
                         }
                     }
                 });
-
-                /* Period tabs */
-                document.querySelectorAll('.dtab[data-p]').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        document.querySelectorAll('.dtab[data-p]').forEach(b=>b.classList.remove('on'));
-                        this.classList.add('on');
-                        fetch(`{{ path('admin_dashboard_chart_data') }}?period=${this.dataset.p}`)
-                            .then(r=>r.json())
-                            .then(d=>{growthChart.data.labels=d.labels;growthChart.data.datasets[0].data=d.data;growthChart.update('active');})
-                            .catch(console.error);
-                    });
-                });
+                updatePeriodTotal(initData);
             }
-            {% endif %}
 
-            /* ── Revenue Doughnut ───────────────────────────────────── */
-            {% if revenueData is defined %}
+            /* ── Period tab switching ───────────────────────────────── */
+            document.querySelectorAll('.dtab[data-p]').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    document.querySelectorAll('.dtab[data-p]').forEach(b => b.classList.remove('on'));
+                    this.classList.add('on');
+                    const period = this.dataset.p;
+
+                    fetch(`{{ path('admin_dashboard_chart_data') }}?period=${period}`)
+                        .then(r => r.json())
+                        .then(d => {
+                            if (!growthChart) return;
+                            /* Recreate gradient on new canvas dimensions */
+                            const newGrad = buildGrowthGrad(gEl.getContext('2d'));
+                            growthChart.data.labels = d.labels;
+                            growthChart.data.datasets[0].data = d.data;
+                            growthChart.data.datasets[0].backgroundColor = newGrad;
+                            growthChart.update('active');
+                            updatePeriodTotal(d.data);
+                        })
+                        .catch(console.error);
+                });
+            });
+
+            /* ── Revenue Doughnut ──────────────────────────────────── */
             const rEl = document.getElementById('revenueChart');
             if (rEl) {
+                const rData = {{ revenueData.data|json_encode|raw }};
+                const hasRevenue = rData.some(v => v > 0);
                 new Chart(rEl, {
-                    type:'doughnut',
-                    data:{
+                    type: 'doughnut',
+                    data: {
                         labels: {{ revenueData.labels|json_encode|raw }},
-                        datasets:[{
-                            data: {{ revenueData.data|json_encode|raw }},
-                            backgroundColor:['#10b981','#3b82f6','#f59e0b'],
-                            borderWidth:3,borderColor:'#ffffff',hoverOffset:8
+                        datasets: [{
+                            data: hasRevenue ? rData : [1],
+                            backgroundColor: hasRevenue ? ['#10b981', '#f59e0b', '#e2e8f0'] : ['#e2e8f0'],
+                            borderWidth: 3,
+                            borderColor: '#ffffff',
+                            hoverOffset: 8
                         }]
                     },
-                    options:{
-                        responsive:false,maintainAspectRatio:false,cutout:'76%',
-                        plugins:{
-                            legend:{display:false},
-                            tooltip:{
-                                backgroundColor:'#1e293b',borderColor:'rgba(0,0,0,.1)',borderWidth:1,
-                                padding:10,titleColor:'#f1f5f9',bodyColor:'#94a3b8',
-                                callbacks:{label:c=>`  $${c.parsed.toFixed(0)}`}
+                    options: {
+                        responsive: false,
+                        maintainAspectRatio: false,
+                        cutout: '76%',
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                enabled: hasRevenue,
+                                backgroundColor: '#1e293b',
+                                padding: 10,
+                                titleColor: '#f1f5f9',
+                                bodyColor: '#94a3b8',
+                                callbacks: { label: c => `  $${c.parsed.toFixed(2)}` }
                             }
                         }
                     }
                 });
             }
-            {% endif %}
 
-            /* ── Refresh ────────────────────────────────────────────── */
-            document.getElementById('refreshBtn')?.addEventListener('click',()=>{
+            /* ── Plan Distribution Doughnut ───────────────────────── */
+            const pEl = document.getElementById('planChart');
+            if (pEl) {
+                const freeCnt     = {{ planDistribution.FREE|default(0) }};
+                const monthlyCnt  = {{ planDistribution.MONTHLY|default(0) }};
+                const yearlyCnt   = {{ planDistribution.YEARLY|default(0) }};
+                const total       = freeCnt + monthlyCnt + yearlyCnt;
+                new Chart(pEl, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Free', 'Monthly', 'Yearly'],
+                        datasets: [{
+                            data: total > 0 ? [freeCnt, monthlyCnt, yearlyCnt] : [1, 0, 0],
+                            backgroundColor: total > 0 ? ['#94a3b8', '#10b981', '#f59e0b'] : ['#e2e8f0'],
+                            borderWidth: 2,
+                            borderColor: '#ffffff',
+                            hoverOffset: 6
+                        }]
+                    },
+                    options: {
+                        responsive: false,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                enabled: total > 0,
+                                backgroundColor: '#1e293b',
+                                padding: 8,
+                                titleColor: '#f1f5f9',
+                                bodyColor: '#94a3b8',
+                                callbacks: {
+                                    label: c => {
+                                        const pct = total > 0 ? ((c.parsed / total) * 100).toFixed(1) : 0;
+                                        return `  ${c.label}: ${c.parsed} (${pct}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            /* ── Refresh button ────────────────────────────────────── */
+            document.getElementById('refreshBtn')?.addEventListener('click', () => {
                 document.getElementById('refreshIcon').classList.add('spinning');
-                setTimeout(()=>location.reload(),700);
+                setTimeout(() => location.reload(), 700);
             });
 
         });
 
         function setRange(days) {
-            const end = new Date();
+            const end   = new Date();
             const start = new Date();
-            start.setDate(start.getDate()-days);
-            const fmt = d => d.toISOString().slice(0,10);
+            start.setDate(start.getDate() - days);
+            const fmt = d => d.toISOString().slice(0, 10);
             document.querySelector('[name="start_date"]').value = fmt(start);
             document.querySelector('[name="end_date"]').value   = fmt(end);
         }

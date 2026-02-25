@@ -53,9 +53,17 @@ class SubscriptionController extends AbstractController
         /** @var \App\Module\UserManagement\Entity\User $user */
         $user = $this->getUser();
 
-        if ($user->isPremium()) {
-            $this->addFlash('info', 'You already have an active premium subscription.');
-            return $this->redirectToRoute('user_dashboard');
+        // Block checkout only if the user already has the EXACT SAME plan via Stripe.
+        // Cases allowed through:
+        //   1. User is free (no premium) → always allow
+        //   2. User was admin-granted premium (no stripeSubscriptionId) → allow to get real sub
+        //   3. User is on MONTHLY and wants YEARLY (or vice versa) → allow plan switch
+        if ($user->isPremium()
+            && $user->getStripeSubscriptionId()
+            && $user->getSubscriptionPlan() === $plan
+        ) {
+            $this->addFlash('info', 'You already have an active ' . strtolower($plan) . ' subscription.');
+            return $this->redirectToRoute('pricing');
         }
 
         try {
@@ -134,7 +142,55 @@ class SubscriptionController extends AbstractController
             $this->addFlash('danger', 'Could not cancel subscription. Please try again or contact support.');
         }
 
-        return $this->redirectToRoute('user_dashboard');
+        // Redirect back to pricing so the user sees the updated plan state
+        // and the cancellation confirmation message immediately.
+        return $this->redirectToRoute('pricing');
+    }
+
+    // =========================================================
+    // SWITCH PLAN (MONTHLY ↔ YEARLY)
+    // =========================================================
+
+    /**
+     * Switch between MONTHLY and YEARLY on an existing Stripe subscription.
+     * Stripe prorates the difference immediately — no new subscription created.
+     */
+    #[Route('/subscription/switch/{plan}', name: 'subscription_switch_plan', methods: ['POST'])]
+    public function switchPlan(string $plan, Request $request): Response
+    {
+        if (!$this->isCsrfTokenValid('switch_' . strtoupper($plan), $request->request->get('_token'))) {
+            $this->addFlash('danger', 'Invalid security token.');
+            return $this->redirectToRoute('pricing');
+        }
+
+        $plan = strtoupper($plan);
+
+        if (!in_array($plan, ['MONTHLY', 'YEARLY'], true)) {
+            $this->addFlash('danger', 'Invalid plan selected.');
+            return $this->redirectToRoute('pricing');
+        }
+
+        /** @var \App\Module\UserManagement\Entity\User $user */
+        $user = $this->getUser();
+
+        if (!$user->isPremium() || !$user->getStripeSubscriptionId()) {
+            $this->addFlash('warning', 'No active subscription to switch.');
+            return $this->redirectToRoute('pricing');
+        }
+
+        if ($user->getSubscriptionPlan() === $plan) {
+            $this->addFlash('info', 'You are already on the ' . strtolower($plan) . ' plan.');
+            return $this->redirectToRoute('pricing');
+        }
+
+        try {
+            $this->stripeService->switchPlan($user, $plan);
+            $this->addFlash('success', 'Your plan has been switched to ' . strtolower($plan) . '. Proration applied.');
+        } catch (\Throwable $e) {
+            $this->addFlash('danger', 'Could not switch plan. Please try again or contact support.');
+        }
+
+        return $this->redirectToRoute('pricing');
     }
 
     // =========================================================

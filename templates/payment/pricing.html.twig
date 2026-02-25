@@ -398,10 +398,16 @@
                 <div class="current-plan-left">
                     <div class="current-plan-icon">👑</div>
                     <div>
-                        <div class="current-plan-label">Active Plan</div>
+                        <div class="current-plan-label">{% if user.stripeSubscriptionId %}Active Plan{% else %}Admin Granted{% endif %}</div>
                         <div class="current-plan-name">{{ user.subscriptionPlan|capitalize }} Premium</div>
                         {% if user.subscriptionExpiry %}
-                            <div class="current-plan-expiry">Renews {{ user.subscriptionExpiry|date('F j, Y') }}</div>
+                            <div class="current-plan-expiry">
+                                {% if user.stripeSubscriptionId %}
+                                    Renews {{ user.subscriptionExpiry|date('F j, Y') }}
+                                {% else %}
+                                    Access until {{ user.subscriptionExpiry|date('F j, Y') }}
+                                {% endif %}
+                            </div>
                         {% endif %}
                     </div>
                 </div>
@@ -454,6 +460,11 @@
                         <input type="hidden" name="_token" value="{{ csrf_token('checkout_MONTHLY') }}">
                         <button type="submit" class="btn-plan btn-plan-blue">Get Monthly →</button>
                     </form>
+                {% elseif user.isPremium and user.subscriptionPlan == 'YEARLY' and user.stripeSubscriptionId %}
+                    <form method="post" action="{{ path('subscription_switch_plan', {plan: 'MONTHLY'}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('switch_MONTHLY') }}">
+                        <button type="submit" class="btn-plan btn-plan-blue">Switch to Monthly</button>
+                    </form>
                 {% else %}
                     <button class="btn-plan btn-plan-ghost" disabled>Not Available</button>
                 {% endif %}
@@ -482,6 +493,11 @@
                         <input type="hidden" name="_token" value="{{ csrf_token('checkout_YEARLY') }}">
                         <button type="submit" class="btn-plan btn-plan-gold">Get Yearly →</button>
                     </form>
+                {% elseif user.isPremium and user.subscriptionPlan == 'MONTHLY' and user.stripeSubscriptionId %}
+                    <form method="post" action="{{ path('subscription_switch_plan', {plan: 'YEARLY'}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('switch_YEARLY') }}">
+                        <button type="submit" class="btn-plan btn-plan-gold">Switch to Yearly →</button>
+                    </form>
                 {% else %}
                     <button class="btn-plan btn-plan-ghost" disabled>Not Available</button>
                 {% endif %}
@@ -501,11 +517,15 @@
                         <input type="hidden" name="_token" value="{{ csrf_token('portal') }}">
                         <button type="submit" class="btn-sm btn-sm-ghost">🧾 Billing Portal</button>
                     </form>
-                    <form method="post" action="{{ path('subscription_cancel_plan') }}"
-                          onsubmit="return confirm('Cancel your subscription? You keep premium access until the end of your billing period.')">
-                        <input type="hidden" name="_token" value="{{ csrf_token('cancel_plan') }}">
-                        <button type="submit" class="btn-sm btn-sm-danger">Cancel Subscription</button>
-                    </form>
+                    {% if user.stripeSubscriptionId %}
+                        <form method="post" action="{{ path('subscription_cancel_plan') }}"
+                              onsubmit="return confirm('Cancel your subscription? You keep premium access until the end of your billing period.')">
+                            <input type="hidden" name="_token" value="{{ csrf_token('cancel_plan') }}">
+                            <button type="submit" class="btn-sm btn-sm-danger">Cancel Subscription</button>
+                        </form>
+                    {% else %}
+                        <span style="font-size:.78rem;color:var(--muted);font-style:italic;">Managed by admin</span>
+                    {% endif %}
                 </div>
             </div>
         {% endif %}

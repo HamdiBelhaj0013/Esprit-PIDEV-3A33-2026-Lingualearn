@@ -97,6 +97,16 @@ class StripeWebhookController extends AbstractController
             return;
         }
 
+        // Safety guard: if the subscription ID on this event does not match
+        // what we have stored, it means either:
+        //   (a) a stale/old subscription event arrived after the user was
+        //       admin-revoked and their stripeSubscriptionId was cleared, or
+        //   (b) the user now has a different subscription (e.g. re-subscribed).
+        // In both cases, ignore this event to avoid corrupting local state.
+        if ($user->getStripeSubscriptionId() !== $subscription->id) {
+            return;
+        }
+
         $expiry = $this->timestampToDateTime($subscription->current_period_end);
         $user->setSubscriptionExpiry($expiry);
         $this->em->flush();
@@ -111,6 +121,13 @@ class StripeWebhookController extends AbstractController
         ]);
 
         if (!$user) {
+            return;
+        }
+
+        // Only act if this is the subscription we actually have on record.
+        // If the IDs differ, an admin already revoked/replaced the subscription
+        // and we must not touch the current state.
+        if ($user->getStripeSubscriptionId() !== $subscription->id) {
             return;
         }
 
@@ -133,6 +150,14 @@ class StripeWebhookController extends AbstractController
         ]);
 
         if (!$user) {
+            return;
+        }
+
+        // Guard: only process this invoice if it belongs to the subscription
+        // we currently have on record. This prevents a stale invoice from a
+        // cancelled subscription from silently re-extending the user's expiry
+        // and restoring premium access after an admin revoke.
+        if ($user->getStripeSubscriptionId() !== (string) $invoice->subscription) {
             return;
         }
 

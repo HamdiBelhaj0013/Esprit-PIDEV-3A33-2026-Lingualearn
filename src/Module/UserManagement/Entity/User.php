@@ -204,8 +204,35 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     public function isPremium(): bool { return $this->isPremium; }
-    public function setPremium(bool $isPremium): static { $this->isPremium = $isPremium; return $this; }
 
+    /**
+     * DO NOT call this directly to grant or revoke premium.
+     *
+     * isPremium is a COMPUTED field — always derived from subscriptionPlan
+     * + subscriptionExpiry via updatePremiumStatus(). Calling setPremium(true)
+     * without a valid plan and future expiry is meaningless: the next call to
+     * setSubscriptionPlan() or setSubscriptionExpiry() will immediately
+     * overwrite whatever was set here.
+     *
+     * To upgrade: call UserService::upgradeToPremium()
+     * To downgrade: call UserService::downgradeToFree()
+     *
+     * @internal Kept only so legacy call-sites do not throw fatal errors.
+     *           All writes are intentionally ignored.
+     */
+    public function setPremium(bool $isPremium): static
+    {
+        // No-op: isPremium is governed exclusively by updatePremiumStatus().
+        // Doctrine hydrates the column directly via reflection, bypassing this
+        // setter, so leaving it as a no-op is safe for DB reads too.
+        return $this;
+    }
+
+    /**
+     * Recomputes isPremium from subscriptionPlan + subscriptionExpiry.
+     * This is the ONLY place that writes to $this->isPremium.
+     * Called automatically by setSubscriptionPlan() and setSubscriptionExpiry().
+     */
     private function updatePremiumStatus(): void
     {
         $this->isPremium = (
