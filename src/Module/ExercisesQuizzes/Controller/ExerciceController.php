@@ -29,11 +29,6 @@ final class ExerciceController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // Récupérer les options depuis le textarea non mappé via le formulaire
-            $optionsData = $form->get('options')->getData() ?? '';
-            $options = array_filter(array_map('trim', explode("\n", $optionsData)));
-            $exercice->setOptions($options);
-
             $exerciceRepository->save($exercice, true);
             $this->addFlash('success', 'Exercice créé avec succès.');
             return $this->redirectToRoute('exercice_index');
@@ -51,17 +46,13 @@ final class ExerciceController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // Récupérer les options depuis le textarea non mappé via le formulaire
-            $optionsData = $form->get('options')->getData() ?? '';
-            $options = array_filter(array_map('trim', explode("\n", $optionsData)));
-            $exercice->setOptions($options);
-
             $exerciceRepository->save($exercice, true);
             $this->addFlash('success', 'Exercice modifié avec succès.');
             return $this->redirectToRoute('exercice_index');
         }
 
         return $this->render('exercises_quizzes/exercice/edit.html.twig', [
+            'exercice' => $exercice,
             'form' => $form->createView(),
         ]);
     }
@@ -99,15 +90,25 @@ final class ExerciceController extends AbstractController
         $sortField = $request->query->get('sortField', 'id');
         $sortOrder = $request->query->get('sortOrder', 'DESC');
 
-        $exercices = $exerciceRepository->findByFilter($search, $ai, $sortField, $sortOrder);
+        $quizId = $request->query->get('quiz_id');
+        $quizIdFilter = is_numeric($quizId) ? (int) $quizId : null;
+        $exercices = $exerciceRepository->findByFilter($search, $ai, $sortField, $sortOrder, $quizIdFilter);
 
-        $data = array_map(fn(Exercice $ex) => [
-            'id' => $ex->getId(),
-            'type' => $ex->getType(),
-            'question' => $ex->getQuestion(),
-            'aiGenerated' => $ex->isAiGenerated(),
-            'enabled' => $ex->isEnabled(),
-        ], $exercices);
+        $data = array_map(function (Exercice $ex) {
+            $quiz = $ex->getQuiz();
+            return [
+                'id' => $ex->getId(),
+                'type' => $ex->getType(),
+                'question' => $ex->getQuestion(),
+                'quizId' => $quiz?->getId(),
+                'quizTitle' => $quiz?->getTitle(),
+                'quizShowUrl' => $quiz ? $this->generateUrl('quiz_show', ['id' => $quiz->getId()]) : null,
+                'aiGenerated' => $ex->isAiGenerated(),
+                'enabled' => $ex->isEnabled(),
+                'editUrl' => $this->generateUrl('exercice_edit', ['id' => $ex->getId()]),
+                'showUrl' => $this->generateUrl('exercice_show', ['id' => $ex->getId()]),
+            ];
+        }, $exercices);
 
         return $this->json(['data' => $data]);
     }

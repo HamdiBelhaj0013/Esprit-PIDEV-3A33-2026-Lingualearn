@@ -2,10 +2,11 @@
 
 namespace App\Module\ExercisesQuizzes\Entity;
 
-use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Validator\Constraints as Assert;
+use App\Module\PedagogicalContent\Entity\Lesson;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity]
 class Quiz
@@ -14,6 +15,11 @@ class Quiz
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
+
+    /** Leçon à laquelle ce quiz est rattaché (relation côté module ExercisesQuizzes uniquement). */
+    #[ORM\ManyToOne(targetEntity: Lesson::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?Lesson $lesson = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: "Le titre ne peut pas être vide.")]
@@ -150,7 +156,18 @@ private ?\DateTimeImmutable $createdAt = null;
         return $this;
     }
 
-  public function getCreatedAt(): ?\DateTimeImmutable
+    public function getLesson(): ?Lesson
+    {
+        return $this->lesson;
+    }
+
+    public function setLesson(?Lesson $lesson): self
+    {
+        $this->lesson = $lesson;
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeImmutable
 {
     return $this->createdAt;
 }

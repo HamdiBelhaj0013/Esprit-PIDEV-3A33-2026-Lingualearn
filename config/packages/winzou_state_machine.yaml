@@ -1,0 +1,40 @@
+# State machine pour les tentatives de quiz (Deuxième chance).
+# Graph "quiz_attempt" : cycle de vie QuizAttempt.
+winzou_state_machine:
+  quiz_attempt:
+    class: App\Module\ExercisesQuizzes\Entity\QuizAttempt
+    property_path: state
+    graph: quiz_attempt
+    states:
+      - in_progress
+      - finished_first
+      - second_chance_available
+      - second_chance_in_progress
+      - finished_second
+      - locked
+    transitions:
+      finish_first:
+        from: [in_progress]
+        to: finished_first
+      unlock_second:
+        from: [finished_first]
+        to: second_chance_available
+      start_second:
+        from: [second_chance_available]
+        to: second_chance_in_progress
+      finish_second:
+        from: [second_chance_in_progress]
+        to: finished_second
+      lock:
+        from: [finished_first, finished_second]
+        to: locked
+    callbacks:
+      guard:
+        guard_unlock_second:
+          on: unlock_second
+          do: ['@App\Module\ExercisesQuizzes\Service\QuizAttemptStateMachineGuard', 'canUnlockSecond']
+          args: ['object']
+        guard_start_second:
+          on: start_second
+          do: ['@App\Module\ExercisesQuizzes\Service\QuizAttemptStateMachineGuard', 'canStartSecond']
+          args: ['object']

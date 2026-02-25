@@ -1,0 +1,120 @@
+{% extends 'layouts/user.html.twig' %}
+
+{% block title %}Analyse de compétences{% endblock %}
+{% block page_title %}Analyse de compétences{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="mb-4">
+        <h1 class="h3 mb-2">Analyse de compétences</h1>
+        <p class="text-muted mb-0">Votre maîtrise par compétence et des recommandations personnalisées.</p>
+    </div>
+
+    {% if profiles is empty and recommendedExercises is empty %}
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <p class="text-muted mb-3">Aucune donnée d'exercice ou de quiz pour le moment.</p>
+                <p class="small text-muted mb-0">Passez des quiz pour que votre profil de compétences soit calculé, puis revenez sur cette page.</p>
+                <a href="{{ path('learn_practice') }}" class="btn btn-primary mt-3">Voir les quiz</a>
+            </div>
+        </div>
+    {% else %}
+        <div class="row g-4">
+            <div class="col-lg-6">
+                {% if profiles is not empty %}
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-transparent border-0">
+                            <h2 class="h6 mb-0">Maîtrise par compétence</h2>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-group list-group-flush">
+                                {% for profile in profiles %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                        <span class="text-break">{{ profile.skillCode }}</span>
+                                        <span>
+                                            <span class="badge {% if profile.mastery >= 60 %}bg-success{% elseif profile.mastery >= 40 %}bg-warning text-dark{% else %}bg-danger{% endif %}">{{ profile.mastery }} %</span>
+                                            <span class="text-muted small ms-1">({{ profile.attemptsCount }} tentative(s))</span>
+                                        </span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body text-center py-4">
+                            <p class="text-muted mb-2">Aucun profil de compétences pour l'instant.</p>
+                            <p class="small text-muted mb-0">Passez des quiz dont les exercices ont des compétences (champ « skills ») pour voir votre maîtrise ici.</p>
+                            <a href="{{ path('learn_practice') }}" class="btn btn-outline-primary btn-sm mt-3">Voir les quiz</a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="col-lg-6">
+                {% if weakSkillCodes is not empty %}
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-transparent border-0">
+                            <h2 class="h6 mb-0">Points à renforcer</h2>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-group list-group-flush">
+                                {% for code in weakSkillCodes %}
+                                    <li class="list-group-item px-0">{{ code }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                {% endif %}
+
+                {% if aiFeedback %}
+                    <div class="card border-0 shadow-sm mb-4 border-start border-primary border-3">
+                        <div class="card-header bg-transparent border-0">
+                            <h2 class="h6 mb-0">Conseils du coach IA</h2>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-0 text-secondary">{{ aiFeedback|nl2br }}</p>
+                        </div>
+                    </div>
+                {% elseif aiUnavailable %}
+                    <div class="card border-0 shadow-sm mb-4 border-start border-secondary border-3">
+                        <div class="card-body">
+                            <p class="mb-0 text-muted small">
+                                <strong>Feedback IA non disponible.</strong> Le service d’IA locale (Hugging Face) n’est pas démarré ou est inaccessible. Les recommandations ci-dessous restent valides. Vous pouvez continuer sans feedback IA.
+                            </p>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-transparent border-0">
+                        <h2 class="h6 mb-0">Exercices recommandés</h2>
+                    </div>
+                    <div class="card-body">
+                        {% if recommendedExercises is empty %}
+                            <p class="text-muted mb-0 small">Aucun exercice recommandé pour le moment.</p>
+                        {% else %}
+                            <ul class="list-group list-group-flush">
+                                {% for exercise in recommendedExercises %}
+                                    <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                                        <span class="text-break">{{ exercise.question|slice(0, 80) }}{% if exercise.question|length > 80 %}…{% endif %}</span>
+                                        {% if exercise.quiz and exercise.quiz.lesson %}
+                                            <a href="{{ path('learn_lesson_quiz_play', { id: exercise.quiz.lesson.id }) }}?quiz={{ exercise.quiz.id }}" class="btn btn-sm btn-outline-primary">Voir le quiz</a>
+                                        {% else %}
+                                            <a href="{{ path('learn_practice') }}" class="btn btn-sm btn-outline-secondary">Pratiquer</a>
+                                        {% endif %}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="mt-4">
+        <a href="{{ path('learn_practice') }}" class="btn btn-outline-secondary">Retour à la liste des quiz</a>
+    </div>
+</div>
+{% endblock %}
