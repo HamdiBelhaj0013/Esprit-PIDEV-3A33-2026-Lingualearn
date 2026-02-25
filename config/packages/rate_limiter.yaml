@@ -1,0 +1,7 @@
+# config/packages/rate_limiter.yaml
+framework:
+    rate_limiter:
+        support_ticket_spam:
+            policy: 'sliding_window'
+            limit: 3
+            interval: '10 minutes'

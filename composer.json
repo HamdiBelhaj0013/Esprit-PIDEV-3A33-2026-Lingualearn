@@ -7,11 +7,17 @@
         "php": ">=8.2",
         "ext-ctype": "*",
         "ext-iconv": "*",
+        "damienharper/auditor-bundle": "*",
         "doctrine/doctrine-bundle": "^2.18",
         "doctrine/doctrine-migrations-bundle": "^3.7",
-        "doctrine/orm": "^3.6",
+        "doctrine/migrations": "3.8",
+        "doctrine/orm": "^3.6.2",
+        "dompdf/dompdf": "*",
+        "knplabs/knp-paginator-bundle": "*",
         "phpdocumentor/reflection-docblock": "^5.6",
         "phpstan/phpdoc-parser": "^2.3",
+        "setasign/fpdi-tcpdf": "^2.3",
+        "stripe/stripe-php": "*",
         "symfony/asset": "7.4.*",
         "symfony/asset-mapper": "7.4.*",
         "symfony/console": "7.4.*",
@@ -24,12 +30,15 @@
         "symfony/http-client": "7.4.*",
         "symfony/intl": "7.4.*",
         "symfony/mailer": "7.4.*",
+        "symfony/mailtrap-mailer": "7.4.*",
+        "symfony/mercure-bundle": "*",
         "symfony/mime": "7.4.*",
         "symfony/monolog-bundle": "^3.0|^4.0",
         "symfony/notifier": "7.4.*",
         "symfony/process": "7.4.*",
         "symfony/property-access": "7.4.*",
         "symfony/property-info": "7.4.*",
+        "symfony/rate-limiter": "7.4.*",
         "symfony/runtime": "7.4.*",
         "symfony/security-bundle": "7.4.*",
         "symfony/serializer": "7.4.*",
@@ -37,13 +46,17 @@
         "symfony/string": "7.4.*",
         "symfony/translation": "7.4.*",
         "symfony/twig-bundle": "7.4.*",
+        "symfony/uid": "7.4.*",
         "symfony/ux-turbo": "^2.32",
         "symfony/validator": "7.4.*",
         "symfony/web-link": "7.4.*",
         "symfony/webpack-encore-bundle": "^2.4",
+        "symfony/workflow": "7.4.*",
         "symfony/yaml": "7.4.*",
         "twig/extra-bundle": "^2.12|^3.0",
-        "twig/twig": "^2.12|^3.0"
+        "twig/twig": "^2.12|^3.0",
+        "vich/uploader-bundle": "*",
+        "winzou/state-machine-bundle": "*"
     },
     "config": {
         "allow-plugins": {
@@ -80,11 +93,16 @@
             "assets:install %PUBLIC_DIR%": "symfony-cmd",
             "importmap:install": "symfony-cmd"
         },
+        "patch-doctrine": [
+            "@php patch-doctrine.php"
+        ],
         "post-install-cmd": [
-            "@auto-scripts"
+            "@auto-scripts",
+            "@patch-doctrine"
         ],
         "post-update-cmd": [
-            "@auto-scripts"
+            "@auto-scripts",
+            "@patch-doctrine"
         ]
     },
     "conflict": {

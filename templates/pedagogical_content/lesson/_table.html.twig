@@ -1,0 +1,99 @@
+<div class="table-responsive">
+    <table class="table table-vcenter ll-table">
+        <thead>
+        <tr>
+            <th>Titre</th>
+            <th>Cours</th>
+            <th>Langue</th>
+            <th>Récompense XP</th>
+            <th style="width: 140px;">Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% if lessons|length > 0 %}
+            {% for lesson in lessons %}
+                <tr>
+                    <!-- Titre de la leçon -->
+                    <td>
+                        <a href="{{ path('admin_lesson_show', {'id': lesson.id}) }}"
+                           class="fw-medium text-decoration-none" style="color: var(--ll-primary);">
+                            {{ lesson.title }}
+                        </a>
+                    </td>
+
+                    <!-- Cours associé -->
+                    <td>
+                        {% if lesson.course %}
+                            <span class="ll-badge bg-primary-lt text-primary">
+                                    {{ lesson.course.title }}
+                                </span>
+                        {% else %}
+                            <span class="ll-badge bg-secondary-lt text-secondary">Non assigné</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Langue du cours -->
+                    <td>
+                        {% if lesson.course and lesson.course.platformLanguage %}
+                            <span class="ll-badge bg-info-lt text-info">
+                                    {{ lesson.course.platformLanguage.name }}
+                                </span>
+                        {% else %}
+                            <span class="ll-badge bg-secondary-lt text-secondary">--</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Récompense XP -->
+                    <td>
+                            <span class="ll-badge bg-warning-lt text-warning">
+                                {{ lesson.xpReward ?: 0 }}
+                            </span>
+                    </td>
+
+                    <!-- Actions -->
+                    <td>
+                        <div class="d-flex gap-1">
+                            <a href="{{ path('admin_lesson_show', {'id': lesson.id}) }}"
+                               class="btn btn-ghost-primary btn-icon btn-sm" title="Voir"
+                               style="border-radius: 6px; width: 32px; height: 32px;">
+                                <i class="ti ti-eye" style="font-size: 1rem;"></i>
+                            </a>
+                            <a href="{{ path('admin_lesson_edit', {'id': lesson.id}) }}"
+                               class="btn btn-ghost-primary btn-icon btn-sm" title="Éditer"
+                               style="border-radius: 6px; width: 32px; height: 32px;">
+                                <i class="ti ti-edit" style="font-size: 1rem;"></i>
+                            </a>
+                            <button type="button"
+                                    class="btn btn-ghost-danger btn-icon btn-sm deleteBtn"
+                                    data-form-id="deleteForm{{ lesson.id }}"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#confirmDeleteModal"
+                                    title="Supprimer"
+                                    style="border-radius: 6px; width: 32px; height: 32px;">
+                                <i class="ti ti-trash" style="font-size: 1rem;"></i>
+                            </button>
+                        </div>
+
+                        <form method="post"
+                              action="{{ path('admin_lesson_delete', {'id': lesson.id}) }}"
+                              style="display: none;"
+                              id="deleteForm{{ lesson.id }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ lesson.id) }}">
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        {% else %}
+            <tr>
+                <td colspan="5">
+                    <div class="ll-empty-state">
+                        <i class="ti ti-book-off d-block"></i>
+                        <p class="text-muted mb-1" style="font-weight: 600;">Aucune leçon trouvée</p>
+                        <p class="text-muted mb-0" style="font-size: 0.8125rem;">Essayez de créer une nouvelle leçon ou ajustez vos filtres.</p>
+                    </div>
+                </td>
+            </tr>
+        {% endif %}
+        </tbody>
+    </table>
+</div>

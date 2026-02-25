@@ -1,4 +1,4 @@
-{% extends 'base.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
 {% block title %}Liste des exercices{% endblock %}
 
@@ -29,7 +29,7 @@
 </style>
 {% endblock %}
 
-{% block body %}
+{% block content %}
 <div class="container-xl">
     <div class="page-header d-print-none mb-4">
         <div class="row align-items-center">
@@ -171,3 +171,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 {% endblock %}
+

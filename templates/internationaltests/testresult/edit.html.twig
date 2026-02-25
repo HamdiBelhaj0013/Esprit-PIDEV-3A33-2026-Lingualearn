@@ -1,0 +1,139 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Edit Test Result - {{ parent() }}{% endblock %}
+
+{% block page_title %}
+    <i class="ti ti-pencil me-2"></i> Edit Test Result
+{% endblock %}
+
+{% block page_actions %}
+    <div class="col-auto ms-auto d-print-none">
+        <a href="{{ path('testresult_show', {id: testResult.id}) }}" class="btn btn-secondary me-2">
+            <i class="ti ti-eye icon"></i>
+            View
+        </a>
+        <a href="{{ path('testresult_index') }}" class="btn btn-secondary">
+            <i class="ti ti-arrow-left icon"></i>
+            Back to List
+        </a>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Edit Test Result #{{ testResult.id }}</h3>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form) }}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label required">{{ form_label(form.mockTest) }}</label>
+                            {{ form_widget(form.mockTest, {'attr': {'class': 'form-select'}}) }}
+                            {{ form_errors(form.mockTest) }}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label required">{{ form_label(form.user) }}</label>
+                            {{ form_widget(form.user, {'attr': {'class': 'form-select'}}) }}
+                            {{ form_errors(form.user) }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label required">{{ form_label(form.overallScore) }}</label>
+                            {{ form_widget(form.overallScore, {'attr': {'class': 'form-control', 'step': '0.01'}}) }}
+                            {{ form_errors(form.overallScore) }}
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ form_label(form.aiPredictedScore) }}</label>
+                            {{ form_widget(form.aiPredictedScore, {'attr': {'class': 'form-control', 'step': '0.01'}}) }}
+                            {{ form_errors(form.aiPredictedScore) }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ form_label(form.aiWeaknessReport) }}</label>
+                        {{ form_widget(form.aiWeaknessReport, {'attr': {'class': 'form-control', 'rows': '6'}}) }}
+                        {{ form_errors(form.aiWeaknessReport) }}
+                        <small class="form-hint">Enter AI weakness report as JSON (optional)</small>
+                    </div>
+
+                    {# Metadata #}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Date Taken</label>
+                                <div class="text-muted">
+                                    <i class="ti ti-calendar me-2"></i>
+                                    {{ testResult.dateTaken|date('Y-m-d H:i:s') }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Last Updated</label>
+                                <div class="text-muted">
+                                    <i class="ti ti-clock me-2"></i>
+                                    {{ testResult.updatedAt ? testResult.updatedAt|date('Y-m-d H:i:s') : 'Never' }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer bg-transparent mt-3">
+                        <div class="d-flex">
+                            <a href="{{ path('testresult_index') }}" class="btn btn-link">Cancel</a>
+                            <button type="submit" class="btn btn-primary ms-auto">
+                                <i class="ti ti-device-floppy icon"></i>
+                                Save Changes
+                            </button>
+                        </div>
+                    </div>
+
+                    {{ form_end(form) }}
+                </div>
+            </div>
+
+            {# Current Data Summary #}
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="ti ti-info-circle me-2"></i>
+                        Current Test Information
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Mock Test:</strong> {{ testResult.mockTest.title }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>User:</strong> {{ testResult.user.email }}
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-6">
+                            <strong>Overall Score:</strong> 
+                            <span class="badge bg-success">{{ testResult.overallScore }}</span>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>AI Predicted Score:</strong> 
+                            {% if testResult.aiPredictedScore %}
+                                <span class="badge bg-blue">{{ testResult.aiPredictedScore }}</span>
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+

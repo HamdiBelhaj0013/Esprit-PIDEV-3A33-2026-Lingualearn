@@ -1,0 +1,99 @@
+{% extends 'base.html.twig' %}
+{% block title %}Compte suspendu{% endblock %}
+{% block body %}
+
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f7f9fc;font-family:'Sora',sans-serif;">
+    <div style="max-width:500px;width:100%;text-align:center;padding:2rem;">
+
+        <div style="font-size:4rem;margin-bottom:1rem;">🚫</div>
+
+        <div style="background:#fff;border:1.5px solid #fecaca;border-radius:20px;padding:2.5rem;">
+            <h1 style="font-size:1.5rem;font-weight:700;color:#991b1b;margin-bottom:.75rem;">
+                Compte temporairement suspendu
+            </h1>
+            <p style="color:#6b7280;font-size:.9rem;line-height:1.65;margin-bottom:1.5rem;">
+                Votre compte a été suspendu suite à l'utilisation de langage inapproprié.
+            </p>
+
+            {# Compte à rebours #}
+            <div style="background:#fee2e2;border-radius:14px;padding:1.5rem;margin-bottom:1.5rem;">
+                <p style="font-size:.75rem;font-weight:700;color:#991b1b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:1rem;">
+                    Votre compte sera restauré dans
+                </p>
+                <div style="display:flex;justify-content:center;gap:1rem;">
+                    <div style="background:#fff;border-radius:10px;padding:.75rem 1.25rem;min-width:70px;">
+                        <div style="font-size:2rem;font-weight:700;color:#991b1b;">{{ remainingDays }}</div>
+                        <div style="font-size:.7rem;color:#9ca3af;margin-top:.2rem;">JOURS</div>
+                    </div>
+                    <div style="background:#fff;border-radius:10px;padding:.75rem 1.25rem;min-width:70px;">
+                        <div style="font-size:2rem;font-weight:700;color:#991b1b;" id="hours-display">{{ remainingHours % 24 }}</div>
+                        <div style="font-size:.7rem;color:#9ca3af;margin-top:.2rem;">HEURES</div>
+                    </div>
+                    <div style="background:#fff;border-radius:10px;padding:.75rem 1.25rem;min-width:70px;">
+                        <div style="font-size:2rem;font-weight:700;color:#991b1b;" id="minutes-display">--</div>
+                        <div style="font-size:.7rem;color:#9ca3af;margin-top:.2rem;">MINUTES</div>
+                    </div>
+                    <div style="background:#fff;border-radius:10px;padding:.75rem 1.25rem;min-width:70px;">
+                        <div style="font-size:2rem;font-weight:700;color:#991b1b;" id="seconds-display">--</div>
+                        <div style="font-size:.7rem;color:#9ca3af;margin-top:.2rem;">SECONDES</div>
+                    </div>
+                </div>
+
+                {% if bannedUntil %}
+                <p style="font-size:.75rem;color:#9ca3af;margin-top:1rem;">
+                    Suspension levée le {{ bannedUntil|date('d/m/Y à H:i') }}
+                </p>
+                {% endif %}
+            </div>
+
+            {% if reason %}
+            <div style="background:#fff7ed;border:1.5px solid #fed7aa;border-radius:10px;padding:1rem;margin-bottom:1.5rem;text-align:left;">
+                <p style="font-size:.75rem;font-weight:700;color:#c2410c;margin-bottom:.35rem;">⚠️ RAISON :</p>
+                <p style="font-size:.82rem;color:#9a3412;">{{ reason }}</p>
+            </div>
+            {% endif %}
+
+            <p style="font-size:.8rem;color:#6b7280;margin-bottom:1.75rem;">
+                Votre compte sera automatiquement restauré à la fin de la période de suspension.
+                Pour toute question : <strong>support@linguallearn.com</strong>
+            </p>
+
+            <a href="{{ path('app_logout') }}"
+               style="display:inline-block;background:#991b1b;color:#fff;padding:.75rem 2rem;border-radius:10px;text-decoration:none;font-size:.875rem;font-weight:600;transition:background .15s;">
+                Se déconnecter
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+// Compte à rebours en temps réel
+{% if bannedUntil %}
+const endDate = new Date("{{ bannedUntil|date('Y-m-d H:i:s') }}");
+
+function updateCountdown() {
+    const now  = new Date();
+    const diff = endDate - now;
+
+    if (diff <= 0) {
+        // Ban expiré — recharger la page pour débannir
+        window.location.reload();
+        return;
+    }
+
+    const days    = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours   = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+    document.getElementById('hours-display').textContent   = String(hours).padStart(2,'0');
+    document.getElementById('minutes-display').textContent = String(minutes).padStart(2,'0');
+    document.getElementById('seconds-display').textContent = String(seconds).padStart(2,'0');
+}
+
+updateCountdown();
+setInterval(updateCountdown, 1000);
+{% endif %}
+</script>
+
+{% endblock %}

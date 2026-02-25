@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plans & Billing — LinguaLearn</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --white:      #ffffff;
+            --off-white:  #f7f9fc;
+            --surface:    #eef1f8;
+            --ink:        #0d1526;
+            --ink-soft:   #2c3a52;
+            --muted:      #7a87a0;
+            --border:     #e2e8f2;
+            --blue:       #2563eb;
+            --blue-dark:  #1d4ed8;
+            --blue-bg:    #eff6ff;
+            --blue-mid:   #3b82f6;
+            --green:      #16a34a;
+            --green-bg:   #f0fdf4;
+            --orange:     #ea580c;
+            --orange-bg:  #fff7ed;
+            --violet:     #7c3aed;
+            --violet-bg:  #f5f3ff;
+            --gold:       #ca8a04;
+            --gold-light: #fbbf24;
+            --gold-bg:    #fefce8;
+            --red:        #dc2626;
+            --red-bg:     #fef2f2;
+            --sidebar-w:  260px;
+            --radius:     12px;
+            --radius-lg:  20px;
+        }
+
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Sora', sans-serif; background: var(--off-white); color: var(--ink); min-height: 100vh; }
+
+        /* ═══════════════════════════════════════════════
+           SIDEBAR — identical to dashboard
+        ═══════════════════════════════════════════════ */
+        .sidebar {
+            position: fixed; top: 0; left: 0; bottom: 0;
+            width: var(--sidebar-w); background: var(--white);
+            border-right: 1px solid var(--border);
+            display: flex; flex-direction: column;
+            z-index: 50; transition: transform .3s ease;
+        }
+        .sidebar-logo {
+            padding: 1.4rem 1.5rem; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: .75rem;
+            text-decoration: none; flex-shrink: 0;
+        }
+        .sidebar-logo-icon {
+            width: 34px; height: 34px; border-radius: 10px;
+            background: linear-gradient(135deg, var(--blue), var(--blue-mid));
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Fraunces', serif; font-size: 1rem; font-weight: 400;
+            color: var(--white); flex-shrink: 0;
+        }
+        .sidebar-logo-text { font-family: 'Fraunces', serif; font-size: 1.3rem; font-weight: 400; color: var(--ink); letter-spacing: -.01em; }
+        .sidebar-logo-text span { color: var(--blue); }
+        .sidebar-user {
+            padding: 1.1rem 1.5rem; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: .85rem; flex-shrink: 0;
+        }
+        .user-avatar {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--blue), var(--blue-mid));
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Fraunces', serif; font-size: 1rem; font-weight: 400;
+            color: var(--white); flex-shrink: 0;
+        }
+        .user-avatar.premium { background: linear-gradient(135deg, var(--gold), var(--gold-light)); }
+        .user-info { flex: 1; min-width: 0; }
+        .user-name { font-size: .85rem; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-plan { font-size: .68rem; font-family: 'DM Mono', monospace; letter-spacing: .08em; text-transform: uppercase; margin-top: .15rem; }
+        .user-plan.free { color: var(--muted); }
+        .user-plan.premium { color: var(--gold); }
+        .sidebar-nav { flex: 1; padding: .75rem 0; overflow-y: auto; }
+        .nav-section-label { font-family: 'DM Mono', monospace; font-size: .58rem; letter-spacing: .22em; text-transform: uppercase; color: var(--muted); padding: .85rem 1.5rem .3rem; display: block; }
+        .nav-item {
+            display: flex; align-items: center; gap: .75rem;
+            padding: .62rem 1.5rem; font-size: .84rem; font-weight: 500;
+            color: var(--muted); text-decoration: none;
+            transition: color .2s, background .2s; position: relative;
+        }
+        .nav-item:hover { color: var(--ink); background: var(--off-white); }
+        .nav-item.active { color: var(--blue); background: var(--blue-bg); font-weight: 600; }
+        .nav-item.active::before { content: ''; position: absolute; left: 0; top: 4px; bottom: 4px; width: 3px; background: var(--blue); border-radius: 0 3px 3px 0; }
+        .nav-icon { font-size: 1.05rem; width: 20px; text-align: center; flex-shrink: 0; }
+        .nav-badge { margin-left: auto; background: var(--blue); color: var(--white); font-size: .6rem; font-weight: 700; padding: .15rem .5rem; border-radius: 100px; font-family: 'DM Mono', monospace; }
+        .nav-badge.orange { background: var(--orange); }
+        .sidebar-upgrade {
+            margin: .75rem 1rem 0;
+            background: linear-gradient(135deg, var(--gold-bg), #fff9e0);
+            border: 1.5px solid rgba(202,138,4,.2);
+            border-radius: var(--radius); padding: .9rem 1rem;
+        }
+        .sidebar-upgrade-label { font-size: .68rem; font-family: 'DM Mono', monospace; letter-spacing: .1em; text-transform: uppercase; color: var(--gold); margin-bottom: .35rem; }
+        .sidebar-upgrade p { font-size: .75rem; color: #92400e; line-height: 1.5; margin-bottom: .6rem; }
+        .sidebar-upgrade-btn {
+            display: block; text-align: center; padding: .45rem .75rem; border-radius: 8px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            color: var(--white); font-size: .75rem; font-weight: 700;
+            text-decoration: none; transition: opacity .2s, transform .2s;
+        }
+        .sidebar-upgrade-btn:hover { opacity: .9; transform: translateY(-1px); }
+        .sidebar-bottom { padding: .75rem 0; border-top: 1px solid var(--border); flex-shrink: 0; }
+
+        /* ═══════════════════════════════════════════════
+           MAIN
+        ═══════════════════════════════════════════════ */
+        .main { margin-left: var(--sidebar-w); min-height: 100vh; display: flex; flex-direction: column; }
+        .topbar {
+            position: sticky; top: 0; z-index: 40;
+            background: rgba(255,255,255,.92); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: .85rem 2rem;
+            display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+        }
+        .topbar-left { display: flex; align-items: center; gap: 1rem; }
+        .page-heading { font-family: 'Fraunces', serif; font-size: 1.25rem; font-weight: 400; color: var(--ink); }
+        .page-sub { font-size: .78rem; color: var(--muted); margin-top: .1rem; }
+        .hamburger-btn {
+            display: none; width: 38px; height: 38px; border-radius: var(--radius);
+            border: 1.5px solid var(--border); background: transparent;
+            align-items: center; justify-content: center; cursor: pointer; flex-direction: column; gap: 4px;
+        }
+        .hamburger-btn span { width: 16px; height: 1.5px; background: var(--ink); display: block; border-radius: 2px; }
+        .btn-back {
+            display: inline-flex; align-items: center; gap: .4rem;
+            padding: .5rem 1rem; border-radius: var(--radius);
+            border: 1.5px solid var(--border); background: transparent;
+            color: var(--muted); font-family: 'Sora', sans-serif;
+            font-size: .78rem; font-weight: 500; text-decoration: none;
+            transition: border-color .2s, color .2s, background .2s;
+        }
+        .btn-back:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-bg); }
+
+        .page-content { padding: 2.5rem 2rem; flex: 1; max-width: 1080px; width: 100%; margin: 0 auto; }
+
+        .flash { padding: .85rem 1.1rem; border-radius: var(--radius); font-size: .84rem; font-weight: 500; margin-bottom: 1.5rem; border: 1.5px solid; }
+        .flash-success { background: var(--green-bg); color: var(--green); border-color: rgba(22,163,74,.2); }
+        .flash-danger  { background: var(--red-bg);   color: var(--red);   border-color: rgba(220,38,38,.2); }
+        .flash-info    { background: var(--blue-bg);  color: var(--blue);  border-color: rgba(37,99,235,.2); }
+        .flash-warning { background: var(--gold-bg);  color: var(--gold);  border-color: rgba(202,138,4,.2); }
+
+        .page-header { text-align: center; margin-bottom: 2.75rem; }
+        .page-eyebrow {
+            display: inline-flex; align-items: center; gap: .5rem;
+            background: var(--blue-bg); color: var(--blue);
+            font-size: .68rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+            padding: .3rem .9rem; border-radius: 100px; margin-bottom: 1rem;
+            border: 1px solid rgba(37,99,235,.18); font-family: 'DM Mono', monospace;
+        }
+        .page-title { font-family: 'Fraunces', serif; font-size: 2.1rem; font-weight: 300; color: var(--ink); margin-bottom: .6rem; line-height: 1.2; }
+        .page-title em { color: var(--blue); font-style: italic; }
+        .page-desc { font-size: .88rem; color: var(--muted); max-width: 440px; margin: 0 auto; line-height: 1.7; }
+
+        .current-plan-banner {
+            background: linear-gradient(135deg, var(--gold-bg), #fff9e0);
+            border: 1.5px solid rgba(202,138,4,.25); border-radius: var(--radius-lg);
+            padding: 1.25rem 1.75rem;
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 2rem; gap: 1rem;
+        }
+        .current-plan-left { display: flex; align-items: center; gap: 1rem; }
+        .current-plan-icon { font-size: 1.75rem; }
+        .current-plan-label { font-size: .68rem; font-family: 'DM Mono', monospace; letter-spacing: .1em; text-transform: uppercase; color: var(--gold); margin-bottom: .2rem; }
+        .current-plan-name { font-family: 'Fraunces', serif; font-size: 1.1rem; font-weight: 400; color: var(--ink); }
+        .current-plan-expiry { font-size: .78rem; color: var(--muted); margin-top: .2rem; }
+
+        .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2.5rem; }
+
+        .plan-card {
+            background: var(--white); border: 1.5px solid var(--border);
+            border-radius: var(--radius-lg); padding: 2rem 1.75rem;
+            position: relative; transition: border-color .25s, box-shadow .25s, transform .25s;
+            display: flex; flex-direction: column;
+        }
+        .plan-card:hover { border-color: #c7d5f0; box-shadow: 0 8px 32px rgba(37,99,235,.08); transform: translateY(-3px); }
+        .plan-card.featured { border-color: var(--gold); box-shadow: 0 8px 32px rgba(202,138,4,.12); }
+        .plan-card.featured:hover { box-shadow: 0 12px 40px rgba(202,138,4,.18); }
+        .plan-card.is-current { border-color: var(--blue); background: var(--blue-bg); }
+        .plan-card::before { content: ''; position: absolute; top: 0; left: 1.5rem; right: 1.5rem; height: 2px; border-radius: 0 0 2px 2px; opacity: 0; transition: opacity .3s; }
+        .plan-card:hover::before { opacity: 1; }
+        .free-card::before    { background: var(--muted); }
+        .monthly-card::before { background: var(--blue); }
+        .yearly-card::before  { background: var(--gold); }
+
+        .plan-badge {
+            position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            color: var(--white); font-size: .63rem; font-weight: 700;
+            letter-spacing: .08em; text-transform: uppercase;
+            padding: .28rem .9rem; border-radius: 100px;
+            font-family: 'DM Mono', monospace; white-space: nowrap;
+        }
+        .plan-name { font-family: 'Fraunces', serif; font-size: 1.3rem; font-weight: 400; color: var(--ink); margin-bottom: .5rem; }
+        .plan-price { display: flex; align-items: baseline; gap: .25rem; margin-bottom: .3rem; }
+        .plan-currency { font-size: .95rem; font-weight: 600; color: var(--ink-soft); margin-top: .15rem; }
+        .plan-amount { font-family: 'Fraunces', serif; font-size: 3rem; font-weight: 300; line-height: 1; color: var(--ink); }
+        .plan-cents { font-family: 'Fraunces', serif; font-size: 1.5rem; font-weight: 300; color: var(--ink); }
+        .plan-period { font-size: .75rem; color: var(--muted); font-family: 'DM Mono', monospace; margin-bottom: .5rem; }
+        .plan-savings {
+            display: inline-block; font-size: .68rem; font-weight: 600;
+            color: var(--green); background: var(--green-bg);
+            border: 1px solid rgba(22,163,74,.2);
+            padding: .18rem .6rem; border-radius: 100px;
+            font-family: 'DM Mono', monospace; margin-bottom: 1.25rem;
+        }
+        .plan-divider { height: 1px; background: var(--border); margin: 1.1rem 0; }
+        .plan-features { list-style: none; margin-bottom: 1.75rem; flex: 1; }
+        .plan-features li { display: flex; align-items: flex-start; gap: .6rem; font-size: .81rem; color: var(--ink-soft); padding: .38rem 0; }
+        .plan-features li .check { color: var(--green); font-size: .82rem; flex-shrink: 0; margin-top: .05rem; }
+        .plan-features li .cross { color: #cbd5e1; font-size: .82rem; flex-shrink: 0; margin-top: .05rem; }
+        .plan-features li.dim { color: var(--muted); }
+
+        .btn-plan {
+            display: flex; align-items: center; justify-content: center; gap: .5rem;
+            width: 100%; padding: .75rem 1.5rem; border-radius: var(--radius);
+            font-family: 'Sora', sans-serif; font-size: .84rem; font-weight: 600;
+            cursor: pointer; transition: all .2s; text-decoration: none; border: none;
+        }
+        .btn-plan-ghost   { background: transparent; border: 1.5px solid var(--border); color: var(--muted); cursor: default; }
+        .btn-plan-blue    { background: var(--blue); color: var(--white); box-shadow: 0 4px 14px rgba(37,99,235,.25); }
+        .btn-plan-blue:hover { background: var(--blue-dark); box-shadow: 0 6px 20px rgba(37,99,235,.35); transform: translateY(-1px); }
+        .btn-plan-gold    { background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: var(--white); box-shadow: 0 4px 14px rgba(202,138,4,.3); }
+        .btn-plan-gold:hover { box-shadow: 0 6px 20px rgba(202,138,4,.4); transform: translateY(-1px); }
+        .btn-plan-current { background: var(--blue-bg); border: 1.5px solid var(--blue); color: var(--blue); cursor: default; }
+
+        .manage-section {
+            background: var(--white); border: 1.5px solid var(--border);
+            border-radius: var(--radius-lg); padding: 1.5rem 1.75rem;
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 1.5rem; flex-wrap: wrap; margin-bottom: 2.5rem;
+        }
+        .manage-left h3 { font-family: 'Fraunces', serif; font-size: 1rem; font-weight: 400; color: var(--ink); margin-bottom: .3rem; }
+        .manage-left p { font-size: .8rem; color: var(--muted); line-height: 1.6; }
+        .manage-actions { display: flex; gap: .75rem; flex-wrap: wrap; }
+        .btn-sm {
+            padding: .5rem 1.1rem; border-radius: var(--radius);
+            font-family: 'Sora', sans-serif; font-size: .78rem; font-weight: 600;
+            cursor: pointer; transition: all .2s; border: none; text-decoration: none;
+            display: inline-flex; align-items: center; gap: .4rem;
+        }
+        .btn-sm-ghost { background: transparent; border: 1.5px solid var(--border); color: var(--ink-soft); }
+        .btn-sm-ghost:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-bg); }
+        .btn-sm-danger { background: transparent; border: 1.5px solid rgba(220,38,38,.25); color: var(--red); }
+        .btn-sm-danger:hover { background: var(--red-bg); border-color: var(--red); }
+
+        /* Cancel guide */
+        .cancel-steps { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; align-items: start; gap: .75rem; }
+        @media (max-width: 760px) { .cancel-steps { grid-template-columns: 1fr; } .cancel-step-arrow { display: none; } }
+        .cancel-step {
+            background: var(--white); border: 1.5px solid var(--border);
+            border-radius: var(--radius-lg); padding: 1.5rem;
+            display: flex; flex-direction: column; gap: .6rem;
+            transition: border-color .25s, box-shadow .25s;
+        }
+        .cancel-step:hover { border-color: #c7d5f0; box-shadow: 0 6px 20px rgba(37,99,235,.07); }
+        .cancel-step-num { font-family: 'DM Mono', monospace; font-size: .62rem; letter-spacing: .15em; color: var(--muted); }
+        .cancel-step-icon { font-size: 1.6rem; margin-bottom: .2rem; }
+        .cancel-step-title { font-size: .9rem; font-weight: 600; color: var(--ink); margin-bottom: .2rem; }
+        .cancel-step-desc { font-size: .78rem; color: var(--muted); line-height: 1.65; }
+        .cancel-step-arrow { font-size: 1.2rem; color: #cbd5e1; display: flex; align-items: center; padding-top: 2rem; }
+
+        .faq-section { margin-bottom: 2rem; }
+        .faq-title { font-family: 'Fraunces', serif; font-size: 1.4rem; font-weight: 300; color: var(--ink); margin-bottom: 1.25rem; text-align: center; }
+        .faq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .faq-item { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 1.1rem 1.25rem; }
+        .faq-q { font-size: .84rem; font-weight: 600; color: var(--ink); margin-bottom: .4rem; }
+        .faq-a { font-size: .79rem; color: var(--muted); line-height: 1.65; }
+
+        .reveal { opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease; }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+        .d1{transition-delay:.08s} .d2{transition-delay:.16s}
+
+        .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(13,21,38,.4); z-index: 45; }
+        .sidebar-overlay.visible { display: block; }
+
+        @media (max-width: 860px) { .pricing-grid { grid-template-columns: 1fr; max-width: 440px; margin-left: auto; margin-right: auto; } .faq-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) {
+            :root { --sidebar-w: 0px; }
+            .sidebar { transform: translateX(-260px); width: 260px; }
+            .sidebar.open { transform: translateX(0); }
+            .main { margin-left: 0; }
+            .hamburger-btn { display: flex; }
+            .page-content { padding: 1.5rem 1.25rem; }
+            .topbar { padding: .75rem 1.25rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+{# ═══ SIDEBAR ═══ #}
+<aside class="sidebar" id="sidebar">
+    <a href="{{ path('app_homepage') }}" class="sidebar-logo">
+        <div class="sidebar-logo-icon">L</div>
+        <span class="sidebar-logo-text">Lingua<span>Learn</span></span>
+    </a>
+    <div class="sidebar-user">
+        <div class="user-avatar {{ user.isPremium ? 'premium' : '' }}">
+            {{ user.firstName|first|upper }}{{ user.lastName|first|upper }}
+        </div>
+        <div class="user-info">
+            <div class="user-name">{{ user.fullName }}</div>
+            <div class="user-plan {{ user.isPremium ? 'premium' : 'free' }}">
+                {{ user.isPremium ? '👑 ' ~ user.subscriptionPlan : 'Free Plan' }}
+            </div>
+        </div>
+    </div>
+    <nav class="sidebar-nav">
+        <span class="nav-section-label">Main</span>
+        <a href="{{ path('user_dashboard') }}" class="nav-item">
+            <span class="nav-icon">🏠</span> Dashboard
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">📚</span> My Courses
+            <span class="nav-badge">0</span>
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">🧩</span> Practice
+        </a>
+        <a href="{{ path('pricing') }}" class="nav-item">
+            <span class="nav-icon">📝</span> Mock Tests
+            {% if not user.isPremium %}<span class="nav-badge" style="background:var(--gold)">PRO</span>{% endif %}
+        </a>
+        <span class="nav-section-label">Account</span>
+        <a href="{{ path('user_profile') }}" class="nav-item">
+            <span class="nav-icon">👤</span> My Profile
+        </a>
+        <a href="{{ path('user_profile') }}" class="nav-item">
+            <span class="nav-icon">🔔</span> Notifications
+            {% set unread = 0 %}
+            {% for n in user.notifications %}{% if not n.isRead %}{% set unread = unread + 1 %}{% endif %}{% endfor %}
+            {% if unread > 0 %}<span class="nav-badge orange">{{ unread }}</span>{% endif %}
+        </a>
+        <a href="{{ path('pricing') }}" class="nav-item active">
+            <span class="nav-icon">👑</span> Plans & Billing
+        </a>
+        {% if not user.isPremium %}
+            <div class="sidebar-upgrade">
+                <div class="sidebar-upgrade-label">✦ Go Premium</div>
+                <p>Unlock all courses, mock tests & AI practice.</p>
+                <a href="{{ path('pricing') }}" class="sidebar-upgrade-btn">Upgrade Now →</a>
+            </div>
+        {% endif %}
+    </nav>
+    <div class="sidebar-bottom">
+        <a href="{{ path('app_logout') }}" class="nav-item">
+            <span class="nav-icon">🚪</span> Log Out
+        </a>
+    </div>
+</aside>
+
+{# ═══ MAIN ═══ #}
+<div class="main">
+    <header class="topbar">
+        <div class="topbar-left">
+            <button class="hamburger-btn" id="hamburgerBtn" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
+            <div>
+                <div class="page-heading">Plans & Billing</div>
+                <div class="page-sub">Manage your LinguaLearn subscription</div>
+            </div>
+        </div>
+        <a href="{{ path('user_dashboard') }}" class="btn-back">← Dashboard</a>
+    </header>
+
+    <main class="page-content">
+
+        {% for type, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="flash flash-{{ type }}">{{ message }}</div>
+            {% endfor %}
+        {% endfor %}
+
+        <div class="page-header reveal">
+            <div class="page-eyebrow">✦ Pricing</div>
+            <h1 class="page-title">Unlock your full <em>potential</em></h1>
+            <p class="page-desc">Choose the plan that fits your learning goals. Upgrade or cancel anytime — no commitment.</p>
+        </div>
+
+        {% if user.isPremium %}
+            <div class="current-plan-banner reveal">
+                <div class="current-plan-left">
+                    <div class="current-plan-icon">👑</div>
+                    <div>
+                        <div class="current-plan-label">{% if user.stripeSubscriptionId %}Active Plan{% else %}Admin Granted{% endif %}</div>
+                        <div class="current-plan-name">{{ user.subscriptionPlan|capitalize }} Premium</div>
+                        {% if user.subscriptionExpiry %}
+                            <div class="current-plan-expiry">
+                                {% if user.stripeSubscriptionId %}
+                                    Renews {{ user.subscriptionExpiry|date('F j, Y') }}
+                                {% else %}
+                                    Access until {{ user.subscriptionExpiry|date('F j, Y') }}
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div style="font-size:.8rem;color:var(--muted);">Full access to all premium content.</div>
+            </div>
+        {% endif %}
+
+        {# PRICING GRID #}
+        <div class="pricing-grid">
+
+            {# FREE #}
+            <div class="plan-card free-card reveal {{ not user.isPremium ? 'is-current' : '' }}">
+                <div class="plan-name">Free</div>
+                <div class="plan-price"><span class="plan-currency">$</span><span class="plan-amount">0</span></div>
+                <div class="plan-period">forever free</div>
+                <div style="height:1.4rem;"></div>
+                <div class="plan-divider"></div>
+                <ul class="plan-features">
+                    <li><span class="check">✓</span> Access to beginner courses</li>
+                    <li><span class="check">✓</span> Basic exercises &amp; quizzes</li>
+                    <li><span class="check">✓</span> Community forum access</li>
+                    <li class="dim"><span class="cross">✕</span> Advanced courses</li>
+                    <li class="dim"><span class="cross">✕</span> Mock tests</li>
+                    <li class="dim"><span class="cross">✕</span> Priority support</li>
+                </ul>
+                <button class="btn-plan {{ not user.isPremium ? 'btn-plan-current' : 'btn-plan-ghost' }}" disabled>
+                    {{ not user.isPremium ? '✓ Current Plan' : 'Free Tier' }}
+                </button>
+            </div>
+
+            {# MONTHLY #}
+            <div class="plan-card monthly-card reveal d1 {{ user.isPremium and user.subscriptionPlan == 'MONTHLY' ? 'is-current' : '' }}">
+                <div class="plan-name">Monthly</div>
+                <div class="plan-price"><span class="plan-currency">$</span><span class="plan-amount">9</span><span class="plan-cents">.99</span></div>
+                <div class="plan-period">per month</div>
+                <div style="height:1.4rem;"></div>
+                <div class="plan-divider"></div>
+                <ul class="plan-features">
+                    <li><span class="check">✓</span> Everything in Free</li>
+                    <li><span class="check">✓</span> All courses unlocked</li>
+                    <li><span class="check">✓</span> Unlimited exercises</li>
+                    <li><span class="check">✓</span> Mock test access</li>
+                    <li><span class="check">✓</span> Priority support</li>
+                    <li><span class="check">✓</span> Cancel anytime</li>
+                </ul>
+                {% if user.isPremium and user.subscriptionPlan == 'MONTHLY' %}
+                    <button class="btn-plan btn-plan-current" disabled>✓ Current Plan</button>
+                {% elseif not user.isPremium %}
+                    <form method="post" action="{{ path('subscription_checkout', {plan: 'MONTHLY'}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('checkout_MONTHLY') }}">
+                        <button type="submit" class="btn-plan btn-plan-blue">Get Monthly →</button>
+                    </form>
+                {% elseif user.isPremium and user.subscriptionPlan == 'YEARLY' and user.stripeSubscriptionId %}
+                    <form method="post" action="{{ path('subscription_switch_plan', {plan: 'MONTHLY'}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('switch_MONTHLY') }}">
+                        <button type="submit" class="btn-plan btn-plan-blue">Switch to Monthly</button>
+                    </form>
+                {% else %}
+                    <button class="btn-plan btn-plan-ghost" disabled>Not Available</button>
+                {% endif %}
+            </div>
+
+            {# YEARLY #}
+            <div class="plan-card yearly-card featured reveal d2 {{ user.isPremium and user.subscriptionPlan == 'YEARLY' ? 'is-current' : '' }}">
+                <div class="plan-badge">✦ Best Value — Save 17%</div>
+                <div class="plan-name">Yearly</div>
+                <div class="plan-price"><span class="plan-currency">$</span><span class="plan-amount">99</span><span class="plan-cents">.99</span></div>
+                <div class="plan-period">per year</div>
+                <div class="plan-savings">≈ 2 months free vs monthly</div>
+                <div class="plan-divider"></div>
+                <ul class="plan-features">
+                    <li><span class="check">✓</span> Everything in Monthly</li>
+                    <li><span class="check">✓</span> 2 months free</li>
+                    <li><span class="check">✓</span> Early access to new content</li>
+                    <li><span class="check">✓</span> Dedicated support</li>
+                    <li><span class="check">✓</span> Downloadable resources</li>
+                    <li><span class="check">✓</span> Cancel anytime</li>
+                </ul>
+                {% if user.isPremium and user.subscriptionPlan == 'YEARLY' %}
+                    <button class="btn-plan btn-plan-current" disabled>✓ Current Plan</button>
+                {% elseif not user.isPremium %}
+                    <form method="post" action="{{ path('subscription_checkout', {plan: 'YEARLY'}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('checkout_YEARLY') }}">
+                        <button type="submit" class="btn-plan btn-plan-gold">Get Yearly →</button>
+                    </form>
+                {% elseif user.isPremium and user.subscriptionPlan == 'MONTHLY' and user.stripeSubscriptionId %}
+                    <form method="post" action="{{ path('subscription_switch_plan', {plan: 'YEARLY'}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('switch_YEARLY') }}">
+                        <button type="submit" class="btn-plan btn-plan-gold">Switch to Yearly →</button>
+                    </form>
+                {% else %}
+                    <button class="btn-plan btn-plan-ghost" disabled>Not Available</button>
+                {% endif %}
+            </div>
+
+        </div>
+
+        {% if user.isPremium %}
+            <div class="manage-section reveal">
+                <div class="manage-left">
+                    <h3>Manage your subscription</h3>
+                    <p>Update payment method, download invoices, or cancel.<br>
+                        Cancelling keeps access until <strong>{{ user.subscriptionExpiry ? user.subscriptionExpiry|date('F j, Y') : 'end of billing period' }}</strong>.</p>
+                </div>
+                <div class="manage-actions">
+                    <form method="post" action="{{ path('subscription_portal') }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('portal') }}">
+                        <button type="submit" class="btn-sm btn-sm-ghost">🧾 Billing Portal</button>
+                    </form>
+                    {% if user.stripeSubscriptionId %}
+                        <form method="post" action="{{ path('subscription_cancel_plan') }}"
+                              onsubmit="return confirm('Cancel your subscription? You keep premium access until the end of your billing period.')">
+                            <input type="hidden" name="_token" value="{{ csrf_token('cancel_plan') }}">
+                            <button type="submit" class="btn-sm btn-sm-danger">Cancel Subscription</button>
+                        </form>
+                    {% else %}
+                        <span style="font-size:.78rem;color:var(--muted);font-style:italic;">Managed by admin</span>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+
+        {# ─── HOW TO CANCEL ─── #}
+        <div class="reveal" style="margin-bottom:2.5rem;">
+            <div style="text-align:center;margin-bottom:1.5rem;">
+                <div style="display:inline-flex;align-items:center;gap:.5rem;background:var(--red-bg);color:var(--red);font-size:.68rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:.3rem .9rem;border-radius:100px;border:1px solid rgba(220,38,38,.18);font-family:'DM Mono',monospace;margin-bottom:.85rem;">✕ Cancellation</div>
+                <h2 style="font-family:'Fraunces',serif;font-size:1.5rem;font-weight:300;color:var(--ink);margin-bottom:.5rem;">How to <em style="color:var(--blue);font-style:italic;">cancel</em> your plan</h2>
+                <p style="font-size:.85rem;color:var(--muted);max-width:460px;margin:0 auto;line-height:1.7;">No hidden steps, no phone calls. Cancel in seconds — your access stays active until the end of your paid period.</p>
+            </div>
+
+            <div class="cancel-steps">
+                <div class="cancel-step">
+                    <div class="cancel-step-num">STEP 01</div>
+                    <div class="cancel-step-icon">👑</div>
+                    <div class="cancel-step-title">Go to Plans & Billing</div>
+                    <div class="cancel-step-desc">Click <strong>Plans & Billing</strong> in the sidebar. You're already here!</div>
+                </div>
+                <div class="cancel-step-arrow">→</div>
+                <div class="cancel-step">
+                    <div class="cancel-step-num">STEP 02</div>
+                    <div class="cancel-step-icon">🧾</div>
+                    <div class="cancel-step-title">Find the Manage section</div>
+                    <div class="cancel-step-desc">Scroll down to <strong>Manage your subscription</strong>. Click <strong>Cancel Subscription</strong> — or use <strong>Billing Portal</strong> to manage via Stripe.</div>
+                </div>
+                <div class="cancel-step-arrow">→</div>
+                <div class="cancel-step">
+                    <div class="cancel-step-num">STEP 03</div>
+                    <div class="cancel-step-icon">✅</div>
+                    <div class="cancel-step-title">Confirm — done</div>
+                    <div class="cancel-step-desc">Confirm the prompt. Your plan cancels immediately but <strong>you keep full premium access</strong> until your billing period ends.</div>
+                </div>
+            </div>
+
+            <div style="background:var(--blue-bg);border:1.5px solid rgba(37,99,235,.15);border-radius:var(--radius);padding:1rem 1.25rem;margin-top:1.25rem;display:flex;align-items:flex-start;gap:.75rem;">
+                <span style="font-size:1.1rem;flex-shrink:0;">ℹ️</span>
+                <div style="font-size:.79rem;color:var(--ink-soft);line-height:1.7;">
+                    <strong>What happens after cancellation?</strong> Renewals stop immediately. You keep full premium access until the <strong>last day of your current billing period</strong>. After that, your account reverts to the free plan automatically — no data is ever deleted. Changed your mind? Resubscribe anytime from this page.
+                </div>
+            </div>
+        </div>
+
+        <div class="faq-section reveal">
+            <h2 class="faq-title">Common <em>questions</em></h2>
+            <div class="faq-grid">
+                <div class="faq-item">
+                    <div class="faq-q">Can I cancel anytime?</div>
+                    <div class="faq-a">Yes. Cancel from this page or the billing portal. You keep premium access until the end of your paid period — no immediate cutoff.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-q">What payment methods are accepted?</div>
+                    <div class="faq-a">All major cards (Visa, Mastercard, Amex) via Stripe's secure checkout. Your payment info is never stored on our servers.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-q">What happens to my progress if I downgrade?</div>
+                    <div class="faq-a">All progress, XP, and history are saved permanently. You only lose access to premium courses until you resubscribe.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-q">Is the yearly plan charged all at once?</div>
+                    <div class="faq-a">Yes, $99.99 is charged once upfront giving you 12 months — equivalent to two free months vs monthly billing.</div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<script>
+    const sidebar   = document.getElementById('sidebar');
+    const overlay   = document.getElementById('sidebarOverlay');
+    const hamburger = document.getElementById('hamburgerBtn');
+    hamburger.addEventListener('click', () => { sidebar.classList.toggle('open'); overlay.classList.toggle('visible'); });
+    overlay.addEventListener('click',   () => { sidebar.classList.remove('open'); overlay.classList.remove('visible'); });
+    const ro = new IntersectionObserver(entries => {
+        entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); ro.unobserve(e.target); } });
+    }, { threshold: 0.06 });
+    document.querySelectorAll('.reveal').forEach(el => ro.observe(el));
+</script>
+</body>
+</html>

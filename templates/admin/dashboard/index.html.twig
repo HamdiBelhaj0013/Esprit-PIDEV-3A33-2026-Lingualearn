@@ -1,633 +1,636 @@
-{% extends 'base.html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
-{% block title %}Admin Dashboard - {{ parent() }}{% endblock %}
-
-{% block stylesheets %}
-    {{ parent() }}
-    <style>
-        .stat-card {
-            transition: transform 0.2s, box-shadow 0.2s;
-            cursor: pointer;
-        }
-        .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-        .trend-up { color: #2fb344; }
-        .trend-down { color: #d63939; }
-        .activity-item {
-            border-left: 3px solid #e9ecef;
-            padding-left: 1rem;
-            margin-bottom: 1rem;
-            transition: all 0.2s;
-        }
-        .activity-item:hover {
-            border-left-color: #206bc4;
-            background-color: #f8f9fa;
-            padding-left: 1.5rem;
-        }
-        .chart-container { position: relative; height: 300px; }
-        .badge-status { font-size: 0.75rem; padding: 0.25rem 0.5rem; }
-        .metric-icon {
-            font-size: 2rem;
-            opacity: 0.8;
-        }
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 600;
-            line-height: 1;
-        }
-        .stat-label {
-            font-size: 0.875rem;
-            color: #6c757d;
-            margin-top: 0.5rem;
-        }
-        .progress-circle {
-            width: 100px;
-            height: 100px;
-        }
-        .user-avatar-group {
-            display: flex;
-            margin: 0 -0.25rem;
-        }
-        .user-avatar-group .avatar {
-            margin: 0 0.25rem;
-            border: 2px solid #fff;
-        }
-    </style>
-{% endblock %}
+{% block title %}Command Center — LinguaLearn{% endblock %}
+{% block stylesheets %}{{ parent() }}{% endblock %}
 
 {% block page_title %}
-    <div class="d-flex justify-content-between align-items-center w-100">
-        <div>
-            <i class="ti ti-dashboard me-2"></i> Admin Dashboard
-        </div>
-        <div class="btn-list">
-            <button type="button" class="btn btn-outline-primary btn-sm" id="refreshDashboard">
-                <i class="ti ti-refresh"></i> Refresh
-            </button>
-            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#dateRangeModal">
-                <i class="ti ti-calendar"></i> Date Range
-            </button>
-            <button type="button" class="btn btn-primary btn-sm" id="exportReport">
-                <i class="ti ti-download"></i> Export Report
-            </button>
-        </div>
+    <span style="display:flex;align-items:center;gap:10px;font-size:1rem;font-weight:800;letter-spacing:-.01em">
+        <span style="width:9px;height:9px;border-radius:50%;background:#10b981;box-shadow:0 0 0 0 rgba(16,185,129,.4);animation:livepulse 2s ease infinite;flex-shrink:0"></span>
+        Command Center
+        <span style="font-size:.72rem;font-weight:600;padding:3px 10px;border-radius:6px;background:rgba(59,130,246,.12);color:#3b82f6;border:1px solid rgba(59,130,246,.25)">LIVE</span>
+    </span>
+{% endblock %}
+
+{% block page_actions %}
+    <div class="col-auto ms-auto d-print-none" style="display:flex;gap:8px;align-items:center">
+        {% if dateRange is defined %}
+            <span style="font-size:.74rem;color:#6b7280;background:#f9fafb;border:1px solid #e5e7eb;padding:6px 12px;border-radius:8px">
+                <i class="ti ti-calendar-stats" style="color:#3b82f6"></i>
+                {{ dateRange.start|date('M d, Y') }} – {{ dateRange.end|date('M d, Y') }}
+            </span>
+        {% endif %}
+        <button data-bs-toggle="modal" data-bs-target="#dateRangeModal"
+                style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:9px;border:1px solid #e5e7eb;background:#ffffff;color:#6b7280;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .2s"
+                onmouseover="this.style.borderColor='#3b82f6';this.style.color='#1d4ed8'"
+                onmouseout="this.style.borderColor='#e5e7eb';this.style.color='#6b7280'">
+            <i class="ti ti-sliders"></i> Filter
+        </button>
+        <a href="{{ path('admin_dashboard_export') }}"
+           style="display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border-radius:9px;background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;font-size:.78rem;font-weight:700;text-decoration:none;box-shadow:0 4px 14px rgba(59,130,246,.35);transition:all .2s"
+           onmouseover="this.style.transform='translateY(-1px)'"
+           onmouseout="this.style.transform=''">
+            <i class="ti ti-download"></i> Export CSV
+        </a>
+        <button id="refreshBtn"
+                style="width:34px;height:34px;border-radius:9px;border:1px solid #e5e7eb;background:#ffffff;color:#9ca3af;cursor:pointer;display:grid;place-items:center;font-size:16px;transition:all .2s"
+                onmouseover="this.style.borderColor='#3b82f6';this.style.color='#3b82f6'"
+                onmouseout="this.style.borderColor='#e5e7eb';this.style.color='#9ca3af'">
+            <i class="ti ti-refresh" id="refreshIcon"></i>
+        </button>
     </div>
 {% endblock %}
 
-{% block body %}
-    <div class="container-xl">
-        {# Date Range Display #}
-        {% if dateRange is defined %}
-            <div class="alert alert-info mb-3">
-                <i class="ti ti-info-circle"></i>
-                Showing data from <strong>{{ dateRange.start|date('M d, Y') }}</strong> to <strong>{{ dateRange.end|date('M d, Y') }}</strong>
+{% block content %}
+    <style>
+        :root{
+            --d-bg:#f1f5f9;--d-s1:#ffffff;--d-b1:rgba(0,0,0,.07);--d-b2:rgba(0,0,0,.13);
+            --d-txt:#0f172a;--d-mut:#64748b;
+            --d-bl:#3b82f6;--d-gr:#10b981;--d-am:#f59e0b;--d-rd:#ef4444;
+            --d-pu:#8b5cf6;--d-cy:#06b6d4;--d-pk:#ec4899;
+        }
+        .page-wrapper,.page-body{background:var(--d-bg)!important}
+        .container-xl{max-width:1480px}
+        .db-grid-bg{position:fixed;inset:0;pointer-events:none;z-index:0;background-image:radial-gradient(circle,#cbd5e1 1px,transparent 1px);background-size:28px 28px;opacity:.5}
+
+        @keyframes livepulse{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.4)}50%{box-shadow:0 0 0 8px transparent}}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .fu{animation:fadeUp .5s ease both}
+        .d1{animation-delay:.04s}.d2{animation-delay:.08s}.d3{animation-delay:.12s}.d4{animation-delay:.16s}
+        .d5{animation-delay:.20s}.d6{animation-delay:.24s}.d7{animation-delay:.28s}.d8{animation-delay:.32s}
+        .d9{animation-delay:.36s}.d10{animation-delay:.4s}.d11{animation-delay:.44s}
+        .spinning{animation:spin .7s linear infinite}
+
+        /* Cards */
+        .dc{background:var(--d-s1);border:1px solid var(--d-b1);border-radius:16px;overflow:hidden;position:relative;transition:border-color .3s,box-shadow .3s;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+        .dc:hover{border-color:var(--d-b2);box-shadow:0 4px 16px rgba(0,0,0,.1)}
+        .dc::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;opacity:0;transition:opacity .35s}
+        .dc:hover::after{opacity:1}
+        .dc.ab::after{background:linear-gradient(90deg,transparent,var(--d-bl),transparent)}
+        .dc.ag::after{background:linear-gradient(90deg,transparent,var(--d-gr),transparent)}
+        .dc.aa::after{background:linear-gradient(90deg,transparent,var(--d-am),transparent)}
+        .dc.ar::after{background:linear-gradient(90deg,transparent,var(--d-rd),transparent)}
+        .dc.ap::after{background:linear-gradient(90deg,transparent,var(--d-pu),transparent)}
+        .dc.ac::after{background:linear-gradient(90deg,transparent,var(--d-cy),transparent)}
+
+        /* KPI */
+        .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
+        @media(max-width:1100px){.kpi-row{grid-template-columns:repeat(2,1fr)}}
+        @media(max-width:560px){.kpi-row{grid-template-columns:1fr}}
+        .kc{padding:22px;cursor:default;position:relative;overflow:hidden}
+        .kc::before{content:'';position:absolute;width:130px;height:130px;border-radius:50%;right:-35px;bottom:-35px;opacity:.06;transition:transform .4s,opacity .4s}
+        .kc:hover::before{transform:scale(1.5);opacity:.11}
+        .kc.kb::before{background:var(--d-bl)}.kc.kg::before{background:var(--d-gr)}
+        .kc.ka::before{background:var(--d-am)}.kc.kp::before{background:var(--d-pu)}
+        .kc-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
+        .kc-ico{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;font-size:19px;flex-shrink:0}
+        .kc-ico.ib{background:rgba(59,130,246,.12);color:#2563eb}
+        .kc-ico.ig{background:rgba(16,185,129,.12);color:#059669}
+        .kc-ico.ia{background:rgba(245,158,11,.12);color:#d97706}
+        .kc-ico.ip{background:rgba(139,92,246,.12);color:#7c3aed}
+        .badge-kpi{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:5px;font-size:.68rem;font-weight:700}
+        .bup{background:rgba(16,185,129,.12);color:#059669}
+        .bdn{background:rgba(239,68,68,.12);color:#dc2626}
+        .bnu{background:rgba(100,116,139,.12);color:#475569}
+        .kc-val{font-size:2.2rem;font-weight:900;line-height:1;color:var(--d-txt);letter-spacing:-.04em;margin-bottom:5px;font-variant-numeric:tabular-nums}
+        .kc-lbl{font-size:.73rem;color:var(--d-mut);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+        .kc-sub{font-size:.7rem;color:var(--d-mut);margin-top:7px}
+        .gb{background:linear-gradient(135deg,#2563eb,#0891b2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .gg{background:linear-gradient(135deg,#059669,#10b981);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .ga{background:linear-gradient(135deg,#d97706,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .gp{background:linear-gradient(135deg,#7c3aed,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .gc{background:linear-gradient(135deg,#0891b2,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .dp{height:4px;border-radius:99px;background:#e2e8f0;overflow:hidden;margin-top:10px}
+        .dpf{height:100%;border-radius:99px;transition:width 1.6s cubic-bezier(.4,0,.2,1);width:0}
+
+        /* Section header */
+        .dsh{display:flex;align-items:center;justify-content:space-between;padding:15px 20px 13px;border-bottom:1px solid var(--d-b1)}
+        .dsh-l{display:flex;align-items:center;gap:10px}
+        .dsh-ic{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;font-size:13px}
+        .dsh-t{font-size:.81rem;font-weight:700;color:var(--d-txt)}
+        .dsh-s{font-size:.69rem;color:var(--d-mut);margin-top:1px}
+        .dsh-a{font-size:.71rem;color:var(--d-mut);text-decoration:none;display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:5px;border:1px solid var(--d-b1);transition:all .2s}
+        .dsh-a:hover{border-color:var(--d-bl);color:var(--d-bl);background:#eff6ff}
+
+        /* Bento grids */
+        .bento-a{display:grid;grid-template-columns:1fr 1fr 300px;gap:12px;margin-bottom:12px}
+        @media(max-width:1100px){.bento-a{grid-template-columns:1fr 1fr}}
+        @media(max-width:700px){.bento-a{grid-template-columns:1fr}}
+        .span2{grid-column:span 2}
+        @media(max-width:700px){.span2{grid-column:span 1}}
+        .bento-b{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
+        @media(max-width:992px){.bento-b{grid-template-columns:1fr 1fr}}
+        @media(max-width:560px){.bento-b{grid-template-columns:1fr}}
+
+        /* Tabs */
+        .dtabs{display:flex;gap:3px}
+        .dtab{padding:4px 11px;border-radius:6px;font-size:.71rem;font-weight:700;border:1px solid #e5e7eb;background:#f8fafc;color:#64748b;cursor:pointer;transition:all .2s}
+        .dtab.on,.dtab:hover{background:var(--d-bl);color:#fff;border-color:var(--d-bl)}
+
+        /* Charts */
+        .dc-chart{padding:14px 18px 18px;position:relative}
+        .dc-chart canvas{max-height:240px}
+        .chart-total{position:absolute;top:14px;right:18px;font-size:.72rem;color:var(--d-mut);font-weight:600}
+
+        /* Revenue ring */
+        .ring-wrap{padding:18px;display:flex;flex-direction:column;align-items:center;gap:14px}
+        .ring-cw{position:relative;width:150px;height:150px}
+        .ring-c{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none}
+        .ring-c .rv{font-size:1.3rem;font-weight:900;color:var(--d-txt);line-height:1}
+        .ring-c .rl{font-size:.62rem;color:var(--d-mut);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+        .rev-leg{width:100%}
+        .rli{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--d-b1);font-size:.74rem}
+        .rli:last-child{border-bottom:none}
+        .rld{width:7px;height:7px;border-radius:50%;margin-right:7px;flex-shrink:0}
+        .rll{color:var(--d-mut);display:flex;align-items:center}
+        .rlv{color:var(--d-txt);font-weight:700}
+
+        /* Feed */
+        .feed-i{display:flex;align-items:center;gap:11px;padding:10px 18px;transition:background .15s}
+        .feed-i:hover{background:#f8fafc}
+        .feed-av{width:33px;height:33px;border-radius:9px;object-fit:cover;flex-shrink:0;border:1px solid #e2e8f0}
+        .feed-n{font-size:.8rem;font-weight:700;color:var(--d-txt)}
+        .feed-e{font-size:.7rem;color:var(--d-mut)}
+        .feed-t{font-size:.66rem;color:#94a3b8;margin-left:auto;white-space:nowrap;flex-shrink:0}
+        .feed-b{padding:2px 6px;border-radius:4px;font-size:.62rem;font-weight:700;margin-left:5px}
+        .fb-p{background:rgba(245,158,11,.12);color:#b45309}
+        .fb-f{background:rgba(100,116,139,.1);color:#475569}
+
+        /* Content rows */
+        .cr{display:flex;align-items:center;padding:11px 18px;border-bottom:1px solid var(--d-b1);gap:12px}
+        .cr:last-child{border-bottom:none}
+        .cr-ic{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;font-size:14px;flex-shrink:0}
+        .cr-n{font-size:.8rem;font-weight:700;color:var(--d-txt)}
+        .cr-s{font-size:.69rem;color:var(--d-mut)}
+        .cr-v{font-size:1.05rem;font-weight:900;color:var(--d-txt);margin-left:auto;letter-spacing:-.02em}
+
+        /* Health */
+        .hi{display:flex;align-items:center;justify-content:space-between;padding:9px 18px;border-bottom:1px solid var(--d-b1)}
+        .hi:last-child{border-bottom:none}
+        .hi-l{font-size:.76rem;color:var(--d-mut);display:flex;align-items:center;gap:7px}
+        .hi-v{font-size:.8rem;font-weight:700;color:var(--d-txt)}
+
+        /* Quick actions */
+        .qa-g{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:14px 18px}
+        .qa-i{padding:13px 11px;border-radius:10px;text-decoration:none;display:flex;flex-direction:column;gap:5px;border:1px solid #e5e7eb;background:#f8fafc;transition:all .2s}
+        .qa-i:hover{border-color:#bfdbfe;background:#eff6ff;transform:translateY(-2px);box-shadow:0 4px 12px rgba(59,130,246,.12)}
+        .qa-i-ico{font-size:17px}
+        .qa-i-n{font-size:.71rem;font-weight:700;color:var(--d-txt)}
+        .qa-i-s{font-size:.65rem;color:var(--d-mut)}
+
+        /* Stat mini-badges under chart */
+        .chart-stats{display:flex;gap:12px;padding:0 18px 14px;flex-wrap:wrap}
+        .cs-item{font-size:.72rem;color:var(--d-mut);display:flex;align-items:center;gap:4px}
+        .cs-val{font-weight:700;color:var(--d-txt)}
+
+        /* Plan distribution row */
+        .plan-bar-row{display:flex;align-items:center;gap:10px;padding:8px 18px;border-bottom:1px solid var(--d-b1)}
+        .plan-bar-row:last-child{border-bottom:none}
+        .plan-bar-name{font-size:.75rem;font-weight:600;color:var(--d-txt);width:60px;flex-shrink:0}
+        .plan-bar-track{flex:1;height:6px;border-radius:99px;background:#e2e8f0;overflow:hidden}
+        .plan-bar-fill{height:100%;border-radius:99px;transition:width 1.4s cubic-bezier(.4,0,.2,1);width:0}
+        .plan-bar-val{font-size:.72rem;font-weight:700;color:var(--d-txt);width:32px;text-align:right;flex-shrink:0}
+
+        /* Modal */
+        .db-modal .modal-content{background:var(--d-s1);border:1px solid #e2e8f0;border-radius:16px;color:var(--d-txt)}
+        .db-modal .modal-header{border-bottom:1px solid #e2e8f0}
+        .db-modal .form-control{background:#f8fafc;border-color:#e2e8f0;color:var(--d-txt);border-radius:9px}
+        .db-modal .form-label{font-size:.75rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em}
+        .db-modal .form-control:focus{border-color:var(--d-bl);box-shadow:0 0 0 3px rgba(59,130,246,.15)}
+    </style>
+
+    <div class="db-grid-bg"></div>
+
+    {# ═══ KPI STRIP ═══════════════════════════════════════════════════ #}
+    {% set total     = userStats.total|default(0) %}
+    {% set active    = userStats.active|default(0) %}
+    {% set suspended = userStats.suspended|default(0) %}
+    {% set premium   = userStats.premium|default(0) %}
+    {% set trend     = userStats.totalTrend|default(0) %}
+    {% set newLast7  = userStats.newLast7|default(0) %}
+    {% set newLast30 = userStats.newLast30|default(0) %}
+
+    <div class="kpi-row" style="position:relative;z-index:1">
+
+        {# Total users #}
+        <div class="dc kc kb ab fu d1">
+            <div class="kc-top">
+                <div class="kc-ico ib"><i class="ti ti-users"></i></div>
+                <span class="badge-kpi {{ trend >= 0 ? 'bup' : 'bdn' }}">
+                <i class="ti ti-trending-{{ trend >= 0 ? 'up' : 'down' }}"></i>
+                {{ trend|abs }}%
+            </span>
             </div>
-        {% endif %}
-
-        <div class="row row-deck row-cards">
-
-            {# Enhanced User Statistics with Trends #}
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            <i class="ti ti-users me-2 text-primary"></i>
-                            User Statistics
-                        </h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-sm-6 col-lg-3">
-                                <div class="card card-sm stat-card border-0 bg-primary-lt">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center justify-content-between mb-3">
-                                            <span class="text-primary metric-icon">
-                                                <i class="ti ti-users"></i>
-                                            </span>
-                                            {% if userStats.totalTrend is defined %}
-                                                <span class="badge bg-primary">
-                                                    <i class="ti ti-trending-{{ userStats.totalTrend >= 0 ? 'up' : 'down' }}"></i>
-                                                    {{ userStats.totalTrend|abs }}%
-                                                </span>
-                                            {% endif %}
-                                        </div>
-                                        <div class="stat-value text-primary">
-                                            {{ userStats.total|number_format }}
-                                        </div>
-                                        <div class="stat-label">Total Users</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-sm-6 col-lg-3">
-                                <div class="card card-sm stat-card border-0 bg-success-lt">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center justify-content-between mb-3">
-                                            <span class="text-success metric-icon">
-                                                <i class="ti ti-user-check"></i>
-                                            </span>
-                                            {% if userStats.total > 0 %}
-                                                <span class="badge bg-success">
-                                                    {{ ((userStats.active / userStats.total) * 100)|number_format(0) }}%
-                                                </span>
-                                            {% endif %}
-                                        </div>
-                                        <div class="stat-value text-success">
-                                            {{ userStats.active|number_format }}
-                                        </div>
-                                        <div class="stat-label">Active Users</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-sm-6 col-lg-3">
-                                <div class="card card-sm stat-card border-0 bg-info-lt">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center justify-content-between mb-3">
-                                            <span class="text-info metric-icon">
-                                                <i class="ti ti-crown"></i>
-                                            </span>
-                                            {% if userStats.premiumRevenue is defined %}
-                                                <span class="badge bg-info">
-                                                    ${{ userStats.premiumRevenue|number_format(0) }}
-                                                </span>
-                                            {% endif %}
-                                        </div>
-                                        <div class="stat-value text-info">
-                                            {{ userStats.premium|number_format }}
-                                        </div>
-                                        <div class="stat-label">Premium Users</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-sm-6 col-lg-3">
-                                <div class="card card-sm stat-card border-0 bg-warning-lt">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center justify-content-between mb-3">
-                                            <span class="text-warning metric-icon">
-                                                <i class="ti ti-user-off"></i>
-                                            </span>
-                                            {% if userStats.suspended > 0 %}
-                                                <span class="badge bg-warning">
-                                                    <i class="ti ti-alert-triangle"></i>
-                                                </span>
-                                            {% endif %}
-                                        </div>
-                                        <div class="stat-value text-warning">
-                                            {{ userStats.suspended|number_format }}
-                                        </div>
-                                        <div class="stat-label">Suspended Users</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="kc-val gb" data-count="{{ total }}">0</div>
+            <div class="kc-lbl">Total Users</div>
+            <div class="kc-sub">
+                +{{ newLast7 }} this week &middot; +{{ newLast30 }} this month
             </div>
-
-            {# User Growth Chart - Full Width #}
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            <i class="ti ti-chart-line me-2 text-primary"></i>
-                            User Growth
-                        </h3>
-                        <div class="card-actions">
-                            <div class="btn-group btn-group-sm" role="group">
-                                <input type="radio" class="btn-check" name="user-growth-period" id="period-7d" checked>
-                                <label for="period-7d" class="btn">7D</label>
-                                <input type="radio" class="btn-check" name="user-growth-period" id="period-30d">
-                                <label for="period-30d" class="btn">30D</label>
-                                <input type="radio" class="btn-check" name="user-growth-period" id="period-90d">
-                                <label for="period-90d" class="btn">90D</label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="chart-container" style="height: 350px;">
-                            <canvas id="userGrowthChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {# Content Statistics - Improved #}
-            <div class="col-lg-8">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            <i class="ti ti-books me-2 text-primary"></i>
-                            Content Overview
-                        </h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <div class="card card-sm stat-card border-0 bg-purple-lt">
-                                    <div class="card-body text-center">
-                                        <div class="metric-icon text-purple mb-2">
-                                            <i class="ti ti-books"></i>
-                                        </div>
-                                        <div class="stat-value text-purple mb-1">
-                                            {{ courseCount|number_format }}
-                                        </div>
-                                        <div class="stat-label mb-2">Total Courses</div>
-                                        {% if courseStats is defined %}
-                                            <div>
-                                                <span class="badge bg-success-lt badge-status">{{ courseStats.published }} Published</span>
-                                                <span class="badge bg-warning-lt badge-status">{{ courseStats.draft }} Draft</span>
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="card card-sm stat-card border-0 bg-lime-lt">
-                                    <div class="card-body text-center">
-                                        <div class="metric-icon text-lime mb-2">
-                                            <i class="ti ti-pencil-check"></i>
-                                        </div>
-                                        <div class="stat-value text-lime mb-1">
-                                            {{ exerciseCount|number_format }}
-                                        </div>
-                                        <div class="stat-label mb-2">Total Exercises</div>
-                                        {% if exerciseStats is defined %}
-                                            <div>
-                                                <span class="badge bg-lime-lt badge-status">
-                                                    {{ exerciseStats.completionRate }}% completion
-                                                </span>
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {# Engagement Metrics #}
-                        <div class="row g-3 mt-2">
-                            <div class="col-md-6">
-                                <div class="card card-sm border-primary">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center justify-content-between">
-                                            <div>
-                                                <div class="stat-label mb-2">Average Course Rating</div>
-                                                <div class="h2 mb-0">
-                                                    {% if averageRating is defined and averageRating %}
-                                                        {{ averageRating|number_format(2) }}
-                                                        <span class="text-warning fs-3">
-                                                            {% for i in 1..5 %}
-                                                                <i class="ti ti-star{{ i <= averageRating|round ? '-filled' : '' }}"></i>
-                                                            {% endfor %}
-                                                        </span>
-                                                    {% else %}
-                                                        <span class="text-muted">N/A</span>
-                                                    {% endif %}
-                                                </div>
-                                            </div>
-                                            <div class="text-primary" style="font-size: 3rem; opacity: 0.3;">
-                                                <i class="ti ti-star-filled"></i>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="card card-sm border-success">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center justify-content-between">
-                                            <div>
-                                                <div class="stat-label mb-2">Total Enrollments</div>
-                                                <div class="h2 mb-0 text-success">
-                                                    {{ totalEnrollments|default(0)|number_format }}
-                                                </div>
-                                            </div>
-                                            <div class="text-success" style="font-size: 3rem; opacity: 0.3;">
-                                                <i class="ti ti-users"></i>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {# Revenue Overview #}
-            <div class="col-lg-4">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            <i class="ti ti-wallet me-2 text-success"></i>
-                            Revenue Overview
-                        </h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="chart-container" style="height: 200px;">
-                            <canvas id="revenueChart"></canvas>
-                        </div>
-                        {% if revenueStats is defined %}
-                            <div class="mt-4">
-                                <div class="row g-2">
-                                    <div class="col-6">
-                                        <div class="card card-sm bg-success-lt border-0">
-                                            <div class="card-body text-center">
-                                                <div class="text-muted small">This Month</div>
-                                                <div class="h3 mb-0 text-success">
-                                                    ${{ revenueStats.thisMonth|number_format(0) }}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-6">
-                                        <div class="card card-sm bg-azure-lt border-0">
-                                            <div class="card-body text-center">
-                                                <div class="text-muted small">Last Month</div>
-                                                <div class="h3 mb-0">
-                                                    ${{ revenueStats.lastMonth|number_format(0) }}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="mt-3 text-center">
-                                    <div class="text-muted small mb-1">Growth Rate</div>
-                                    <div class="h2 mb-0 {{ revenueStats.growth >= 0 ? 'text-success' : 'text-danger' }}">
-                                        <i class="ti ti-trending-{{ revenueStats.growth >= 0 ? 'up' : 'down' }}"></i>
-                                        {{ revenueStats.growth >= 0 ? '+' : '' }}{{ revenueStats.growth }}%
-                                    </div>
-                                </div>
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            {# Forum Statistics #}
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            <i class="ti ti-messages me-2 text-orange"></i>
-                            Community Engagement
-                        </h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <div class="card card-sm stat-card border-0 bg-orange-lt">
-                                    <div class="card-body text-center">
-                                        <div class="metric-icon text-orange mb-2">
-                                            <i class="ti ti-messages"></i>
-                                        </div>
-                                        <div class="stat-value text-orange mb-1">
-                                            {{ forumPostCount|number_format }}
-                                        </div>
-                                        <div class="stat-label">Forum Posts</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="card card-sm stat-card border-0 bg-red-lt">
-                                    <div class="card-body text-center">
-                                        <div class="metric-icon text-red mb-2">
-                                            <i class="ti ti-message-2"></i>
-                                        </div>
-                                        <div class="stat-value text-red mb-1">
-                                            {{ forumReplyCount|number_format }}
-                                        </div>
-                                        <div class="stat-label">Replies</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {% if forumStats is defined %}
-                            <div class="mt-4">
-                                <div class="list-group list-group-flush">
-                                    <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                                        <span class="text-muted">
-                                            <i class="ti ti-activity me-2"></i>Today's Activity
-                                        </span>
-                                        <span class="badge bg-primary">{{ forumStats.todayPosts }} posts</span>
-                                    </div>
-                                    <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                                        <span class="text-muted">
-                                            <i class="ti ti-trophy me-2"></i>Most Active User
-                                        </span>
-                                        <strong>{{ forumStats.mostActiveUser|default('N/A') }}</strong>
-                                    </div>
-                                    <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                                        <span class="text-muted">
-                                            <i class="ti ti-clock me-2"></i>Avg Response Time
-                                        </span>
-                                        <span class="badge bg-success">{{ forumStats.avgResponseTime|default('N/A') }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            {# Recent Registrations #}
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            <i class="ti ti-user-plus me-2 text-success"></i>
-                            Recent Registrations
-                        </h3>
-                    </div>
-                    <div class="card-body">
-                        {% if recentRegistrations is defined and recentRegistrations|length > 0 %}
-                            <div class="list-group list-group-flush">
-                                {% for user in recentRegistrations|slice(0, 5) %}
-                                    <div class="list-group-item px-0">
-                                        <div class="row align-items-center">
-                                            <div class="col-auto">
-                                                {% if user.avatarUrl is defined %}
-                                                    <span class="avatar avatar-sm" style="background-image: url({{ user.avatarUrl }})"></span>
-                                                {% else %}
-                                                    <span class="avatar avatar-sm" style="background-color: {{ ['#206bc4', '#4299e1', '#17a2b8', '#28a745', '#6f42c1'][loop.index0 % 5] }}">
-                                                        {{ user.fullName|first|upper }}
-                                                    </span>
-                                                {% endif %}
-                                            </div>
-                                            <div class="col">
-                                                <div class="fw-bold">{{ user.fullName }}</div>
-                                                <div class="text-muted small">{{ user.email }}</div>
-                                            </div>
-                                            <div class="col-auto">
-                                                <div class="text-muted small">
-                                                    <i class="ti ti-clock"></i>
-                                                    {{ user.createdAt|date('M d, H:i') }}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            <div class="text-center py-5">
-                                <div class="text-muted mb-3" style="font-size: 3rem; opacity: 0.3;">
-                                    <i class="ti ti-user-off"></i>
-                                </div>
-                                <p class="text-muted mb-0">No recent registrations</p>
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            {# Recent Activity Feed #}
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            <i class="ti ti-activity me-2 text-info"></i>
-                            Recent Activity
-                        </h3>
-                    </div>
-                    <div class="card-body" style="max-height: 450px; overflow-y: auto;">
-                        {% if recentActivity is defined and recentActivity|length > 0 %}
-                            {% for activity in recentActivity %}
-                                <div class="activity-item">
-                                    <div class="d-flex">
-                                        <div class="me-3">
-                                            <span class="avatar avatar-sm {% if activity.type == 'course' %}bg-purple{% elseif activity.type == 'user' %}bg-primary{% elseif activity.type == 'forum' %}bg-orange{% else %}bg-secondary{% endif %} text-white">
-                                                <i class="ti ti-{{ activity.icon|default('activity') }}"></i>
-                                            </span>
-                                        </div>
-                                        <div class="flex-fill">
-                                            <div>{{ activity.description|raw }}</div>
-                                            <div class="text-muted small mt-1">
-                                                <i class="ti ti-clock"></i> {{ activity.createdAt|date('M d, Y H:i') }}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        {% else %}
-                            <div class="text-center py-5">
-                                <div class="text-muted mb-3" style="font-size: 3rem; opacity: 0.3;">
-                                    <i class="ti ti-activity"></i>
-                                </div>
-                                <p class="text-muted mb-0">No recent activity</p>
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            {# Top Performing Courses #}
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            <i class="ti ti-trophy me-2 text-warning"></i>
-                            Top Performing Courses
-                        </h3>
-                    </div>
-                    <div class="card-body">
-                        {% if topCourses is defined and topCourses|length > 0 %}
-                            <div class="table-responsive">
-                                <table class="table table-vcenter card-table">
-                                    <thead>
-                                    <tr>
-                                        <th>Course</th>
-                                        <th class="text-center">Enrollments</th>
-                                        <th class="text-center">Rating</th>
-                                        <th class="text-center">Completion</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    {% for course in topCourses|slice(0, 5) %}
-                                        <tr>
-                                            <td>
-                                                <div class="d-flex align-items-center">
-                                                    <span class="avatar avatar-sm me-2" style="background-color: {{ ['#206bc4', '#4299e1', '#17a2b8', '#28a745', '#6f42c1'][loop.index0 % 5] }}">
-                                                        {{ loop.index }}
-                                                    </span>
-                                                    <div>
-                                                        <a href="{{ path('admin_dashboard') }}" class="text-reset">
-                                                            {{ course.title|length > 30 ? course.title|slice(0, 30) ~ '...' : course.title }}
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="text-center">
-                                                <span class="badge bg-primary-lt">{{ course.enrollments|number_format }}</span>
-                                            </td>
-                                            <td class="text-center">
-                                                <span class="text-warning">
-                                                    <i class="ti ti-star-filled"></i> {{ course.rating|number_format(1) }}
-                                                </span>
-                                            </td>
-                                            <td class="text-center">
-                                                <div class="d-flex align-items-center justify-content-center">
-                                                    <div class="me-2" style="width: 50px;">
-                                                        <div class="progress progress-sm">
-                                                            <div class="progress-bar bg-success" style="width: {{ course.completionRate }}%"></div>
-                                                        </div>
-                                                    </div>
-                                                    <span class="text-muted small">{{ course.completionRate }}%</span>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                        {% else %}
-                            <div class="text-center py-5">
-                                <div class="text-muted mb-3" style="font-size: 3rem; opacity: 0.3;">
-                                    <i class="ti ti-book-off"></i>
-                                </div>
-                                <p class="text-muted mb-0">No course data available</p>
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
+            <div class="dp"><div class="dpf" style="background:var(--d-bl)" data-w="{{ total > 0 ? ((active/total)*100)|round : 0 }}"></div></div>
         </div>
+
+        {# Active users #}
+        <div class="dc kc kg ag fu d2">
+            <div class="kc-top">
+                <div class="kc-ico ig"><i class="ti ti-user-check"></i></div>
+                <span class="badge-kpi bup">
+                {{ total > 0 ? ((active/total)*100)|number_format(1) : 0 }}% of total
+            </span>
+            </div>
+            <div class="kc-val gg" data-count="{{ active }}">0</div>
+            <div class="kc-lbl">Active Users</div>
+            <div class="kc-sub">
+                {{ suspended }} suspended &middot; {{ userStats.deleted|default(0) }} deleted
+            </div>
+            <div class="dp"><div class="dpf" style="background:var(--d-gr)" data-w="{{ total > 0 ? ((active/total)*100)|round : 0 }}"></div></div>
+        </div>
+
+        {# Premium #}
+        <div class="dc kc ka aa fu d3">
+            <div class="kc-top">
+                <div class="kc-ico ia"><i class="ti ti-crown"></i></div>
+                <span class="badge-kpi bnu">${{ revenueStats.thisMonth|default(0)|number_format(2) }} MRR</span>
+            </div>
+            <div class="kc-val ga" data-count="{{ premium }}">0</div>
+            <div class="kc-lbl">Premium Members</div>
+            <div class="kc-sub">
+                {{ userStats.payingPremium|default(0) }} stripe &middot; {{ userStats.adminGranted|default(0) }} admin
+            </div>
+            <div class="dp"><div class="dpf" style="background:var(--d-am)" data-w="{{ total > 0 ? ((premium/total)*100)|round : 0 }}"></div></div>
+        </div>
+
+        {# Courses #}
+        <div class="dc kc kp ap fu d4">
+            <div class="kc-top">
+                <div class="kc-ico ip"><i class="ti ti-books"></i></div>
+                <span class="badge-kpi bnu"><i class="ti ti-layout-grid"></i> Content</span>
+            </div>
+            <div class="kc-val gp" data-count="{{ courseCount|default(0) }}">0</div>
+            <div class="kc-lbl">Total Courses</div>
+            <div class="kc-sub">
+                {{ exerciseCount|default(0) }} exercises &middot; {{ totalEnrollments|default(0)|number_format }} enrolled
+            </div>
+            <div class="dp">
+                <div class="dpf" style="background:var(--d-pu)"
+                     data-w="{{ (courseCount|default(0)) > 0 ? ((courseStats.published|default(0)/courseCount)*100)|round : 0 }}">
+                </div>
+            </div>
+        </div>
+
     </div>
 
-    {# Date Range Modal #}
-    <div class="modal modal-blur fade" id="dateRangeModal" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Select Date Range</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form method="get" action="{{ path('admin_dashboard') }}">
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label">Start Date</label>
-                            <input type="date" class="form-control" name="start_date" value="{{ dateRange.start|default('now')|date('Y-m-d') }}">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">End Date</label>
-                            <input type="date" class="form-control" name="end_date" value="{{ dateRange.end|default('now')|date('Y-m-d') }}">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Quick Select</label>
-                            <select class="form-select" id="quickDateSelect">
-                                <option value="">Custom Range</option>
-                                <option value="today">Today</option>
-                                <option value="yesterday">Yesterday</option>
-                                <option value="last7days">Last 7 Days</option>
-                                <option value="last30days">Last 30 Days</option>
-                                <option value="thismonth">This Month</option>
-                                <option value="lastmonth">Last Month</option>
-                            </select>
+    {# ═══ MAIN BENTO ═══════════════════════════════════════════════════ #}
+    <div class="bento-a" style="position:relative;z-index:1">
+
+        {# ── User Growth Chart ── #}
+        <div class="dc ab span2 fu d5">
+            <div class="dsh">
+                <div class="dsh-l">
+                    <div class="dsh-ic" style="background:rgba(59,130,246,.12);color:#2563eb"><i class="ti ti-chart-area-line"></i></div>
+                    <div>
+                        <div class="dsh-t">User Growth</div>
+                        <div class="dsh-s">
+                            <span id="chartRangeLabel">All time — {{ total }} total users</span>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn me-auto" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Apply</button>
+                </div>
+                <div class="dtabs">
+                    <button class="dtab" data-p="7d">7D</button>
+                    <button class="dtab" data-p="30d">30D</button>
+                    <button class="dtab" data-p="90d">90D</button>
+                    <button class="dtab" data-p="1y">1Y</button>
+                    <button class="dtab on" data-p="all">All</button>
+                </div>
+            </div>
+            <div class="dc-chart">
+                <div class="chart-total" id="chartPeriodTotal"></div>
+                <canvas id="growthChart"></canvas>
+            </div>
+            <div class="chart-stats">
+                <div class="cs-item"><span class="cs-val">+{{ newLast7 }}</span> last 7 days</div>
+                <div class="cs-item"><span class="cs-val">+{{ newLast30 }}</span> last 30 days</div>
+                <div class="cs-item"><span class="cs-val">{{ total }}</span> total registered</div>
+                {% if dateRange is defined %}
+                    <div class="cs-item">
+                        <span class="cs-val">{{ userStats.newInPeriod|default(0) }}</span>
+                        in selected range
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {# ── Revenue Ring ── #}
+        <div class="dc ag fu d6">
+            <div class="dsh">
+                <div class="dsh-l">
+                    <div class="dsh-ic" style="background:rgba(16,185,129,.12);color:#059669"><i class="ti ti-wallet"></i></div>
+                    <div><div class="dsh-t">Revenue</div><div class="dsh-s">Subscription breakdown</div></div>
+                </div>
+                <span class="badge-kpi {{ revenueStats.growth|default(0) >= 0 ? 'bup' : 'bdn' }}">
+                <i class="ti ti-trending-{{ revenueStats.growth|default(0) >= 0 ? 'up' : 'down' }}"></i>
+                {{ revenueStats.growth|default(0) >= 0 ? '+' : '' }}{{ revenueStats.growth|default(0) }}%
+            </span>
+            </div>
+
+            {% set mrr         = revenueStats.thisMonth|default(0) %}
+            {% set monthly_cnt = revenueStats.monthlyCount|default(0) %}
+            {% set yearly_cnt  = revenueStats.yearlyCount|default(0) %}
+            {% set gross       = (monthly_cnt * 9.99) + (yearly_cnt * 99.99) %}
+            {% set tax         = gross * 0.18 %}
+            {% set net         = gross - tax %}
+
+            <div class="ring-wrap">
+                <div class="ring-cw">
+                    <canvas id="revenueChart" width="150" height="150"></canvas>
+                    <div class="ring-c">
+                        <div class="rv">${{ mrr|number_format(0) }}</div>
+                        <div class="rl">MRR</div>
+                    </div>
+                </div>
+
+                <div style="width:100%;display:flex;gap:6px;margin-bottom:2px">
+                    <div style="flex:1;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.18);border-radius:8px;padding:7px 10px;text-align:center">
+                        <div style="font-size:1rem;font-weight:900;color:#059669">{{ monthly_cnt }}</div>
+                        <div style="font-size:.63rem;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Monthly</div>
+                        <div style="font-size:.65rem;color:#059669;font-weight:700">$9.99/mo</div>
+                    </div>
+                    <div style="flex:1;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.18);border-radius:8px;padding:7px 10px;text-align:center">
+                        <div style="font-size:1rem;font-weight:900;color:#d97706">{{ yearly_cnt }}</div>
+                        <div style="font-size:.63rem;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Yearly</div>
+                        <div style="font-size:.65rem;color:#d97706;font-weight:700">$99.99/yr</div>
+                    </div>
+                </div>
+
+                <div class="rev-leg">
+                    <div class="rli">
+                        <span class="rll"><span class="rld" style="background:var(--d-gr)"></span>MRR</span>
+                        <span class="rlv">${{ mrr|number_format(2) }}</span>
+                    </div>
+                    <div class="rli">
+                        <span class="rll"><span class="rld" style="background:#6366f1"></span>Gross Billed</span>
+                        <span class="rlv">${{ gross|number_format(2) }}</span>
+                    </div>
+                    <div class="rli">
+                        <span class="rll"><span class="rld" style="background:var(--d-rd)"></span>Tax (18%)</span>
+                        <span class="rlv" style="color:#dc2626">−${{ tax|number_format(2) }}</span>
+                    </div>
+                    <div class="rli" style="border-top:2px solid var(--d-b2);padding-top:7px;margin-top:2px">
+                    <span class="rll" style="color:var(--d-txt);font-weight:700">
+                        <span class="rld" style="background:var(--d-gr)"></span>Net Revenue
+                    </span>
+                        <span class="rlv" style="color:#059669">${{ net|number_format(2) }}</span>
+                    </div>
+                    <div class="rli">
+                        <span class="rll"><span class="rld" style="background:#94a3b8"></span>Last Month MRR</span>
+                        <span class="rlv">${{ revenueStats.lastMonth|default(0)|number_format(2) }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    {# ═══ BOTTOM BENTO ════════════════════════════════════════════════ #}
+    <div class="bento-b" style="position:relative;z-index:1">
+
+        {# ── Recent Registrations ── #}
+        <div class="dc ac fu d7">
+            <div class="dsh">
+                <div class="dsh-l">
+                    <div class="dsh-ic" style="background:rgba(6,182,212,.12);color:#0891b2"><i class="ti ti-user-plus"></i></div>
+                    <div>
+                        <div class="dsh-t">New Members</div>
+                        <div class="dsh-s">+{{ newLast7 }} this week &middot; +{{ newLast30 }} this month</div>
+                    </div>
+                </div>
+                <a href="{{ path('admin_users_index') }}" class="dsh-a">All <i class="ti ti-arrow-right"></i></a>
+            </div>
+            {% if recentRegistrations|length > 0 %}
+                {% set colors = ['3b82f6','10b981','f59e0b','8b5cf6','06b6d4','ef4444','ec4899'] %}
+                {% for user in recentRegistrations|slice(0,7) %}
+                    <div class="feed-i">
+                        <img class="feed-av"
+                             src="https://ui-avatars.com/api/?name={{ (user.firstName ~ '+' ~ user.lastName)|url_encode }}&background={{ colors[loop.index0 % 7] }}&color=fff&size=66"
+                             alt="{{ user.fullName }}">
+                        <div style="min-width:0;flex:1">
+                            <div class="feed-n">
+                                {{ user.fullName }}
+                                <span class="feed-b {{ user.isPremium ? 'fb-p' : 'fb-f' }}">
+                                {{ user.isPremium ? '👑 Premium' : 'Free' }}
+                            </span>
+                            </div>
+                            <div class="feed-e" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ user.email }}</div>
+                        </div>
+                        <div class="feed-t">{{ user.createdAt|date('M d, Y') }}</div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div style="padding:40px 18px;text-align:center;color:var(--d-mut);font-size:.8rem">
+                    <i class="ti ti-user-off" style="font-size:2.2rem;display:block;margin-bottom:8px;opacity:.35"></i>
+                    No users yet
+                </div>
+            {% endif %}
+        </div>
+
+        {# ── Plan Distribution + Content ── #}
+        <div class="dc ap fu d8">
+            <div class="dsh">
+                <div class="dsh-l">
+                    <div class="dsh-ic" style="background:rgba(139,92,246,.12);color:#7c3aed"><i class="ti ti-chart-pie"></i></div>
+                    <div><div class="dsh-t">Plan Distribution</div><div class="dsh-s">{{ total }} users total</div></div>
+                </div>
+            </div>
+
+            {# Plan bars — all live from planDistribution #}
+            {% set planTotal = (planDistribution.FREE|default(0)) + (planDistribution.MONTHLY|default(0)) + (planDistribution.YEARLY|default(0)) %}
+            <div class="plan-bar-row">
+                <div class="plan-bar-name" style="color:#64748b">FREE</div>
+                <div class="plan-bar-track">
+                    <div class="plan-bar-fill" style="background:#94a3b8"
+                         data-w="{{ planTotal > 0 ? ((planDistribution.FREE|default(0)/planTotal)*100)|round : 0 }}"></div>
+                </div>
+                <div class="plan-bar-val">{{ planDistribution.FREE|default(0) }}</div>
+            </div>
+            <div class="plan-bar-row">
+                <div class="plan-bar-name" style="color:#059669">MONTHLY</div>
+                <div class="plan-bar-track">
+                    <div class="plan-bar-fill" style="background:#10b981"
+                         data-w="{{ planTotal > 0 ? ((planDistribution.MONTHLY|default(0)/planTotal)*100)|round : 0 }}"></div>
+                </div>
+                <div class="plan-bar-val">{{ planDistribution.MONTHLY|default(0) }}</div>
+            </div>
+            <div class="plan-bar-row">
+                <div class="plan-bar-name" style="color:#d97706">YEARLY</div>
+                <div class="plan-bar-track">
+                    <div class="plan-bar-fill" style="background:#f59e0b"
+                         data-w="{{ planTotal > 0 ? ((planDistribution.YEARLY|default(0)/planTotal)*100)|round : 0 }}"></div>
+                </div>
+                <div class="plan-bar-val">{{ planDistribution.YEARLY|default(0) }}</div>
+            </div>
+
+            {# Plan doughnut #}
+            <div style="display:flex;justify-content:center;padding:12px 0 4px">
+                <div style="position:relative;width:110px;height:110px">
+                    <canvas id="planChart" width="110" height="110"></canvas>
+                    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center">
+                        <div style="font-size:1.1rem;font-weight:900;color:var(--d-txt)">{{ total }}</div>
+                        <div style="font-size:.58rem;color:var(--d-mut);text-transform:uppercase;letter-spacing:.05em">users</div>
+                    </div>
+                </div>
+            </div>
+
+            {# Content divider #}
+            <div style="padding:10px 18px 4px;border-top:1px solid var(--d-b1);margin-top:6px">
+                <div style="font-size:.7rem;font-weight:700;color:var(--d-mut);text-transform:uppercase;letter-spacing:.07em">Content</div>
+            </div>
+            <div class="cr">
+                <div class="cr-ic" style="background:rgba(139,92,246,.12);color:#7c3aed"><i class="ti ti-books"></i></div>
+                <div><div class="cr-n">Courses</div><div class="cr-s">{{ courseStats.published|default(0) }} published &middot; {{ courseStats.draft|default(0) }} draft</div></div>
+                <div class="cr-v gp">{{ courseCount|default(0) }}</div>
+            </div>
+            <div class="cr">
+                <div class="cr-ic" style="background:rgba(59,130,246,.12);color:#2563eb"><i class="ti ti-pencil-check"></i></div>
+                <div><div class="cr-n">Exercises</div><div class="cr-s">Interactive activities</div></div>
+                <div class="cr-v gb">{{ exerciseCount|default(0) }}</div>
+            </div>
+            <div class="cr">
+                <div class="cr-ic" style="background:rgba(16,185,129,.12);color:#059669"><i class="ti ti-users"></i></div>
+                <div><div class="cr-n">Enrollments</div><div class="cr-s">Total course joins</div></div>
+                <div class="cr-v gg">{{ totalEnrollments|default(0)|number_format }}</div>
+            </div>
+            <div class="cr">
+                <div class="cr-ic" style="background:rgba(6,182,212,.12);color:#0891b2"><i class="ti ti-messages"></i></div>
+                <div><div class="cr-n">Forum Posts</div><div class="cr-s">{{ forumStats.todayPosts|default(0) }} today &middot; {{ forumReplyCount|default(0) }} replies</div></div>
+                <div class="cr-v gc">{{ forumPostCount|default(0) }}</div>
+            </div>
+        </div>
+
+        {# ── Health + Quick Actions ── #}
+        <div class="dc ar fu d9" style="display:flex;flex-direction:column">
+            <div class="dsh">
+                <div class="dsh-l">
+                    <div class="dsh-ic" style="background:rgba(239,68,68,.12);color:#dc2626"><i class="ti ti-heartbeat"></i></div>
+                    <div><div class="dsh-t">System Health</div><div class="dsh-s">Infrastructure status</div></div>
+                </div>
+                <span class="badge-kpi bup"><i class="ti ti-check"></i> OK</span>
+            </div>
+
+            {% if systemHealth is defined %}
+                <div class="hi">
+                    <span class="hi-l"><i class="ti ti-cpu" style="color:#2563eb"></i> Server Load</span>
+                    <div style="display:flex;align-items:center;gap:8px">
+                        <div style="width:64px;height:4px;border-radius:99px;background:#e2e8f0;overflow:hidden">
+                            <div style="height:100%;border-radius:99px;width:{{ systemHealth.serverLoad }}%;background:{% if systemHealth.serverLoad < 50 %}#10b981{% elseif systemHealth.serverLoad < 80 %}#f59e0b{% else %}#ef4444{% endif %}"></div>
+                        </div>
+                        <span class="hi-v">{{ systemHealth.serverLoad }}%</span>
+                    </div>
+                </div>
+                <div class="hi">
+                    <span class="hi-l"><i class="ti ti-database" style="color:#7c3aed"></i> Database</span>
+                    <span class="hi-v">{{ systemHealth.databaseSize }}</span>
+                </div>
+                <div class="hi">
+                    <span class="hi-l"><i class="ti ti-bolt" style="color:#d97706"></i> Cache Hit</span>
+                    <div style="display:flex;align-items:center;gap:8px">
+                        <div style="width:64px;height:4px;border-radius:99px;background:#e2e8f0;overflow:hidden">
+                            <div style="height:100%;border-radius:99px;width:{{ systemHealth.cacheHitRate }}%;background:#10b981"></div>
+                        </div>
+                        <span class="hi-v">{{ systemHealth.cacheHitRate }}%</span>
+                    </div>
+                </div>
+                <div class="hi">
+                    <span class="hi-l"><i class="ti ti-cloud-upload" style="color:#0891b2"></i> Last Backup</span>
+                    <span class="hi-v">{{ systemHealth.lastBackup|date('H:i') }}</span>
+                </div>
+            {% endif %}
+
+            {# Alerts — only shown when there's actually something to flag #}
+            {% if pendingUsersCount > 0 or flaggedContentCount > 0 or openTicketsCount > 0 %}
+                <hr style="border-color:var(--d-b1);margin:0">
+                <div class="dsh" style="padding-bottom:8px">
+                    <div class="dsh-l">
+                        <div class="dsh-ic" style="background:rgba(245,158,11,.12);color:#d97706"><i class="ti ti-alert-triangle"></i></div>
+                        <div><div class="dsh-t">Needs Attention</div></div>
+                    </div>
+                </div>
+                {% if pendingUsersCount > 0 %}
+                    <div style="display:flex;align-items:center;gap:10px;padding:9px 18px;border-bottom:1px solid var(--d-b1)">
+                        <span style="width:8px;height:8px;border-radius:50%;background:#f59e0b;flex-shrink:0"></span>
+                        <span style="font-size:.76rem;color:var(--d-txt);flex:1">Pending users</span>
+                        <span style="font-size:.72rem;font-weight:700;color:#d97706">{{ pendingUsersCount }}</span>
+                    </div>
+                {% endif %}
+            {% endif %}
+
+            <hr style="border-color:var(--d-b1);margin:0;margin-top:auto">
+            <div class="dsh" style="padding-bottom:8px">
+                <div class="dsh-l">
+                    <div class="dsh-ic" style="background:rgba(59,130,246,.12);color:#2563eb"><i class="ti ti-bolt"></i></div>
+                    <div><div class="dsh-t">Quick Actions</div></div>
+                </div>
+            </div>
+            <div class="qa-g">
+                <a href="{{ path('admin_users_new') }}" class="qa-i">
+                    <span class="qa-i-ico" style="color:#2563eb">👤</span>
+                    <span class="qa-i-n">New User</span>
+                    <span class="qa-i-s">Create account</span>
+                </a>
+                <a href="{{ path('admin_users_index') }}" class="qa-i">
+                    <span class="qa-i-ico" style="color:#059669">📋</span>
+                    <span class="qa-i-n">All Users</span>
+                    <span class="qa-i-s">{{ total }} total</span>
+                </a>
+                <a href="{{ path('admin_users_index', {status: 'suspended'}) }}" class="qa-i">
+                    <span class="qa-i-ico" style="color:#d97706">⚠️</span>
+                    <span class="qa-i-n">Suspended</span>
+                    <span class="qa-i-s">{{ suspended }} users</span>
+                </a>
+                <a href="{{ path('admin_dashboard_export') }}" class="qa-i">
+                    <span class="qa-i-ico" style="color:#7c3aed">📊</span>
+                    <span class="qa-i-n">Export CSV</span>
+                    <span class="qa-i-s">Full report</span>
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+    {# ── Date Range Modal ── #}
+    <div class="modal modal-blur fade db-modal" id="dateRangeModal" tabindex="-1">
+        <div class="modal-dialog modal-sm modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" style="color:var(--d-txt);font-size:.9rem;font-weight:700">
+                        <i class="ti ti-calendar-stats me-2" style="color:#3b82f6"></i>Date Range Filter
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="get" action="{{ path('admin_dashboard') }}">
+                    <div class="modal-body" style="padding:18px">
+                        <div class="mb-3">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" class="form-control" name="start_date"
+                                   value="{{ dateRange.start|date('Y-m-d') }}">
+                        </div>
+                        <div>
+                            <label class="form-label">End Date</label>
+                            <input type="date" class="form-control" name="end_date"
+                                   value="{{ dateRange.end|date('Y-m-d') }}">
+                        </div>
+                        <div style="display:flex;gap:6px;margin-top:14px;flex-wrap:wrap">
+                            <button type="button" class="dtab" onclick="setRange(7)">Last 7D</button>
+                            <button type="button" class="dtab" onclick="setRange(30)">Last 30D</button>
+                            <button type="button" class="dtab" onclick="setRange(90)">Last 90D</button>
+                            <button type="button" class="dtab" onclick="setRange(365)">Last 1Y</button>
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="border-color:#e2e8f0;padding:12px 18px">
+                        <button type="button" style="background:none;border:none;color:#64748b;font-size:.8rem;cursor:pointer"
+                                data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit"
+                                style="padding:7px 16px;border-radius:8px;background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;font-size:.78rem;font-weight:700;border:none;cursor:pointer">
+                            Apply
+                        </button>
                     </div>
                 </form>
             </div>
@@ -640,179 +643,230 @@
     {{ parent() }}
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // User Growth Chart
-            {% if userGrowthData is defined %}
-            const userGrowthCtx = document.getElementById('userGrowthChart');
-            if (userGrowthCtx) {
-                new Chart(userGrowthCtx, {
+        document.addEventListener('DOMContentLoaded', function () {
+
+            /* ── Animated number counters ──────────────────────────── */
+            function countTo(el, target, ms) {
+                const ease = t => 1 - Math.pow(1 - t, 3);
+                const start = performance.now();
+                (function step(now) {
+                    const t = Math.min((now - start) / ms, 1);
+                    el.textContent = Math.round(ease(t) * target).toLocaleString();
+                    if (t < 1) requestAnimationFrame(step);
+                })(performance.now());
+            }
+            document.querySelectorAll('[data-count]').forEach((el, i) => {
+                setTimeout(() => countTo(el, parseInt(el.dataset.count) || 0, 1300), i * 110 + 250);
+            });
+
+            /* ── Progress bars ─────────────────────────────────────── */
+            setTimeout(() => {
+                document.querySelectorAll('.dpf[data-w], .plan-bar-fill[data-w]').forEach((b, i) => {
+                    setTimeout(() => { b.style.width = b.dataset.w + '%'; }, i * 60);
+                });
+            }, 400);
+
+            /* ── Chart.js defaults ─────────────────────────────────── */
+            Chart.defaults.color = '#64748b';
+            Chart.defaults.font.size = 11;
+
+            /* ── User Growth Chart ─────────────────────────────────── */
+            const gEl = document.getElementById('growthChart');
+            let growthChart = null;
+
+            function buildGrowthGrad(ctx) {
+                const g = ctx.createLinearGradient(0, 0, 0, 240);
+                g.addColorStop(0,   'rgba(59,130,246,.22)');
+                g.addColorStop(0.6, 'rgba(59,130,246,.05)');
+                g.addColorStop(1,   'rgba(59,130,246,0)');
+                return g;
+            }
+
+            function updatePeriodTotal(data) {
+                const total = (data || []).reduce((a, b) => a + b, 0);
+                const el = document.getElementById('chartPeriodTotal');
+                if (el) el.textContent = total > 0 ? total.toLocaleString() + ' registrations' : '';
+                const lbl = document.getElementById('chartRangeLabel');
+                if (lbl) lbl.textContent = 'Showing ' + total.toLocaleString() + ' registrations';
+            }
+
+            if (gEl) {
+                const ctx = gEl.getContext('2d');
+
+                /* Initial data — "all time" so SQL-imported users are visible immediately */
+                const initLabels = {{ userGrowthData.labels|json_encode|raw }};
+                const initData   = {{ userGrowthData.data|json_encode|raw }};
+
+                growthChart = new Chart(gEl, {
                     type: 'line',
                     data: {
-                        labels: {{ userGrowthData.labels|json_encode|raw }},
+                        labels: initLabels,
                         datasets: [{
                             label: 'New Users',
-                            data: {{ userGrowthData.data|json_encode|raw }},
-                            borderColor: '#206bc4',
-                            backgroundColor: 'rgba(32, 107, 196, 0.1)',
-                            tension: 0.4,
+                            data: initData,
+                            borderColor: '#3b82f6',
+                            borderWidth: 2.5,
+                            backgroundColor: buildGrowthGrad(ctx),
+                            tension: 0.45,
                             fill: true,
-                            pointRadius: 4,
-                            pointHoverRadius: 6,
-                            pointBackgroundColor: '#206bc4',
-                            pointBorderColor: '#fff',
-                            pointBorderWidth: 2
+                            pointRadius: 0,
+                            pointHoverRadius: 5,
+                            pointHoverBackgroundColor: '#3b82f6',
+                            pointHoverBorderColor: '#fff',
+                            pointHoverBorderWidth: 2,
                         }]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
                         plugins: {
-                            legend: {
-                                display: false
-                            },
+                            legend: { display: false },
                             tooltip: {
-                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                backgroundColor: '#1e293b',
+                                borderColor: 'rgba(59,130,246,.3)',
+                                borderWidth: 1,
                                 padding: 12,
-                                titleFont: {
-                                    size: 14
-                                },
-                                bodyFont: {
-                                    size: 13
-                                }
+                                titleColor: '#f1f5f9',
+                                bodyColor: '#93c5fd',
+                                callbacks: { label: c => `  ${c.parsed.y} new users` }
                             }
                         },
                         scales: {
                             y: {
                                 beginAtZero: true,
-                                ticks: {
-                                    precision: 0
-                                },
-                                grid: {
-                                    color: 'rgba(0, 0, 0, 0.05)'
-                                }
+                                ticks: { precision: 0, color: '#94a3b8' },
+                                grid: { color: 'rgba(0,0,0,.05)', drawBorder: false },
+                                border: { display: false }
                             },
                             x: {
-                                grid: {
-                                    display: false
-                                }
+                                grid: { display: false },
+                                ticks: { color: '#94a3b8', maxTicksLimit: 10 },
+                                border: { display: false }
                             }
-                        },
-                        interaction: {
-                            intersect: false,
-                            mode: 'index'
                         }
                     }
                 });
+                updatePeriodTotal(initData);
             }
-            {% endif %}
 
-            // Revenue Chart (Doughnut)
-            {% if revenueData is defined %}
-            const revenueCtx = document.getElementById('revenueChart');
-            if (revenueCtx) {
-                new Chart(revenueCtx, {
+            /* ── Period tab switching ───────────────────────────────── */
+            document.querySelectorAll('.dtab[data-p]').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    document.querySelectorAll('.dtab[data-p]').forEach(b => b.classList.remove('on'));
+                    this.classList.add('on');
+                    const period = this.dataset.p;
+
+                    fetch(`{{ path('admin_dashboard_chart_data') }}?period=${period}`)
+                        .then(r => r.json())
+                        .then(d => {
+                            if (!growthChart) return;
+                            /* Recreate gradient on new canvas dimensions */
+                            const newGrad = buildGrowthGrad(gEl.getContext('2d'));
+                            growthChart.data.labels = d.labels;
+                            growthChart.data.datasets[0].data = d.data;
+                            growthChart.data.datasets[0].backgroundColor = newGrad;
+                            growthChart.update('active');
+                            updatePeriodTotal(d.data);
+                        })
+                        .catch(console.error);
+                });
+            });
+
+            /* ── Revenue Doughnut ──────────────────────────────────── */
+            const rEl = document.getElementById('revenueChart');
+            if (rEl) {
+                const rData = {{ revenueData.data|json_encode|raw }};
+                const hasRevenue = rData.some(v => v > 0);
+                new Chart(rEl, {
                     type: 'doughnut',
                     data: {
                         labels: {{ revenueData.labels|json_encode|raw }},
                         datasets: [{
-                            data: {{ revenueData.data|json_encode|raw }},
-                            backgroundColor: [
-                                '#206bc4',
-                                '#4299e1',
-                                '#79c0ff'
-                            ],
-                            borderWidth: 0
+                            data: hasRevenue ? rData : [1],
+                            backgroundColor: hasRevenue ? ['#10b981', '#f59e0b', '#e2e8f0'] : ['#e2e8f0'],
+                            borderWidth: 3,
+                            borderColor: '#ffffff',
+                            hoverOffset: 8
                         }]
                     },
                     options: {
-                        responsive: true,
+                        responsive: false,
                         maintainAspectRatio: false,
+                        cutout: '76%',
                         plugins: {
-                            legend: {
-                                position: 'bottom',
-                                labels: {
-                                    padding: 15,
-                                    usePointStyle: true,
-                                    font: {
-                                        size: 11
-                                    }
-                                }
-                            },
+                            legend: { display: false },
                             tooltip: {
-                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                padding: 12,
-                                callbacks: {
-                                    label: function(context) {
-                                        return context.label + ': $' + context.parsed.toFixed(2);
-                                    }
-                                }
+                                enabled: hasRevenue,
+                                backgroundColor: '#1e293b',
+                                padding: 10,
+                                titleColor: '#f1f5f9',
+                                bodyColor: '#94a3b8',
+                                callbacks: { label: c => `  $${c.parsed.toFixed(2)}` }
                             }
-                        },
-                        cutout: '70%'
+                        }
                     }
                 });
             }
-            {% endif %}
 
-            // Refresh Dashboard
-            document.getElementById('refreshDashboard')?.addEventListener('click', function() {
-                location.reload();
-            });
-
-            // Export Report
-            document.getElementById('exportReport')?.addEventListener('click', function() {
-                window.location.href = '{{ path('admin_dashboard_export') }}';
-            });
-
-            // Quick Date Select
-            document.getElementById('quickDateSelect')?.addEventListener('change', function(e) {
-                const value = e.target.value;
-                const today = new Date();
-                let startDate, endDate;
-
-                switch(value) {
-                    case 'today':
-                        startDate = endDate = today;
-                        break;
-                    case 'yesterday':
-                        startDate = endDate = new Date(today.setDate(today.getDate() - 1));
-                        break;
-                    case 'last7days':
-                        endDate = new Date();
-                        startDate = new Date(today.setDate(today.getDate() - 7));
-                        break;
-                    case 'last30days':
-                        endDate = new Date();
-                        startDate = new Date(today.setDate(today.getDate() - 30));
-                        break;
-                    case 'thismonth':
-                        startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-                        endDate = new Date();
-                        break;
-                    case 'lastmonth':
-                        startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-                        endDate = new Date(today.getFullYear(), today.getMonth(), 0);
-                        break;
-                }
-
-                if (startDate && endDate) {
-                    document.querySelector('input[name="start_date"]').value = startDate.toISOString().split('T')[0];
-                    document.querySelector('input[name="end_date"]').value = endDate.toISOString().split('T')[0];
-                }
-            });
-
-            // Period Selection for User Growth Chart
-            document.querySelectorAll('input[name="user-growth-period"]').forEach(radio => {
-                radio.addEventListener('change', function() {
-                    const period = this.id.replace('period-', '');
-                    fetch(`{{ path('admin_dashboard_chart_data') }}?period=${period}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            console.log('Chart data updated for period:', period);
-                        })
-                        .catch(error => console.error('Error fetching chart data:', error));
+            /* ── Plan Distribution Doughnut ───────────────────────── */
+            const pEl = document.getElementById('planChart');
+            if (pEl) {
+                const freeCnt     = {{ planDistribution.FREE|default(0) }};
+                const monthlyCnt  = {{ planDistribution.MONTHLY|default(0) }};
+                const yearlyCnt   = {{ planDistribution.YEARLY|default(0) }};
+                const total       = freeCnt + monthlyCnt + yearlyCnt;
+                new Chart(pEl, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Free', 'Monthly', 'Yearly'],
+                        datasets: [{
+                            data: total > 0 ? [freeCnt, monthlyCnt, yearlyCnt] : [1, 0, 0],
+                            backgroundColor: total > 0 ? ['#94a3b8', '#10b981', '#f59e0b'] : ['#e2e8f0'],
+                            borderWidth: 2,
+                            borderColor: '#ffffff',
+                            hoverOffset: 6
+                        }]
+                    },
+                    options: {
+                        responsive: false,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                enabled: total > 0,
+                                backgroundColor: '#1e293b',
+                                padding: 8,
+                                titleColor: '#f1f5f9',
+                                bodyColor: '#94a3b8',
+                                callbacks: {
+                                    label: c => {
+                                        const pct = total > 0 ? ((c.parsed / total) * 100).toFixed(1) : 0;
+                                        return `  ${c.label}: ${c.parsed} (${pct}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
                 });
+            }
+
+            /* ── Refresh button ────────────────────────────────────── */
+            document.getElementById('refreshBtn')?.addEventListener('click', () => {
+                document.getElementById('refreshIcon').classList.add('spinning');
+                setTimeout(() => location.reload(), 700);
             });
+
         });
+
+        function setRange(days) {
+            const end   = new Date();
+            const start = new Date();
+            start.setDate(start.getDate() - days);
+            const fmt = d => d.toISOString().slice(0, 10);
+            document.querySelector('[name="start_date"]').value = fmt(start);
+            document.querySelector('[name="end_date"]').value   = fmt(end);
+        }
     </script>
 {% endblock %}

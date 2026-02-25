@@ -1,0 +1,708 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+    <title>Admin Login — LinguaLearn</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/css/tabler.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet"/>
+
+    <style>
+        /* ═══════════════════════════════════════════════════════
+           LINGUALEARN ADMIN LOGIN
+           Light palette matching dashboard.html.twig
+           #f1f5f9 bg · #fff cards · #3b82f6 blue accent
+        ═══════════════════════════════════════════════════════ */
+
+        :root {
+            --bg:       #f1f5f9;
+            --surface:  #ffffff;
+            --s2:       #f8fafc;
+            --b1:       rgba(0,0,0,.07);
+            --b2:       rgba(0,0,0,.12);
+            --txt:      #0f172a;
+            --mut:      #64748b;
+            --faint:    #94a3b8;
+            --blue:     #3b82f6;
+            --blue-dk:  #2563eb;
+            --indigo:   #6366f1;
+            --green:    #10b981;
+            --cyan:     #06b6d4;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html, body { height: 100%; }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--txt);
+        }
+
+        /* ══════════════════════════════════════════
+           ANIMATED BACKGROUND
+        ══════════════════════════════════════════ */
+
+        .auth-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background: var(--bg);
+            overflow: hidden;
+        }
+
+        /* Dot grid — identical to dashboard */
+        .auth-bg::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle, #b0bec5 1px, transparent 1px);
+            background-size: 28px 28px;
+            opacity: .55;
+        }
+
+        /* Animated orbs */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(70px);
+            opacity: 0;
+            animation: orbFloat 18s ease-in-out infinite;
+        }
+
+        .orb-1 {
+            width: 520px; height: 520px;
+            background: radial-gradient(circle, rgba(59,130,246,.18) 0%, transparent 70%);
+            top: -180px; left: -120px;
+            animation-delay: 0s;
+        }
+
+        .orb-2 {
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(99,102,241,.13) 0%, transparent 70%);
+            top: 30%; right: -100px;
+            animation-delay: -6s;
+        }
+
+        .orb-3 {
+            width: 480px; height: 480px;
+            background: radial-gradient(circle, rgba(16,185,129,.1) 0%, transparent 70%);
+            bottom: -120px; left: 20%;
+            animation-delay: -12s;
+        }
+
+        .orb-4 {
+            width: 300px; height: 300px;
+            background: radial-gradient(circle, rgba(6,182,212,.09) 0%, transparent 70%);
+            top: 55%; left: -80px;
+            animation-delay: -4s;
+        }
+
+        .orb-5 {
+            width: 360px; height: 360px;
+            background: radial-gradient(circle, rgba(59,130,246,.08) 0%, transparent 70%);
+            bottom: 5%; right: 10%;
+            animation-delay: -9s;
+        }
+
+        @keyframes orbFloat {
+            0%, 100% {
+                opacity: 1;
+                transform: translate(0, 0) scale(1);
+            }
+            25% {
+                transform: translate(30px, -25px) scale(1.06);
+            }
+            50% {
+                opacity: .85;
+                transform: translate(-20px, 30px) scale(.94);
+            }
+            75% {
+                transform: translate(20px, 15px) scale(1.03);
+            }
+        }
+
+        /* Animated grid lines */
+        .grid-lines {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(59,130,246,.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(59,130,246,.04) 1px, transparent 1px);
+            background-size: 56px 56px;
+            animation: gridDrift 30s linear infinite;
+        }
+
+        @keyframes gridDrift {
+            0%   { background-position: 0 0; }
+            100% { background-position: 56px 56px; }
+        }
+
+        /* ══════════════════════════════════════════
+           PAGE LAYOUT
+        ══════════════════════════════════════════ */
+
+        .auth-page {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2.5rem 1rem;
+            gap: 0;
+        }
+
+        .auth-wrap {
+            width: 100%;
+            max-width: 480px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* ══════════════════════════════════════════
+           LOGO — BIG & CENTRED
+        ══════════════════════════════════════════ */
+
+        .auth-logo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2.25rem;
+            text-decoration: none;
+            animation: fadeDown .55s cubic-bezier(.2,.8,.4,1) both;
+        }
+
+        .auth-logo-img {
+            width: 88px;
+            height: 88px;
+            object-fit: contain;
+            border-radius: 22px;
+            box-shadow:
+                0 0 0 6px rgba(255,255,255,.9),
+                0 0 0 7px rgba(59,130,246,.15),
+                0 12px 40px rgba(59,130,246,.2),
+                0 4px 16px rgba(0,0,0,.08);
+            animation: logoPulse 4s ease-in-out infinite;
+            transition: transform .3s ease;
+        }
+
+        .auth-logo:hover .auth-logo-img {
+            transform: scale(1.05) translateY(-2px);
+        }
+
+        @keyframes logoPulse {
+            0%, 100% { box-shadow: 0 0 0 6px rgba(255,255,255,.9), 0 0 0 7px rgba(59,130,246,.15), 0 12px 40px rgba(59,130,246,.2), 0 4px 16px rgba(0,0,0,.08); }
+            50%       { box-shadow: 0 0 0 6px rgba(255,255,255,.9), 0 0 0 9px rgba(59,130,246,.22), 0 16px 48px rgba(59,130,246,.28), 0 4px 16px rgba(0,0,0,.08); }
+        }
+
+        .auth-logo-text {
+            text-align: center;
+        }
+
+        .auth-logo-name {
+            font-size: 1.75rem;
+            font-weight: 900;
+            color: var(--txt);
+            letter-spacing: -.04em;
+            line-height: 1;
+        }
+
+        .auth-logo-tag {
+            font-size: .68rem;
+            font-weight: 700;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: var(--mut);
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .auth-logo-tag::before,
+        .auth-logo-tag::after {
+            content: '';
+            display: inline-block;
+            width: 22px;
+            height: 1px;
+            background: #cbd5e1;
+        }
+
+        /* ══════════════════════════════════════════
+           CARD
+        ══════════════════════════════════════════ */
+
+        .auth-card {
+            width: 100%;
+            background: var(--surface);
+            border: 1px solid var(--b1);
+            border-radius: 20px;
+            box-shadow:
+                0 1px 3px rgba(0,0,0,.05),
+                0 8px 40px rgba(0,0,0,.09),
+                0 2px 8px rgba(59,130,246,.04);
+            overflow: hidden;
+            position: relative;
+            animation: fadeUp .55s cubic-bezier(.2,.8,.4,1) .1s both;
+        }
+
+        /* Accent bar */
+        .auth-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #3b82f6, #6366f1 50%, #10b981);
+        }
+
+        .auth-card-body {
+            padding: 2.5rem 2.25rem 2rem;
+        }
+
+        .auth-heading {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--txt);
+            letter-spacing: -.025em;
+            margin-bottom: .3rem;
+        }
+
+        .auth-subhead {
+            font-size: .825rem;
+            color: var(--mut);
+            margin-bottom: 2rem;
+        }
+
+        /* ══════════════════════════════════════════
+           FORM ELEMENTS — bigger / more spacious
+        ══════════════════════════════════════════ */
+
+        .f-field {
+            margin-bottom: 1.375rem;
+        }
+
+        .f-label {
+            display: block;
+            font-size: .775rem;
+            font-weight: 700;
+            color: var(--txt);
+            letter-spacing: .01em;
+            margin-bottom: .5rem;
+        }
+
+        .f-group {
+            position: relative;
+        }
+
+        .f-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--faint);
+            font-size: 1.1rem;
+            pointer-events: none;
+            transition: color .18s;
+        }
+
+        .f-group:focus-within .f-icon { color: var(--blue); }
+
+        .f-input {
+            width: 100%;
+            padding: .8rem 1rem .8rem 2.875rem;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 11px;
+            font-size: .975rem;
+            color: var(--txt);
+            background: var(--s2);
+            outline: none;
+            transition: border-color .18s, box-shadow .18s, background .18s;
+            -webkit-appearance: none;
+        }
+
+        .f-input:hover {
+            border-color: #cbd5e1;
+            background: var(--surface);
+        }
+
+        .f-input:focus {
+            border-color: var(--blue);
+            background: var(--surface);
+            box-shadow: 0 0 0 3.5px rgba(59,130,246,.13);
+        }
+
+        .f-input::placeholder { color: #b0bec5; }
+
+        /* Password toggle */
+        .pw-btn {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            color: var(--faint);
+            font-size: 1.05rem;
+            transition: color .15s;
+            display: flex;
+            align-items: center;
+        }
+
+        .pw-btn:hover { color: var(--mut); }
+
+        /* Remember + forgot */
+        .f-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: .5rem;
+            margin-bottom: 1.75rem;
+        }
+
+        .f-check-label {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            font-size: .825rem;
+            color: var(--mut);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .f-check {
+            width: 16px;
+            height: 16px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 4px;
+            accent-color: var(--blue);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .f-forgot {
+            font-size: .825rem;
+            font-weight: 600;
+            color: var(--blue);
+            text-decoration: none;
+            transition: color .15s;
+        }
+
+        .f-forgot:hover { color: var(--blue-dk); }
+
+        /* Submit button */
+        .auth-btn {
+            width: 100%;
+            padding: .875rem 1.25rem;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            color: #fff;
+            font-size: .975rem;
+            font-weight: 700;
+            letter-spacing: -.01em;
+            cursor: pointer;
+            transition: all .22s cubic-bezier(.4,0,.2,1);
+            box-shadow: 0 4px 16px rgba(59,130,246,.38);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .55rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,.12), transparent);
+            opacity: 0;
+            transition: opacity .2s;
+        }
+
+        .auth-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(59,130,246,.48);
+        }
+
+        .auth-btn:hover::after { opacity: 1; }
+        .auth-btn:active { transform: translateY(0); }
+
+        /* ══════════════════════════════════════════
+           ALERTS
+        ══════════════════════════════════════════ */
+
+        .auth-alert {
+            border-radius: 10px;
+            border: 1px solid;
+            font-size: .84rem;
+            padding: .8rem 1rem;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: flex-start;
+            gap: .55rem;
+        }
+
+        .auth-alert i { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+        .auth-alert.a-danger  { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
+        .auth-alert.a-warning { background: #fffbeb; border-color: #fde68a; color: #92400e; }
+        .auth-alert.a-info    { background: #eff6ff; border-color: #bfdbfe; color: #1e40af; }
+        .auth-alert-title     { font-weight: 700; display: block; margin-bottom: 1px; }
+
+        /* Already logged in */
+        .auth-logged {
+            display: flex;
+            align-items: center;
+            gap: .55rem;
+            padding: .8rem 1rem;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 10px;
+            color: #1e40af;
+            font-size: .84rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .auth-logged a { color: #1d4ed8; font-weight: 700; text-decoration: none; }
+        .auth-logged a:hover { text-decoration: underline; }
+
+        /* ══════════════════════════════════════════
+           CARD FOOTER
+        ══════════════════════════════════════════ */
+
+        .auth-card-foot {
+            border-top: 1px solid var(--b1);
+            background: var(--s2);
+            padding: 1rem 2.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: .5rem;
+            font-size: .785rem;
+            color: var(--faint);
+            flex-wrap: wrap;
+        }
+
+        .auth-card-foot a {
+            color: var(--blue);
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: .3rem;
+        }
+
+        .auth-card-foot a:hover { color: var(--blue-dk); }
+
+        /* ══════════════════════════════════════════
+           PAGE FOOTER
+        ══════════════════════════════════════════ */
+
+        .auth-foot {
+            margin-top: 1.75rem;
+            text-align: center;
+            font-size: .775rem;
+            color: var(--faint);
+            animation: fadeUp .55s cubic-bezier(.2,.8,.4,1) .22s both;
+        }
+
+        /* ══════════════════════════════════════════
+           ANIMATIONS
+        ══════════════════════════════════════════ */
+
+        @keyframes fadeDown {
+            from { opacity: 0; transform: translateY(-18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+
+<body>
+
+{# ── Animated background ── #}
+<div class="auth-bg">
+    <div class="grid-lines"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="orb orb-4"></div>
+    <div class="orb orb-5"></div>
+</div>
+
+<div class="auth-page">
+    <div class="auth-wrap">
+
+        {# ── LOGO — big, centred ── #}
+        <a href="{{ path('app_homepage') }}" class="auth-logo">
+            <img
+                src="{{ asset('assets/images/ling.png') }}"
+                alt="LinguaLearn"
+                class="auth-logo-img"
+            >
+            <div class="auth-logo-text">
+                <div class="auth-logo-name">LinguaLearn</div>
+                <div class="auth-logo-tag">Admin Panel</div>
+            </div>
+        </a>
+
+        {# ── CARD ── #}
+        <div class="auth-card">
+            <div class="auth-card-body">
+
+                <h1 class="auth-heading">Welcome back</h1>
+                <p class="auth-subhead">Sign in to access the command center</p>
+
+                {# Flash — error #}
+                {% for message in app.flashes('error') %}
+                    <div class="auth-alert a-danger">
+                        <i class="ti ti-circle-x"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                {% endfor %}
+
+                {# Flash — warning #}
+                {% for message in app.flashes('warning') %}
+                    <div class="auth-alert a-warning">
+                        <i class="ti ti-alert-triangle"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                {% endfor %}
+
+                {# Symfony auth error #}
+                {% if error %}
+                    <div class="auth-alert a-danger">
+                        <i class="ti ti-circle-x"></i>
+                        <div>
+                            <span class="auth-alert-title">Authentication failed</span>
+                            {{ error.messageKey|trans(error.messageData, 'security') }}
+                        </div>
+                    </div>
+                {% endif %}
+
+                {# Already logged in #}
+                {% if app.user %}
+                    <div class="auth-logged">
+                        <i class="ti ti-info-circle" style="font-size:1rem;flex-shrink:0"></i>
+                        <span>
+                                Signed in as <strong>{{ app.user.userIdentifier }}</strong>.
+                                <a href="{{ path('app_admin_logout') }}">Sign out</a>
+                            </span>
+                    </div>
+                {% endif %}
+
+                {# ── Form ── #}
+                <form method="post" action="{{ path('app_admin_login') }}" autocomplete="off" novalidate>
+
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+                    {# Email #}
+                    <div class="f-field">
+                        <label class="f-label" for="inputEmail">Email address</label>
+                        <div class="f-group">
+                            <i class="ti ti-mail f-icon"></i>
+                            <input
+                                type="email"
+                                id="inputEmail"
+                                name="email"
+                                class="f-input"
+                                placeholder="admin@lingualearn.com"
+                                value="{{ last_username|default('') }}"
+                                autocomplete="email"
+                                autofocus
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    {# Password #}
+                    <div class="f-field">
+                        <label class="f-label" for="inputPassword">Password</label>
+                        <div class="f-group">
+                            <i class="ti ti-lock f-icon"></i>
+                            <input
+                                type="password"
+                                id="inputPassword"
+                                name="password"
+                                class="f-input"
+                                placeholder="••••••••••"
+                                autocomplete="current-password"
+                                style="padding-right:3rem"
+                                required
+                            >
+                            <button type="button" class="pw-btn" id="pwBtn" aria-label="Toggle password visibility">
+                                <i class="ti ti-eye" id="pwIco"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    {# Remember + Forgot #}
+                    <div class="f-row">
+                        <label class="f-check-label">
+                            <input type="checkbox" name="_remember_me" class="f-check">
+                            Remember me
+                        </label>
+                        <a href="#" class="f-forgot">Forgot password?</a>
+                    </div>
+
+                    {# Submit #}
+                    <button type="submit" class="auth-btn">
+                        <i class="ti ti-login"></i>
+                        Sign in to Admin Panel
+                    </button>
+
+                </form>
+
+            </div>
+
+            {# Card footer #}
+            <div class="auth-card-foot">
+                    <span style="display:flex;align-items:center;gap:.375rem">
+                        <i class="ti ti-shield-lock"></i>
+                        Secured admin access only
+                    </span>
+                <a href="{{ path('app_login') }}">
+                    <i class="ti ti-user"></i> User login
+                </a>
+            </div>
+        </div>
+
+        {# Page footer #}
+        <div class="auth-foot">
+            &copy; {{ 'now'|date('Y') }} LinguaLearn. All rights reserved.
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/js/tabler.min.js"></script>
+<script>
+    // Password show/hide toggle
+    document.getElementById('pwBtn').addEventListener('click', function () {
+        var input = document.getElementById('inputPassword');
+        var ico   = document.getElementById('pwIco');
+        if (input.type === 'password') {
+            input.type    = 'text';
+            ico.className = 'ti ti-eye-off';
+        } else {
+            input.type    = 'password';
+            ico.className = 'ti ti-eye';
+        }
+    });
+</script>
+</body>
+</html>

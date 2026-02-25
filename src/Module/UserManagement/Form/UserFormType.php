@@ -17,90 +17,96 @@ class UserFormType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $isEdit = $options['is_edit'];
+
+        // ── Personal info ─────────────────────────────────────
         $builder
             ->add('email', EmailType::class, [
                 'label' => 'Email Address',
-                'attr' => [
-                    'placeholder' => 'user@example.com',
-                    'class' => 'form-control'
-                ],
-                'constraints' => [
-                    new Assert\NotBlank(),
-                    new Assert\Email(),
-                ],
+                'attr'  => ['placeholder' => 'user@example.com', 'class' => 'form-control'],
             ])
             ->add('firstName', TextType::class, [
                 'label' => 'First Name',
-                'attr' => [
-                    'placeholder' => 'John',
-                    'class' => 'form-control'
-                ],
-                'constraints' => [
-                    new Assert\NotBlank(),
-                    new Assert\Length(['min' => 2, 'max' => 100]),
-                ],
+                'attr'  => ['placeholder' => 'John', 'class' => 'form-control'],
             ])
             ->add('lastName', TextType::class, [
                 'label' => 'Last Name',
-                'attr' => [
-                    'placeholder' => 'Doe',
-                    'class' => 'form-control'
-                ],
-                'constraints' => [
-                    new Assert\NotBlank(),
-                    new Assert\Length(['min' => 2, 'max' => 100]),
-                ],
+                'attr'  => ['placeholder' => 'Doe', 'class' => 'form-control'],
             ]);
 
-        // Only add password field if creating new user
-        if ($options['is_edit'] === false) {
-            $builder->add('plainPassword', RepeatedType::class, [
-                'type' => PasswordType::class,
-                'mapped' => false,
-                'first_options' => [
-                    'label' => 'Password',
-                    'attr' => [
-                        'placeholder' => 'Enter password',
-                        'class' => 'form-control'
-                    ],
-                ],
-                'second_options' => [
-                    'label' => 'Confirm Password',
-                    'attr' => [
-                        'placeholder' => 'Confirm password',
-                        'class' => 'form-control'
-                    ],
-                ],
-                'constraints' => [
-                    new Assert\NotBlank(),
-                    new Assert\Length(['min' => 6]),
-                ],
-            ]);
+        // ── Password ──────────────────────────────────────────
+        // Always present so the template card always renders.
+        // On CREATE  → required, must match, NotBlank enforced.
+        // On EDIT    → optional, leave blank to keep current password.
+        $constraints = [
+            new Assert\Length([
+                'min'        => 6,
+                'minMessage' => 'Password must be at least {{ limit }} characters.',
+                'max'        => 4096,
+            ]),
+            // Note: no regex constraint — admins can set any password >= 6 chars.
+            // Users registering themselves go through a stricter registration form.
+        ];
+
+        if (!$isEdit) {
+            array_unshift($constraints, new Assert\NotBlank(message: 'Password is required.'));
         }
 
-        // Add status and roles for admin
+        $builder->add('plainPassword', RepeatedType::class, [
+            'type'            => PasswordType::class,
+            'mapped'          => false,
+            'required'        => !$isEdit,
+            'first_options'   => [
+                'label' => $isEdit ? 'New Password' : 'Password',
+                'attr'  => [
+                    'placeholder'  => $isEdit ? 'Leave blank to keep current' : 'Enter password',
+                    'class'        => 'form-control',
+                    'autocomplete' => 'new-password',
+                ],
+            ],
+            'second_options'  => [
+                'label' => 'Confirm Password',
+                'attr'  => [
+                    'placeholder'  => $isEdit ? 'Leave blank to keep current' : 'Confirm password',
+                    'class'        => 'form-control',
+                    'autocomplete' => 'new-password',
+                ],
+            ],
+            'invalid_message' => 'The password fields must match.',
+            'constraints'     => $constraints,
+        ]);
+
+        // ── Admin-only fields ─────────────────────────────────
+        // subscriptionPlan / subscriptionExpiry intentionally excluded —
+        // premium must go through StripeService to stay in sync with Stripe.
         if ($options['is_admin']) {
             $builder
                 ->add('status', ChoiceType::class, [
-                    'label' => 'Status',
+                    'label'   => 'Status',
                     'choices' => [
-                        'Active' => 'active',
+                        'Active'    => 'active',
                         'Suspended' => 'suspended',
-                        'Deleted' => 'deleted',
+                        'Deleted'   => 'deleted',
                     ],
-                    'attr' => ['class' => 'form-control'],
+                    'attr' => ['class' => 'form-select', 'id' => 'status-select'],
                 ])
                 ->add('roles', ChoiceType::class, [
-                    'label' => 'Roles',
-                    'choices' => [
-                        'User' => 'ROLE_USER',
-                        'Premium User' => 'ROLE_PREMIUM_USER',
+                    'label'        => 'Roles',
+                    'choices'      => [
+                        'User'    => 'ROLE_USER',
                         'Teacher' => 'ROLE_TEACHER',
-                        'Admin' => 'ROLE_ADMIN',
+                        'Admin'   => 'ROLE_ADMIN',
                     ],
-                    'multiple' => true,
-                    'expanded' => true,
-                    'attr' => ['class' => 'form-check'],
+                    'multiple'     => true,
+                    'expanded'     => true,
+                    'by_reference' => false,
+                    'attr'         => ['class' => 'form-check'],
+                    'constraints'  => [
+                        new Assert\Count([
+                            'min'        => 1,
+                            'minMessage' => 'You must select at least one role.',
+                        ]),
+                    ],
                 ]);
         }
     }
@@ -109,8 +115,9 @@ class UserFormType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => User::class,
-            'is_edit' => false,
-            'is_admin' => false,
+            'is_edit'    => false,
+            'is_admin'   => false,
+            'attr'       => ['novalidate' => 'novalidate'],
         ]);
     }
 }

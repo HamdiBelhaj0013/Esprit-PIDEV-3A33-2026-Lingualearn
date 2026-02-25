@@ -1,0 +1,251 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block page_title %}Courses{% endblock %}
+
+{% block breadcrumb %}
+    <ol class="breadcrumb" aria-label="breadcrumbs">
+        <li class="breadcrumb-item">
+            <a href="{{ path('admin_dashboard') }}"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
+        </li>
+        <li class="breadcrumb-item">
+            <a href="{{ path('admin_pedagogical_content_index') }}">Pedagogical Content</a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">Courses</li>
+    </ol>
+{% endblock %}
+
+{% block page_actions %}
+    <a href="{{ path('admin_course_new') }}" class="btn btn-ll-primary">
+        <i class="ti ti-plus me-1"></i> New Course
+    </a>
+{% endblock %}
+
+{% block admin_styles %}
+    <style>
+        .ll-filter-bar {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: var(--ll-radius);
+            padding: 1rem 1.25rem;
+        }
+        .ll-filter-bar .form-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #64748b;
+            margin-bottom: 0.35rem;
+        }
+        .ll-filter-bar .form-control,
+        .ll-filter-bar .form-select {
+            border-radius: 8px;
+            border: 1.5px solid #e5e7eb;
+            font-size: 0.8125rem;
+            padding: 0.4rem 0.75rem;
+            transition: var(--ll-transition);
+        }
+        .ll-filter-bar .form-control:focus,
+        .ll-filter-bar .form-select:focus {
+            border-color: var(--ll-primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+        }
+        #loadingIndicator {
+            display: none;
+        }
+        #courseTableContainer {
+            transition: opacity 0.2s ease;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="row g-3 mt-1">
+
+        {# ── Filter Bar ── #}
+        <div class="col-12">
+            <div class="ll-filter-bar">
+                <form id="filterForm" class="row g-2 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label">Search</label>
+                        <div class="input-icon">
+                            <span class="input-icon-addon"><i class="ti ti-search" style="font-size: 0.875rem;"></i></span>
+                            <input type="text" name="search" id="searchInput" class="form-control"
+                                   placeholder="Course title..." value="{{ search }}">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Language</label>
+                        <select name="language" id="languageFilter" class="form-select">
+                            <option value="">All</option>
+                            {% for l in languages %}
+                                <option value="{{ l.id }}" {% if language == l.id %}selected{% endif %}>{{ l.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Level</label>
+                        <select name="level" id="levelFilter" class="form-select">
+                            <option value="">All</option>
+                            <option value="beginner" {% if level == 'beginner' %}selected{% endif %}>Beginner</option>
+                            <option value="intermediate" {% if level == 'intermediate' %}selected{% endif %}>Intermediate</option>
+                            <option value="advanced" {% if level == 'advanced' %}selected{% endif %}>Advanced</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Status</label>
+                        <select name="status" id="statusFilter" class="form-select">
+                            <option value="">All</option>
+                            <option value="published" {% if status == 'published' %}selected{% endif %}>Published</option>
+                            <option value="draft" {% if status == 'draft' %}selected{% endif %}>Draft</option>
+                            <option value="archived" {% if status == 'archived' %}selected{% endif %}>Archived</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <label class="form-label">Sort</label>
+                        <select name="sort" id="sortSelect" class="form-select">
+                            <option value="title" {% if sort == 'title' %}selected{% endif %}>Title</option>
+                            <option value="level" {% if sort == 'level' %}selected{% endif %}>Level</option>
+                            <option value="status" {% if sort == 'status' %}selected{% endif %}>Status</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <label class="form-label">Order</label>
+                        <select name="order" id="orderSelect" class="form-select">
+                            <option value="ASC" {% if order == 'ASC' %}selected{% endif %}>A-Z</option>
+                            <option value="DESC" {% if order == 'DESC' %}selected{% endif %}>Z-A</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-flex gap-1">
+                            <button type="submit" class="btn btn-primary btn-icon" style="border-radius: 8px;" title="Search">
+                                <i class="ti ti-search"></i>
+                            </button>
+                            <a href="{{ path('admin_course_index') }}" class="btn btn-ghost-secondary btn-icon" style="border-radius: 8px;" title="Reset">
+                                <i class="ti ti-x"></i>
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {# ── Loading Indicator ── #}
+        <div id="loadingIndicator" class="col-12 text-center py-4">
+            <div class="spinner-border text-primary" style="width: 2rem; height: 2rem;"></div>
+            <p class="text-muted mt-2 mb-0" style="font-size: 0.8125rem;">Loading...</p>
+        </div>
+
+        {# ── Course Table ── #}
+        <div class="col-12">
+            <div class="card ll-card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="ti ti-book me-2 text-primary"></i>
+                        All Courses
+                        <span class="ms-2 ll-badge bg-primary-lt text-primary">{{ courses|length }}</span>
+                    </h3>
+                </div>
+                <div id="courseTableContainer">
+                    {% include 'pedagogical_content/course/_table.html.twig' %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    {# Delete Confirmation Modal #}
+    <div class="modal modal-blur fade" id="confirmDeleteModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+            <div class="modal-content" style="border-radius: 12px; border: none; overflow: hidden;">
+                <div class="modal-status bg-danger"></div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-body text-center py-4">
+                    <div class="mb-3" style="width: 56px; height: 56px; background: #fef2f2; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">
+                        <i class="ti ti-alert-triangle" style="font-size: 1.75rem; color: #ef4444;"></i>
+                    </div>
+                    <h3 class="mb-1" style="font-weight: 700;">Delete Course?</h3>
+                    <div class="text-muted">This action cannot be undone.</div>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid #f1f5f9;">
+                    <div class="w-100">
+                        <div class="row">
+                            <div class="col">
+                                <button type="button" class="btn w-100" data-bs-dismiss="modal" style="border-radius: 8px;">Cancel</button>
+                            </div>
+                            <div class="col">
+                                <button type="button" id="confirmDeleteBtn" class="btn btn-danger w-100" style="border-radius: 8px;">
+                                    <i class="ti ti-trash me-1"></i> Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const filterForm = document.getElementById('filterForm');
+        const searchInput = document.getElementById('searchInput');
+        const courseTableContainer = document.getElementById('courseTableContainer');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        let searchTimeout;
+        let pendingDeleteFormId = null;
+
+        // Filter events
+        filterForm.addEventListener('submit', function(e) { e.preventDefault(); performSearch(); });
+        searchInput.addEventListener('keyup', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(performSearch, 300);
+        });
+        ['languageFilter', 'levelFilter', 'statusFilter', 'sortSelect', 'orderSelect'].forEach(function(id) {
+            document.getElementById(id).addEventListener('change', performSearch);
+        });
+
+        function performSearch() {
+            const params = new URLSearchParams(new FormData(filterForm));
+            loadingIndicator.style.display = 'block';
+            courseTableContainer.style.opacity = '0.4';
+
+            fetch('{{ path('admin_course_index') }}?' + params.toString(), {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                courseTableContainer.innerHTML = data.html;
+                courseTableContainer.style.opacity = '1';
+                loadingIndicator.style.display = 'none';
+                attachEvents();
+            })
+            .catch(function(err) {
+                console.error(err);
+                loadingIndicator.style.display = 'none';
+                courseTableContainer.style.opacity = '1';
+            });
+        }
+
+        // Delete flow
+        function attachEvents() {
+            document.querySelectorAll('.deleteBtn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    pendingDeleteFormId = this.getAttribute('data-form-id');
+                });
+            });
+        }
+
+        document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+            if (pendingDeleteFormId) {
+                var form = document.getElementById(pendingDeleteFormId);
+                if (form) form.submit();
+            }
+        });
+
+        attachEvents();
+    });
+    </script>
+{% endblock %}

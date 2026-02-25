@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Certificate of Achievement</title>
+    <style>
+        @page { margin: 0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'DejaVu Sans', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px;
+            width: 297mm;
+            height: 210mm;
+        }
+        .certificate-container {
+            background: white;
+            border: 20px solid #f8f9fa;
+            box-shadow: 0 0 0 2px #2563eb;
+            padding: 60px;
+            height: 100%;
+            position: relative;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .logo {
+            font-size: 48px;
+            font-weight: bold;
+            color: #2563eb;
+            margin-bottom: 10px;
+        }
+        .title {
+            font-size: 42px;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+        .subtitle {
+            font-size: 18px;
+            color: #64748b;
+            margin-bottom: 40px;
+        }
+        .content {
+            text-align: center;
+            margin: 40px 0;
+        }
+        .recipient {
+            font-size: 16px;
+            color: #64748b;
+            margin-bottom: 15px;
+        }
+        .name {
+            font-size: 48px;
+            font-weight: bold;
+            color: #2563eb;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #2563eb;
+            display: inline-block;
+            padding-bottom: 10px;
+        }
+        .achievement {
+            font-size: 20px;
+            color: #1e293b;
+            line-height: 1.8;
+            margin-bottom: 30px;
+        }
+        .language {
+            font-size: 32px;
+            font-weight: bold;
+            color: #16a34a;
+            margin: 20px 0;
+        }
+        .score {
+            font-size: 28px;
+            font-weight: bold;
+            color: #ea580c;
+            margin: 20px 0;
+        }
+        .footer {
+            position: absolute;
+            bottom: 60px;
+            left: 60px;
+            right: 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        .date-section, .code-section {
+            text-align: center;
+        }
+        .label {
+            font-size: 12px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+        .value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #1e293b;
+        }
+        .seal {
+            position: absolute;
+            bottom: 60px;
+            right: 60px;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #2563eb;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            border: 5px solid #1e40af;
+        }
+    </style>
+</head>
+<body>
+    <div class="certificate-container">
+        <div class="header">
+            <div class="logo">🎓 LinguaLearn</div>
+            <div class="title">Certificate of Achievement</div>
+            <div class="subtitle">International Language Proficiency</div>
+        </div>
+
+        <div class="content">
+            <div class="recipient">This is to certify that</div>
+            <div class="name">{{ certificate.user.firstName }} {{ certificate.user.lastName }}</div>
+            
+            <div class="achievement">
+                has successfully completed all three proficiency levels<br>
+                (Beginner, Intermediate, and Advanced) in
+            </div>
+            
+            <div class="language">{{ certificate.language.name }}</div>
+            
+            <div class="achievement">
+                with an average score of
+            </div>
+            
+            <div class="score">{{ certificate.avgScore }}/20</div>
+        </div>
+
+        <div class="footer">
+            <div class="date-section">
+                <div class="label">Issue Date</div>
+                <div class="value">{{ certificate.issuedAt|date('F d, Y') }}</div>
+            </div>
+            
+            <div class="code-section">
+                <div class="label">Verification Code</div>
+                <div class="value">{{ certificate.uniqueCode }}</div>
+            </div>
+        </div>
+
+        <div class="seal">✓</div>
+    </div>
+</body>
+</html>
+

@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile — LinguaLearn</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --white:      #ffffff;
+            --off-white:  #f7f9fc;
+            --surface:    #eef1f8;
+            --ink:        #0d1526;
+            --ink-soft:   #2c3a52;
+            --muted:      #7a87a0;
+            --border:     #e2e8f2;
+            --blue:       #2563eb;
+            --blue-dark:  #1d4ed8;
+            --blue-bg:    #eff6ff;
+            --blue-mid:   #3b82f6;
+            --green:      #16a34a;
+            --green-bg:   #f0fdf4;
+            --orange:     #ea580c;
+            --orange-bg:  #fff7ed;
+            --violet:     #7c3aed;
+            --violet-bg:  #f5f3ff;
+            --gold:       #ca8a04;
+            --gold-bg:    #fefce8;
+            --red:        #dc2626;
+            --red-bg:     #fef2f2;
+            --sidebar-w:  260px;
+            --radius:     12px;
+            --radius-lg:  20px;
+        }
+
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Sora', sans-serif; background: var(--off-white); color: var(--ink); min-height: 100vh; }
+
+        /* ─── SIDEBAR ─── */
+        .sidebar {
+            position: fixed; top: 0; left: 0; bottom: 0;
+            width: var(--sidebar-w); background: var(--white);
+            border-right: 1px solid var(--border);
+            display: flex; flex-direction: column; z-index: 50;
+            transition: transform .3s ease;
+        }
+        .sidebar-logo {
+            padding: 1.5rem 1.5rem 1.25rem;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: .75rem;
+            text-decoration: none;
+        }
+        .sidebar-logo-text { font-family: 'Fraunces', serif; font-size: 1.3rem; font-weight: 400; color: var(--ink); }
+        .sidebar-logo-text span { color: var(--blue); }
+        .sidebar-user {
+            padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: .85rem;
+        }
+        .user-avatar {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--blue), var(--blue-mid));
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Fraunces', serif; font-size: 1rem; font-weight: 400;
+            color: var(--white); flex-shrink: 0;
+        }
+        .user-avatar.premium { background: linear-gradient(135deg, var(--gold), #fbbf24); }
+        .user-info { flex: 1; min-width: 0; }
+        .user-name { font-size: .85rem; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-plan { font-size: .7rem; font-family: 'DM Mono', monospace; letter-spacing: .08em; text-transform: uppercase; margin-top: .1rem; }
+        .user-plan.free { color: var(--muted); }
+        .user-plan.premium { color: var(--gold); }
+        .sidebar-nav { flex: 1; padding: 1rem 0; overflow-y: auto; }
+        .nav-section-label { font-family: 'DM Mono', monospace; font-size: .6rem; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); padding: .75rem 1.5rem .35rem; display: block; }
+        .nav-item { display: flex; align-items: center; gap: .75rem; padding: .65rem 1.5rem; font-size: .84rem; font-weight: 500; color: var(--muted); text-decoration: none; transition: color .2s, background .2s; position: relative; }
+        .nav-item:hover { color: var(--ink); background: var(--off-white); }
+        .nav-item.active { color: var(--blue); background: var(--blue-bg); font-weight: 600; }
+        .nav-item.active::before { content: ''; position: absolute; left: 0; top: 4px; bottom: 4px; width: 3px; background: var(--blue); border-radius: 0 3px 3px 0; }
+        .nav-icon { font-size: 1.1rem; width: 20px; text-align: center; }
+        .nav-badge { margin-left: auto; background: var(--blue); color: var(--white); font-size: .62rem; font-weight: 700; padding: .15rem .45rem; border-radius: 100px; font-family: 'DM Mono', monospace; }
+        .nav-badge.orange { background: var(--orange); }
+
+        /* ─── MAIN ─── */
+        .main { margin-left: var(--sidebar-w); min-height: 100vh; display: flex; flex-direction: column; }
+
+        /* ─── TOPBAR ─── */
+        .topbar {
+            position: sticky; top: 0; z-index: 40;
+            background: rgba(255,255,255,.92); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: .85rem 2rem;
+            display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+        }
+        .topbar-left { display: flex; align-items: center; gap: 1rem; }
+        .page-heading { font-family: 'Fraunces', serif; font-size: 1.25rem; font-weight: 400; color: var(--ink); }
+        .page-sub { font-size: .78rem; color: var(--muted); margin-top: .1rem; }
+        .topbar-right { display: flex; align-items: center; gap: .75rem; }
+        .topbar-btn { width: 38px; height: 38px; border-radius: var(--radius); border: 1.5px solid var(--border); background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; transition: border-color .2s, background .2s; font-size: 1.1rem; text-decoration: none; color: var(--ink-soft); }
+        .topbar-btn:hover { border-color: var(--blue); background: var(--blue-bg); color: var(--blue); }
+        .hamburger-btn { display: none; width: 38px; height: 38px; border-radius: var(--radius); border: 1.5px solid var(--border); background: transparent; align-items: center; justify-content: center; cursor: pointer; flex-direction: column; gap: 4px; }
+        .hamburger-btn span { width: 16px; height: 1.5px; background: var(--ink); display: block; border-radius: 2px; }
+
+        /* ─── PAGE CONTENT ─── */
+        .page-content { padding: 2rem; flex: 1; }
+
+        /* ─── PROFILE HEADER ─── */
+        .profile-header {
+            background: var(--white); border: 1.5px solid var(--border);
+            border-radius: var(--radius-lg); padding: 2rem;
+            display: flex; align-items: center; gap: 2rem;
+            margin-bottom: 1.75rem; position: relative; overflow: hidden;
+        }
+        .profile-header::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+            background: linear-gradient(90deg, var(--blue), var(--blue-mid));
+        }
+        .profile-avatar-big {
+            width: 88px; height: 88px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--blue), var(--blue-mid));
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Fraunces', serif; font-size: 2rem; font-weight: 400;
+            color: var(--white); flex-shrink: 0;
+            box-shadow: 0 8px 24px rgba(37,99,235,.25);
+        }
+        .profile-avatar-big.premium { background: linear-gradient(135deg, var(--gold), #fbbf24); box-shadow: 0 8px 24px rgba(202,138,4,.25); }
+        .profile-header-info { flex: 1; }
+        .profile-name { font-family: 'Fraunces', serif; font-size: 1.75rem; font-weight: 300; color: var(--ink); margin-bottom: .3rem; }
+        .profile-email { font-size: .85rem; color: var(--muted); margin-bottom: .75rem; }
+        .profile-badges { display: flex; gap: .5rem; flex-wrap: wrap; }
+        .profile-badge {
+            display: inline-flex; align-items: center; gap: .35rem;
+            padding: .25rem .75rem; border-radius: 100px;
+            font-size: .68rem; font-weight: 600; letter-spacing: .06em;
+            text-transform: uppercase; font-family: 'DM Mono', monospace;
+        }
+        .pb-free     { background: var(--surface); color: var(--muted); }
+        .pb-premium  { background: var(--gold-bg); color: var(--gold); }
+        .pb-active   { background: var(--green-bg); color: var(--green); }
+        .pb-suspended { background: var(--orange-bg); color: var(--orange); }
+        .pb-member   { background: var(--blue-bg); color: var(--blue); }
+        .profile-header-actions { display: flex; flex-direction: column; gap: .6rem; }
+
+        /* ─── BUTTONS ─── */
+        .btn-sm {
+            padding: .5rem 1.2rem; border-radius: 100px;
+            font-family: 'Sora', sans-serif; font-size: .8rem; font-weight: 600;
+            text-decoration: none; cursor: pointer; border: none;
+            transition: all .2s; display: inline-block; text-align: center;
+        }
+        .btn-primary { background: var(--blue); color: var(--white); }
+        .btn-primary:hover { background: var(--blue-dark); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37,99,235,.28); }
+        .btn-outline { background: transparent; color: var(--ink-soft); border: 1.5px solid var(--border) !important; }
+        .btn-outline:hover { border-color: var(--blue) !important; color: var(--blue); }
+        .btn-danger { background: var(--red-bg); color: var(--red); border: 1.5px solid rgba(220,38,38,.2) !important; }
+        .btn-danger:hover { background: var(--red); color: var(--white); }
+
+        /* ─── PROFILE GRID ─── */
+        .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.75rem; }
+
+        .card { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+        .card-head { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+        .card-title { font-family: 'Fraunces', serif; font-size: 1rem; font-weight: 400; color: var(--ink); }
+        .card-title em { font-style: italic; color: var(--blue); }
+        .card-body { padding: 1.5rem; }
+
+        /* ─── FORMS ─── */
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+        .form-group { margin-bottom: 1rem; }
+        .form-label { display: block; font-size: .78rem; font-weight: 600; color: var(--ink-soft); margin-bottom: .45rem; letter-spacing: .02em; }
+        .form-input {
+            width: 100%; padding: .65rem 1rem; border-radius: var(--radius);
+            border: 1.5px solid var(--border); background: var(--off-white);
+            font-family: 'Sora', sans-serif; font-size: .85rem; color: var(--ink);
+            transition: border-color .2s, background .2s; outline: none;
+        }
+        .form-input:focus { border-color: var(--blue); background: var(--white); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+        .form-input:disabled { opacity: .55; cursor: not-allowed; }
+        .form-hint { font-size: .72rem; color: var(--muted); margin-top: .3rem; }
+        .form-actions { display: flex; gap: .75rem; padding-top: .5rem; }
+        .form-select {
+            width: 100%; padding: .62rem 1rem; border-radius: var(--radius);
+            border: 1.5px solid var(--border); background: var(--white);
+            font-family: 'Sora', sans-serif; font-size: .82rem; color: var(--ink);
+            outline: none; cursor: pointer; transition: border-color .2s;
+        }
+        .form-select:focus { border-color: var(--blue); }
+
+        /* ─── FLASH ─── */
+        .flash-success {
+            background: var(--green-bg); border: 1.5px solid rgba(22,163,74,.2);
+            border-radius: var(--radius); padding: .85rem 1.1rem;
+            font-size: .85rem; color: var(--green); margin-bottom: 1.25rem;
+            display: flex; align-items: center; gap: .6rem;
+        }
+        .flash-error {
+            background: var(--red-bg); border: 1.5px solid rgba(220,38,38,.2);
+            border-radius: var(--radius); padding: .85rem 1.1rem;
+            font-size: .85rem; color: var(--red); margin-bottom: 1.25rem;
+            display: flex; align-items: center; gap: .6rem;
+        }
+
+        /* ─── LANGUAGES TABLE ─── */
+        .lang-table { width: 100%; border-collapse: collapse; }
+        .lang-table th {
+            font-family: 'DM Mono', monospace; font-size: .6rem;
+            letter-spacing: .15em; text-transform: uppercase;
+            color: var(--muted); padding: .6rem 0; text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        .lang-table td { padding: .85rem 0; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        .lang-table tr:last-child td { border-bottom: none; }
+
+        .lang-flag {
+            width: 28px; height: 20px; border-radius: 4px;
+            object-fit: cover; border: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .lang-name-cell { display: flex; align-items: center; gap: .6rem; }
+        .lang-name-text { font-weight: 600; font-size: .88rem; color: var(--ink); }
+
+        .lang-code-badge {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 36px; height: 28px; padding: 0 .5rem;
+            border-radius: 6px; background: var(--surface); border: 1px solid var(--border);
+            font-family: 'DM Mono', monospace; font-size: .68rem; font-weight: 400;
+            color: var(--ink-soft); letter-spacing: .08em; text-transform: uppercase;
+        }
+        .level-pill {
+            display: inline-block; font-family: 'DM Mono', monospace;
+            font-size: .6rem; letter-spacing: .1em; text-transform: uppercase;
+            padding: .22rem .65rem; border-radius: 6px;
+        }
+        .lp-a      { background: var(--green-bg);  color: var(--green); }
+        .lp-b      { background: var(--blue-bg);   color: var(--blue); }
+        .lp-c      { background: var(--violet-bg); color: var(--violet); }
+        .lp-native { background: var(--gold-bg);   color: var(--gold); }
+
+        .btn-icon {
+            width: 30px; height: 30px; border-radius: 8px;
+            border: 1.5px solid var(--border); background: transparent;
+            display: inline-flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: .85rem; transition: all .2s;
+        }
+        .btn-icon:hover { border-color: var(--red); background: var(--red-bg); color: var(--red); }
+
+        /* ─── LANGUAGE CARDS (enrolled) ─── */
+        .lang-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: .85rem; }
+        .lang-card {
+            background: var(--off-white); border: 1.5px solid var(--border);
+            border-radius: var(--radius); padding: 1rem 1.1rem;
+            display: flex; align-items: center; gap: .85rem; position: relative;
+            transition: border-color .2s, box-shadow .2s;
+        }
+        .lang-card:hover { border-color: var(--blue-mid); box-shadow: 0 2px 10px rgba(37,99,235,.08); }
+        .lang-card-flag {
+            width: 40px; height: 29px; border-radius: 6px;
+            object-fit: cover; border: 1px solid var(--border); flex-shrink: 0;
+        }
+        .lang-card-flag-placeholder {
+            width: 40px; height: 29px; border-radius: 6px;
+            background: var(--surface); border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: .8rem; flex-shrink: 0;
+        }
+        .lang-card-body { flex: 1; min-width: 0; }
+        .lang-card-name { font-weight: 600; font-size: .88rem; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .lang-card-meta { display: flex; align-items: center; gap: .4rem; margin-top: .3rem; flex-wrap: wrap; }
+        .lang-card-remove {
+            position: absolute; top: .6rem; right: .6rem;
+            width: 24px; height: 24px; border-radius: 6px;
+            border: 1.5px solid var(--border); background: transparent;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: .7rem; opacity: 0; transition: all .2s;
+            color: var(--muted);
+        }
+        .lang-card:hover .lang-card-remove { opacity: 1; }
+        .lang-card-remove:hover { border-color: var(--red); background: var(--red-bg); color: var(--red); }
+
+        /* ─── ADD LANGUAGE FORM ─── */
+        .add-lang-form {
+            background: var(--off-white); border: 1.5px dashed var(--border);
+            border-radius: var(--radius); padding: 1.25rem; margin-top: 1.25rem;
+        }
+        .add-lang-form-title { font-size: .78rem; font-weight: 600; color: var(--ink-soft); margin-bottom: 1rem; display: flex; align-items: center; gap: .4rem; }
+        .add-lang-grid { display: grid; grid-template-columns: 1fr 1fr auto; gap: .75rem; align-items: end; }
+
+        /* ─── NOTIFICATIONS ─── */
+        .notif-row { display: flex; gap: .85rem; padding: .9rem 0; border-bottom: 1px solid var(--border); }
+        .notif-row:last-child { border-bottom: none; }
+        .notif-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+        .nd-info    { background: var(--blue); }
+        .nd-warning { background: var(--orange); }
+        .nd-success { background: var(--green); }
+        .nd-premium { background: var(--gold); }
+        .nd-system  { background: var(--muted); }
+        .notif-body { flex: 1; }
+        .notif-msg { font-size: .83rem; color: var(--ink-soft); line-height: 1.5; }
+        .notif-msg.unread { font-weight: 600; color: var(--ink); }
+        .notif-meta { display: flex; gap: 1rem; margin-top: .25rem; }
+        .notif-time { font-size: .68rem; color: var(--muted); font-family: 'DM Mono', monospace; }
+        .notif-type { font-size: .62rem; text-transform: uppercase; letter-spacing: .08em; font-family: 'DM Mono', monospace; color: var(--muted); }
+        .notif-empty { text-align: center; padding: 2.5rem; color: var(--muted); font-size: .85rem; }
+
+        /* ─── PASSWORD SECTION ─── */
+        .security-section { margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--border); }
+        .security-title { font-size: .78rem; font-weight: 600; color: var(--ink-soft); margin-bottom: .85rem; }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 1024px) { .profile-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) {
+            :root { --sidebar-w: 0px; }
+            .sidebar { transform: translateX(-260px); width: 260px; }
+            .sidebar.open { transform: translateX(0); }
+            .main { margin-left: 0; }
+            .hamburger-btn { display: flex; }
+            .page-content { padding: 1.25rem; }
+            .profile-header { flex-direction: column; text-align: center; }
+            .profile-header-actions { flex-direction: row; }
+            .form-row { grid-template-columns: 1fr; }
+            .add-lang-grid { grid-template-columns: 1fr; }
+            .topbar { padding: .75rem 1.25rem; }
+            .lang-cards { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 480px) { .lang-cards { grid-template-columns: 1fr; } }
+
+        .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(13,21,38,.4); z-index: 45; }
+        .sidebar-overlay.visible { display: block; }
+
+        .reveal { opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease; }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+        .d1 { transition-delay: .08s; } .d2 { transition-delay: .16s; } .d3 { transition-delay: .24s; }
+    </style>
+</head>
+<body>
+
+{# ─── SIDEBAR ─── #}
+<aside class="sidebar" id="sidebar">
+    <a href="{{ path('app_homepage') }}" class="sidebar-logo">
+        <div class="sidebar-logo-text">Lingua<span>Learn</span></div>
+    </a>
+    <div class="sidebar-user">
+        <div class="user-avatar {{ user.isPremium ? 'premium' : '' }}">
+            {{ user.firstName|first|upper }}{{ user.lastName|first|upper }}
+        </div>
+        <div class="user-info">
+            <div class="user-name">{{ user.fullName }}</div>
+            <div class="user-plan {{ user.isPremium ? 'premium' : 'free' }}">
+                {{ user.isPremium ? '★ ' ~ user.subscriptionPlan : 'Free Plan' }}
+            </div>
+        </div>
+    </div>
+    <nav class="sidebar-nav">
+        <span class="nav-section-label">Main</span>
+        <a href="{{ path('user_dashboard') }}" class="nav-item">
+            <span class="nav-icon">⊞</span> Dashboard
+        </a>
+        <a href="{{ path('language_select') }}" class="nav-item">
+            <span class="nav-icon">📚</span> My Courses
+        </a>
+        <a href="#" class="nav-item"><span class="nav-icon">🧩</span> Practice</a>
+        <a href="#" class="nav-item"><span class="nav-icon">📝</span> Mock Tests</a>
+        <span class="nav-section-label">Account</span>
+        <a href="{{ path('user_profile') }}" class="nav-item active">
+            <span class="nav-icon">👤</span> My Profile
+        </a>
+        <a href="#" class="nav-item">
+            <span class="nav-icon">🔔</span> Notifications
+            {% set unread = 0 %}
+            {% for n in user.notifications %}{% if not n.isRead %}{% set unread = unread + 1 %}{% endif %}{% endfor %}
+            {% if unread > 0 %}<span class="nav-badge orange">{{ unread }}</span>{% endif %}
+        </a>
+        <a href="#" class="nav-item"><span class="nav-icon">👑</span> Subscription</a>
+        <span class="nav-section-label">System</span>
+        <a href="{{ path('app_logout') }}" class="nav-item"><span class="nav-icon">→</span> Log Out</a>
+    </nav>
+</aside>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="main">
+
+    <header class="topbar">
+        <div class="topbar-left">
+            <button class="hamburger-btn" id="hamburgerBtn"><span></span><span></span><span></span></button>
+            <div>
+                <div class="page-heading">My Profile</div>
+                <div class="page-sub">Manage your account and preferences</div>
+            </div>
+        </div>
+        <div class="topbar-right">
+            <a href="{{ path('user_dashboard') }}" class="topbar-btn" title="Dashboard">⊞</a>
+        </div>
+    </header>
+
+    <main class="page-content">
+
+        {# Flash messages #}
+        {% for msg in app.flashes('success') %}
+            <div class="flash-success">✓ {{ msg }}</div>
+        {% endfor %}
+        {% for msg in app.flashes('error') %}
+            <div class="flash-error">✗ {{ msg }}</div>
+        {% endfor %}
+
+        {# Profile Header #}
+        <div class="profile-header reveal">
+            <div class="profile-avatar-big {{ user.isPremium ? 'premium' : '' }}">
+                {{ user.firstName|first|upper }}{{ user.lastName|first|upper }}
+            </div>
+            <div class="profile-header-info">
+                <div class="profile-name">{{ user.fullName }}</div>
+                <div class="profile-email">{{ user.email }}</div>
+                <div class="profile-badges">
+                    <span class="profile-badge {{ user.isPremium ? 'pb-premium' : 'pb-free' }}">
+                        {{ user.isPremium ? '★ ' ~ user.subscriptionPlan : 'Free' }}
+                    </span>
+                    <span class="profile-badge pb-{{ user.status }}">{{ user.status|capitalize }}</span>
+                    <span class="profile-badge pb-member">
+                        Member since {{ user.createdAt ? user.createdAt|date('M Y') : 'N/A' }}
+                    </span>
+                </div>
+            </div>
+            <div class="profile-header-actions">
+                {% if not user.isPremium %}
+                    <a href="#" class="btn-sm btn-primary">👑 Upgrade</a>
+                {% endif %}
+                <a href="{{ path('app_logout') }}" class="btn-sm btn-outline">Log Out</a>
+            </div>
+        </div>
+
+        {# Two-column grid #}
+        <div class="profile-grid">
+
+            {# Personal Info + Password #}
+            <div class="card reveal">
+                <div class="card-head">
+                    <div class="card-title">Personal <em>Information</em></div>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{{ path('user_profile_update') }}">
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('profile_update') }}">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="firstName">First Name</label>
+                                <input type="text" id="firstName" name="first_name" class="form-input"
+                                       value="{{ user.firstName }}" required minlength="2" maxlength="100">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="lastName">Last Name</label>
+                                <input type="text" id="lastName" name="last_name" class="form-input"
+                                       value="{{ user.lastName }}" required minlength="2" maxlength="100">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="email">Email Address</label>
+                            <input type="email" id="email" class="form-input" value="{{ user.email }}" disabled>
+                            <div class="form-hint">Email cannot be changed. Contact support if needed.</div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn-sm btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+
+                    <div class="security-section">
+                        <div class="security-title">🔒 Change Password</div>
+                        <form method="post" action="{{ path('user_profile_password') }}">
+                            <input type="hidden" name="_csrf_token" value="{{ csrf_token('profile_password') }}">
+                            <div class="form-group">
+                                <label class="form-label" for="currentPassword">Current Password</label>
+                                <input type="password" id="currentPassword" name="current_password"
+                                       class="form-input" placeholder="••••••••" required>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group" style="margin-bottom:0">
+                                    <label class="form-label" for="newPassword">New Password</label>
+                                    <input type="password" id="newPassword" name="new_password"
+                                           class="form-input" placeholder="Min 6 characters" required minlength="6">
+                                </div>
+                                <div class="form-group" style="margin-bottom:0">
+                                    <label class="form-label" for="confirmPassword">Confirm Password</label>
+                                    <input type="password" id="confirmPassword" name="confirm_password"
+                                           class="form-input" placeholder="Repeat password" required minlength="6">
+                                </div>
+                            </div>
+                            <div class="form-actions" style="margin-top:1rem;">
+                                <button type="submit" class="btn-sm btn-outline">Update Password</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            {# Learning Stats #}
+            <div class="card reveal d1">
+                <div class="card-head">
+                    <div class="card-title">Learning <em>Stats</em></div>
+                </div>
+                <div class="card-body">
+                    {% if user.learningStats %}
+                        {% set stats = user.learningStats %}
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
+                            <div style="text-align:center;padding:1rem;background:var(--blue-bg);border-radius:var(--radius);">
+                                <div style="font-family:'Fraunces',serif;font-size:1.75rem;font-weight:300;color:var(--ink);">{{ stats.wordsLearned }}</div>
+                                <div style="font-size:.7rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:.1em;text-transform:uppercase;margin-top:.2rem;">Words</div>
+                            </div>
+                            <div style="text-align:center;padding:1rem;background:var(--orange-bg);border-radius:var(--radius);">
+                                <div style="font-family:'Fraunces',serif;font-size:1.75rem;font-weight:300;color:var(--ink);">{{ stats.totalXP }}</div>
+                                <div style="font-size:.7rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:.1em;text-transform:uppercase;margin-top:.2rem;">XP</div>
+                            </div>
+                            <div style="text-align:center;padding:1rem;background:var(--green-bg);border-radius:var(--radius);">
+                                <div style="font-family:'Fraunces',serif;font-size:1.75rem;font-weight:300;color:var(--ink);">{{ stats.totalMinutesStudied }}</div>
+                                <div style="font-size:.7rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:.1em;text-transform:uppercase;margin-top:.2rem;">Minutes</div>
+                            </div>
+                            <div style="text-align:center;padding:1rem;background:var(--violet-bg);border-radius:var(--radius);">
+                                <div style="font-family:'Fraunces',serif;font-size:1.75rem;font-weight:300;color:var(--ink);">{{ user.userLanguages|length }}</div>
+                                <div style="font-size:.7rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:.1em;text-transform:uppercase;margin-top:.2rem;">Languages</div>
+                            </div>
+                        </div>
+                        {% if stats.lastStudySession %}
+                            <div style="font-size:.8rem;color:var(--muted);text-align:center;padding:.75rem;background:var(--off-white);border-radius:var(--radius);">
+                                Last study session: <strong style="color:var(--ink);">{{ stats.lastStudySession|date('F j, Y · H:i') }}</strong>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div style="text-align:center;padding:2rem;color:var(--muted);">
+                            <div style="font-size:2rem;margin-bottom:.75rem;">📊</div>
+                            <div style="font-size:.85rem;">No stats yet. Start a lesson to track your progress!</div>
+                            <a href="{{ path('language_select') }}" style="color:var(--blue);font-weight:600;font-size:.83rem;text-decoration:none;margin-top:.75rem;display:inline-block;">Browse courses →</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {# ─── MY LANGUAGES ─── #}
+        <div class="card reveal" style="margin-bottom:1.75rem;">
+            <div class="card-head">
+                <div class="card-title">My <em>Languages</em></div>
+                <div style="display:flex;align-items:center;gap:1rem;">
+                    <span style="font-size:.75rem;color:var(--muted);">{{ user.userLanguages|length }} enrolled</span>
+                    <a href="{{ path('language_select') }}" style="font-size:.78rem;font-weight:600;color:var(--blue);text-decoration:none;">Browse all →</a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if user.userLanguages|length > 0 %}
+                    {# Card-based layout with flags #}
+                    <div class="lang-cards">
+                        {% for ul in user.userLanguages %}
+                            <div class="lang-card">
+                                {# Flag image or fallback #}
+                                {% if ul.platformLanguage.flagUrl %}
+                                    <img src="{{ ul.platformLanguage.flagUrl }}"
+                                         alt="{{ ul.platformLanguage.name }} flag"
+                                         class="lang-card-flag"
+                                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                                    <div class="lang-card-flag-placeholder" style="display:none;">🌐</div>
+                                {% else %}
+                                    <div class="lang-card-flag-placeholder">🌐</div>
+                                {% endif %}
+
+                                <div class="lang-card-body">
+                                    <div class="lang-card-name">{{ ul.platformLanguage.name }}</div>
+                                    <div class="lang-card-meta">
+                                        <span class="lang-code-badge">{{ ul.platformLanguage.code|upper }}</span>
+
+                                        {% set level = ul.proficiencyLevel|upper %}
+                                        {% if ul.isNative %}
+                                            <span class="level-pill lp-native">Native</span>
+                                        {% elseif level starts with 'A' %}
+                                            <span class="level-pill lp-a">{{ level }}</span>
+                                        {% elseif level starts with 'B' %}
+                                            <span class="level-pill lp-b">{{ level }}</span>
+                                        {% else %}
+                                            <span class="level-pill lp-c">{{ level }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <div style="font-size:.7rem;color:var(--muted);margin-top:.3rem;font-family:'DM Mono',monospace;">
+                                        Added {{ ul.addedAt|date('M j, Y') }}
+                                    </div>
+                                </div>
+
+                                {# Remove button #}
+                                <form method="post" action="{{ path('user_language_remove', {id: ul.id}) }}" style="display:contents;">
+                                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('remove_lang_' ~ ul.id) }}">
+                                    <button type="submit" class="lang-card-remove" title="Remove language"
+                                            onclick="return confirm('Remove {{ ul.platformLanguage.name }} from your profile?')">✕</button>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div style="text-align:center;padding:2.5rem;color:var(--muted);font-size:.85rem;">
+                        <div style="font-size:2.5rem;margin-bottom:.75rem;">🌍</div>
+                        <div style="margin-bottom:.75rem;">You haven't added any languages yet.</div>
+                        <a href="{{ path('language_select') }}" class="btn-sm btn-primary" style="text-decoration:none;">Explore languages</a>
+                    </div>
+                {% endif %}
+
+                {# ─── Add Language Form ─── #}
+                {% if availableLanguages is defined and availableLanguages|length > 0 %}
+                    <div class="add-lang-form">
+                        <div class="add-lang-form-title">➕ Add a Language</div>
+                        <form method="post" action="{{ path('user_language_add') }}">
+                            <input type="hidden" name="_csrf_token" value="{{ csrf_token('add_language') }}">
+                            <div class="add-lang-grid">
+                                <div>
+                                    <label class="form-label" for="language_id">Language</label>
+                                    <select name="language_id" id="language_id" class="form-select" required>
+                                        <option value="">Select a language…</option>
+                                        {% for lang in availableLanguages %}
+                                            <option value="{{ lang.id }}">
+                                                {{ lang.name }} ({{ lang.code|upper }})
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="form-label" for="proficiency_level">Proficiency Level</label>
+                                    <select name="proficiency_level" id="proficiency_level" class="form-select">
+                                        <option value="A1">A1 — Beginner</option>
+                                        <option value="A2">A2 — Elementary</option>
+                                        <option value="B1">B1 — Intermediate</option>
+                                        <option value="B2">B2 — Upper Intermediate</option>
+                                        <option value="C1">C1 — Advanced</option>
+                                        <option value="C2">C2 — Proficient</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="form-label">&nbsp;</label>
+                                    <button type="submit" class="btn-sm btn-primary" style="width:100%;padding:.65rem 1rem;">Add</button>
+                                </div>
+                            </div>
+                            <div style="margin-top:.75rem;">
+                                <label style="display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:var(--ink-soft);cursor:pointer;">
+                                    <input type="checkbox" name="is_native" value="1" style="accent-color:var(--blue);">
+                                    This is my native language
+                                </label>
+                            </div>
+                        </form>
+                    </div>
+                {% elseif user.userLanguages|length > 0 %}
+                    {# User is enrolled in all available languages #}
+                    <div style="margin-top:1.25rem;padding:.85rem 1.1rem;background:var(--green-bg);border-radius:var(--radius);font-size:.82rem;color:var(--green);border:1.5px solid rgba(22,163,74,.15);">
+                        ✓ You're enrolled in all available languages!
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {# ─── NOTIFICATIONS ─── #}
+        <div class="card reveal">
+            <div class="card-head">
+                <div class="card-title">All <em>Notifications</em></div>
+                {% set unread = 0 %}
+                {% for n in user.notifications %}{% if not n.isRead %}{% set unread = unread + 1 %}{% endif %}{% endfor %}
+                {% if unread > 0 %}
+                    <span style="font-size:.75rem;color:var(--orange);font-weight:600;">{{ unread }} unread</span>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if user.notifications|length > 0 %}
+                    {% for n in user.notifications|slice(0, 20) %}
+                        <div class="notif-row">
+                            <div class="notif-dot nd-{{ n.type }}"></div>
+                            <div class="notif-body">
+                                <div class="notif-msg {{ not n.isRead ? 'unread' : '' }}">{{ n.message }}</div>
+                                <div class="notif-meta">
+                                    <span class="notif-time">{{ n.createdAt|date('M j, Y · H:i') }}</span>
+                                    <span class="notif-type">{{ n.type }}</span>
+                                    {% if n.isRead %}
+                                        <span style="font-size:.62rem;color:var(--green);font-family:'DM Mono',monospace;">✓ read</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="notif-empty">
+                        <div style="font-size:2rem;margin-bottom:.5rem;">🔔</div>
+                        No notifications yet.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<script>
+    const sidebar   = document.getElementById('sidebar');
+    const overlay   = document.getElementById('sidebarOverlay');
+    const hamburger = document.getElementById('hamburgerBtn');
+    hamburger.addEventListener('click', () => { sidebar.classList.toggle('open'); overlay.classList.toggle('visible'); });
+    overlay.addEventListener('click',   () => { sidebar.classList.remove('open'); overlay.classList.remove('visible'); });
+
+    const ro = new IntersectionObserver(entries => {
+        entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); ro.unobserve(e.target); } });
+    }, { threshold: 0.06 });
+    document.querySelectorAll('.reveal').forEach(el => ro.observe(el));
+</script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+{% extends 'base.html.twig' %}
+{% block title %}Noter votre expérience{% endblock %}
+{% block body %}
+
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--white:#ffffff;--off-white:#f7f9fc;--surface:#eef1f8;--ink:#0d1526;--muted:#7a87a0;--border:#e2e8f2;--blue:#2563eb;--blue-bg:#eff6ff;--green:#16a34a;--green-bg:#f0fdf4;--gold:#ca8a04;--gold-bg:#fefce8;--radius:12px;--radius-lg:20px;--sidebar-w:260px}
+body{font-family:'Sora',sans-serif;background:var(--off-white);color:var(--ink);min-height:100vh}
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:50}
+.sidebar-logo{padding:1.5rem;border-bottom:1px solid var(--border);text-decoration:none;display:block}
+.sidebar-logo-text{font-size:1.3rem;font-weight:700;color:var(--ink)}
+.sidebar-logo-text span{color:var(--blue)}
+.sidebar-nav{flex:1;padding:1rem 0}
+.nav-section-label{font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);padding:.75rem 1.5rem .35rem;display:block}
+.nav-item{display:flex;align-items:center;gap:.75rem;padding:.65rem 1.5rem;font-size:.84rem;font-weight:500;color:var(--muted);text-decoration:none;transition:all .2s;position:relative}
+.nav-item:hover{color:var(--ink);background:var(--off-white)}
+.nav-item.active{color:var(--blue);background:var(--blue-bg);font-weight:600}
+.nav-item.active::before{content:'';position:absolute;left:0;top:4px;bottom:4px;width:3px;background:var(--blue);border-radius:0 3px 3px 0}
+.main{margin-left:var(--sidebar-w);min-height:100vh;display:flex;flex-direction:column}
+.topbar{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:.85rem 2rem;display:flex;align-items:center;gap:1rem}
+.page-heading{font-size:1.25rem;font-weight:700;color:var(--ink)}
+.page-sub{font-size:.78rem;color:var(--muted)}
+.page-content{padding:2rem;flex:1;max-width:600px;margin:0 auto;width:100%}
+.card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:2rem;margin-bottom:1.5rem}
+.ticket-info{background:var(--surface);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:2rem;font-size:.85rem}
+.ticket-info-label{color:var(--muted);font-size:.75rem;margin-bottom:.25rem}
+.ticket-info-value{font-weight:600;color:var(--ink)}
+
+/* Stars Rating */
+.stars-container{display:flex;flex-direction:row-reverse;justify-content:center;gap:.5rem;margin:1.5rem 0}
+.stars-container input{display:none}
+.stars-container label{font-size:2.5rem;cursor:pointer;color:#d1d5db;transition:color .15s}
+.stars-container label:hover,
+.stars-container label:hover ~ label,
+.stars-container input:checked ~ label{color:#f59e0b}
+.stars-container:hover label{color:#f59e0b}
+.stars-container label:hover ~ label{color:#f59e0b}
+.stars-container input:checked + label ~ label{color:#d1d5db}
+.stars-container:hover input:checked ~ label{color:#f59e0b}
+
+.star-label-text{text-align:center;font-size:.85rem;color:var(--muted);margin-bottom:1.5rem;min-height:1.5rem}
+.comment-area{width:100%;border:1.5px solid var(--border);border-radius:var(--radius);padding:.85rem 1rem;font-family:'Sora',sans-serif;font-size:.85rem;color:var(--ink);resize:vertical;min-height:100px;outline:none;transition:border-color .2s}
+.comment-area:focus{border-color:var(--blue)}
+.submit-btn{width:100%;padding:1rem;background:var(--blue);color:#fff;border:none;border-radius:var(--radius);font-size:1rem;font-weight:700;cursor:pointer;transition:background .2s;margin-top:1rem}
+.submit-btn:hover{background:#1d4ed8}
+.skip-link{display:block;text-align:center;margin-top:1rem;color:var(--muted);font-size:.82rem;text-decoration:none}
+.skip-link:hover{color:var(--ink)}
+.section-title{font-size:1.1rem;font-weight:700;color:var(--ink);margin-bottom:.5rem;text-align:center}
+.section-sub{font-size:.82rem;color:var(--muted);text-align:center;margin-bottom:1.5rem}
+.flash-success{background:var(--green-bg);color:var(--green);padding:.85rem 1.25rem;border-radius:var(--radius);margin-bottom:1rem;font-size:.85rem;font-weight:600}
+.flash-error{background:#fee2e2;color:#dc2626;padding:.85rem 1.25rem;border-radius:var(--radius);margin-bottom:1rem;font-size:.85rem;font-weight:600}
+</style>
+
+<aside class="sidebar">
+    <a href="{{ path('app_user_reclamation_index') }}" class="sidebar-logo">
+        <div class="sidebar-logo-text">Lingua<span>Learn</span></div>
+    </a>
+    <nav class="sidebar-nav">
+        <span class="nav-section-label">Support</span>
+        <a href="{{ path('app_user_reclamation_index') }}" class="nav-item active"><span>💬</span> Mes réclamations</a>
+        <a href="{{ path('app_faq_index') }}" class="nav-item"><span>❓</span> FAQ</a>
+        <span class="nav-section-label">Compte</span>
+        <a href="{{ path('app_logout') }}" class="nav-item"><span>→</span> Déconnexion</a>
+    </nav>
+</aside>
+
+<div class="main">
+    <header class="topbar">
+        <div>
+            <div class="page-heading">⭐ Évaluer votre expérience</div>
+            <div class="page-sub">Ticket #{{ reclamation.id }} — {{ reclamation.subject }}</div>
+        </div>
+    </header>
+
+    <main class="page-content">
+
+        {% for msg in app.flashes('error') %}
+            <div class="flash-error">{{ msg }}</div>
+        {% endfor %}
+
+        <div class="card">
+            <div class="ticket-info">
+                <div class="ticket-info-label">Réclamation résolue</div>
+                <div class="ticket-info-value">#{{ reclamation.id }} — {{ reclamation.subject }}</div>
+                {% if reclamation.resolvedAt %}
+                <div style="margin-top:.35rem;font-size:.75rem;color:var(--muted)">
+                    Résolue le {{ reclamation.resolvedAt|date('d/m/Y à H:i') }}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="section-title">Comment évaluez-vous notre support ?</div>
+            <div class="section-sub">Votre avis nous aide à améliorer nos services</div>
+
+            <form method="POST" action="{{ path('app_reclamation_rate', {id: reclamation.id}) }}">
+
+                {# ── Étoiles ── #}
+                <div class="stars-container">
+                    <input type="radio" name="score" id="s5" value="5">
+                    <label for="s5" title="Excellent">★</label>
+                    <input type="radio" name="score" id="s4" value="4">
+                    <label for="s4" title="Bien">★</label>
+                    <input type="radio" name="score" id="s3" value="3">
+                    <label for="s3" title="Moyen">★</label>
+                    <input type="radio" name="score" id="s2" value="2">
+                    <label for="s2" title="Décevant">★</label>
+                    <input type="radio" name="score" id="s1" value="1">
+                    <label for="s1" title="Très mauvais">★</label>
+                </div>
+
+                <div class="star-label-text" id="starLabel">Cliquez sur une étoile pour noter</div>
+
+                {# ── Commentaire ── #}
+                <div style="margin-bottom:.5rem;font-size:.82rem;font-weight:600;color:var(--ink)">
+                    Commentaire (optionnel)
+                </div>
+                <textarea name="comment" class="comment-area" 
+                          placeholder="Partagez votre expérience avec notre équipe support..."></textarea>
+
+                <button type="submit" class="submit-btn">
+                    ⭐ Envoyer mon évaluation
+                </button>
+            </form>
+
+            <a href="{{ path('app_user_reclamation_index') }}" class="skip-link">
+                Passer cette étape →
+            </a>
+        </div>
+
+    </main>
+</div>
+
+<script>
+const labels = {
+    1: '😞 Très mauvais — nous allons nous améliorer',
+    2: '😐 Décevant — nous prenons note',
+    3: '😊 Moyen — merci pour votre retour',
+    4: '😄 Bien — nous sommes contents !',
+    5: '🌟 Excellent — merci beaucoup !'
+};
+document.querySelectorAll('.stars-container input').forEach(input => {
+    input.addEventListener('change', () => {
+        document.getElementById('starLabel').textContent = labels[input.value] || '';
+    });
+});
+</script>
+
+{% endblock %}

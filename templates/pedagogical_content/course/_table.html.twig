@@ -1,0 +1,102 @@
+<div class="table-responsive">
+    <table class="table table-vcenter ll-table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Language</th>
+                <th>Level</th>
+                <th>Status</th>
+                <th style="width: 140px;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if courses|length > 0 %}
+                {% for course in courses %}
+                    <tr>
+                        <td>
+                            <a href="{{ path('admin_course_show', {'id': course.id}) }}"
+                               class="fw-medium text-decoration-none" style="color: var(--ll-primary);">
+                                {{ course.title }}
+                            </a>
+                        </td>
+                        <td>
+                            <span class="ll-badge bg-primary-lt text-primary">
+                                {{ course.platformLanguage.name }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if course.level == 'beginner' %}
+                                <span class="ll-badge bg-success-lt text-success">
+                                    <i class="ti ti-leaf me-1" style="font-size: 0.7rem;"></i>Beginner
+                                </span>
+                            {% elseif course.level == 'intermediate' %}
+                                <span class="ll-badge bg-warning-lt text-warning">
+                                    <i class="ti ti-flame me-1" style="font-size: 0.7rem;"></i>Intermediate
+                                </span>
+                            {% else %}
+                                <span class="ll-badge bg-danger-lt text-danger">
+                                    <i class="ti ti-bolt me-1" style="font-size: 0.7rem;"></i>Advanced
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if course.status == 'published' %}
+                                <span class="ll-badge bg-success-lt text-success">
+                                    <i class="ti ti-circle-check me-1" style="font-size: 0.7rem;"></i>Published
+                                </span>
+                            {% elseif course.status == 'draft' %}
+                                <span class="ll-badge bg-secondary-lt text-secondary">
+                                    <i class="ti ti-pencil me-1" style="font-size: 0.7rem;"></i>Draft
+                                </span>
+                            {% elseif course.status == 'archived' %}
+                                <span class="ll-badge bg-muted-lt text-muted">
+                                    <i class="ti ti-archive me-1" style="font-size: 0.7rem;"></i>Archived
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a href="{{ path('admin_course_show', {'id': course.id}) }}"
+                                   class="btn btn-ghost-primary btn-icon btn-sm" title="View"
+                                   style="border-radius: 6px; width: 32px; height: 32px;">
+                                    <i class="ti ti-eye" style="font-size: 1rem;"></i>
+                                </a>
+                                <a href="{{ path('admin_course_edit', {'id': course.id}) }}"
+                                   class="btn btn-ghost-primary btn-icon btn-sm" title="Edit"
+                                   style="border-radius: 6px; width: 32px; height: 32px;">
+                                    <i class="ti ti-edit" style="font-size: 1rem;"></i>
+                                </a>
+                                <button type="button"
+                                        class="btn btn-ghost-danger btn-icon btn-sm deleteBtn"
+                                        data-form-id="deleteForm{{ course.id }}"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#confirmDeleteModal"
+                                        title="Delete"
+                                        style="border-radius: 6px; width: 32px; height: 32px;">
+                                    <i class="ti ti-trash" style="font-size: 1rem;"></i>
+                                </button>
+                            </div>
+
+                            <form method="post"
+                                  action="{{ path('admin_course_delete', {'id': course.id}) }}"
+                                  style="display: none;"
+                                  id="deleteForm{{ course.id }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ course.id) }}">
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="5">
+                        <div class="ll-empty-state">
+                            <i class="ti ti-book-off d-block"></i>
+                            <p class="text-muted mb-1" style="font-weight: 600;">No courses found</p>
+                            <p class="text-muted mb-0" style="font-size: 0.8125rem;">Try adjusting your filters or create a new course.</p>
+                        </div>
+                    </td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>

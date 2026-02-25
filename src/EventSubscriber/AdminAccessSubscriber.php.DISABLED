@@ -1,0 +1,97 @@
+<?php
+
+namespace App\EventSubscriber;
+
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
+use Symfony\Component\HttpKernel\KernelEvents;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Core\Security;
+use Symfony\Bundle\SecurityBundle\Security as NewSecurity;
+
+class AdminAccessSubscriber implements EventSubscriberInterface
+{
+    private $security;
+    private $urlGenerator;
+
+    public function __construct($security, UrlGeneratorInterface $urlGenerator)
+    {
+        $this->security = $security;
+        $this->urlGenerator = $urlGenerator;
+    }
+
+    public static function getSubscribedEvents(): array
+    {
+        return [
+            KernelEvents::REQUEST => ['onKernelRequest', 10],
+        ];
+    }
+
+    public function onKernelRequest(RequestEvent $event): void
+    {
+        if (!$event->isMainRequest()) {
+            return;
+        }
+
+        $request = $event->getRequest();
+        $path = $request->getPathInfo();
+
+        // Skip public routes
+        if (
+            str_starts_with($path, '/login') ||
+            str_starts_with($path, '/register') ||
+            str_starts_with($path, '/setup') ||
+            str_starts_with($path, '/_') ||
+            $path === '/'
+        ) {
+            return;
+        }
+
+        // Check admin routes
+        if (str_starts_with($path, '/admin')) {
+            // Allow admin login page
+            if ($path === '/admin/login') {
+                return;
+            }
+
+            $user = $this->security->getUser();
+
+            // Not authenticated at all - redirect to admin login
+            if (!$user) {
+                $response = new RedirectResponse(
+                    $this->urlGenerator->generate('app_admin_login')
+                );
+                $event->setResponse($response);
+                return;
+            }
+
+            // Authenticated but not admin - deny access
+            if (!$this->security->isGranted('ROLE_ADMIN')) {
+                $request->getSession()->getFlashBag()->add(
+                    'error',
+                    'Access denied. Administrator privileges required.'
+                );
+
+                $response = new RedirectResponse(
+                    $this->urlGenerator->generate('user_dashboard')
+                );
+                $event->setResponse($response);
+                return;
+            }
+        }
+
+        // Check user dashboard routes
+        if (str_starts_with($path, '/dashboard')) {
+            $user = $this->security->getUser();
+
+            if (!$user) {
+                $response = new RedirectResponse(
+                    $this->urlGenerator->generate('app_login')
+                );
+                $event->setResponse($response);
+                return;
+            }
+        }
+    }
+}

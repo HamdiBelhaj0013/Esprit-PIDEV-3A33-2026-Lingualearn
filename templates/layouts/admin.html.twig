@@ -1,0 +1,713 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{% block page_title %}Admin Panel{% endblock %}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+
+    {# Premium UI CSS #}
+    <link rel="stylesheet" href="{{ asset('css/premium-ui.css') }}">
+
+    {# AOS Animations - Subtle #}
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <style>
+        /* ============================================
+           LINGUALEARN CLEAN ADMIN DESIGN
+           Simplified, Professional, Clear
+           ============================================ */
+
+        :root {
+            /* Simple, Professional Colors */
+            --ll-primary: #3b82f6;
+            --ll-primary-dark: #2563eb;
+            --ll-primary-light: #60a5fa;
+            --ll-sidebar-bg: #ffffff;
+            --ll-sidebar-border: #e5e7eb;
+            --ll-sidebar-text: #6b7280;
+            --ll-sidebar-text-active: #111827;
+            --ll-sidebar-hover: #f9fafb;
+            --ll-sidebar-active: #eff6ff;
+            --ll-transition: all 0.2s ease;
+            --ll-radius: 8px;
+            --ll-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --ll-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+        }
+
+        /* ============================================
+           CLEAN SIDEBAR
+           ============================================ */
+
+        .ll-sidebar {
+            background: var(--ll-sidebar-bg) !important;
+            border-right: 1px solid var(--ll-sidebar-border);
+            box-shadow: var(--ll-shadow-sm);
+        }
+
+        /* Logo Section */
+        .ll-sidebar .navbar-brand {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--ll-sidebar-border);
+        }
+
+        .ll-sidebar .navbar-brand a {
+            text-decoration: none;
+            color: #111827;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: var(--ll-transition);
+        }
+
+        .ll-sidebar .navbar-brand a:hover {
+            opacity: 0.8;
+        }
+
+        .ll-sidebar .ll-logo-img {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+            transition: var(--ll-transition);
+        }
+
+        /* Larger on desktop */
+        @media (min-width: 992px) {
+            .ll-sidebar .ll-logo-img {
+                width: 65px;
+                height: 65px;
+            }
+        }
+
+        .ll-sidebar .navbar-brand a:hover .ll-logo-img {
+            transform: scale(1.05);
+        }
+
+        .ll-sidebar .ll-logo-text {
+            font-weight: 700;
+            font-size: 1.125rem;
+            letter-spacing: -0.02em;
+            color: #111827;
+        }
+
+        /* Admin Badge - Simplified */
+        .ll-admin-badge {
+            background: #f3f4f6;
+            color: #6b7280;
+            border: 1px solid #e5e7eb;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 0.375rem 0.75rem;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        /* Clean Nav Items */
+        .ll-sidebar .nav-link {
+            color: var(--ll-sidebar-text) !important;
+            border-radius: 6px;
+            margin: 2px 12px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: var(--ll-transition);
+            position: relative;
+        }
+
+        .ll-sidebar .nav-link::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 0;
+            background: var(--ll-primary);
+            border-radius: 0 2px 2px 0;
+            transition: height 0.2s ease;
+        }
+
+        .ll-sidebar .nav-link:hover {
+            color: var(--ll-sidebar-text-active) !important;
+            background: var(--ll-sidebar-hover);
+        }
+
+        .ll-sidebar .nav-link.active {
+            color: var(--ll-sidebar-text-active) !important;
+            background: var(--ll-sidebar-active);
+            font-weight: 600;
+        }
+
+        .ll-sidebar .nav-link.active::before {
+            height: 20px;
+        }
+
+        .ll-sidebar .nav-link.active .nav-link-icon {
+            color: var(--ll-primary) !important;
+        }
+
+        .ll-sidebar .nav-link-icon {
+            color: var(--ll-sidebar-text) !important;
+            opacity: 0.8;
+            width: 1.5rem;
+            font-size: 1.1rem;
+            transition: var(--ll-transition);
+        }
+
+        .ll-sidebar .nav-link:hover .nav-link-icon,
+        .ll-sidebar .nav-link.active .nav-link-icon {
+            opacity: 1;
+        }
+
+        /* Dropdown Menu - Clean */
+        .ll-sidebar .dropdown-menu {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 0.5rem;
+            margin-left: 12px;
+            margin-right: 12px;
+            margin-top: 0.25rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .ll-sidebar .dropdown-menu .dropdown-item {
+            color: var(--ll-sidebar-text);
+            border-radius: 6px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8125rem;
+            transition: var(--ll-transition);
+            margin-bottom: 2px;
+        }
+
+        .ll-sidebar .dropdown-menu .dropdown-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .ll-sidebar .dropdown-menu .dropdown-item:hover {
+            color: var(--ll-sidebar-text-active);
+            background: var(--ll-sidebar-hover);
+        }
+
+        .ll-sidebar .dropdown-menu .dropdown-item i {
+            opacity: 0.7;
+            font-size: 1rem;
+            color: var(--ll-sidebar-text);
+        }
+
+        .ll-sidebar .dropdown-menu .dropdown-item:hover i {
+            opacity: 1;
+            color: var(--ll-primary);
+        }
+
+        .ll-sidebar .dropdown-divider {
+            border-color: #e5e7eb;
+            margin: 0.5rem 0;
+        }
+
+        /* Section Labels - Clean */
+        .ll-nav-section {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #9ca3af;
+            padding: 1rem 1.25rem 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .ll-nav-section:first-of-type {
+            margin-top: 0;
+        }
+
+        /* Sidebar User Card - Clean */
+        .ll-sidebar-user {
+            border-top: 1px solid var(--ll-sidebar-border);
+            padding: 1rem 1.25rem;
+            background: #fafafa;
+        }
+
+        .ll-sidebar-user .avatar {
+            background: var(--ll-primary);
+            color: white;
+        }
+
+        .ll-sidebar-user a:hover {
+            opacity: 0.7;
+        }
+
+        /* ============================================
+           CLEAN TOP BAR
+           ============================================ */
+
+        .ll-topbar {
+            background: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+            box-shadow: var(--ll-shadow-sm);
+        }
+
+        .ll-topbar .page-pretitle {
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--ll-primary);
+        }
+
+        .ll-topbar .avatar {
+            background: var(--ll-primary) !important;
+        }
+
+        /* ============================================
+           CLEAN CONTENT AREA
+           ============================================ */
+
+        .ll-page-body {
+            background: #f9fafb;
+            min-height: calc(100vh - 120px);
+        }
+
+        /* Page Header */
+        .ll-page-header {
+            padding: 1.5rem 0;
+        }
+
+        .ll-page-header .page-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #111827;
+            letter-spacing: -0.02em;
+        }
+
+        /* ============================================
+           CLEAN ALERTS
+           ============================================ */
+
+        .ll-alert {
+            border-radius: 8px;
+            border: 1px solid;
+            font-size: 0.875rem;
+            padding: 1rem 1.25rem;
+            box-shadow: var(--ll-shadow-sm);
+        }
+
+        .ll-alert.alert-success {
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+            color: #166534;
+        }
+
+        .ll-alert.alert-danger {
+            background: #fef2f2;
+            border-color: #fecaca;
+            color: #991b1b;
+        }
+
+        .ll-alert.alert-warning {
+            background: #fffbeb;
+            border-color: #fde68a;
+            color: #92400e;
+        }
+
+        .ll-alert.alert-info {
+            background: #eff6ff;
+            border-color: #bfdbfe;
+            color: #1e40af;
+        }
+
+        /* ============================================
+           CLEAN FOOTER
+           ============================================ */
+
+        .ll-footer {
+            border-top: 1px solid #e5e7eb;
+            background: #ffffff;
+            padding: 1.5rem 0;
+        }
+
+        .ll-footer .text-muted {
+            font-size: 0.8125rem;
+            color: #6b7280 !important;
+        }
+
+        /* ============================================
+           SUBTLE ANIMATIONS
+           ============================================ */
+
+        [data-aos] {
+            transition-timing-function: ease !important;
+        }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+
+        @media (max-width: 991.98px) {
+            .ll-sidebar .dropdown-menu {
+                margin-left: 0;
+                margin-right: 0;
+            }
+
+            .ll-sidebar .nav-link {
+                margin: 2px 8px;
+            }
+        }
+
+        /* Clean Scrollbar */
+        .ll-sidebar ::-webkit-scrollbar {
+            width: 6px;
+        }
+        .ll-sidebar ::-webkit-scrollbar-track {
+            background: #f9fafb;
+        }
+        .ll-sidebar ::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 3px;
+        }
+        .ll-sidebar ::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+
+        /* Dark mode support for sidebar text */
+        @media (prefers-color-scheme: dark) {
+            .ll-sidebar {
+                background: #ffffff !important;
+            }
+        }
+    </style>
+    {% block admin_styles %}{% endblock %}
+{% endblock %}
+
+{% block body %}
+    <div class="page">
+        {# ===== SIDEBAR ===== #}
+        <aside class="navbar navbar-vertical navbar-expand-lg ll-sidebar">
+            <div class="container-fluid">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#admin-sidebar-menu" aria-controls="admin-sidebar-menu"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                {# Logo #}
+                <h1 class="navbar-brand navbar-brand-autodark">
+                    <a href="{{ path('admin_dashboard') }}">
+                        <img src="{{ asset('assets/images/ling.png') }}" alt="LinguaLearn" class="ll-logo-img">
+                        <span class="ll-logo-text">LinguaLearn</span>
+                    </a>
+                </h1>
+
+                {# Admin Badge #}
+                <div class="d-none d-lg-block px-3 pb-3">
+                    <div class="ll-admin-badge">
+                        <i class="ti ti-shield-check me-1"></i> Admin Panel
+                    </div>
+                </div>
+
+                <div class="collapse navbar-collapse" id="admin-sidebar-menu">
+                    <ul class="navbar-nav pt-lg-3">
+
+                        {# ── MAIN ── #}
+                        <li class="ll-nav-section">Main</li>
+
+                        {# Dashboard #}
+                        <li class="nav-item" data-aos="fade-right" data-aos-duration="400" data-aos-delay="50">
+                            <a class="nav-link {% if app.request.attributes.get('_route') == 'admin_dashboard' %}active{% endif %}"
+                               href="{{ path('admin_dashboard') }}">
+                                <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-layout-dashboard"></i></span>
+                                <span class="nav-link-title">Dashboard</span>
+                            </a>
+                        </li>
+
+                        {# ── MANAGEMENT ── #}
+                        <li class="ll-nav-section">Management</li>
+
+                        {# User Management #}
+                        <li class="nav-item dropdown" data-aos="fade-right" data-aos-duration="400" data-aos-delay="100">
+                            <a class="nav-link dropdown-toggle {% if 'admin_users_' in app.request.attributes.get('_route', '') %}active{% endif %}"
+                               href="#" data-bs-toggle="dropdown" data-bs-auto-close="false"
+                               role="button" aria-expanded="false">
+                                <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-users-group"></i></span>
+                                <span class="nav-link-title">Users</span>
+                            </a>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="{{ path('admin_users_index') }}">
+                                    <i class="ti ti-list me-2"></i> All Users
+                                </a>
+                                <a class="dropdown-item" href="{{ path('admin_users_new') }}">
+                                    <i class="ti ti-user-plus me-2"></i> Add User
+                                </a>
+                            </div>
+                        </li>
+
+                        {# ── CONTENT ── #}
+                        <li class="ll-nav-section">Content</li>
+
+                        {# Pedagogical Content #}
+                        <li class="nav-item dropdown" data-aos="fade-right" data-aos-duration="400" data-aos-delay="150">
+                            <a class="nav-link dropdown-toggle {% if 'admin_language_' in app.request.attributes.get('_route', '') or 'admin_course_' in app.request.attributes.get('_route', '') or 'admin_lesson_' in app.request.attributes.get('_route', '') %}active{% endif %}"
+                               href="#" data-bs-toggle="dropdown" data-bs-auto-close="false"
+                               role="button" aria-expanded="false">
+                                <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-book-2"></i></span>
+                                <span class="nav-link-title">Courses</span>
+                            </a>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="{{ path('admin_language_index') }}">
+                                    <i class="ti ti-world me-2"></i> Languages
+                                </a>
+                                <a class="dropdown-item" href="{{ path('admin_course_index') }}">
+                                    <i class="ti ti-book me-2"></i> Courses
+                                </a>
+                                <a class="dropdown-item" href="{{ path('admin_lesson_index') }}">
+                                    <i class="ti ti-notebook me-2"></i> Lessons
+                                </a>
+                            </div>
+                        </li>
+
+                        {# Exercises & Quizzes #}
+                        <li class="nav-item dropdown" data-aos="fade-right" data-aos-duration="400" data-aos-delay="200">
+                            <a class="nav-link dropdown-toggle {% if 'exercice_' in app.request.attributes.get('_route', '') or 'quiz_' in app.request.attributes.get('_route', '') or 'app_exercises_' in app.request.attributes.get('_route', '') %}active{% endif %}"
+                               href="#" data-bs-toggle="dropdown" data-bs-auto-close="false"
+                               role="button" aria-expanded="false">
+                                <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-clipboard-check"></i></span>
+                                <span class="nav-link-title">Exercises & Quizzes</span>
+                            </a>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="{{ path('exercice_index') }}">
+                                    <i class="ti ti-puzzle me-2"></i> Exercises
+                                </a>
+                                <a class="dropdown-item" href="{{ path('exercice_new') }}">
+                                    <i class="ti ti-plus me-2"></i> New Exercise
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="{{ path('quiz_index') }}">
+                                    <i class="ti ti-list-check me-2"></i> Quizzes
+                                </a>
+                                <a class="dropdown-item" href="{{ path('quiz_new') }}">
+                                    <i class="ti ti-plus me-2"></i> New Quiz
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="{{ path('app_exercises_quizzes_user_lesson_status_list') }}">
+                                    <i class="ti ti-chart-dots me-2"></i> User Progress
+                                </a>
+                            </div>
+                        </li>
+
+                        {# International Tests #}
+                        <li class="nav-item dropdown" data-aos="fade-right" data-aos-duration="400" data-aos-delay="250">
+                            <a class="nav-link dropdown-toggle {% if 'mocktest_' in app.request.attributes.get('_route', '') or 'testquestion_' in app.request.attributes.get('_route', '') or 'testresult_' in app.request.attributes.get('_route', '') %}active{% endif %}"
+                               href="#" data-bs-toggle="dropdown" data-bs-auto-close="false"
+                               role="button" aria-expanded="false">
+                                <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-certificate"></i></span>
+                                <span class="nav-link-title">Tests</span>
+                            </a>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="{{ path('mocktest_index') }}">
+                                    <i class="ti ti-file-text me-2"></i> Mock Tests
+                                </a>
+                                <a class="dropdown-item" href="{{ path('mocktest_new') }}">
+                                    <i class="ti ti-plus me-2"></i> New Mock Test
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="{{ path('testquestion_index') }}">
+                                    <i class="ti ti-help me-2"></i> Questions
+                                </a>
+                                <a class="dropdown-item" href="{{ path('testquestion_new') }}">
+                                    <i class="ti ti-plus me-2"></i> New Question
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="{{ path('testresult_index') }}">
+                                    <i class="ti ti-chart-bar me-2"></i> Test Results
+                                </a>
+                                <a class="dropdown-item" href="{{ path('testresult_new') }}">
+                                    <i class="ti ti-plus me-2"></i> New Test Result
+                                </a>
+                            </div>
+                        </li>
+
+                        {# ── COMMUNITY ── #}
+                        <li class="ll-nav-section">Community</li>
+
+                        {# Forum #}
+                        <li class="nav-item dropdown" data-aos="fade-right" data-aos-duration="400" data-aos-delay="300">
+                            <a class="nav-link dropdown-toggle {% if 'admin_forum_' in app.request.attributes.get('_route', '') %}active{% endif %}"
+                               href="#" data-bs-toggle="dropdown" data-bs-auto-close="false"
+                               role="button" aria-expanded="false">
+                                <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-messages"></i></span>
+                                <span class="nav-link-title">Forum</span>
+                            </a>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="{{ path('admin_forum_index') }}">
+                                    <i class="ti ti-layout-dashboard me-2"></i> Overview
+                                </a>
+                                <a class="dropdown-item" href="{{ path('admin_forum_post_index') }}">
+                                    <i class="ti ti-message me-2"></i> Posts
+                                </a>
+                                <a class="dropdown-item" href="{{ path('admin_forum_reply_index') }}">
+                                    <i class="ti ti-corner-up-left me-2"></i> Replies
+                                </a>
+                            </div>
+                        </li>
+
+                        {# Support #}
+                        <li class="nav-item dropdown" data-aos="fade-right" data-aos-duration="400" data-aos-delay="350">
+                            <a class="nav-link dropdown-toggle {% if 'app_support' in app.request.attributes.get('_route', '') or 'app_reclamation' in app.request.attributes.get('_route', '') or 'app_faq' in app.request.attributes.get('_route', '') %}active{% endif %}"
+                               href="#" data-bs-toggle="dropdown" data-bs-auto-close="false"
+                               role="button" aria-expanded="false">
+                                <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-lifebuoy"></i></span>
+                                <span class="nav-link-title">Support</span>
+                            </a>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="{{ path('app_support_dashboard') }}">
+                                    <i class="ti ti-layout-dashboard me-2"></i> Dashboard
+                                </a>
+                                <a class="dropdown-item" href="{{ path('app_reclamation_index') }}">
+                                    <i class="ti ti-ticket me-2"></i> Tickets
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="{{ path('app_faq_index') }}">
+                                    <i class="ti ti-help-circle me-2"></i> FAQ
+                                </a>
+                                <a class="dropdown-item" href="{{ path('app_faq_new') }}">
+                                    <i class="ti ti-plus me-2"></i> Add FAQ
+                                </a>
+                            </div>
+                        </li>
+
+                        {# ── SYSTEM ── #}
+                        <li class="ll-nav-section">System</li>
+
+                        <li class="nav-item" data-aos="fade-right" data-aos-duration="400" data-aos-delay="400">
+                            <a class="nav-link" href="#">
+                                <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-settings"></i></span>
+                                <span class="nav-link-title">Settings</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                {# Sidebar User Card #}
+                <div class="d-none d-lg-block ll-sidebar-user">
+                    <div class="d-flex align-items-center">
+                        <span class="avatar avatar-sm me-2">
+                            {{ app.user ? app.user.firstName|first|upper : 'A' }}
+                        </span>
+                        <div class="flex-fill" style="min-width: 0;">
+                            <div class="fw-semibold small text-truncate" style="color: #111827;">
+                                {{ app.user ? app.user.fullName : 'Admin' }}
+                            </div>
+                            <div class="small text-truncate text-muted" style="font-size: 0.75rem;">
+                                {{ app.user ? app.user.email : '' }}
+                            </div>
+                        </div>
+                        <a href="{{ path('app_admin_logout') }}" class="ms-2 text-muted"
+                           title="Logout">
+                            <i class="ti ti-logout"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        {# ===== MAIN CONTENT ===== #}
+        <div class="page-wrapper">
+            {# Page Content #}
+            <div class="page-body ll-page-body">
+                <div class="container-xl">
+
+                    {# Flash Messages #}
+                    {% for label, messages in app.flashes %}
+                        {% for message in messages %}
+                            <div class="alert ll-alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible mt-3" role="alert">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-2">
+                                        {% if label == 'success' %}<i class="ti ti-circle-check fs-3"></i>
+                                        {% elseif label == 'warning' %}<i class="ti ti-alert-triangle fs-3"></i>
+                                        {% elseif label == 'danger' or label == 'error' %}<i class="ti ti-circle-x fs-3"></i>
+                                        {% else %}<i class="ti ti-info-circle fs-3"></i>{% endif %}
+                                    </div>
+                                    <div>{{ message }}</div>
+                                </div>
+                                <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+                            </div>
+                        {% endfor %}
+                    {% endfor %}
+
+                    {# Page Header #}
+                    {% block page_header %}
+                        <div class="ll-page-header d-print-none">
+                            <div class="row align-items-center">
+                                <div class="col">
+                                    {% block breadcrumb %}{% endblock %}
+                                    <h2 class="page-title">
+                                        {{ block('page_title') }}
+                                    </h2>
+                                </div>
+                                <div class="col-auto ms-auto d-print-none">
+                                    <div class="btn-list">
+                                        {% block page_actions %}{% endblock %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endblock %}
+
+                    {# Main Content #}
+                    {% block content %}{% endblock %}
+
+                </div>
+            </div>
+
+            {# Footer #}
+            <footer class="footer footer-transparent d-print-none ll-footer">
+                <div class="container-xl">
+                    <div class="row text-center align-items-center flex-row-reverse">
+                        <div class="col-lg-auto ms-lg-auto">
+                            <ul class="list-inline list-inline-dots mb-0">
+                                <li class="list-inline-item">
+                                    <span class="text-muted">LinguaLearn Admin v1.0</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-12 col-lg-auto mt-3 mt-lg-0">
+                            <ul class="list-inline list-inline-dots mb-0">
+                                <li class="list-inline-item">
+                                    <span class="text-muted">&copy; {{ "now"|date("Y") }} LinguaLearn. All rights reserved.</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    {# Delete Modal Component #}
+    {% include 'components/_delete_modal.html.twig' ignore missing %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+
+    {# AOS Animations - Subtle & Smooth #}
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        // Initialize AOS with subtle settings
+        AOS.init({
+            duration: 400,
+            easing: 'ease',
+            once: true,
+            offset: 10,
+            delay: 0,
+            disable: 'mobile' // Disable on mobile for better performance
+        });
+
+        // Refresh AOS on dynamic content
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                AOS.refresh();
+            }, 100);
+        });
+    </script>
+{% endblock %}

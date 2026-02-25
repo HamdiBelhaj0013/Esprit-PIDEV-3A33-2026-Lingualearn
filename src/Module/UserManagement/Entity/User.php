@@ -7,13 +7,19 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: 'users')]
 #[ORM\HasLifecycleCallbacks]
+#[UniqueEntity(
+    fields: ['email'],
+    message: 'This email is already registered.'
+)]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -24,29 +30,31 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 180, unique: true)]
     #[Groups(['user:read'])]
+    #[Assert\NotBlank(message: 'Email is required.')]
+    #[Assert\Email(message: 'Please enter a valid email address.')]
+    #[Assert\Length(max: 180, maxMessage: 'Email cannot be longer than {{ limit }} characters.')]
     private ?string $email = null;
 
     #[ORM\Column]
     private array $roles = [];
+    #[ORM\Column(options: ['default' => false])]
+    private bool $isBanned = false;
 
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $bannedUntil = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $banReason = null;
     #[ORM\Column]
     private ?string $password = null;
 
     #[ORM\Column(length: 50)]
     #[Groups(['user:read'])]
-    private ?string $status = 'active'; // active, suspended, deleted
-
-    #[ORM\Column(length: 100)]
-    #[Groups(['user:read'])]
-    private ?string $firstName = null;
-
-    #[ORM\Column(length: 100)]
-    #[Groups(['user:read'])]
-    private ?string $lastName = null;
-
-    #[ORM\Column(length: 50)]
-    #[Groups(['user:read'])]
-    private ?string $subscriptionPlan = 'FREE'; // FREE, PREMIUM_MONTHLY, PREMIUM_YEARLY
+    #[Assert\Choice(
+        choices: ['FREE', 'MONTHLY', 'YEARLY'],
+        message: 'Invalid subscription plan. Must be FREE, MONTHLY, or YEARLY.'
+    )]
+    private ?string $subscriptionPlan = 'FREE';
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     #[Groups(['user:read'])]
@@ -63,6 +71,69 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['user:read'])]
     private ?\DateTimeInterface $createdAt = null;
 
+    #[ORM\Column(length: 50)]
+    #[Groups(['user:read'])]
+    #[Assert\NotBlank(message: 'Status is required.')]
+    #[Assert\Choice(
+        choices: ['active', 'suspended', 'deleted'],
+        message: 'Status must be one of: active, suspended, or deleted.'
+    )]
+    private ?string $status = 'active';
+
+    #[ORM\Column(length: 100)]
+    #[Groups(['user:read'])]
+    #[Assert\NotBlank(message: 'First name is required.')]
+    #[Assert\Length(min: 2, max: 100)]
+    #[Assert\Regex(pattern: '/^[a-zA-ZÀ-ÿ\s\'-]+$/u')]
+    private ?string $firstName = null;
+
+    #[ORM\Column(length: 100)]
+    #[Groups(['user:read'])]
+    #[Assert\NotBlank(message: 'Last name is required.')]
+    #[Assert\Length(min: 2, max: 100)]
+    #[Assert\Regex(pattern: '/^[a-zA-ZÀ-ÿ\s\'-]+$/u')]
+    private ?string $lastName = null;
+
+    // =========================================================
+    // EMAIL VERIFICATION
+    // =========================================================
+    /** Whether the user has clicked the link in their verification email */
+    #[ORM\Column(options: ['default' => false])]
+    private bool $isVerified = false;
+
+    /** Random hex token stored in the DB and included in the verify link */
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $emailVerificationToken = null;
+
+    /** Token becomes invalid after this timestamp (default: 24 h from issuance) */
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $emailVerificationTokenExpiresAt = null;
+
+    // =========================================================
+    // PASSWORD RESET
+    // =========================================================
+    /** Random hex token included in the reset link */
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $passwordResetToken = null;
+
+    /** Token becomes invalid after this timestamp (default: 1 h from issuance) */
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $passwordResetTokenExpiresAt = null;
+
+    // =========================================================
+    // STRIPE PAYMENT
+    // =========================================================
+    /** Stripe Customer ID — created once per user on first checkout */
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $stripeCustomerId = null;
+
+    /** Stripe Subscription ID — set after checkout.session.completed webhook */
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $stripeSubscriptionId = null;
+
+    // =========================================================
+    // RELATIONS
+    // =========================================================
     #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
     #[Groups(['stats:read'])]
     private ?LearningStats $learningStats = null;
@@ -73,11 +144,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Notification::class, mappedBy: 'user', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $notifications;
 
+    // =========================================================
+    // CONSTRUCTOR / LIFECYCLE
+    // =========================================================
     public function __construct()
     {
         $this->userLanguages = new ArrayCollection();
         $this->notifications = new ArrayCollection();
-        $this->roles = ['ROLE_USER'];
+        $this->roles         = ['ROLE_USER'];
     }
 
     #[ORM\PrePersist]
@@ -86,99 +160,41 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->createdAt = new \DateTime();
     }
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
+    // =========================================================
+    // CORE GETTERS / SETTERS
+    // =========================================================
+    public function getId(): ?int { return $this->id; }
 
-    public function getEmail(): ?string
-    {
-        return $this->email;
-    }
+    public function getEmail(): ?string { return $this->email; }
+    public function setEmail(string $email): static { $this->email = $email; return $this; }
 
-    public function setEmail(string $email): static
-    {
-        $this->email = $email;
-        return $this;
-    }
-
-    public function getUserIdentifier(): string
-    {
-        return (string) $this->email;
-    }
+    public function getUserIdentifier(): string { return (string) $this->email; }
 
     public function getRoles(): array
     {
-        $roles = $this->roles;
+        $roles   = $this->roles;
         $roles[] = 'ROLE_USER';
         return array_unique($roles);
     }
+    public function setRoles(array $roles): static { $this->roles = $roles; return $this; }
 
-    public function setRoles(array $roles): static
-    {
-        $this->roles = $roles;
-        return $this;
-    }
+    public function getPassword(): string { return $this->password; }
+    public function setPassword(string $password): static { $this->password = $password; return $this; }
 
-    public function getPassword(): string
-    {
-        return $this->password;
-    }
+    public function eraseCredentials(): void {}
 
-    public function setPassword(string $password): static
-    {
-        $this->password = $password;
-        return $this;
-    }
+    public function getStatus(): ?string { return $this->status; }
+    public function setStatus(string $status): static { $this->status = $status; return $this; }
 
-    public function eraseCredentials(): void
-    {
-        // Clear temporary sensitive data if any
-    }
+    public function getFirstName(): ?string { return $this->firstName; }
+    public function setFirstName(string $firstName): static { $this->firstName = $firstName; return $this; }
 
-    public function getStatus(): ?string
-    {
-        return $this->status;
-    }
+    public function getLastName(): ?string { return $this->lastName; }
+    public function setLastName(string $lastName): static { $this->lastName = $lastName; return $this; }
 
-    public function setStatus(string $status): static
-    {
-        $this->status = $status;
-        return $this;
-    }
+    public function getFullName(): string { return $this->firstName . ' ' . $this->lastName; }
 
-    public function getFirstName(): ?string
-    {
-        return $this->firstName;
-    }
-
-    public function setFirstName(string $firstName): static
-    {
-        $this->firstName = $firstName;
-        return $this;
-    }
-
-    public function getLastName(): ?string
-    {
-        return $this->lastName;
-    }
-
-    public function setLastName(string $lastName): static
-    {
-        $this->lastName = $lastName;
-        return $this;
-    }
-
-    public function getFullName(): string
-    {
-        return $this->firstName . ' ' . $this->lastName;
-    }
-
-    public function getSubscriptionPlan(): ?string
-    {
-        return $this->subscriptionPlan;
-    }
-
+    public function getSubscriptionPlan(): ?string { return $this->subscriptionPlan; }
     public function setSubscriptionPlan(string $subscriptionPlan): static
     {
         $this->subscriptionPlan = $subscriptionPlan;
@@ -186,11 +202,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getSubscriptionExpiry(): ?\DateTimeInterface
-    {
-        return $this->subscriptionExpiry;
-    }
-
+    public function getSubscriptionExpiry(): ?\DateTimeInterface { return $this->subscriptionExpiry; }
     public function setSubscriptionExpiry(?\DateTimeInterface $subscriptionExpiry): static
     {
         $this->subscriptionExpiry = $subscriptionExpiry;
@@ -198,77 +210,69 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function isPremium(): bool
-    {
-        return $this->isPremium;
-    }
+    public function isPremium(): bool { return $this->isPremium; }
 
+    /**
+     * DO NOT call this directly to grant or revoke premium.
+     *
+     * isPremium is a COMPUTED field — always derived from subscriptionPlan
+     * + subscriptionExpiry via updatePremiumStatus(). Calling setPremium(true)
+     * without a valid plan and future expiry is meaningless: the next call to
+     * setSubscriptionPlan() or setSubscriptionExpiry() will immediately
+     * overwrite whatever was set here.
+     *
+     * To upgrade: call UserService::upgradeToPremium()
+     * To downgrade: call UserService::downgradeToFree()
+     *
+     * @internal Kept only so legacy call-sites do not throw fatal errors.
+     *           All writes are intentionally ignored.
+     */
     public function setPremium(bool $isPremium): static
     {
-        $this->isPremium = $isPremium;
+        // No-op: isPremium is governed exclusively by updatePremiumStatus().
+        // Doctrine hydrates the column directly via reflection, bypassing this
+        // setter, so leaving it as a no-op is safe for DB reads too.
         return $this;
     }
 
+    /**
+     * Recomputes isPremium from subscriptionPlan + subscriptionExpiry.
+     * This is the ONLY place that writes to $this->isPremium.
+     * Called automatically by setSubscriptionPlan() and setSubscriptionExpiry().
+     */
     private function updatePremiumStatus(): void
     {
-        if ($this->subscriptionPlan === 'FREE') {
-            $this->isPremium = false;
-        } elseif ($this->subscriptionExpiry && $this->subscriptionExpiry > new \DateTime()) {
-            $this->isPremium = true;
-        } else {
-            $this->isPremium = false;
-        }
+        $this->isPremium = (
+            in_array($this->subscriptionPlan, ['MONTHLY', 'YEARLY'])
+            && $this->subscriptionExpiry !== null
+            && $this->subscriptionExpiry > new \DateTime()
+        );
     }
 
-    public function getLastPaymentStatus(): ?string
-    {
-        return $this->lastPaymentStatus;
-    }
-
+    public function getLastPaymentStatus(): ?string { return $this->lastPaymentStatus; }
     public function setLastPaymentStatus(?string $lastPaymentStatus): static
     {
         $this->lastPaymentStatus = $lastPaymentStatus;
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeInterface
-    {
-        return $this->createdAt;
-    }
+    public function getCreatedAt(): ?\DateTimeInterface { return $this->createdAt; }
+    public function setCreatedAt(\DateTimeInterface $createdAt): static { $this->createdAt = $createdAt; return $this; }
 
-    public function setCreatedAt(\DateTimeInterface $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-        return $this;
-    }
-
-    public function getLearningStats(): ?LearningStats
-    {
-        return $this->learningStats;
-    }
-
+    public function getLearningStats(): ?LearningStats { return $this->learningStats; }
     public function setLearningStats(?LearningStats $learningStats): static
     {
         if ($learningStats === null && $this->learningStats !== null) {
             $this->learningStats->setUser(null);
         }
-
         if ($learningStats !== null && $learningStats->getUser() !== $this) {
             $learningStats->setUser($this);
         }
-
         $this->learningStats = $learningStats;
         return $this;
     }
 
-    /**
-     * @return Collection<int, UserLanguage>
-     */
-    public function getUserLanguages(): Collection
-    {
-        return $this->userLanguages;
-    }
-
+    public function getUserLanguages(): Collection { return $this->userLanguages; }
     public function addUserLanguage(UserLanguage $userLanguage): static
     {
         if (!$this->userLanguages->contains($userLanguage)) {
@@ -277,7 +281,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
         return $this;
     }
-
     public function removeUserLanguage(UserLanguage $userLanguage): static
     {
         if ($this->userLanguages->removeElement($userLanguage)) {
@@ -288,14 +291,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    /**
-     * @return Collection<int, Notification>
-     */
-    public function getNotifications(): Collection
-    {
-        return $this->notifications;
-    }
-
+    public function getNotifications(): Collection { return $this->notifications; }
     public function addNotification(Notification $notification): static
     {
         if (!$this->notifications->contains($notification)) {
@@ -304,7 +300,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
         return $this;
     }
-
     public function removeNotification(Notification $notification): static
     {
         if ($this->notifications->removeElement($notification)) {
@@ -314,4 +309,113 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
         return $this;
     }
+
+    // =========================================================
+    // EMAIL VERIFICATION METHODS
+    // =========================================================
+    public function isVerified(): bool { return $this->isVerified; }
+    public function setIsVerified(bool $isVerified): static
+    {
+        $this->isVerified = $isVerified;
+        return $this;
+    }
+
+    public function getEmailVerificationToken(): ?string { return $this->emailVerificationToken; }
+    public function setEmailVerificationToken(?string $token): static
+    {
+        $this->emailVerificationToken = $token;
+        return $this;
+    }
+
+    public function getEmailVerificationTokenExpiresAt(): ?\DateTimeInterface
+    {
+        return $this->emailVerificationTokenExpiresAt;
+    }
+    public function setEmailVerificationTokenExpiresAt(?\DateTimeInterface $dt): static
+    {
+        $this->emailVerificationTokenExpiresAt = $dt;
+        return $this;
+    }
+
+    /** Returns true only if a token exists AND it hasn't expired yet */
+    public function isEmailVerificationTokenValid(): bool
+    {
+        return $this->emailVerificationToken !== null
+            && $this->emailVerificationTokenExpiresAt !== null
+            && $this->emailVerificationTokenExpiresAt > new \DateTime();
+    }
+
+    // =========================================================
+    // PASSWORD RESET METHODS
+    // =========================================================
+    public function getPasswordResetToken(): ?string { return $this->passwordResetToken; }
+    public function setPasswordResetToken(?string $token): static
+    {
+        $this->passwordResetToken = $token;
+        return $this;
+    }
+
+    public function getPasswordResetTokenExpiresAt(): ?\DateTimeInterface
+    {
+        return $this->passwordResetTokenExpiresAt;
+    }
+    public function setPasswordResetTokenExpiresAt(?\DateTimeInterface $dt): static
+    {
+        $this->passwordResetTokenExpiresAt = $dt;
+        return $this;
+    }
+
+    /** Returns true only if a token exists AND it hasn't expired yet */
+    public function isPasswordResetTokenValid(): bool
+    {
+        return $this->passwordResetToken !== null
+            && $this->passwordResetTokenExpiresAt !== null
+            && $this->passwordResetTokenExpiresAt > new \DateTime();
+    }
+
+    // =========================================================
+    // STRIPE PAYMENT METHODS
+    // =========================================================
+    public function getStripeCustomerId(): ?string { return $this->stripeCustomerId; }
+    public function setStripeCustomerId(?string $id): static { $this->stripeCustomerId = $id; return $this; }
+
+    public function getStripeSubscriptionId(): ?string { return $this->stripeSubscriptionId; }
+    public function setStripeSubscriptionId(?string $id): static { $this->stripeSubscriptionId = $id; return $this; }
+    // Add these methods at the bottom of the class, before the closing }
+
+// =========================================================
+// BAN METHODS
+// =========================================================
+    public function getIsBanned(): bool { return $this->isBanned; }
+    public function setIsBanned(bool $isBanned): static { $this->isBanned = $isBanned; return $this; }
+
+    public function isBanned(): bool { return $this->isBanned; }
+
+    public function getBannedUntil(): ?\DateTimeInterface { return $this->bannedUntil; }
+    public function setBannedUntil(?\DateTimeInterface $bannedUntil): static
+    {
+        $this->bannedUntil = $bannedUntil;
+        return $this;
+    }
+
+    public function getBanReason(): ?string { return $this->banReason; }
+    public function setBanReason(?string $banReason): static
+    {
+        $this->banReason = $banReason;
+        return $this;
+    }
+
+    public function isCurrentlyBanned(): bool
+    {
+        if (!$this->isBanned) {
+            return false;
+        }
+        // Permanent ban
+        if ($this->bannedUntil === null) {
+            return true;
+        }
+        // Temporary ban - check if still active
+        return $this->bannedUntil > new \DateTime();
+    }
 }
+

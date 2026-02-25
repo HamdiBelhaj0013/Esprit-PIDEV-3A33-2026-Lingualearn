@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account — LinguaLearn</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&family=Fraunces:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --white:     #ffffff;
+            --off-white: #f7f9fc;
+            --ink:       #0d1526;
+            --ink-soft:  #2c3a52;
+            --muted:     #7a87a0;
+            --border:    #e2e8f2;
+            --blue:      #2563eb;
+            --blue-dark: #1d4ed8;
+            --blue-bg:   #eff6ff;
+            --green:     #16a34a;
+            --green-bg:  #f0fdf4;
+            --red:       #dc2626;
+            --red-bg:    #fef2f2;
+            --orange:    #ea580c;
+            --orange-bg: #fff7ed;
+            --radius:    12px;
+            --radius-lg: 20px;
+        }
+
+        html, body { height: 100%; }
+
+        body {
+            font-family: 'Sora', sans-serif;
+            background: var(--off-white);
+            color: var(--ink);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed; inset: 0;
+            background-image: radial-gradient(circle, #c7d2e8 1px, transparent 1px);
+            background-size: 36px 36px;
+            opacity: .5;
+            pointer-events: none;
+        }
+        body::after {
+            content: '';
+            position: fixed; top: -100px; left: -100px;
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(37,99,235,.06) 0%, transparent 68%);
+            pointer-events: none;
+        }
+
+        .auth-wrap {
+            position: relative; z-index: 1;
+            width: 100%; max-width: 500px;
+            animation: fadeUp .5s cubic-bezier(.2,.8,.4,1) both;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── LOGO ── */
+        .auth-logo {
+            text-align: center; margin-bottom: 1.75rem;
+            text-decoration: none; display: block;
+        }
+        .auth-logo-name {
+            font-family: 'Fraunces', serif;
+            font-size: 1.75rem; font-weight: 400;
+            color: var(--ink); letter-spacing: -.01em;
+        }
+        .auth-logo-name span { color: var(--blue); }
+        .auth-logo-tag {
+            font-family: 'DM Mono', monospace;
+            font-size: .62rem; letter-spacing: .22em;
+            text-transform: uppercase; color: var(--muted);
+            margin-top: .3rem;
+        }
+
+        /* ── CARD ── */
+        .auth-card {
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(13,21,38,.08);
+        }
+        .auth-card::before {
+            content: ''; display: block; height: 3px;
+            background: linear-gradient(90deg, var(--blue), #60a5fa);
+        }
+
+        .auth-card-body { padding: 2.25rem 2.25rem 1.75rem; }
+
+        .auth-heading {
+            font-family: 'Fraunces', serif;
+            font-size: 1.65rem; font-weight: 300;
+            color: var(--ink); margin-bottom: .35rem; letter-spacing: -.01em;
+        }
+        .auth-heading em { font-style: italic; color: var(--blue); }
+        .auth-subhead { font-size: .83rem; color: var(--muted); font-weight: 300; margin-bottom: 1.75rem; }
+
+        /* ── ALERTS ── */
+        .alert {
+            display: flex; align-items: flex-start; gap: .65rem;
+            padding: .85rem 1rem; border-radius: var(--radius);
+            font-size: .82rem; line-height: 1.5; margin-bottom: 1.25rem;
+        }
+        .alert-icon { font-size: 1rem; flex-shrink: 0; margin-top: .05rem; }
+        .alert-error   { background: var(--red-bg);   border: 1px solid rgba(220,38,38,.2);  color: var(--red); }
+        .alert strong  { font-weight: 600; }
+
+        /* ── FORM ── */
+        .f-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .f-group { margin-bottom: 1.1rem; }
+
+        .f-label {
+            display: block; font-size: .78rem; font-weight: 600;
+            color: var(--ink-soft); margin-bottom: .45rem; letter-spacing: .01em;
+        }
+        .f-input-wrap { position: relative; }
+
+        .f-input {
+            width: 100%; padding: .7rem 1rem;
+            border-radius: var(--radius); border: 1.5px solid var(--border);
+            background: var(--off-white); font-family: 'Sora', sans-serif;
+            font-size: .88rem; color: var(--ink); outline: none;
+            transition: border-color .2s, background .2s, box-shadow .2s;
+        }
+        .f-input:focus {
+            border-color: var(--blue); background: var(--white);
+            box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+        }
+        .f-input.has-icon { padding-right: 2.75rem; }
+        .f-input.valid   { border-color: var(--green); }
+        .f-input.invalid { border-color: var(--red); }
+
+        .f-eye-btn {
+            position: absolute; right: .85rem; top: 50%;
+            transform: translateY(-50%);
+            background: none; border: none; cursor: pointer;
+            color: var(--muted); font-size: 1rem; padding: 0;
+            transition: color .2s; line-height: 1;
+        }
+        .f-eye-btn:hover { color: var(--ink); }
+
+        /* Password strength indicator */
+        .pw-strength { margin-top: .5rem; }
+        .pw-strength-bar {
+            height: 3px; background: var(--border);
+            border-radius: 3px; overflow: hidden; margin-bottom: .3rem;
+        }
+        .pw-strength-fill {
+            height: 100%; border-radius: 3px; width: 0%;
+            transition: width .3s ease, background .3s ease;
+        }
+        .pw-strength-label {
+            font-family: 'DM Mono', monospace;
+            font-size: .62rem; letter-spacing: .1em; text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        /* Terms checkbox */
+        .f-check-group {
+            display: flex; align-items: flex-start; gap: .6rem;
+            margin-bottom: 1.5rem;
+        }
+        .f-check {
+            width: 15px; height: 15px; accent-color: var(--blue);
+            cursor: pointer; flex-shrink: 0; margin-top: 2px;
+        }
+        .f-check-text {
+            font-size: .8rem; color: var(--ink-soft); line-height: 1.5;
+        }
+        .f-check-text a { color: var(--blue); text-decoration: none; font-weight: 600; }
+        .f-check-text a:hover { color: var(--blue-dark); }
+
+        /* ── SUBMIT ── */
+        .btn-submit {
+            width: 100%; padding: .82rem; border-radius: 100px; border: none;
+            background: var(--blue); color: var(--white);
+            font-family: 'Sora', sans-serif; font-size: .9rem; font-weight: 600;
+            letter-spacing: .03em; cursor: pointer;
+            transition: background .2s, transform .2s, box-shadow .2s;
+            display: flex; align-items: center; justify-content: center; gap: .5rem;
+        }
+        .btn-submit:hover {
+            background: var(--blue-dark); transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(37,99,235,.3);
+        }
+        .btn-submit:disabled { opacity: .55; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        /* ── DIVIDER ── */
+        .divider {
+            display: flex; align-items: center; gap: 1rem;
+            margin: 1.5rem 0; color: var(--muted); font-size: .75rem;
+            font-family: 'DM Mono', monospace; letter-spacing: .1em;
+        }
+        .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+        /* ── SOCIAL ── */
+        .social-row { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-bottom: 1.75rem; }
+        .btn-social {
+            padding: .65rem; border-radius: var(--radius);
+            border: 1.5px solid var(--border); background: var(--white);
+            font-family: 'Sora', sans-serif; font-size: .8rem; font-weight: 500;
+            color: var(--ink-soft); cursor: pointer; text-decoration: none;
+            display: flex; align-items: center; justify-content: center; gap: .5rem;
+            transition: border-color .2s, background .2s, color .2s;
+        }
+        .btn-social:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-bg); }
+        .btn-social svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+        /* ── PERKS STRIP ── */
+        .perks-strip {
+            display: flex; gap: 1.25rem; margin-bottom: 1.5rem;
+            padding: .9rem 1.1rem; background: var(--blue-bg);
+            border-radius: var(--radius); border: 1px solid rgba(37,99,235,.15);
+        }
+        .perk {
+            display: flex; align-items: center; gap: .4rem;
+            font-size: .73rem; color: var(--blue); font-weight: 500;
+        }
+        .perk::before { content: '✓'; font-weight: 700; }
+
+        /* ── CARD FOOTER ── */
+        .auth-card-foot {
+            padding: 1.1rem 2.25rem; border-top: 1px solid var(--border);
+            background: var(--off-white);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .auth-card-foot p { font-size: .8rem; color: var(--muted); }
+        .auth-card-foot a { color: var(--blue); font-weight: 600; text-decoration: none; }
+        .auth-card-foot a:hover { color: var(--blue-dark); }
+
+        .auth-page-foot {
+            text-align: center; margin-top: 1.5rem;
+            font-size: .72rem; color: var(--muted);
+            font-family: 'DM Mono', monospace;
+        }
+        .auth-page-foot a { color: var(--muted); text-decoration: none; transition: color .2s; }
+        .auth-page-foot a:hover { color: var(--blue); }
+
+        @media (max-width: 480px) {
+            .auth-card-body { padding: 1.75rem 1.5rem 1.5rem; }
+            .f-row-2 { grid-template-columns: 1fr; }
+            .social-row { grid-template-columns: 1fr; }
+            .perks-strip { flex-direction: column; gap: .6rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="auth-wrap">
+
+    <a href="{{ path('app_homepage') }}" class="auth-logo">
+        <div class="auth-logo-name">Lingua<span>Learn</span></div>
+        <div class="auth-logo-tag">AI-Powered Language Learning</div>
+    </a>
+
+    <div class="auth-card">
+        <div class="auth-card-body">
+
+            <h1 class="auth-heading">Start learning <em>today</em></h1>
+            <p class="auth-subhead">Create your free account — no credit card required</p>
+
+            {# What you get strip #}
+            <div class="perks-strip">
+                <div class="perk">Free forever</div>
+                <div class="perk">4+ languages</div>
+                <div class="perk">AI-powered lessons</div>
+            </div>
+
+            {# Error from controller #}
+            {% if error %}
+                <div class="alert alert-error">
+                    <span class="alert-icon">✕</span>
+                    <div><strong>Registration error</strong><br>{{ error }}</div>
+                </div>
+            {% endif %}
+
+            <form method="post" action="{{ path('app_register') }}" autocomplete="off" novalidate id="registerForm">
+
+                {# CSRF #}
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('register') }}">
+
+                {# Name row #}
+                <div class="f-row-2">
+                    <div class="f-group">
+                        <label class="f-label" for="firstName">First Name</label>
+                        <input
+                            type="text"
+                            id="firstName"
+                            name="first_name"
+                            class="f-input"
+                            placeholder="John"
+                            value="{{ app.request.request.get('first_name') }}"
+                            required
+                            minlength="2"
+                            maxlength="100"
+                            autofocus
+                        >
+                    </div>
+                    <div class="f-group">
+                        <label class="f-label" for="lastName">Last Name</label>
+                        <input
+                            type="text"
+                            id="lastName"
+                            name="last_name"
+                            class="f-input"
+                            placeholder="Doe"
+                            value="{{ app.request.request.get('last_name') }}"
+                            required
+                            minlength="2"
+                            maxlength="100"
+                        >
+                    </div>
+                </div>
+
+                {# Email #}
+                <div class="f-group">
+                    <label class="f-label" for="email">Email Address</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        class="f-input"
+                        placeholder="you@example.com"
+                        value="{{ app.request.request.get('email') }}"
+                        autocomplete="email"
+                        required
+                        maxlength="180"
+                    >
+                </div>
+
+                {# Password #}
+                <div class="f-group">
+                    <label class="f-label" for="password">Password</label>
+                    <div class="f-input-wrap">
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            class="f-input has-icon"
+                            placeholder="Min 6 characters, 1 letter + 1 number"
+                            autocomplete="new-password"
+                            required
+                            minlength="6"
+                        >
+                        <button type="button" class="f-eye-btn" id="pwToggle1" aria-label="Toggle password">
+                            <span id="pwIcon1">👁</span>
+                        </button>
+                    </div>
+                    <div class="pw-strength">
+                        <div class="pw-strength-bar">
+                            <div class="pw-strength-fill" id="pwStrengthFill"></div>
+                        </div>
+                        <span class="pw-strength-label" id="pwStrengthLabel">Enter a password</span>
+                    </div>
+                </div>
+
+                {# Confirm Password #}
+                <div class="f-group">
+                    <label class="f-label" for="confirmPassword">Confirm Password</label>
+                    <div class="f-input-wrap">
+                        <input
+                            type="password"
+                            id="confirmPassword"
+                            name="confirm_password"
+                            class="f-input has-icon"
+                            placeholder="Re-enter your password"
+                            autocomplete="new-password"
+                            required
+                            minlength="6"
+                        >
+                        <button type="button" class="f-eye-btn" id="pwToggle2" aria-label="Toggle confirm password">
+                            <span id="pwIcon2">👁</span>
+                        </button>
+                    </div>
+                </div>
+
+                {# Terms #}
+                <div class="f-check-group">
+                    <input type="checkbox" id="terms" name="terms" class="f-check" required>
+                    <label for="terms" class="f-check-text">
+                        I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn-submit" id="submitBtn">
+                    Create Free Account
+                </button>
+            </form>
+
+
+        </div>
+
+        <div class="auth-card-foot">
+            <p>Already have an account? <a href="{{ path('app_login') }}">Sign in</a></p>
+        </div>
+    </div>
+
+    <div class="auth-page-foot">
+        © {{ "now"|date("Y") }} LinguaLearn &nbsp;·&nbsp;
+        <a href="#">Privacy</a> &nbsp;·&nbsp;
+        <a href="#">Terms</a>
+    </div>
+</div>
+
+<script>
+    // ── Password show/hide ──
+    function togglePw(inputId, iconId, btnId) {
+        const input = document.getElementById(inputId);
+        const icon  = document.getElementById(iconId);
+        document.getElementById(btnId).addEventListener('click', () => {
+            const isHidden = input.type === 'password';
+            input.type  = isHidden ? 'text' : 'password';
+            icon.textContent = isHidden ? '🙈' : '👁';
+        });
+    }
+    togglePw('password',        'pwIcon1', 'pwToggle1');
+    togglePw('confirmPassword', 'pwIcon2', 'pwToggle2');
+
+    // ── Password strength meter ──
+    const pwInput     = document.getElementById('password');
+    const strengthFill  = document.getElementById('pwStrengthFill');
+    const strengthLabel = document.getElementById('pwStrengthLabel');
+
+    pwInput.addEventListener('input', () => {
+        const val = pwInput.value;
+        let score = 0;
+        if (val.length >= 6)                    score++;
+        if (val.length >= 10)                   score++;
+        if (/[A-Z]/.test(val))                  score++;
+        if (/[0-9]/.test(val))                  score++;
+        if (/[^A-Za-z0-9]/.test(val))           score++;
+
+        const levels = [
+            { label: 'Too short',  color: '#e2e8f2', width: '0%'   },
+            { label: 'Weak',       color: '#dc2626', width: '25%'  },
+            { label: 'Fair',       color: '#ea580c', width: '50%'  },
+            { label: 'Good',       color: '#ca8a04', width: '75%'  },
+            { label: 'Strong',     color: '#16a34a', width: '90%'  },
+            { label: 'Very strong',color: '#16a34a', width: '100%' },
+        ];
+
+        const lvl = val.length === 0 ? 0 : Math.min(score, 5);
+        strengthFill.style.width      = levels[lvl].width;
+        strengthFill.style.background = levels[lvl].color;
+        strengthLabel.textContent     = val.length === 0 ? 'Enter a password' : levels[lvl].label;
+        strengthLabel.style.color     = levels[lvl].color === '#e2e8f2' ? 'var(--muted)' : levels[lvl].color;
+    });
+
+    // ── Real-time confirm password match ──
+    const confirmInput = document.getElementById('confirmPassword');
+    confirmInput.addEventListener('input', () => {
+        if (confirmInput.value.length === 0) {
+            confirmInput.classList.remove('valid', 'invalid');
+            return;
+        }
+        const match = confirmInput.value === pwInput.value;
+        confirmInput.classList.toggle('valid',   match);
+        confirmInput.classList.toggle('invalid', !match);
+    });
+</script>
+</body>
+</html>

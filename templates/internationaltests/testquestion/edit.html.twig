@@ -1,0 +1,293 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}Edit Question #{{ testQuestion.id }} - {{ parent() }}{% endblock %}
+
+{% block page_title %}
+    <i class="ti ti-pencil me-2"></i> Edit Question #{{ testQuestion.id }}
+    {% if testQuestion.mockTest %}<small class="text-muted fs-4">— {{ testQuestion.mockTest.title }}</small>{% endif %}
+{% endblock %}
+
+{% block page_actions %}
+    <div class="col-auto ms-auto d-print-none">
+        {% if testQuestion.mockTest %}
+            <a href="{{ path('mocktest_show', {id: testQuestion.mockTest.id}) }}" class="btn btn-secondary">
+                <i class="ti ti-arrow-left icon"></i> Back to Test
+            </a>
+        {% else %}
+            <a href="{{ path('testquestion_index') }}" class="btn btn-secondary">
+                <i class="ti ti-arrow-left icon"></i> Back to List
+            </a>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block content %}
+{% set type = testCategory|lower %}
+
+<div class="row">
+    <div class="col-md-9">
+        <div class="card mb-4">
+            <div class="card-header d-flex align-items-center gap-3">
+                <h3 class="card-title mb-0">
+                    {% if type == 'qcm' %}📋 QCM
+                    {% elseif type == 'writing' %}✍️ Writing
+                    {% elseif type == 'speaking' %}🎙️ Speaking
+                    {% elseif type == 'listening' %}🎧 Listening
+                    {% else %}Question{% endif %}
+                </h3>
+                <span class="badge ms-auto
+                    {% if type == 'qcm' %}bg-blue-lt
+                    {% elseif type == 'writing' %}bg-orange-lt
+                    {% elseif type == 'speaking' %}bg-purple-lt
+                    {% elseif type == 'listening' %}bg-green-lt
+                    {% endif %}" style="font-size:.8rem;padding:.4rem .85rem;">
+                    {{ testCategory }}
+                </span>
+            </div>
+
+            <div class="card-body">
+                {{ form_start(form, {'attr': {'id': 'question-form', 'novalidate': 'novalidate'}}) }}
+
+                {# mockTest — rendered ONCE, always hidden in edit mode #}
+                <div style="display:none">
+                    {{ form_widget(form.mockTest) }}
+                </div>
+
+                {# Points + banner #}
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label required">Points</label>
+                        {{ form_widget(form.points) }}
+                        {{ form_errors(form.points) }}
+                    </div>
+
+                </div>
+
+                {# Question text — rendered ONCE #}
+                <div class="mb-4">
+                    <label class="form-label required">
+                        {% if type == 'listening' %}Question de compréhension
+                        {% elseif type == 'writing' %}Consigne
+                        {% elseif type == 'speaking' %}Titre de la session
+                        {% else %}Question{% endif %}
+                    </label>
+                    {{ form_widget(form.questionText) }}
+                    {{ form_errors(form.questionText) }}
+                </div>
+
+                {# QCM — readingPassage rendered ONCE #}
+                <div id="section-qcm" {% if type != 'qcm' %}style="display:none"{% endif %}>
+                    <div class="mb-4">
+                        <label class="form-label">Texte de lecture <span class="badge bg-secondary ms-1">Optionnel</span></label>
+                        {{ form_widget(form.readingPassage) }}
+                        {{ form_errors(form.readingPassage) }}
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="is_multiple" onchange="toggleMultiple()">
+                            <label class="form-check-label" for="is_multiple">
+                                <strong>Choix multiples</strong> — plusieurs bonnes réponses
+                            </label>
+                        </div>
+                    </div>
+                    <div class="card bg-light mb-3">
+                        <div class="card-header d-flex align-items-center justify-content-between">
+                            <span><strong>Propositions de réponse</strong></span>
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addOption()">
+                                <i class="ti ti-plus icon"></i> Ajouter
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div id="options-builder"></div>
+                            <p id="no-options-msg" class="text-muted text-center py-2 mb-0" style="display:none">Aucune option</p>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label required">Bonne(s) réponse(s)</label>
+                        <div id="correct-answers-display" class="correct-answers-wrap">
+                            <span class="text-muted small">Chargement...</span>
+                        </div>
+                        <small class="form-hint">Cliquez pour sélectionner / désélectionner</small>
+                    </div>
+                </div>
+
+                {# Writing + Speaking — writingSubject rendered ONCE #}
+                <div id="section-writing-speaking" {% if type != 'writing' and type != 'speaking' %}style="display:none"{% endif %} class="mb-4">
+                    <label class="form-label required">
+                        {% if type == 'speaking' %}Sujet de conversation{% else %}Sujet de rédaction{% endif %}
+                    </label>
+                    {{ form_widget(form.writingSubject) }}
+                    {{ form_errors(form.writingSubject) }}
+                </div>
+
+                {# Listening — audioText rendered ONCE #}
+                <div id="section-listening" {% if type != 'listening' %}style="display:none"{% endif %} class="mb-4">
+                    <label class="form-label required">Texte audio (Text-to-Speech)</label>
+                    {{ form_widget(form.audioText) }}
+                    {{ form_errors(form.audioText) }}
+                    <small class="form-hint">Ce texte sera lu à voix haute par ElevenLabs.</small>
+                </div>
+
+                {# Always hidden — managed by JS #}
+                <div style="display:none">
+                    {{ form_widget(form.options) }}
+                    {{ form_widget(form.correctAnswer) }}
+                </div>
+
+                {# Active + Submit #}
+                <div class="d-flex align-items-center justify-content-between mt-3 pt-3 border-top">
+                    <div class="form-check form-switch">
+                        {{ form_widget(form.isActive, {'attr': {'class': 'form-check-input'}}) }}
+                        <label class="form-check-label" for="{{ form.isActive.vars.id }}">Active</label>
+                    </div>
+                    <div class="d-flex gap-3">
+                        {% if testQuestion.mockTest %}
+                            <a href="{{ path('mocktest_show', {id: testQuestion.mockTest.id}) }}" class="btn btn-link text-muted">Annuler</a>
+                        {% endif %}
+                        <button type="submit" class="btn btn-primary">
+                            <i class="ti ti-device-floppy icon"></i> Sauvegarder
+                        </button>
+                    </div>
+                </div>
+
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-header"><h3 class="card-title">ℹ️ Infos</h3></div>
+            <div class="card-body">
+                {% if testQuestion.mockTest %}
+                <p class="text-muted small mb-2"><strong>Test :</strong> {{ testQuestion.mockTest.title }}</p>
+                <p class="text-muted small mb-2"><strong>Catégorie :</strong> <span class="badge bg-blue-lt">{{ testCategory }}</span></p>
+                <hr>
+                {% endif %}
+                <p class="text-muted small"><strong>ID :</strong> #{{ testQuestion.id }}</p>
+                <p class="text-muted small"><strong>Créée :</strong> {{ testQuestion.createdAt|date('d/m/Y') }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.option-row{display:flex;align-items:center;gap:.6rem;margin-bottom:.6rem;}
+.option-letter-badge{width:30px;height:30px;border-radius:50%;background:#e2e8f0;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0;color:#374151;}
+.option-input{flex:1;border:1.5px solid #e2e8f0;border-radius:8px;padding:.5rem .85rem;font-size:.88rem;outline:none;transition:border-color .2s;font-family:inherit;}
+.option-input:focus{border-color:#2563eb;box-shadow:0 0 0 2px rgba(37,99,235,.1);}
+.option-remove{background:transparent;border:none;color:#9ca3af;cursor:pointer;font-size:1rem;padding:.2rem .4rem;border-radius:6px;}
+.option-remove:hover{color:#dc2626;background:#fef2f2;}
+.correct-answers-wrap{display:flex;flex-wrap:wrap;gap:.5rem;min-height:44px;padding:.5rem;border:1.5px solid #e2e8f0;border-radius:8px;background:#f8fafc;}
+.correct-toggle{padding:.4rem .9rem;border-radius:100px;border:1.5px solid #e2e8f0;cursor:pointer;font-size:.82rem;background:#fff;transition:all .2s;font-family:inherit;}
+.correct-toggle:hover{border-color:#2563eb;background:#eff6ff;color:#2563eb;}
+.correct-toggle.selected{border-color:#16a34a;background:#f0fdf4;color:#16a34a;font-weight:600;}
+.correct-toggle.selected::before{content:'✓ ';}
+</style>
+
+{% if type == 'qcm' %}
+<script>
+const LETTERS  = ['A','B','C','D','E','F','G','H'];
+let options    = [];
+let correctSet = new Set();
+let isMultiple = false;
+
+const existingOptions = {{ testQuestion.options|json_encode|raw }};
+const existingCorrect = {{ testQuestion.correctAnswer|json_encode|raw }};
+
+function init() {
+    if (Array.isArray(existingOptions)) {
+        existingOptions.forEach(o => {
+            const text = typeof o === 'object' ? (o.text || o.value || '') : String(o);
+            options.push({ id: Date.now() + Math.random(), text });
+        });
+    }
+    renderOptions();
+    if (existingCorrect && existingCorrect !== 'N/A' && existingCorrect !== '') {
+        if (existingCorrect.includes('|')) {
+            isMultiple = true;
+            document.getElementById('is_multiple').checked = true;
+            existingCorrect.split('|').map(s => s.trim()).forEach(c => {
+                const idx = options.findIndex(o => o.text === c);
+                if (idx >= 0) correctSet.add(idx);
+            });
+        } else {
+            const idx = options.findIndex(o => o.text === existingCorrect.trim());
+            if (idx >= 0) correctSet.add(idx);
+        }
+    }
+    renderCorrectAnswers();
+}
+
+function toggleMultiple() {
+    isMultiple = document.getElementById('is_multiple').checked;
+    correctSet.clear(); renderCorrectAnswers();
+}
+function addOption(text = '') {
+    options.push({ id: Date.now() + Math.random(), text });
+    renderOptions(); renderCorrectAnswers();
+    setTimeout(() => { const i = document.querySelectorAll('.option-input'); if (i.length) i[i.length-1].focus(); }, 50);
+}
+function removeOption(id) {
+    const idx = options.findIndex(o => o.id === id);
+    if (idx < 0) return;
+    options.splice(idx, 1);
+    const ns = new Set();
+    correctSet.forEach(i => { if (i !== idx) ns.add(i > idx ? i-1 : i); });
+    correctSet = ns;
+    renderOptions(); renderCorrectAnswers();
+}
+function updateText(id, val) {
+    const o = options.find(o => o.id === id);
+    if (o) o.text = val;
+    renderCorrectAnswers(); syncJson();
+}
+function renderOptions() {
+    const b = document.getElementById('options-builder');
+    const n = document.getElementById('no-options-msg');
+    if (!options.length) { b.innerHTML = ''; n.style.display = 'block'; syncJson(); return; }
+    n.style.display = 'none';
+    b.innerHTML = options.map((o, i) => `
+        <div class="option-row">
+            <div class="option-letter-badge">${LETTERS[i]||i+1}</div>
+            <input type="text" class="option-input" value="${esc(o.text)}"
+                placeholder="Option ${LETTERS[i]||i+1}..."
+                oninput="updateText(${JSON.stringify(o.id)}, this.value)">
+            <button type="button" class="option-remove" onclick="removeOption(${JSON.stringify(o.id)})">✕</button>
+        </div>`).join('');
+    syncJson();
+}
+function renderCorrectAnswers() {
+    const w = document.getElementById('correct-answers-display');
+    if (!options.length) { w.innerHTML = '<span class="text-muted small">Ajoutez des propositions</span>'; syncCorrect(); return; }
+    w.innerHTML = options.map((o, i) => {
+        const label = o.text || `Option ${LETTERS[i]}`;
+        return `<button type="button" class="correct-toggle ${correctSet.has(i)?'selected':''}" onclick="toggleCorrect(${i})">${LETTERS[i]}. ${esc(label)}</button>`;
+    }).join('');
+    syncCorrect();
+}
+function toggleCorrect(idx) {
+    if (isMultiple) { correctSet.has(idx) ? correctSet.delete(idx) : correctSet.add(idx); }
+    else { correctSet.clear(); correctSet.add(idx); }
+    renderCorrectAnswers();
+}
+function syncJson() {
+    const optionsField = document.querySelector('textarea[name="test_question[options]"]');
+    if (optionsField) {
+        optionsField.value = JSON.stringify(options.map(o => o.text));
+    }
+}
+function syncCorrect() {
+    const vals = [...correctSet].sort().map(i => options[i]?.text ?? '').filter(Boolean);
+    const correctField = document.querySelector('textarea[name="test_question[correctAnswer]"]');
+    if (correctField) {
+        correctField.value = vals.join('|');
+    }
+}
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+document.getElementById('question-form').addEventListener('submit', () => { syncJson(); syncCorrect(); });
+init();
+</script>
+{% endif %}
+
+{% endblock %}

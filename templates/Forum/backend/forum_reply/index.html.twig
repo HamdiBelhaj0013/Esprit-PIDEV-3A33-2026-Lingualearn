@@ -1,0 +1,481 @@
+{% extends 'layouts/admin.html.twig' %}
+
+{% block title %}{% block page_title %}Forum Replies{% endblock %}{% endblock %}
+
+{% block page_actions %}
+    <a href="{{ path('admin_forum_index') }}" class="btn btn-outline-secondary">
+        <i class="ti ti-layout-dashboard me-1"></i> Forum Overview
+    </a>
+    <a href="{{ path('admin_forum_reply_export_csv') }}" class="btn btn-outline-secondary">
+        <i class="ti ti-download me-1"></i> Export CSV
+    </a>
+    <a href="{{ path('admin_forum_reply_new') }}" class="btn btn-primary">
+        <i class="ti ti-plus me-1"></i> New Reply
+    </a>
+{% endblock %}
+
+{% block content %}
+
+    {# ===== FLASH MESSAGES ===== #}
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible fade show mb-4" role="alert">
+                <i class="ti ti-{{ label == 'error' ? 'alert-circle' : 'circle-check' }} me-2"></i>{{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    {# ===== STATS ROW ===== #}
+    <div class="row row-cards mb-4">
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="card card-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <span class="bg-blue text-white avatar"><i class="ti ti-message-reply"></i></span>
+                        </div>
+                        <div class="col">
+                            <div class="font-weight-medium">Total Replies</div>
+                            <div class="text-muted fs-3 fw-bold">{{ stats.total ?? 0 }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="card card-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <span class="bg-green text-white avatar"><i class="ti ti-circle-check"></i></span>
+                        </div>
+                        <div class="col">
+                            <div class="font-weight-medium">Active</div>
+                            <div class="text-muted fs-3 fw-bold">{{ stats.active ?? 0 }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="card card-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <span class="bg-red text-white avatar"><i class="ti ti-eye-off"></i></span>
+                        </div>
+                        <div class="col">
+                            <div class="font-weight-medium">Inactive</div>
+                            <div class="text-muted fs-3 fw-bold">{{ stats.inactive ?? 0 }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-lg-3">
+            <div class="card card-sm">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <span class="bg-yellow text-white avatar"><i class="ti ti-star"></i></span>
+                        </div>
+                        <div class="col">
+                            <div class="font-weight-medium">Best Answers</div>
+                            <div class="text-muted fs-3 fw-bold">{{ stats.bestAnswers ?? 0 }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    {# ===== FILTERS ===== #}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="ti ti-filter me-2"></i> Search & Filter
+            </h3>
+        </div>
+        <div class="card-body">
+            <form method="GET" class="row g-3 align-items-end">
+
+                <div class="col-md-3">
+                    <label class="form-label">Keyword</label>
+                    <input type="text" name="keyword" class="form-control"
+                           placeholder="Search replies…" value="{{ filters.keyword ?? '' }}">
+                </div>
+
+                {# Author filter — dropdown instead of raw number input #}
+                <div class="col-md-3">
+                    <label class="form-label">Author</label>
+                    <select name="authorId" class="form-select">
+                        <option value="">All authors</option>
+                        {% if users is defined %}
+                            {% for user in users %}
+                                <option value="{{ user.id }}"
+                                        {% if filters.authorId == user.id %}selected{% endif %}>
+                                    {% if user.roles is defined and 'ROLE_ADMIN' in user.roles %}👑{% else %}👤{% endif %}
+                                    {{ user.firstName ?? '' }} {{ user.lastName ?? '' }}
+                                    (#{{ user.id }})
+                                </option>
+                            {% endfor %}
+                        {% endif %}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Parent Post</label>
+                    <select name="postId" class="form-select">
+                        <option value="">All posts</option>
+                        {% if posts is defined %}
+                            {% for p in posts %}
+                                <option value="{{ p.id }}" {% if filters.postId == p.id %}selected{% endif %}>
+                                    #{{ p.id }} – {{ p.title|slice(0, 35) }}{% if p.title|length > 35 %}…{% endif %}
+                                </option>
+                            {% endfor %}
+                        {% endif %}
+                    </select>
+                </div>
+
+                <div class="col-md-1">
+                    <label class="form-label">Status</label>
+                    <select name="isActive" class="form-select">
+                        <option value="">All</option>
+                        <option value="1" {% if filters.isActive == 1 %}selected{% endif %}>Active</option>
+                        <option value="0" {% if filters.isActive == 0 %}selected{% endif %}>Inactive</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Best Answer</label>
+                    <select name="isBestAnswer" class="form-select">
+                        <option value="">All</option>
+                        <option value="1" {% if filters.isBestAnswer == 1 %}selected{% endif %}>Best only</option>
+                        <option value="0" {% if filters.isBestAnswer == 0 %}selected{% endif %}>Others</option>
+                    </select>
+                </div>
+
+                {# Preserve sort state #}
+                <input type="hidden" name="sortField" value="{{ filters.sortField ?? 'repliedAt' }}">
+                <input type="hidden" name="sortOrder" value="{{ filters.sortOrder ?? 'DESC' }}">
+
+                <div class="col-12 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="ti ti-search me-1"></i> Search
+                    </button>
+                    <a href="{{ path('admin_forum_reply_index') }}" class="btn btn-outline-secondary">
+                        <i class="ti ti-x me-1"></i> Reset
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {# ===== TABLE ===== #}
+    <div class="card">
+        <div class="card-header d-flex align-items-center justify-content-between">
+            <h3 class="card-title mb-0">
+                <i class="ti ti-messages me-2"></i> All Replies
+            </h3>
+            <div class="d-flex gap-2 align-items-center">
+                <span class="text-muted small">Sort by:</span>
+                <a href="?{{ app.request.queryString }}&sortField=repliedAt&sortOrder={{ filters.sortOrder == 'ASC' ? 'DESC' : 'ASC' }}"
+                   class="btn btn-sm btn-outline-secondary {{ filters.sortField == 'repliedAt' ? 'active' : '' }}">
+                    Date <i class="ti ti-arrows-sort ms-1"></i>
+                </a>
+                <a href="?{{ app.request.queryString }}&sortField=authorId&sortOrder={{ filters.sortOrder == 'ASC' ? 'DESC' : 'ASC' }}"
+                   class="btn btn-sm btn-outline-secondary {{ filters.sortField == 'authorId' ? 'active' : '' }}">
+                    Author <i class="ti ti-arrows-sort ms-1"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-vcenter card-table">
+                <thead>
+                <tr>
+                    <th class="w-1"><input type="checkbox" id="selectAll" class="form-check-input"></th>
+                    <th class="w-1">ID</th>
+                    <th>Parent Post</th>
+                    <th>Content</th>
+                    <th>Author</th>
+                    <th>Date</th>
+                    <th class="text-center">Best</th>
+                    <th class="text-center">Status</th>
+                    <th class="w-1">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% if replies is not empty %}
+                    {% for reply in replies %}
+                        <tr>
+                            <td>
+                                <input type="checkbox" class="form-check-input reply-checkbox" value="{{ reply.id }}">
+                            </td>
+                            <td><span class="text-muted">#{{ reply.id }}</span></td>
+                            <td>
+                                <a href="{{ path('admin_forum_post_show', {id: reply.post.id}) }}"
+                                   class="text-reset text-decoration-none" title="{{ reply.post.title }}">
+                                    <i class="ti ti-message-square me-1 text-muted"></i>
+                                    {{ reply.post.title|slice(0, 35) }}{% if reply.post.title|length > 35 %}…{% endif %}
+                                </a>
+                            </td>
+                            <td>
+                                    <span class="text-muted" title="{{ reply.content }}">
+                                        {{ reply.content|slice(0, 60) }}{% if reply.content|length > 60 %}…{% endif %}
+                                    </span>
+                            </td>
+                            <td>
+                                {# Resolve actual name from users list #}
+                                {% set authorName = null %}
+                                {% set isAdmin = false %}
+                                {% if users is defined %}
+                                    {% for user in users %}
+                                        {% if user.id == reply.authorId %}
+                                            {% set authorName %}{{ user.firstName ?? '' }} {{ user.lastName ?? '' }}{% endset %}
+                                            {% if user.roles is defined and 'ROLE_ADMIN' in user.roles %}
+                                                {% set isAdmin = true %}
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                                <div class="d-flex align-items-center gap-1">
+                                    {% if isAdmin %}
+                                        <span class="avatar avatar-xs bg-yellow-lt text-yellow" title="Admin">👑</span>
+                                    {% else %}
+                                        <span class="avatar avatar-xs bg-blue-lt text-blue" title="User">👤</span>
+                                    {% endif %}
+                                    <span class="text-muted">
+                                            {% if authorName is not null and authorName|trim != '' %}
+                                                {{ authorName|trim }}
+                                                <small class="text-muted">(#{{ reply.authorId }})</small>
+                                            {% else %}
+                                                #{{ reply.authorId }}
+                                            {% endif %}
+                                        </span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="text-muted small">{{ reply.repliedAt|date('Y-m-d H:i') }}</span>
+                            </td>
+                            <td class="text-center">
+                                {% if reply.isBestAnswer %}
+                                    <span class="badge bg-success-lt">
+                                            <i class="ti ti-star-filled me-1"></i>Yes
+                                        </span>
+                                {% else %}
+                                    <button type="button"
+                                            class="btn btn-sm btn-ghost-secondary mark-best-answer"
+                                            data-reply-id="{{ reply.id }}"
+                                            data-url="{{ path('admin_forum_reply_mark_best_answer', {id: reply.id}) }}"
+                                            title="Mark as best answer">
+                                        <i class="ti ti-star"></i>
+                                    </button>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <label class="form-check form-switch mb-0 justify-content-center">
+                                    <input class="form-check-input toggle-status" type="checkbox"
+                                           {% if reply.isActive %}checked{% endif %}
+                                           data-reply-id="{{ reply.id }}"
+                                           data-url="{{ path('admin_forum_reply_toggle_status', {id: reply.id}) }}">
+                                </label>
+                            </td>
+                            <td>
+                                <div class="btn-list flex-nowrap">
+                                    <a href="{{ path('admin_forum_reply_edit', {id: reply.id}) }}"
+                                       class="btn btn-sm btn-ghost-warning" title="Edit">
+                                        <i class="ti ti-pencil"></i>
+                                    </a>
+                                    <button type="button"
+                                            class="btn btn-sm btn-ghost-danger delete-reply"
+                                            data-reply-id="{{ reply.id }}"
+                                            data-url="{{ path('admin_forum_reply_delete', {id: reply.id}) }}"
+                                            title="Delete">
+                                        <i class="ti ti-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="9" class="text-center text-muted py-5">
+                            <i class="ti ti-inbox fs-1 d-block mb-2"></i>
+                            No replies found.
+                        </td>
+                    </tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        {# ===== BULK ACTIONS ===== #}
+        {% if replies is not empty %}
+            <div class="card-footer">
+                <form method="POST" action="{{ path('admin_forum_reply_bulk_action') }}" id="bulkForm">
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-5">
+                            <label class="form-label">Bulk action</label>
+                            <select name="action" class="form-select" required>
+                                <option value="">Select an action…</option>
+                                <option value="activate">Activate selected</option>
+                                <option value="deactivate">Deactivate selected</option>
+                                <option value="delete">Delete selected</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-warning w-100" id="bulkActionBtn" disabled>
+                                <i class="ti ti-bolt me-1"></i> Apply
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        {% endif %}
+    </div>
+
+    {# ===== PAGINATION ===== #}
+    {% if totalPages is defined and totalPages > 1 %}
+        <div class="d-flex justify-content-center mt-4">
+            <ul class="pagination">
+                {% if currentPage > 1 %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1&{{ app.request.queryString }}">
+                            <i class="ti ti-chevrons-left"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ currentPage - 1 }}&{{ app.request.queryString }}">
+                            <i class="ti ti-chevron-left"></i>
+                        </a>
+                    </li>
+                {% endif %}
+
+                {% for page in 1..totalPages %}
+                    {% if page >= currentPage - 2 and page <= currentPage + 2 %}
+                        <li class="page-item {% if page == currentPage %}active{% endif %}">
+                            <a class="page-link" href="?page={{ page }}&{{ app.request.queryString }}">{{ page }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if currentPage < totalPages %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ currentPage + 1 }}&{{ app.request.queryString }}">
+                            <i class="ti ti-chevron-right"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ totalPages }}&{{ app.request.queryString }}">
+                            <i class="ti ti-chevrons-right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    {% endif %}
+
+    {# ===== DELETE MODAL ===== #}
+    <div class="modal modal-blur fade" id="deleteModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="ti ti-alert-triangle text-danger me-2"></i> Confirm Delete
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-1">Are you sure you want to delete this reply?</p>
+                    <p class="text-muted small mb-0">This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary me-auto" data-bs-dismiss="modal">Cancel</button>
+                    <form method="POST" id="deleteForm" class="d-inline">
+                        <input type="hidden" name="_token" id="deleteCsrfToken">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="ti ti-trash me-1"></i> Delete
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // Select all / bulk
+            const selectAll = document.getElementById('selectAll');
+            const checkboxes = document.querySelectorAll('.reply-checkbox');
+            const bulkActionBtn = document.getElementById('bulkActionBtn');
+
+            selectAll?.addEventListener('change', function () {
+                checkboxes.forEach(cb => cb.checked = this.checked);
+                updateBulk();
+            });
+            checkboxes.forEach(cb => cb.addEventListener('change', updateBulk));
+
+            function updateBulk() {
+                const any = Array.from(checkboxes).some(cb => cb.checked);
+                if (bulkActionBtn) bulkActionBtn.disabled = !any;
+            }
+
+            document.getElementById('bulkForm')?.addEventListener('submit', function () {
+                Array.from(checkboxes).filter(cb => cb.checked).forEach(cb => {
+                    const inp = document.createElement('input');
+                    inp.type = 'hidden';
+                    inp.name = 'reply_ids[]';
+                    inp.value = cb.value;
+                    this.appendChild(inp);
+                });
+            });
+
+            // Toggle status via AJAX
+            document.querySelectorAll('.toggle-status').forEach(toggle => {
+                toggle.addEventListener('change', function () {
+                    fetch(this.dataset.url, {
+                        method: 'POST',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    })
+                        .then(r => r.json())
+                        .then(data => { if (!data.success) { alert(data.message); this.checked = !this.checked; } })
+                        .catch(() => { alert('An error occurred.'); this.checked = !this.checked; });
+                });
+            });
+
+            // Mark best answer via AJAX
+            document.querySelectorAll('.mark-best-answer').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    if (!confirm('Mark this reply as the best answer?')) return;
+                    fetch(this.dataset.url, {
+                        method: 'POST',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    })
+                        .then(r => r.json())
+                        .then(data => { data.success ? location.reload() : alert(data.message); })
+                        .catch(() => alert('An error occurred.'));
+                });
+            });
+
+            // Delete modal
+            document.querySelectorAll('.delete-reply').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    document.getElementById('deleteForm').action = this.dataset.url;
+                    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+                });
+            });
+        });
+    </script>
+{% endblock %}
