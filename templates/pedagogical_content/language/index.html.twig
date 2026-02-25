@@ -29,11 +29,10 @@
 {% block content %}
 <div class="row g-4">
 
-    <!-- Formulaire de recherche -->
     <div class="col-12">
         <div class="card shadow-sm border-0 rounded-3 mb-4">
             <div class="card-body p-3">
-                <form id="filterForm" class="row g-3 align-items-end">
+               <form method="get" action="{{ path('admin_language_index') }}" class="row g-3 align-items-end">
                     <div class="col-md-4">
                         <label class="form-label fw-bold text-secondary small text-uppercase">
                             <i class="ti ti-search"></i> Rechercher
@@ -73,22 +72,21 @@
                             <i class="ti ti-x"></i>
                         </a>
                     </div>
+                    <input type="hidden" name="page" id="pageInput" value="{{ pagination.currentPageNumber }}">
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- Loading -->
     <div id="loadingIndicator" class="text-center my-3" style="display: none;">
         <div class="spinner-border text-primary" style="width: 40px; height: 40px;"></div>
         <p class="text-secondary mt-2">Recherche en cours...</p>
     </div>
 
-    <!-- Tableau -->
     <div class="col-12">
         <div class="card shadow-sm border-0 rounded-3">
             <div id="languageTableContainer" class="table-responsive p-3">
-                {% include 'pedagogical_content/language/_table.html.twig' %}
+                {% include 'pedagogical_content/language/_table.html.twig' with { pagination: pagination } %}
             </div>
         </div>
     </div>
@@ -106,50 +104,79 @@
 </style>
 {% endblock %}
 
+
 {% block javascripts %}
 {{ parent() }}
 <script>
-const filterForm = document.getElementById('filterForm');
-const searchInput = document.getElementById('searchInput');
-const enabledFilter = document.getElementById('enabledFilter');
-const sortSelect = document.getElementById('sortSelect');
-const orderSelect = document.getElementById('orderSelect');
-const languageTableContainer = document.getElementById('languageTableContainer');
-const loadingIndicator = document.getElementById('loadingIndicator');
+document.addEventListener('DOMContentLoaded', function () {
 
-filterForm.addEventListener('submit', e => { e.preventDefault(); performSearch(); });
-searchInput.addEventListener('keyup', () => { clearTimeout(window.searchTimeout); window.searchTimeout = setTimeout(performSearch, 300); });
-enabledFilter.addEventListener('change', performSearch);
-sortSelect.addEventListener('change', performSearch);
-orderSelect.addEventListener('change', performSearch);
+    const filterForm = document.getElementById('filterForm');
+    const pageInput = document.getElementById('pageInput');
 
-function performSearch() {
-    const params = new URLSearchParams(new FormData(filterForm));
-    loadingIndicator.style.display = 'block';
-    languageTableContainer.style.opacity = '0.5';
-    fetch('{{ path('admin_language_index') }}?' + params.toString(), { headers: {'X-Requested-With':'XMLHttpRequest'} })
+    const searchInput = document.getElementById('searchInput');
+    const enabledFilter = document.getElementById('enabledFilter');
+    const sortSelect = document.getElementById('sortSelect');
+    const orderSelect = document.getElementById('orderSelect');
+
+    const languageTableContainer = document.getElementById('languageTableContainer');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+
+    function fetchTable() {
+        const params = new URLSearchParams(new FormData(filterForm));
+    console.log("FETCH URL =", '{{ path('admin_language_index') }}?' + params.toString()); // ✅ TEST
+
+        loadingIndicator.style.display = 'block';
+        languageTableContainer.style.opacity = '0.5';
+
+        fetch('{{ path('admin_language_index') }}?' + params.toString(), {
+            headers: {'X-Requested-With': 'XMLHttpRequest'}
+        })
         .then(r => r.json())
-        .then(data => { languageTableContainer.innerHTML = data.html; languageTableContainer.style.opacity='1'; loadingIndicator.style.display='none'; attachToggleEvents(); })
-        .catch(e => { console.error(e); loadingIndicator.style.display='none'; languageTableContainer.style.opacity='1'; });
-}
+        .then(data => {
+            languageTableContainer.innerHTML = data.html;
+            languageTableContainer.style.opacity = '1';
+            loadingIndicator.style.display = 'none';
+        })
+        .catch(e => {
+            console.error(e);
+            loadingIndicator.style.display = 'none';
+            languageTableContainer.style.opacity = '1';
+        });
+    }
 
-function attachToggleEvents() {
-    document.querySelectorAll('.toggle-status').forEach(cb => {
-        cb.addEventListener('change', () => toggleStatus(cb.dataset.languageId, cb.checked));
+    function resetToPage1() {
+        pageInput.value = '1';
+        fetchTable();
+    }
+
+    filterForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        fetchTable();
     });
-}
-function toggleStatus(id, checked) {
-    const btn = event.target;
-    const original = !checked;
-    fetch('{{ path('admin_language_toggle', {'id':'LANGUAGE_ID'}) }}'.replace('LANGUAGE_ID', id), {
-        method:'POST',
-        headers:{'X-Requested-With':'XMLHttpRequest','Content-Type':'application/x-www-form-urlencoded'},
-        body:'_token='+getCsrfToken()
-    }).then(r=>r.json()).then(data=>{
-        if(!data.success){btn.checked=original; alert('Erreur: '+data.message);}
-    }).catch(e=>{btn.checked=original; console.error(e);});
-}
-function getCsrfToken(){return document.querySelector('meta[name="csrf-token"]')?.content || '';}
-attachToggleEvents();
+
+    searchInput.addEventListener('keyup', function() {
+        clearTimeout(window.searchTimeout);
+        window.searchTimeout = setTimeout(resetToPage1, 300);
+    });
+
+    enabledFilter.addEventListener('change', resetToPage1);
+    sortSelect.addEventListener('change', resetToPage1);
+    orderSelect.addEventListener('change', resetToPage1);
+
+    // Pagination click
+    languageTableContainer.addEventListener('click', function (e) {
+        const link = e.target.closest('.pagination a');
+        if (!link) return;
+
+        e.preventDefault();
+
+        const url = new URL(link.href);
+        const page = url.searchParams.get('page') || '1';
+ console.log("CLICK PAGINATION -> page =", page);
+        pageInput.value = page;
+        fetchTable();
+    });
+
+});
 </script>
 {% endblock %}

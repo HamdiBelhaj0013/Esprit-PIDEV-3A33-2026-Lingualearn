@@ -10,9 +10,11 @@
         "doctrine/doctrine-bundle": "^2.18",
         "doctrine/doctrine-migrations-bundle": "^3.7",
         "doctrine/migrations": "3.8",
-        "doctrine/orm": "^3.6",
+        "doctrine/orm": "^3.6.2",
+        "knplabs/knp-paginator-bundle": "^6.10",
         "phpdocumentor/reflection-docblock": "^5.6",
         "phpstan/phpdoc-parser": "^2.3",
+        "setasign/fpdi-tcpdf": "^2.3",
         "stripe/stripe-php": "*",
         "symfony/asset": "7.4.*",
         "symfony/asset-mapper": "7.4.*",
@@ -47,7 +49,8 @@
         "symfony/webpack-encore-bundle": "^2.4",
         "symfony/yaml": "7.4.*",
         "twig/extra-bundle": "^2.12|^3.0",
-        "twig/twig": "^2.12|^3.0"
+        "twig/twig": "^2.12|^3.0",
+        "vich/uploader-bundle": "^2.9"
     },
     "config": {
         "allow-plugins": {

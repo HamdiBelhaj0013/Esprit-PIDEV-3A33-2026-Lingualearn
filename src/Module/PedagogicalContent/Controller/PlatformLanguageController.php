@@ -7,73 +7,68 @@ namespace App\Module\PedagogicalContent\Controller;
 use App\Module\PedagogicalContent\Entity\PlatformLanguage;
 use App\Module\PedagogicalContent\Form\PlatformLanguageType;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/admin/pedagogical-content/languages')]
 class PlatformLanguageController extends AbstractController
 {
     #[Route('', name: 'admin_language_index', methods: ['GET'])]
-    public function index(Request $request, EntityManagerInterface $em): Response
-    {
-        $search = $request->query->get('search', '');
-        $sort = $request->query->get('sort', 'name');
-        $order = $request->query->get('order', 'ASC');
-        $enabled = $request->query->get('enabled', '');
-        $isAjax = $request->headers->get('X-Requested-With') === 'XMLHttpRequest';
+public function index(Request $request, EntityManagerInterface $em, PaginatorInterface $paginator): Response
+{
+    $search  = (string) $request->query->get('search', '');
+    $sort    = (string) $request->query->get('sort', 'name');
+    $order   = (string) $request->query->get('order', 'ASC');
+    $enabled = (string) $request->query->get('enabled', '');
 
-        $queryBuilder = $em->getRepository(PlatformLanguage::class)->createQueryBuilder('l');
+    $qb = $em->getRepository(PlatformLanguage::class)->createQueryBuilder('l');
 
-        // Recherche
-        if (!empty($search)) {
-            $queryBuilder->andWhere('l.name LIKE :search OR l.code LIKE :search')
-                         ->setParameter('search', '%' . $search . '%');
-        }
-
-        // Filtrer par statut d'activation
-        if ($enabled !== '') {
-            $queryBuilder->andWhere('l.isEnabled = :enabled')
-                         ->setParameter('enabled', (bool)$enabled);
-        }
-
-        // Tri
-        $validSortFields = ['name', 'code'];
-        $validOrder = strtoupper($order) === 'DESC' ? 'DESC' : 'ASC';
-        
-        if (in_array($sort, $validSortFields)) {
-            $queryBuilder->orderBy('l.' . $sort, $validOrder);
-        } else {
-            $queryBuilder->orderBy('l.name', 'ASC');
-        }
-
-        $languages = $queryBuilder->getQuery()->getResult();
-
-        // Réponse AJAX
-        if ($isAjax) {
-            return new JsonResponse([
-                'html' => $this->renderView('pedagogical_content/language/_table.html.twig', [
-                    'languages' => $languages,
-                ]),
-                'count' => count($languages),
-            ]);
-        }
-
-        return $this->render('pedagogical_content/language/index.html.twig', [
-            'languages' => $languages,
-            'search' => $search,
-            'sort' => $sort,
-            'order' => $order,
-            'enabled' => $enabled,
-        ]);
+    if ($search !== '') {
+        $qb->andWhere('l.name LIKE :search OR l.code LIKE :search')
+           ->setParameter('search', '%' . $search . '%');
     }
 
+    if ($enabled !== '') {
+        $qb->andWhere('l.isEnabled = :enabled')
+           ->setParameter('enabled', $enabled === '1');
+    }
+
+    $order = strtoupper($order) === 'DESC' ? 'DESC' : 'ASC';
+
+    switch ($sort) {
+        case 'code':
+            $qb->orderBy('l.code', $order);
+            break;
+        case 'name':
+        default:
+            $qb->orderBy('l.name', $order);
+            break;
+    }
+
+    $qb->addOrderBy('l.id', 'ASC');
+
+    $pagination = $paginator->paginate(
+        $qb->getQuery(),                 // ✅ getQuery() (plus stable)
+        $request->query->getInt('page', 1),
+        5
+    );
+
+    return $this->render('pedagogical_content/language/index.html.twig', [
+        'pagination' => $pagination,
+        'search'     => $search,
+        'sort'       => $sort,
+        'order'      => $order,
+        'enabled'    => $enabled,
+    ]);
+}
     #[Route('/toggle/{id}', name: 'admin_language_toggle', methods: ['POST'])]
     public function toggle(PlatformLanguage $language, EntityManagerInterface $em, Request $request): JsonResponse
     {
-        if (!$this->isCsrfTokenValid('toggle_' . $language->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('toggle_' . $language->getId(), (string) $request->request->get('_token'))) {
             return new JsonResponse(['success' => false, 'message' => 'Token invalide'], 403);
         }
 
@@ -81,8 +76,8 @@ class PlatformLanguageController extends AbstractController
         $em->flush();
 
         return new JsonResponse([
-            'success' => true,
-            'message' => $language->isEnabled() ? 'Langue activée' : 'Langue désactivée',
+            'success'   => true,
+            'message'   => $language->isEnabled() ? 'Langue activée' : 'Langue désactivée',
             'isEnabled' => $language->isEnabled(),
         ]);
     }
@@ -129,7 +124,7 @@ class PlatformLanguageController extends AbstractController
     #[Route('/{id}', name: 'admin_language_delete', methods: ['POST'])]
     public function delete(Request $request, PlatformLanguage $language, EntityManagerInterface $em): Response
     {
-        if ($this->isCsrfTokenValid('delete' . $language->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $language->getId(), (string) $request->request->get('_token'))) {
             $em->remove($language);
             $em->flush();
             $this->addFlash('success', 'Langue supprimée avec succès !');

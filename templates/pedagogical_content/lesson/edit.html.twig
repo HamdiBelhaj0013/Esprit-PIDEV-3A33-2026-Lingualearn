@@ -67,6 +67,23 @@
                         <small class="form-text text-muted">Points d'expérience gagnés après complétion</small>
                         {{ form_errors(form.xpReward) }}
                     </div>
+                    <div class="mb-3">
+    {{ form_label(form.videoFile, 'Vidéo', {'label_attr': {'class': 'form-label'}}) }}
+    {{ form_widget(form.videoFile, {'attr': {'class': 'form-control'}}) }}
+    {{ form_errors(form.videoFile) }}
+</div>
+
+<div class="mb-3">
+    {{ form_label(form.thumbFile, 'Thumbnail', {'label_attr': {'class': 'form-label'}}) }}
+    {{ form_widget(form.thumbFile, {'attr': {'class': 'form-control'}}) }}
+    {{ form_errors(form.thumbFile) }}
+</div>
+
+<div class="mb-3">
+    {{ form_label(form.resourceFile, 'Ressource (PDF/PPTX)', {'label_attr': {'class': 'form-label'}}) }}
+    {{ form_widget(form.resourceFile, {'attr': {'class': 'form-control'}}) }}
+    {{ form_errors(form.resourceFile) }}
+</div>
 
                     <div class="mb-3">
                         {{ form_label(form.vocabularyData, 'Données de vocabulaire (JSON)', {'label_attr': {'class': 'form-label'}}) }}

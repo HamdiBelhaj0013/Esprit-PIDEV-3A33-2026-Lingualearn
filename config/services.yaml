@@ -1,11 +1,12 @@
 parameters:
+    # Tu peux supprimer ça si tu n'utilises plus OpenAI
+    # openai_api_key: '%env(OPENAI_API_KEY)%'
 
 services:
     _defaults:
         autowire: true
         autoconfigure: true
 
-    # Load all services from src/
     App\:
         resource: '../src/'
         exclude:
@@ -13,12 +14,10 @@ services:
             - '../src/Kernel.php'
             - '../src/Module/*/Entity/'
 
-    # Main app controllers (including User subfolder)
     App\Controller\:
         resource: '../src/Controller/'
         tags: ['controller.service_arguments']
 
-    # Load controllers from each module individually
     App\Module\UserManagement\Controller\:
         resource: '../src/Module/UserManagement/Controller'
         tags: ['controller.service_arguments']
@@ -43,7 +42,6 @@ services:
         resource: '../src/Module/Support/Controller'
         tags: ['controller.service_arguments']
 
-    # Security - Login Success Handler for role-based redirects
     App\Security\LoginSuccessHandler:
         arguments:
             $urlGenerator: '@router'
@@ -56,25 +54,35 @@ services:
         arguments:
             $mailerFrom: '%env(MAILER_FROM)%'
 
-    # =========================================================
-    # STRIPE PAYMENT
-    # =========================================================
-
     App\Module\UserManagement\Service\StripeService:
         arguments:
             $priceMonthly: '%env(STRIPE_PRICE_MONTHLY)%'
-            $priceYearly:  '%env(STRIPE_PRICE_YEARLY)%'
+            $priceYearly: '%env(STRIPE_PRICE_YEARLY)%'
 
     App\Module\UserManagement\Controller\StripeWebhookController:
         arguments:
             $webhookSecret: '%env(STRIPE_WEBHOOK_SECRET)%'
         tags: ['controller.service_arguments']
 
-    # Security - Admin Access Event Subscriber (prevents unauthorized admin access)
-    # DISABLED - File renamed to .DISABLED
-    # App\EventSubscriber\AdminAccessSubscriber:
-    #     arguments:
-    #         $security: '@security.helper'
-    #         $urlGenerator: '@router'
-    #     tags:
-    #         - { name: kernel.event_subscriber }
+    # ============================
+    # MEDIA SERVICES
+    # ============================
+
+    App\Media\MediaManager: ~
+    App\Media\ThumbnailGenerator: ~
+    App\Media\PdfWatermarkService: ~
+
+    App\EventSubscriber\LessonMediaSubscriber:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+        tags:
+            - { name: doctrine.event_subscriber }
+
+    # ============================
+    # HUGGING FACE SERVICES
+    # ============================
+
+    App\Service\HuggingFaceSummarizer:
+        arguments:
+            $hfApiKey: '%env(HUGGINGFACE_API_KEY)%'
+            $hfModel: '%env(HUGGINGFACE_SUMMARY_MODEL)%'

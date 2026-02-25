@@ -1,3 +1,7 @@
+
+<div style="padding:8px; font-weight:600;">
+    Page actuelle: {{ pagination.currentPageNumber }} / Total pages: {{ pagination.pageCount }}
+</div>
 <table class="table table-vcenter card-table" style="margin-bottom: 0;">
     <thead style="background: linear-gradient(135deg, #206bc4 0%, #764ba2 100%); color: white;">
     <tr>
@@ -8,41 +12,71 @@
         <th style="border: none; padding: 16px; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; width: 150px;">Actions</th>
     </tr>
     </thead>
+
     <tbody>
-    {% if languages|length > 0 %}
-        {% for language in languages %}
-            <tr class="language-row" data-language-id="{{ language.id }}" style="border-bottom: 1px solid #e9ecef; transition: all 0.2s ease;" onmouseover="this.style.backgroundColor='rgba(32, 107, 196, 0.03)'" onmouseout="this.style.backgroundColor='transparent'">
+    {% if pagination|length > 0 %}
+        {% for language in pagination %}
+            <tr class="language-row" data-language-id="{{ language.id }}"
+                style="border-bottom: 1px solid #e9ecef; transition: all 0.2s ease;"
+                onmouseover="this.style.backgroundColor='rgba(32, 107, 196, 0.03)'"
+                onmouseout="this.style.backgroundColor='transparent'">
+
                 <td style="padding: 16px;">
-                    <img src="{{ language.flagUrl }}" alt="{{ language.name }}" style="height: 24px; width: 36px; object-fit: cover; border-radius: 4px;">
+                    <img src="{{ language.flagUrl }}" alt="{{ language.name }}"
+                         style="height: 24px; width: 36px; object-fit: cover; border-radius: 4px;">
                 </td>
+
                 <td style="padding: 16px;">
-                    <a href="{{ path('admin_language_show', {'id': language.id}) }}" style="color: #206bc4; text-decoration: none; font-weight: 500;">
+                    <a href="{{ path('admin_language_show', {'id': language.id}) }}"
+                       style="color: #206bc4; text-decoration: none; font-weight: 500;">
                         {{ language.name }}
                     </a>
                 </td>
+
                 <td style="padding: 16px;">
-                        <span class="badge" style="background: linear-gradient(135deg, #206bc4 0%, #3b7dd8 100%); color: white; padding: 6px 14px; border-radius: 20px; font-weight: 600; font-size: 11px; display: inline-block;">
-                            {{ language.code|upper }}
-                        </span>
+                    <span class="badge"
+                          style="background: linear-gradient(135deg, #206bc4 0%, #3b7dd8 100%);
+                                 color: white; padding: 6px 14px; border-radius: 20px;
+                                 font-weight: 600; font-size: 11px; display: inline-block;">
+                        {{ language.code|upper }}
+                    </span>
                 </td>
+
                 <td style="padding: 16px;">
                     <div class="form-check form-switch" style="margin: 0;">
-                        <input class="form-check-input toggle-status" type="checkbox" id="status{{ language.id }}" data-language-id="{{ language.id }}" {% if language.isEnabled %}checked{% endif %} style="width: 44px; height: 24px; margin: 0;">
+                        <input class="form-check-input toggle-status"
+                               type="checkbox"
+                               id="status{{ language.id }}"
+                               data-language-id="{{ language.id }}"
+                               {% if language.isEnabled %}checked{% endif %}
+                               style="width: 44px; height: 24px; margin: 0;">
                     </div>
                 </td>
+
                 <td style="padding: 16px;">
                     <div class="btn-group btn-group-sm" role="group">
-                        <a href="{{ path('admin_language_show', {'id': language.id}) }}" class="btn btn-sm" style="background: #e9ecef; color: #206bc4; border: none; padding: 6px 12px; border-radius: 6px 0 0 6px; font-size: 11px; font-weight: 600;">
+                        <a href="{{ path('admin_language_show', {'id': language.id}) }}"
+                           class="btn btn-sm"
+                           style="background: #e9ecef; color: #206bc4; border: none; padding: 6px 12px; border-radius: 6px 0 0 6px; font-size: 11px; font-weight: 600;">
                             <i class="ti ti-eye"></i>
                         </a>
-                        <a href="{{ path('admin_language_edit', {'id': language.id}) }}" class="btn btn-sm" style="background: #206bc4; color: white; border: none; padding: 6px 12px; font-size: 11px; font-weight: 600;">
+                        <a href="{{ path('admin_language_edit', {'id': language.id}) }}"
+                           class="btn btn-sm"
+                           style="background: #206bc4; color: white; border: none; padding: 6px 12px; font-size: 11px; font-weight: 600;">
                             <i class="ti ti-edit"></i>
                         </a>
-                        <button type="button" class="btn btn-sm deleteBtn" data-form-id="deleteForm{{ language.id }}" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" style="background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 0 6px 6px 0; font-size: 11px; font-weight: 600;">
+                        <button type="button"
+                                class="btn btn-sm deleteBtn"
+                                data-form-id="deleteForm{{ language.id }}"
+                                data-bs-toggle="modal"
+                                data-bs-target="#confirmDeleteModal"
+                                style="background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 0 6px 6px 0; font-size: 11px; font-weight: 600;">
                             <i class="ti ti-trash"></i>
                         </button>
                     </div>
-                    <form method="post" action="{{ path('admin_language_delete', {'id': language.id}) }}" style="display:none;" id="deleteForm{{ language.id }}">
+
+                    <form method="post" action="{{ path('admin_language_delete', {'id': language.id}) }}"
+                          style="display:none;" id="deleteForm{{ language.id }}">
                         <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ language.id) }}">
                     </form>
                 </td>
@@ -60,3 +94,9 @@
     {% endif %}
     </tbody>
 </table>
+
+{% if pagination|length > 0 %}
+    <div class="p-3 d-flex justify-content-center">
+        {{ knp_pagination_render(pagination) }}
+    </div>
+{% endif %}
