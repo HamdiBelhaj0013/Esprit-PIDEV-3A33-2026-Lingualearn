@@ -37,7 +37,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column]
     private array $roles = [];
+    #[ORM\Column(options: ['default' => false])]
+    private bool $isBanned = false;
 
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $bannedUntil = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $banReason = null;
     #[ORM\Column]
     private ?string $password = null;
 
@@ -374,4 +381,41 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getStripeSubscriptionId(): ?string { return $this->stripeSubscriptionId; }
     public function setStripeSubscriptionId(?string $id): static { $this->stripeSubscriptionId = $id; return $this; }
+    // Add these methods at the bottom of the class, before the closing }
+
+// =========================================================
+// BAN METHODS
+// =========================================================
+    public function getIsBanned(): bool { return $this->isBanned; }
+    public function setIsBanned(bool $isBanned): static { $this->isBanned = $isBanned; return $this; }
+
+    public function isBanned(): bool { return $this->isBanned; }
+
+    public function getBannedUntil(): ?\DateTimeInterface { return $this->bannedUntil; }
+    public function setBannedUntil(?\DateTimeInterface $bannedUntil): static
+    {
+        $this->bannedUntil = $bannedUntil;
+        return $this;
+    }
+
+    public function getBanReason(): ?string { return $this->banReason; }
+    public function setBanReason(?string $banReason): static
+    {
+        $this->banReason = $banReason;
+        return $this;
+    }
+
+    public function isCurrentlyBanned(): bool
+    {
+        if (!$this->isBanned) {
+            return false;
+        }
+        // Permanent ban
+        if ($this->bannedUntil === null) {
+            return true;
+        }
+        // Temporary ban - check if still active
+        return $this->bannedUntil > new \DateTime();
+    }
 }
+
