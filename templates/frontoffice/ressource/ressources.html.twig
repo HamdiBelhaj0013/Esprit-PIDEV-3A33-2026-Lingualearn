@@ -650,11 +650,11 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Notifications */
+        /* Notifications - REPOSITIONNÉES À GAUCHE */
         .notif-badge {
             position: fixed;
             bottom: 20px;
-            right: 20px;
+            left: 20px;  /* Changé de right à left */
             background: var(--blue);
             color: white;
             border: none;
@@ -671,6 +671,31 @@
         .notif-badge:hover {
             background: var(--blue-dark);
             transform: translateY(-2px);
+        }
+
+        /* Container des notifications repositionné à gauche */
+        #notification-container {
+            position: fixed;
+            bottom: 80px;
+            left: 20px;  /* Changé de right à left */
+            z-index: 9999;
+            width: 320px;
+        }
+
+        /* Historique des notifications repositionné à gauche */
+        #notification-history {
+            display: none;
+            position: fixed;
+            bottom: 80px;
+            left: 20px;  /* Changé de right à left */
+            background: white;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            width: 280px;
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 9998;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
 
         .blurred {
@@ -697,6 +722,26 @@
             }
             .hamburger {
                 display: flex;
+            }
+            
+            /* Ajustement pour mobile */
+            .notif-badge {
+                bottom: 20px;
+                left: 20px;
+                padding: 10px 20px;
+                font-size: 0.85rem;
+            }
+            
+            #notification-container {
+                bottom: 70px;
+                left: 20px;
+                width: calc(100% - 40px);
+            }
+            
+            #notification-history {
+                bottom: 70px;
+                left: 20px;
+                width: calc(100% - 40px);
             }
         }
     </style>
@@ -759,13 +804,13 @@
 
     {% include 'frontoffice/ressource/chat.html.twig' %}
 
-    <!-- Notifications -->
+    <!-- Notifications - REPOSITIONNÉES À GAUCHE -->
     <button id="btn-notifications" class="notif-badge">
         <i class="bi bi-bell"></i> <span id="notification-count">0</span>
     </button>
 
-    <div id="notification-container" style="position: fixed; bottom: 80px; right: 20px; z-index: 9999; width: 320px;"></div>
-    <div id="notification-history" style="display: none; position: fixed; bottom: 80px; right: 20px; background: white; border: 1.5px solid var(--border); border-radius: var(--radius); width: 280px; max-height: 400px; overflow-y: auto; z-index: 9998; box-shadow: 0 10px 25px rgba(0,0,0,0.1);"></div>
+    <div id="notification-container"></div>
+    <div id="notification-history"></div>
 
     <!-- Layout principal -->
     <div class="main-layout">
