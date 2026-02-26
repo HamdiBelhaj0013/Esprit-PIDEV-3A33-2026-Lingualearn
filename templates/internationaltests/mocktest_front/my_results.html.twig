@@ -169,28 +169,7 @@
 </head>
 <body>
 <aside class="sidebar" id="sidebar">
-    <a href="{{ path('app_homepage') }}" class="sidebar-logo"><div class="sidebar-logo-text">Lingua<span>Learn</span></div></a>
-    <div class="sidebar-user">
-        <div class="user-avatar {{ user.isPremium ? 'premium' : '' }}">{{ user.firstName|first|upper }}{{ user.lastName|first|upper }}</div>
-        <div class="user-info">
-            <div class="user-name">{{ user.fullName }}</div>
-            <div class="user-plan {{ user.isPremium ? 'premium' : 'free' }}">{{ user.isPremium ? '★ ' ~ user.subscriptionPlan : 'Free Plan' }}</div>
-        </div>
-    </div>
-    <nav class="sidebar-nav">
-        <span class="nav-section-label">Main</span>
-        <a href="{{ path('user_dashboard') }}" class="nav-item"><span class="nav-icon">⊞</span> Dashboard</a>
-        <a href="#" class="nav-item"><span class="nav-icon">📚</span> My Courses</a>
-        <a href="#" class="nav-item"><span class="nav-icon">🧩</span> Practice</a>
-        <a href="{{ path('mock_tests_index') }}" class="nav-item active"><span class="nav-icon">📝</span> Mock Tests</a>
-        <span class="nav-section-label">Account</span>
-        <a href="{{ path('user_profile') }}" class="nav-item"><span class="nav-icon">👤</span> My Profile</a>
-        <a href="#" class="nav-item"><span class="nav-icon">🔔</span> Notifications</a>
-        <a href="#" class="nav-item"><span class="nav-icon">👑</span> Subscription</a>
-        <span class="nav-section-label">System</span>
-        <a href="{{ path('app_logout') }}" class="nav-item"><span class="nav-icon">→</span> Log Out</a>
-    </nav>
-</aside>
+    {% include 'components/sidebar.html.twig' %}
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
 <div class="main">

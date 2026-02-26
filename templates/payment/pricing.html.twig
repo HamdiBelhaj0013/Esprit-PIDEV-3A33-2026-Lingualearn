@@ -304,65 +304,7 @@
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
 {# ═══ SIDEBAR ═══ #}
-<aside class="sidebar" id="sidebar">
-    <a href="{{ path('app_homepage') }}" class="sidebar-logo">
-        <div class="sidebar-logo-icon">L</div>
-        <span class="sidebar-logo-text">Lingua<span>Learn</span></span>
-    </a>
-    <div class="sidebar-user">
-        <div class="user-avatar {{ user.isPremium ? 'premium' : '' }}">
-            {{ user.firstName|first|upper }}{{ user.lastName|first|upper }}
-        </div>
-        <div class="user-info">
-            <div class="user-name">{{ user.fullName }}</div>
-            <div class="user-plan {{ user.isPremium ? 'premium' : 'free' }}">
-                {{ user.isPremium ? '👑 ' ~ user.subscriptionPlan : 'Free Plan' }}
-            </div>
-        </div>
-    </div>
-    <nav class="sidebar-nav">
-        <span class="nav-section-label">Main</span>
-        <a href="{{ path('user_dashboard') }}" class="nav-item">
-            <span class="nav-icon">🏠</span> Dashboard
-        </a>
-        <a href="#" class="nav-item">
-            <span class="nav-icon">📚</span> My Courses
-            <span class="nav-badge">0</span>
-        </a>
-        <a href="#" class="nav-item">
-            <span class="nav-icon">🧩</span> Practice
-        </a>
-        <a href="{{ path('pricing') }}" class="nav-item">
-            <span class="nav-icon">📝</span> Mock Tests
-            {% if not user.isPremium %}<span class="nav-badge" style="background:var(--gold)">PRO</span>{% endif %}
-        </a>
-        <span class="nav-section-label">Account</span>
-        <a href="{{ path('user_profile') }}" class="nav-item">
-            <span class="nav-icon">👤</span> My Profile
-        </a>
-        <a href="{{ path('user_profile') }}" class="nav-item">
-            <span class="nav-icon">🔔</span> Notifications
-            {% set unread = 0 %}
-            {% for n in user.notifications %}{% if not n.isRead %}{% set unread = unread + 1 %}{% endif %}{% endfor %}
-            {% if unread > 0 %}<span class="nav-badge orange">{{ unread }}</span>{% endif %}
-        </a>
-        <a href="{{ path('pricing') }}" class="nav-item active">
-            <span class="nav-icon">👑</span> Plans & Billing
-        </a>
-        {% if not user.isPremium %}
-            <div class="sidebar-upgrade">
-                <div class="sidebar-upgrade-label">✦ Go Premium</div>
-                <p>Unlock all courses, mock tests & AI practice.</p>
-                <a href="{{ path('pricing') }}" class="sidebar-upgrade-btn">Upgrade Now →</a>
-            </div>
-        {% endif %}
-    </nav>
-    <div class="sidebar-bottom">
-        <a href="{{ path('app_logout') }}" class="nav-item">
-            <span class="nav-icon">🚪</span> Log Out
-        </a>
-    </div>
-</aside>
+{% include 'components/sidebar.html.twig' %}
 
 {# ═══ MAIN ═══ #}
 <div class="main">
