@@ -17,10 +17,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 class AdminAiController extends AbstractController
 {
-    private const OLLAMA_URL   = 'http://localhost:11434/api/chat';
+    // ✅ RESTORED: localhost was working — Symfony runs on Windows, not Docker
+    private const OLLAMA_URL   = 'http://127.0.0.1:11434/api/chat';
     private const OLLAMA_MODEL = 'llama3';
 
-    /** Complete whitelist — anything not here is rejected before execution */
     private const ALLOWED_ACTIONS = [
         'READ_ONLY',
         'CREATE_USER',
@@ -34,9 +34,9 @@ class AdminAiController extends AbstractController
     ];
 
     public function __construct(
-        private readonly UserRepository              $userRepository,
-        private readonly UserService                $userService,
-        private readonly EntityManagerInterface     $entityManager,
+        private readonly UserRepository               $userRepository,
+        private readonly UserService                 $userService,
+        private readonly EntityManagerInterface      $entityManager,
         private readonly UserPasswordHasherInterface $passwordHasher,
     ) {}
 
@@ -54,9 +54,20 @@ class AdminAiController extends AbstractController
             return $this->json(['error' => 'Query is required'], 400);
         }
 
-        $users       = $this->userRepository->findAll();
-        $dataset     = $this->buildUserDataset($users);
-        $datasetJson = $this->jsonPretty($dataset);
+        $dataset = $this->buildUserDataset($this->userRepository->findAllWithStats());
+
+        // ✅ PHP pre-filter: resolve common queries without touching the AI
+        [$filtered, $intent] = $this->preFilter($query, $dataset);
+
+        if ($intent['resolved']) {
+            return $this->json([
+                'ids'       => array_column($filtered, 'id'),
+                'reasoning' => $intent['reasoning'],
+                'summary'   => count($filtered) . ' user(s) found',
+            ]);
+        }
+
+        $datasetJson = $this->jsonPretty($filtered ?: $dataset);
         $today       = date('Y-m-d');
 
         $system = <<<PROMPT
@@ -71,7 +82,7 @@ Matching rules:
 - "suspended" → status = "suspended"
 - "failed payment" / "payment issue" → paymentStatus = "failed"
 - "premium" → isPremium = true
-- "free users" → isPremium = false OR plan = "FREE"
+- "free users" → isPremium = false OR plan = "free"
 - "top learners" / "highest XP" → sort by xp descending, return top N (default 5)
 - "new users" → joined within the last 6 months from today
 - "expiring soon" → expiry within the next 30 days
@@ -87,13 +98,18 @@ PROMPT;
             $parsed = json_decode(trim($clean), true);
 
             if (!$parsed || !isset($parsed['ids'])) {
-                return $this->json(['ids' => [], 'reasoning' => 'Could not parse AI response. Try rephrasing.', 'summary' => '0 results']);
+                // Fallback to PHP result if AI fails
+                return $this->json([
+                    'ids'       => array_column($filtered ?: $dataset, 'id'),
+                    'reasoning' => 'AI could not parse. PHP filter result returned.',
+                    'summary'   => count($filtered ?: $dataset) . ' result(s)',
+                ]);
             }
 
             return $this->json($parsed);
 
-        } catch (\Throwable) {
-            return $this->json(['ids' => [], 'reasoning' => 'AI service unavailable. Run: ollama serve', 'summary' => 'Error'], 503);
+        } catch (\Throwable $e) {
+            return $this->json(['ids' => [], 'reasoning' => 'AI service unavailable: ' . $e->getMessage(), 'summary' => 'Error'], 503);
         }
     }
 
@@ -139,28 +155,15 @@ PROMPT;
         try {
             $insight = $this->callOllama([['role' => 'user', 'content' => 'Analyze this user: ' . json_encode($profile)]], $system);
             return $this->json(['insight' => $insight]);
-        } catch (\Throwable) {
-            return $this->json(['insight' => 'AI service unavailable. Run: ollama serve'], 503);
+        } catch (\Throwable $e) {
+            return $this->json(['insight' => 'AI service unavailable: ' . $e->getMessage()], 503);
         }
     }
 
     // =========================================================
-    // ADMIN ASSISTANT CHAT — WITH REAL ACTION EXECUTION
+    // ADMIN ASSISTANT CHAT
     // =========================================================
 
-    /**
-     * POST /admin/ai/chat
-     *
-     * Request body:
-     *   { "messages": [{"role":"user","content":"create a test user named John Doe"}] }
-     *
-     * Response:
-     *   {
-     *     "reply":        "Creating user John Doe with free plan...",
-     *     "action":       "CREATE_USER",
-     *     "actionResult": { "success": true, "message": "User created. ID: 99", "data": {...} }
-     *   }
-     */
     #[Route('/chat', name: 'admin_ai_chat', methods: ['POST'])]
     public function chat(Request $request): JsonResponse
     {
@@ -171,25 +174,32 @@ PROMPT;
             return $this->json(['error' => 'Messages are required'], 400);
         }
 
+        $lastMessage = end($messages)['content'] ?? '';
+        $dataset     = $this->buildUserDataset($this->userRepository->findAllWithStats());
+
+        // ✅ PHP pre-filter: reduce dataset before sending to AI
+        [$filtered, $intent] = $this->preFilter($lastMessage, $dataset);
+        $workingSet  = $filtered ?: $dataset;
+
         $stats       = $this->userService->getUserStatistics();
         $statsJson   = json_encode($stats);
-        $users       = $this->userRepository->findAll();
-        $dataset     = $this->buildUserDataset($users);
-        $datasetJson = $this->jsonPretty($dataset);
+        $datasetJson = $this->jsonPretty($workingSet);
         $today       = date('Y-m-d');
+        $wc          = count($workingSet);
+        $tc          = count($dataset);
 
         $system = <<<PROMPT
 You are a JSON API endpoint for an admin dashboard. You output ONLY raw JSON. Never output prose, explanations, or markdown — not before, after, or inside the JSON.
 
 Today: {$today}
 Platform stats: {$statsJson}
-User dataset: {$datasetJson}
+User dataset ({$wc} of {$tc} users — pre-filtered by server): {$datasetJson}
 
 OUTPUT RULES — CRITICAL:
 1. Your entire response must be a single valid JSON object. Nothing else.
-2. No preamble like "Here is the response:" or "I'll send a CREATE_USER request:".
-3. No markdown. No code fences. No explanation outside the JSON.
-4. The "reply" field is the only place for human-readable text. Keep it under 2 sentences.
+2. No preamble. No markdown. No code fences. No explanation outside the JSON.
+3. The "reply" field is the only place for human-readable text. Keep it under 2 sentences.
+4. Use ONLY IDs that exist in the dataset above.
 
 ACTIONS YOU CAN EXECUTE:
 - READ_ONLY       : answer questions, no mutation
@@ -234,8 +244,19 @@ PROMPT;
             $raw    = $this->callOllama($messages, $system);
             $parsed = $this->extractJsonFromResponse($raw);
 
-            // Fallback: model didn't return parseable JSON — treat as read-only text reply
+            // AI failed but PHP resolved it — return PHP result directly
             if (!$parsed || !isset($parsed['action'])) {
+                if ($intent['resolved'] && !empty($filtered)) {
+                    return $this->json([
+                        'reply'        => $intent['reasoning'] . ' ' . count($filtered) . ' user(s) found.',
+                        'action'       => 'EXPORT_USER_IDS',
+                        'actionResult' => [
+                            'success' => true,
+                            'ids'     => array_column($filtered, 'id'),
+                            'message' => count($filtered) . ' IDs exported.',
+                        ],
+                    ]);
+                }
                 return $this->json(['reply' => $this->stripJsonFromText($raw), 'action' => 'READ_ONLY', 'actionResult' => null]);
             }
 
@@ -243,7 +264,6 @@ PROMPT;
             $reply  = $parsed['reply'] ?? '';
             $params = $parsed['params'] ?? [];
 
-            // Guard: reject unknown actions
             if (!in_array($action, self::ALLOWED_ACTIONS, true)) {
                 return $this->json([
                     'reply'        => $reply,
@@ -253,16 +273,109 @@ PROMPT;
             }
 
             $actionResult = $this->executeAction($action, $params);
-
             return $this->json(['reply' => $reply, 'action' => $action, 'actionResult' => $actionResult]);
 
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
             return $this->json([
-                'reply'        => 'AI service unavailable. Make sure Ollama is running: ollama serve',
+                'reply'        => 'AI service unavailable: ' . $e->getMessage(),
                 'action'       => null,
                 'actionResult' => null,
             ], 503);
         }
+    }
+
+    // =========================================================
+    // PHP PRE-FILTER ENGINE
+    // Handles common queries 100% in PHP — AI never sees 120 users at once
+    // =========================================================
+
+    /**
+     * @return array{0: array, 1: array{resolved: bool, reasoning: string}}
+     */
+    private function preFilter(string $query, array $dataset): array
+    {
+        $q       = strtolower(trim($query));
+        $filters = [];
+        $reasons = [];
+
+        // Status
+        if (preg_match('/\b(suspended|suspension)\b/', $q)) {
+            $filters[] = fn($u) => $u['status'] === 'suspended';
+            $reasons[] = 'status=suspended';
+        }
+        if (preg_match('/\bactive\b/', $q) && !preg_match('/\b(suspend|delete|ban)\b/', $q)) {
+            $filters[] = fn($u) => $u['status'] === 'active';
+            $reasons[] = 'status=active';
+        }
+        if (preg_match('/\bdeleted?\b/', $q)) {
+            $filters[] = fn($u) => $u['status'] === 'deleted';
+            $reasons[] = 'status=deleted';
+        }
+        if (preg_match('/\bbanned?\b/', $q)) {
+            $filters[] = fn($u) => $u['status'] === 'banned';
+            $reasons[] = 'status=banned';
+        }
+
+        // Premium / plan
+        if (preg_match('/\bpremium\b/', $q) && !preg_match('/\bnot?\s*premium\b/', $q)) {
+            $filters[] = fn($u) => $u['isPremium'] === true;
+            $reasons[] = 'isPremium=true';
+        }
+        if (preg_match('/\bfree\s*(user|plan|account)?\b/', $q)) {
+            $filters[] = fn($u) => $u['isPremium'] === false;
+            $reasons[] = 'isPremium=false';
+        }
+        if (preg_match('/\bmonthly\b/', $q)) {
+            $filters[] = fn($u) => strtolower($u['plan']) === 'monthly';
+            $reasons[] = 'plan=monthly';
+        }
+        if (preg_match('/\byearly\b/', $q)) {
+            $filters[] = fn($u) => strtolower($u['plan']) === 'yearly';
+            $reasons[] = 'plan=yearly';
+        }
+
+        // Payment
+        if (preg_match('/\bfailed\s*payment|payment\s*(fail|issue|problem)\b/', $q)) {
+            $filters[] = fn($u) => strtolower((string)$u['paymentStatus']) === 'failed';
+            $reasons[] = 'paymentStatus=failed';
+        }
+
+        // New users (last 6 months)
+        if (preg_match('/\bnew\s*(user|member|registration)|\brecently\s*(joined|registered)\b/', $q)) {
+            $since     = (new \DateTime('-6 months'))->format('Y-m-d');
+            $filters[] = fn($u) => ($u['joined'] ?? '') >= $since;
+            $reasons[] = 'joined in last 6 months';
+        }
+
+        // Expiring soon
+        if (preg_match('/\bexpir(ing|es|ed)?\s*(soon)?\b/', $q)) {
+            $today     = date('Y-m-d');
+            $in30      = (new \DateTime('+30 days'))->format('Y-m-d');
+            $filters[] = fn($u) => !empty($u['expiry']) && $u['expiry'] >= $today && $u['expiry'] <= $in30;
+            $reasons[] = 'expiry within 30 days';
+        }
+
+        // Apply all filters (AND logic)
+        $filtered = $dataset;
+        foreach ($filters as $fn) {
+            $filtered = array_values(array_filter($filtered, $fn));
+        }
+
+        // Top learners
+        if (preg_match('/\btop\b.*\b(learner|xp|score)\b|\bhighest\s*xp\b|\bmost\s*xp\b/', $q)) {
+            usort($filtered, fn($a, $b) => $b['xp'] - $a['xp']);
+            preg_match('/\b(\d+)\b/', $q, $m);
+            $n        = (int) ($m[1] ?? 5);
+            $filtered = array_slice($filtered, 0, $n);
+            $reasons[] = "top {$n} by XP";
+        }
+
+        $resolved  = !empty($filters) || !empty($reasons);
+        $reasoning = $resolved
+            ? 'PHP filter: ' . implode(' AND ', $reasons) . '.'
+            : 'No PHP filter matched — sending to AI.';
+
+        return [$filtered, ['resolved' => $resolved, 'reasoning' => $reasoning]];
     }
 
     // =========================================================
@@ -272,20 +385,18 @@ PROMPT;
     private function executeAction(string $action, array $params): array
     {
         return match ($action) {
-            'READ_ONLY'      => ['success' => true, 'message' => 'No action taken.'],
-            'CREATE_USER'    => $this->executeCreateUser($params),
-            'DELETE_USERS'   => $this->executeStatusChange($params, 'deleted', 'deleted'),
-            'SUSPEND_USERS'  => $this->executeStatusChange($params, 'suspended', 'suspended'),
-            'ACTIVATE_USERS' => $this->executeStatusChange($params, 'active', 'activated'),
-            'CHANGE_PLAN'    => $this->executeChangePlan($params),
-            'CHANGE_ROLE'    => $this->executeChangeRole($params),
-            'RESET_PASSWORD' => $this->executeResetPassword($params),
-            'EXPORT_USER_IDS'=> ['success' => true, 'ids' => array_values(array_map('intval', $params['ids'] ?? [])), 'message' => count($params['ids'] ?? []) . ' IDs exported.'],
-            default          => ['success' => false, 'message' => 'Unknown action.'],
+            'READ_ONLY'       => ['success' => true, 'message' => 'No action taken.'],
+            'CREATE_USER'     => $this->executeCreateUser($params),
+            'DELETE_USERS'    => $this->executeStatusChange($params, 'deleted', 'deleted'),
+            'SUSPEND_USERS'   => $this->executeStatusChange($params, 'suspended', 'suspended'),
+            'ACTIVATE_USERS'  => $this->executeStatusChange($params, 'active', 'activated'),
+            'CHANGE_PLAN'     => $this->executeChangePlan($params),
+            'CHANGE_ROLE'     => $this->executeChangeRole($params),
+            'RESET_PASSWORD'  => $this->executeResetPassword($params),
+            'EXPORT_USER_IDS' => ['success' => true, 'ids' => array_values(array_map('intval', $params['ids'] ?? [])), 'message' => count($params['ids'] ?? []) . ' IDs exported.'],
+            default           => ['success' => false, 'message' => 'Unknown action.'],
         };
     }
-
-    // ── CREATE USER ──────────────────────────────────────────────────────────
 
     private function executeCreateUser(array $params): array
     {
@@ -297,17 +408,14 @@ PROMPT;
         $roles     = $params['roles'] ?? ['ROLE_USER'];
 
         if (!$firstName || !$lastName || !$email) {
-            return ['success' => false, 'message' => 'firstName, lastName, and email are required to create a user.'];
+            return ['success' => false, 'message' => 'firstName, lastName, and email are required.'];
         }
-
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return ['success' => false, 'message' => "Invalid email address: {$email}"];
         }
-
         if ($this->userRepository->findOneBy(['email' => $email])) {
             return ['success' => false, 'message' => "A user with email {$email} already exists."];
         }
-
         if (!in_array($plan, ['FREE', 'MONTHLY', 'YEARLY'], true)) {
             $plan = 'FREE';
         }
@@ -319,14 +427,11 @@ PROMPT;
         $user->setRoles(array_unique(array_merge(['ROLE_USER'], $roles)));
         $user->setSubscriptionPlan($plan);
         $user->setStatus('active');
-        $user->setIsVerified(true); // admin-created accounts are pre-verified
-
-        $hashed = $this->passwordHasher->hashPassword($user, $password);
-        $user->setPassword($hashed);
+        $user->setIsVerified(true);
+        $user->setPassword($this->passwordHasher->hashPassword($user, $password));
 
         if (in_array($plan, ['MONTHLY', 'YEARLY'])) {
-            $expiry = new \DateTime('+1 ' . ($plan === 'MONTHLY' ? 'month' : 'year'));
-            $user->setSubscriptionExpiry($expiry);
+            $user->setSubscriptionExpiry(new \DateTime('+1 ' . ($plan === 'MONTHLY' ? 'month' : 'year')));
         }
 
         $this->entityManager->persist($user);
@@ -340,12 +445,10 @@ PROMPT;
                 'name'     => $user->getFullName(),
                 'email'    => $user->getEmail(),
                 'plan'     => $user->getSubscriptionPlan(),
-                'password' => $password, // returned so admin can share it
+                'password' => $password,
             ],
         ];
     }
-
-    // ── STATUS CHANGE (delete / suspend / activate) ──────────────────────────
 
     private function executeStatusChange(array $params, string $newStatus, string $verb): array
     {
@@ -356,11 +459,9 @@ PROMPT;
         }
 
         $affected = [];
-
         foreach ($ids as $id) {
             $user = $this->userRepository->find($id);
             if (!$user) continue;
-            // Safety: never mutate admin accounts via AI
             if (in_array('ROLE_ADMIN', $user->getRoles(), true)) continue;
             $user->setStatus($newStatus);
             $affected[] = $id;
@@ -379,8 +480,6 @@ PROMPT;
         ];
     }
 
-    // ── CHANGE PLAN ──────────────────────────────────────────────────────────
-
     private function executeChangePlan(array $params): array
     {
         $ids  = array_filter(array_map('intval', $params['ids'] ?? []), fn($id) => $id > 0);
@@ -389,7 +488,6 @@ PROMPT;
         if (empty($ids)) {
             return ['success' => false, 'message' => 'No user IDs provided.'];
         }
-
         if (!in_array($plan, ['FREE', 'MONTHLY', 'YEARLY'], true)) {
             return ['success' => false, 'message' => "Invalid plan '{$plan}'. Must be FREE, MONTHLY, or YEARLY."];
         }
@@ -400,8 +498,7 @@ PROMPT;
             if (!$user) continue;
             $user->setSubscriptionPlan($plan);
             if (in_array($plan, ['MONTHLY', 'YEARLY'])) {
-                $expiry = new \DateTime('+1 ' . ($plan === 'MONTHLY' ? 'month' : 'year'));
-                $user->setSubscriptionExpiry($expiry);
+                $user->setSubscriptionExpiry(new \DateTime('+1 ' . ($plan === 'MONTHLY' ? 'month' : 'year')));
             } else {
                 $user->setSubscriptionExpiry(null);
             }
@@ -421,23 +518,16 @@ PROMPT;
         ];
     }
 
-    // ── CHANGE ROLE ──────────────────────────────────────────────────────────
-
     private function executeChangeRole(array $params): array
     {
         $ids   = array_filter(array_map('intval', $params['ids'] ?? []), fn($id) => $id > 0);
         $roles = $params['roles'] ?? ['ROLE_USER'];
 
         $allowedRoles = ['ROLE_USER', 'ROLE_TEACHER', 'ROLE_ADMIN'];
-        $roles = array_intersect($roles, $allowedRoles);
+        $roles        = array_intersect($roles, $allowedRoles);
 
-        if (empty($ids)) {
-            return ['success' => false, 'message' => 'No user IDs provided.'];
-        }
-
-        if (empty($roles)) {
-            return ['success' => false, 'message' => 'No valid roles provided.'];
-        }
+        if (empty($ids))   return ['success' => false, 'message' => 'No user IDs provided.'];
+        if (empty($roles)) return ['success' => false, 'message' => 'No valid roles provided.'];
 
         $affected = [];
         foreach ($ids as $id) {
@@ -447,9 +537,7 @@ PROMPT;
             $affected[] = $id;
         }
 
-        if (empty($affected)) {
-            return ['success' => false, 'message' => 'No users updated.'];
-        }
+        if (empty($affected)) return ['success' => false, 'message' => 'No users updated.'];
 
         $this->entityManager->flush();
 
@@ -460,33 +548,22 @@ PROMPT;
         ];
     }
 
-    // ── RESET PASSWORD ───────────────────────────────────────────────────────
-
     private function executeResetPassword(array $params): array
     {
         $userId   = (int) ($params['id'] ?? 0);
         $password = trim($params['password'] ?? '');
 
-        if (!$userId) {
-            return ['success' => false, 'message' => 'User ID is required.'];
-        }
-
-        if (strlen($password) < 8) {
-            return ['success' => false, 'message' => 'Password must be at least 8 characters.'];
-        }
+        if (!$userId)              return ['success' => false, 'message' => 'User ID is required.'];
+        if (strlen($password) < 8) return ['success' => false, 'message' => 'Password must be at least 8 characters.'];
 
         $user = $this->userRepository->find($userId);
-        if (!$user) {
-            return ['success' => false, 'message' => "User #{$userId} not found."];
-        }
+        if (!$user) return ['success' => false, 'message' => "User #{$userId} not found."];
 
-        // Safety: don't reset admin passwords via AI
         if (in_array('ROLE_ADMIN', $user->getRoles(), true)) {
             return ['success' => false, 'message' => 'Cannot reset password for admin accounts via AI.'];
         }
 
-        $hashed = $this->passwordHasher->hashPassword($user, $password);
-        $user->setPassword($hashed);
+        $user->setPassword($this->passwordHasher->hashPassword($user, $password));
         $this->entityManager->flush();
 
         return [
@@ -500,33 +577,18 @@ PROMPT;
     // JSON EXTRACTION HELPERS
     // =========================================================
 
-    /**
-     * Robustly extract a JSON object from a model response that may contain
-     * prose, markdown fences, or narration around the actual JSON.
-     *
-     * Strategy:
-     *   1. Strip markdown code fences
-     *   2. Try parsing the whole string
-     *   3. Find the first { ... } block using brace counting and try that
-     *   4. Give up and return null
-     */
     private function extractJsonFromResponse(string $raw): ?array
     {
-        // 1. Strip markdown fences
         $clean = preg_replace('/```json\s*|```\s*/i', '', $raw);
         $clean = trim($clean);
 
-        // 2. Try the whole string first
         $parsed = json_decode($clean, true);
         if (is_array($parsed) && isset($parsed['action'])) {
             return $parsed;
         }
 
-        // 3. Find the first complete {...} block by brace counting
         $start = strpos($clean, '{');
-        if ($start === false) {
-            return null;
-        }
+        if ($start === false) return null;
 
         $depth = 0;
         $end   = $start;
@@ -535,40 +597,21 @@ PROMPT;
         for ($i = $start; $i < $len; $i++) {
             if ($clean[$i] === '{') $depth++;
             if ($clean[$i] === '}') $depth--;
-            if ($depth === 0) {
-                $end = $i;
-                break;
-            }
+            if ($depth === 0) { $end = $i; break; }
         }
 
-        if ($depth !== 0) {
-            return null; // unbalanced braces
-        }
+        if ($depth !== 0) return null;
 
-        $jsonStr = substr($clean, $start, $end - $start + 1);
-        $parsed  = json_decode($jsonStr, true);
-
+        $parsed = json_decode(substr($clean, $start, $end - $start + 1), true);
         return (is_array($parsed) && isset($parsed['action'])) ? $parsed : null;
     }
 
-    /**
-     * Remove any JSON object blobs from a plain-text string.
-     * Used when the model narrates its JSON instead of returning it cleanly —
-     * we strip the raw JSON so only the human-readable part is shown in chat.
-     */
     private function stripJsonFromText(string $text): string
     {
-        // Remove markdown fences + content
         $text = preg_replace('/```json.*?```/si', '', $text);
         $text = preg_replace('/```.*?```/si', '', $text);
-
-        // Remove bare {...} blocks (the leaked action JSON)
         $text = preg_replace('/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/s', '', $text);
-
-        // Clean up whitespace
-        $text = trim(preg_replace('/\s{3,}/', ' ', $text));
-
-        return $text ?: 'Done.';
+        return trim(preg_replace('/\s{3,}/', ' ', $text)) ?: 'Done.';
     }
 
     // =========================================================
@@ -594,7 +637,7 @@ PROMPT;
             CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
             CURLOPT_POSTFIELDS     => json_encode($payload),
             CURLOPT_TIMEOUT        => 120,
-            CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_CONNECTTIMEOUT => 10,
         ]);
 
         $response = curl_exec($ch);
@@ -602,7 +645,7 @@ PROMPT;
         $curlErr  = curl_error($ch);
         curl_close($ch);
 
-        if ($curlErr) throw new \RuntimeException('Ollama connection failed: ' . $curlErr);
+        if ($curlErr)          throw new \RuntimeException('Ollama connection failed: ' . $curlErr);
         if ($httpCode !== 200) throw new \RuntimeException('Ollama HTTP ' . $httpCode . ': ' . $response);
 
         $data = json_decode($response, true);
@@ -613,19 +656,22 @@ PROMPT;
     // HELPERS
     // =========================================================
 
-    /** Build a sanitized dataset — no passwords, tokens, or Stripe IDs */
+    /**
+     * Build sanitized dataset — no passwords, tokens, or Stripe IDs.
+     * ✅ All values normalized to lowercase so AI matches consistently.
+     */
     private function buildUserDataset(array $users): array
     {
         return array_map(fn($u) => [
             'id'            => $u->getId(),
             'name'          => $u->getFullName(),
             'email'         => $u->getEmail(),
-            'status'        => $u->getStatus(),
-            'isPremium'     => $u->isPremium(),
-            'plan'          => $u->getSubscriptionPlan(),
+            'status'        => strtolower(trim((string) $u->getStatus())),
+            'isPremium'     => $u->isPremium() || in_array(strtolower((string)$u->getSubscriptionPlan()), ['monthly','yearly','premium','enterprise']),
+            'plan'          => strtolower(trim((string) $u->getSubscriptionPlan())),
             'expiry'        => $u->getSubscriptionExpiry()?->format('Y-m-d'),
             'joined'        => $u->getCreatedAt()?->format('Y-m-d'),
-            'paymentStatus' => $u->getLastPaymentStatus(),
+            'paymentStatus' => strtolower(trim((string) $u->getLastPaymentStatus())),
             'roles'         => $u->getRoles(),
             'xp'            => $u->getLearningStats()?->getTotalXp() ?? 0,
             'words'         => $u->getLearningStats()?->getWordsLearned() ?? 0,
