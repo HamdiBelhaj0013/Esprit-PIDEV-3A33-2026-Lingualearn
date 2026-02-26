@@ -370,4 +370,31 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->getQuery()->getSingleScalarResult();
     }
 
+
+    // ── AI Assistant helpers ──────────────────────────────────
+
+    /**
+     * Fetch ALL users with learningStats eagerly joined in a single query.
+     *
+     * WHY this exists instead of findAll():
+     *   findAll() lazy-loads relations. For users inserted directly via SQL
+     *   (bypassing Symfony/Doctrine), the identity map may not initialise
+     *   LearningStats, so getLearningStats() silently returns null and those
+     *   users appear "empty" in the AI dataset.
+     *   A LEFT JOIN guarantees every user is returned — with or without stats.
+     *
+     * Used by AdminAiController for search, chat and insight endpoints.
+     *
+     * @return User[]
+     */
+    public function findAllWithStats(): array
+    {
+        return $this->createQueryBuilder('u')
+            ->leftJoin('u.learningStats', 's')
+            ->addSelect('s')
+            ->orderBy('u.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
 }

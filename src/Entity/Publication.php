@@ -23,7 +23,7 @@ class Publication
     #[ORM\Column(length: 255)]
     private ?string $typePub = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $lienPub = null;
 
     #[ORM\Column(type: Types::TEXT)]
@@ -116,7 +116,7 @@ class Publication
         return $this->lienPub;
     }
 
-    public function setLienPub(string $lienPub): static
+    public function setLienPub(?string $lienPub): static
     {
         $this->lienPub = $lienPub;
         return $this;

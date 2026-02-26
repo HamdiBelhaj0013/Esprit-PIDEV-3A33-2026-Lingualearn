@@ -1,169 +1,198 @@
 {% extends 'layouts/admin.html.twig' %}
-{% block title %}Send Notification · {{ user.fullName }} - {{ parent() }}{% endblock %}
+
+{% block title %}Notifications · {{ user.fullName }} — {{ parent() }}{% endblock %}
+
 {% block page_title %}
     <span class="d-flex align-items-center gap-2">
-        <span style="width:36px;height:36px;border-radius:10px;background:#ecfeff;color:#0891b2;display:grid;place-items:center;font-size:18px"><i class="ti ti-bell-ringing"></i></span>
-        Send Notification — {{ user.firstName }}
+        <span style="width:36px;height:36px;border-radius:10px;background:#ecfeff;color:#0891b2;display:grid;place-items:center;font-size:18px">
+            <i class="ti ti-bell-ringing"></i>
+        </span>
+        Notifications · {{ user.fullName }}
     </span>
 {% endblock %}
+
 {% block breadcrumb %}
     <ol class="breadcrumb breadcrumb-arrows" aria-label="breadcrumbs">
         <li class="breadcrumb-item"><a href="{{ path('admin_users_index') }}"><i class="ti ti-users me-1"></i>Users</a></li>
         <li class="breadcrumb-item"><a href="{{ path('admin_users_show', {id: user.id}) }}">{{ user.fullName }}</a></li>
-        <li class="breadcrumb-item active">Send Notification</li>
+        <li class="breadcrumb-item active" aria-current="page">Notifications</li>
     </ol>
 {% endblock %}
+
 {% block page_actions %}
     <div class="col-auto ms-auto d-print-none">
-        <a href="{{ path('admin_users_show', {id: user.id}) }}" class="btn btn-ghost-secondary" style="border-radius:10px"><i class="ti ti-arrow-left me-1"></i> Back to Profile</a>
+        <div class="d-flex gap-2">
+            <a href="{{ path('admin_users_show', {id: user.id}) }}"
+               class="btn btn-ghost-secondary" style="border-radius:10px">
+                <i class="ti ti-arrow-left me-1"></i> Back to Profile
+            </a>
+        </div>
     </div>
 {% endblock %}
+
 {% block content %}
-<style>
-.nt-card{background:#fff;border:1px solid #e3e8f0;border-radius:14px;box-shadow:0 2px 16px rgba(8,145,178,.07);overflow:hidden;margin-bottom:20px;animation:ntFade .4s ease both}
-@keyframes ntFade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-.nt-card-header{padding:16px 22px 14px;border-bottom:1px solid #e3e8f0;display:flex;align-items:center;gap:10px}
-.nt-card-body{padding:22px}
-.nt-ico{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;font-size:16px}
+    <div class="container-xl">
 
-/* Type selector */
-.type-grid{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
-.type-pill{flex:1 1 130px;border:2px solid #e3e8f0;border-radius:10px;padding:12px 14px;cursor:pointer;background:#f8fafc;display:flex;align-items:center;gap:8px;font-size:.82rem;font-weight:700;transition:all .18s;user-select:none}
-.type-pill:hover{border-color:#b0c4de;background:#fff;transform:translateY(-1px)}
-.type-pill.on-info    {border-color:#0891b2;background:#ecfeff;color:#164e63}
-.type-pill.on-warning {border-color:#f59f00;background:#fff3bf;color:#7d4a00}
-.type-pill.on-success {border-color:#2fb344;background:#d3f9d8;color:#1a6130}
-.type-pill.on-premium {border-color:#f59f00;background:#fff9db;color:#7d4a00}
-.type-pill.on-system  {border-color:#6c7a99;background:#f1f3f9;color:#1a1f36}
-input[name=type]{position:absolute;opacity:0;pointer-events:none}
+        {% for type, messages in app.flashes %}
+            {% for msg in messages %}
+                <div class="alert alert-{{ type == 'danger' ? 'danger' : (type == 'warning' ? 'warning' : 'success') }} alert-dismissible fade show mb-3" role="alert">
+                    {{ msg }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
 
-/* Message textarea */
-.nt-textarea{width:100%;border:1.5px solid #e3e8f0;border-radius:10px;padding:14px;font-size:.9rem;resize:vertical;min-height:120px;outline:none;transition:border-color .2s,box-shadow .2s;font-family:inherit}
-.nt-textarea:focus{border-color:#0891b2;box-shadow:0 0 0 3px rgba(8,145,178,.1)}
+        <div class="row g-4">
 
-/* Char counter */
-.char-count{font-size:.72rem;color:#94a3b8;text-align:right;margin-top:4px}
-.char-count.warn{color:#f59e0b}.char-count.over{color:#dc2626}
+            {# ── SEND FORM ──────────────────────────────────────── #}
+            <div class="col-lg-4">
+                <div class="card" style="border-radius:16px;border:1.5px solid #e2e8f0">
+                    <div class="card-header bg-white fw-semibold d-flex align-items-center gap-2"
+                         style="border-radius:14px 14px 0 0;border-bottom:1.5px solid #f1f5f9">
+                        <i class="ti ti-send text-primary"></i>
+                        Send Notification
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="{{ path('admin_users_notify', {id: user.id}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('notify' ~ user.id) }}">
 
-/* History list */
-.notif-row{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid #f1f3f9}
-.notif-row:last-child{border-bottom:none}
-.notif-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:5px}
-.notif-dot.info{background:#06b6d4}.notif-dot.warning{background:#f59e0b}
-.notif-dot.success{background:#10b981}.notif-dot.premium{background:#f59e0b}
-.notif-dot.system{background:#6c7a99}
-.notif-msg{font-size:.83rem;color:#1a1f36;flex:1;line-height:1.4}
-.notif-meta{font-size:.7rem;color:#94a3b8;white-space:nowrap;flex-shrink:0;text-align:right}
-.notif-unread{width:7px;height:7px;border-radius:50%;background:#3b82f6;flex-shrink:0;margin-top:6px}
-</style>
+                            <div class="mb-3">
+                                <label class="form-label fw-medium">Type</label>
+                                <select name="type" class="form-select">
+                                    {% for value, label in notificationTypes %}
+                                        <option value="{{ value }}">{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
 
-<div class="row g-3">
-    <div class="col-md-7">
-        <div class="nt-card">
-            <div class="nt-card-header">
-                <div class="nt-ico" style="background:#ecfeff;color:#0891b2"><i class="ti ti-send"></i></div>
-                <span style="font-weight:700;font-size:.88rem;color:#1a1f36">Compose Notification</span>
-                <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
-                    <img src="https://ui-avatars.com/api/?name={{ user.firstName|url_encode }}+{{ user.lastName|url_encode }}&background=0891b2&color=fff&size=40"
-                         style="width:28px;height:28px;border-radius:8px;border:2px solid #e3e8f0" alt="{{ user.fullName }}">
-                    <span style="font-size:.78rem;font-weight:700;color:#0891b2">→ {{ user.firstName }}</span>
+                            <div class="mb-4">
+                                <label class="form-label fw-medium">Message</label>
+                                <textarea name="message" class="form-control" rows="5"
+                                          placeholder="Write your message here…" required></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100"
+                                    style="border-radius:10px;font-weight:600">
+                                <i class="ti ti-bell-ringing me-1"></i> Send Notification
+                            </button>
+                        </form>
+                    </div>
+                    <div class="card-footer bg-white text-muted small"
+                         style="border-radius:0 0 14px 14px;border-top:1.5px solid #f1f5f9">
+                        <i class="ti ti-user me-1"></i>
+                        <a href="{{ path('admin_users_show', {id: user.id}) }}" class="text-reset">{{ user.fullName }}</a>
+                        &nbsp;·&nbsp; {{ user.email }}
+                    </div>
                 </div>
             </div>
-            <div class="nt-card-body">
-                <form method="post" action="{{ path('admin_users_notify', {id: user.id}) }}" id="notify-form">
-                    <input type="hidden" name="_token" value="{{ csrf_token('notify' ~ user.id) }}">
 
-                    {# Type selector #}
-                    <div style="font-size:.78rem;font-weight:700;color:#6c7a99;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Notification Type</div>
-                    <div class="type-grid" id="type-grid">
-                        {% for key, label in notificationTypes %}
-                        <label class="type-pill {% if loop.first %}on-{{ key }}{% endif %}" data-type="{{ key }}" onclick="selectType(this,'{{ key }}')">
-                            <input type="radio" name="type" value="{{ key }}" {% if loop.first %}checked{% endif %}>
-                            {{ label }}
-                        </label>
-                        {% endfor %}
-                    </div>
-
-                    {# Message #}
-                    <div style="font-size:.78rem;font-weight:700;color:#6c7a99;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Message</div>
-                    <textarea name="message" class="nt-textarea" id="nt-msg" maxlength="500"
-                              placeholder="Enter notification message for {{ user.firstName }}…"
-                              oninput="updateCharCount(this)" required></textarea>
-                    <div class="char-count" id="char-count">0 / 500</div>
-
-                    {# Preview #}
-                    <div id="preview-box" style="margin-top:14px;padding:12px 14px;border-radius:9px;background:#f8fafc;border:1px solid #e3e8f0;display:none">
-                        <div style="font-size:.72rem;font-weight:700;color:#6c7a99;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Preview</div>
-                        <div style="font-size:.85rem;color:#1a1f36" id="preview-text"></div>
-                    </div>
-
-                    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:18px;padding-top:16px;border-top:1px solid #e3e8f0">
-                        <a href="{{ path('admin_users_show', {id: user.id}) }}" style="padding:10px 20px;border-radius:10px;border:1.5px solid #e3e8f0;color:#6c7a99;font-size:.85rem;font-weight:600;text-decoration:none"><i class="ti ti-x me-1"></i> Cancel</a>
-                        <button type="submit" style="padding:11px 28px;border-radius:10px;background:linear-gradient(135deg,#0891b2,#0e7490);color:#fff;font-size:.88rem;font-weight:700;border:none;cursor:pointer;box-shadow:0 4px 14px rgba(8,145,178,.35);display:inline-flex;align-items:center;gap:8px;transition:all .2s"
-                                onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">
-                            <i class="ti ti-send"></i> Send Notification
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-5">
-        <div class="nt-card" style="animation-delay:.08s">
-            <div class="nt-card-header">
-                <div class="nt-ico" style="background:#f8fafc;color:#6c7a99"><i class="ti ti-history"></i></div>
-                <span style="font-weight:700;font-size:.88rem;color:#1a1f36">Recent Notifications</span>
-                <span style="margin-left:auto;font-size:.72rem;color:#6c7a99">Last {{ recentNotifications|length }}</span>
-            </div>
-            <div class="nt-card-body" style="padding:0">
-                {% if recentNotifications|length > 0 %}
-                    {% for n in recentNotifications %}
-                    <div class="notif-row" style="padding:12px 18px">
-                        <span class="notif-dot {{ n.type }}"></span>
-                        <div style="flex:1;min-width:0">
-                            <div class="notif-msg">{{ n.message }}</div>
-                            <div style="font-size:.68rem;color:#94a3b8;margin-top:3px">
-                                <span style="padding:2px 6px;border-radius:4px;background:#f1f3f9;font-weight:700">{{ n.type|upper }}</span>
-                                · {{ n.createdAt|date('M d, H:i') }}
-                            </div>
-                        </div>
-                        {% if not n.isRead %}
-                            <span class="notif-unread" title="Unread"></span>
-                        {% else %}
-                            <i class="ti ti-check" style="color:#10b981;font-size:.8rem;flex-shrink:0;margin-top:4px"></i>
+            {# ── NOTIFICATION HISTORY ───────────────────────────── #}
+            <div class="col-lg-8">
+                <div class="card" style="border-radius:16px;border:1.5px solid #e2e8f0">
+                    <div class="card-header bg-white d-flex align-items-center justify-content-between"
+                         style="border-radius:14px 14px 0 0;border-bottom:1.5px solid #f1f5f9">
+                    <span class="fw-semibold d-flex align-items-center gap-2">
+                        <i class="ti ti-history text-secondary"></i>
+                        History
+                        {% if unreadCount > 0 %}
+                            <span class="badge bg-danger">{{ unreadCount }} unread</span>
+                        {% endif %}
+                    </span>
+                        {% if unreadCount > 0 %}
+                            <form method="POST" action="{{ path('admin_users_notifications_read_all', {id: user.id}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('notif_read_all' ~ user.id) }}">
+                                <button type="submit" class="btn btn-sm btn-outline-secondary" style="border-radius:8px">
+                                    <i class="ti ti-checks me-1"></i>Mark all read
+                                </button>
+                            </form>
                         {% endif %}
                     </div>
-                    {% endfor %}
-                {% else %}
-                    <div style="padding:40px 18px;text-align:center;color:#6c7a99;font-size:.82rem">
-                        <i class="ti ti-bell-off" style="font-size:2.2rem;display:block;margin-bottom:8px;opacity:.3"></i>
-                        No notifications sent yet
+
+                    <div class="card-body p-0">
+                        {% if recentNotifications|length == 0 %}
+                            <div class="text-center text-muted py-5">
+                                <i class="ti ti-bell-off" style="font-size:2.5rem;opacity:.3"></i>
+                                <p class="mt-2 mb-0">No notifications sent yet.</p>
+                            </div>
+                        {% else %}
+                            <div class="list-group list-group-flush">
+                                {% for n in recentNotifications %}
+                                    {% set colours = {
+                                        'info':    'bg-info-lt text-info',
+                                        'warning': 'bg-warning-lt text-warning',
+                                        'success': 'bg-success-lt text-success',
+                                        'premium': 'bg-purple-lt text-purple',
+                                        'system':  'bg-secondary-lt text-secondary'
+                                    } %}
+                                    <div class="list-group-item px-4 py-3"
+                                         style="{{ not n.isRead ? 'background:#f8faff;border-left:3px solid #3b5bdb' : '' }}">
+
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                        <span class="badge {{ colours[n.type] ?? 'bg-secondary-lt text-secondary' }}">
+                                            {{ n.type|upper }}
+                                        </span>
+                                                {% if not n.isRead %}
+                                                    <span class="badge bg-danger-lt text-danger">Unread</span>
+                                                {% endif %}
+                                                {% if n.metadata.reply_to is defined %}
+                                                    <span class="badge bg-light text-muted border">
+                                                <i class="ti ti-corner-down-right"></i> Reply
+                                            </span>
+                                                {% endif %}
+                                            </div>
+                                            <small class="text-muted text-nowrap">
+                                                {{ n.createdAt|date('d M Y, H:i') }}
+                                            </small>
+                                        </div>
+
+                                        <p class="mb-2 {{ n.isRead ? 'text-muted' : 'fw-medium' }}">
+                                            {{ n.message }}
+                                        </p>
+
+                                        <div class="d-flex flex-wrap gap-2">
+                                            {% if not n.isRead %}
+                                                <form method="POST" action="{{ path('admin_users_notification_read', {id: n.id}) }}">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('notif_read' ~ n.id) }}">
+                                                    <button type="submit" class="btn btn-sm btn-outline-success" style="border-radius:8px">
+                                                        <i class="ti ti-check me-1"></i>Mark as read
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+
+                                            {% if n.metadata.reply_to is not defined %}
+                                                <button class="btn btn-sm btn-outline-primary" type="button"
+                                                        data-bs-toggle="collapse"
+                                                        data-bs-target="#reply-{{ n.id }}"
+                                                        style="border-radius:8px">
+                                                    <i class="ti ti-corner-down-right me-1"></i>Reply
+                                                </button>
+                                            {% endif %}
+                                        </div>
+
+                                        {% if n.metadata.reply_to is not defined %}
+                                            <div class="collapse mt-3" id="reply-{{ n.id }}">
+                                                <form method="POST" action="{{ path('admin_users_notification_reply', {id: n.id}) }}">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('notif_reply' ~ n.id) }}">
+                                                    <div class="input-group">
+                                                        <input type="text" name="reply" class="form-control form-control-sm"
+                                                               placeholder="Type your reply…" required>
+                                                        <button type="submit" class="btn btn-sm btn-primary">
+                                                            <i class="ti ti-send"></i>
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        {% endif %}
+
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                     </div>
-                {% endif %}
+                </div>
             </div>
+
         </div>
     </div>
-</div>
-
-<script>
-function selectType(el, type) {
-    document.querySelectorAll('.type-pill').forEach(p => {
-        p.className = 'type-pill';
-    });
-    el.classList.add('on-' + type);
-}
-
-function updateCharCount(ta) {
-    const n = ta.value.length;
-    const el = document.getElementById('char-count');
-    el.textContent = n + ' / 500';
-    el.className = 'char-count' + (n > 450 ? ' warn' : '') + (n >= 500 ? ' over' : '');
-
-    const box = document.getElementById('preview-box');
-    const txt = document.getElementById('preview-text');
-    if (n > 0) { box.style.display = 'block'; txt.textContent = ta.value; }
-    else { box.style.display = 'none'; }
-}
-</script>
 {% endblock %}

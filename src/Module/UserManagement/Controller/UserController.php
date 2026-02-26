@@ -6,7 +6,9 @@ use App\Module\UserManagement\Entity\Notification;
 use App\Module\UserManagement\Entity\User;
 use App\Module\UserManagement\Entity\UserLanguage;
 use App\Module\UserManagement\Form\UserFormType;
+use App\Module\UserManagement\Repository\NotificationRepository;
 use App\Module\UserManagement\Repository\UserRepository;
+use App\Module\UserManagement\Service\NotificationService;
 use App\Module\UserManagement\Service\StripeService;
 use App\Module\UserManagement\Service\UserService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -23,11 +25,12 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class UserController extends AbstractController
 {
     public function __construct(
-        private UserService $userService,
-        private UserRepository $userRepository,
-        private EntityManagerInterface $entityManager,
+        private UserService                 $userService,
+        private UserRepository              $userRepository,
+        private EntityManagerInterface      $entityManager,
         private UserPasswordHasherInterface $passwordHasher,
-        private StripeService $stripeService,
+        private StripeService               $stripeService,
+        private NotificationService         $notificationService,
     ) {}
 
     // =========================================================
@@ -48,8 +51,8 @@ class UserController extends AbstractController
             'isPremium'        => $request->query->get('isPremium') !== null
                 ? filter_var($request->query->get('isPremium'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE)
                 : null,
-            'sort'             => $request->query->get('sort'),
-            'direction'        => $request->query->get('direction'),
+            'sort'      => $request->query->get('sort'),
+            'direction' => $request->query->get('direction'),
         ];
 
         $criteria = array_filter($filters, fn($v) => $v !== null && $v !== '');
@@ -106,7 +109,7 @@ class UserController extends AbstractController
     }
 
     // =========================================================
-    //  EDIT — reuses new.html.twig (switches mode via user.id)
+    //  EDIT
     // =========================================================
 
     #[Route('/{id}/edit', name: 'edit', methods: ['GET', 'POST'])]
@@ -116,7 +119,6 @@ class UserController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // Password is optional on edit — only update if the field was filled
             $plain = $form->get('plainPassword')->getData();
             if (!empty($plain)) {
                 $user->setPassword($this->passwordHasher->hashPassword($user, $plain));
@@ -168,41 +170,27 @@ class UserController extends AbstractController
     }
 
     // =========================================================
-    //  PREMIUM — Grant / Revoke via Stripe
-    //
-    //  Grant  → creates Stripe trial subscription + upgrades DB
-    //  Revoke → cancels Stripe subscription + downgrades DB to FREE
-    //
-    //  Both routes are called from new.html.twig (edit mode card 4).
-    //  CSRF tokens match exactly what the template generates.
+    //  PREMIUM — Grant / Revoke / Trial / Change Plan
     // =========================================================
 
     #[Route('/{id}/premium/grant/{plan}', name: 'grant_premium', methods: ['POST'])]
     public function grantPremium(Request $request, User $user, string $plan): Response
     {
         $plan = strtoupper($plan);
-
         if (!in_array($plan, ['MONTHLY', 'YEARLY'], true)) {
             $this->addFlash('danger', 'Invalid plan selected.');
             return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
         }
-
         if (!$this->isCsrfTokenValid('grant_premium_' . $user->getId(), $request->request->get('_token'))) {
             $this->addFlash('danger', 'Invalid security token.');
             return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
         }
-
         try {
             $this->stripeService->adminGrantPremium($user, $plan);
-            $this->addFlash('success', sprintf(
-                '%s granted %s premium access.',
-                $user->getFullName(),
-                strtolower($plan)
-            ));
+            $this->addFlash('success', sprintf('%s granted %s premium access.', $user->getFullName(), strtolower($plan)));
         } catch (\Throwable $e) {
             $this->addFlash('danger', 'Could not grant premium: ' . $e->getMessage());
         }
-
         return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
     }
 
@@ -213,24 +201,14 @@ class UserController extends AbstractController
             $this->addFlash('danger', 'Invalid security token.');
             return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
         }
-
         try {
             $this->stripeService->adminRevokePremium($user);
-            $this->addFlash('warning', sprintf(
-                'Premium revoked for %s. Stripe subscription cancelled.',
-                $user->getFullName()
-            ));
+            $this->addFlash('warning', sprintf('Premium revoked for %s. Stripe subscription cancelled.', $user->getFullName()));
         } catch (\Throwable $e) {
             $this->addFlash('danger', 'Could not revoke premium: ' . $e->getMessage());
         }
-
         return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
     }
-
-
-    // =========================================================
-    //  PREMIUM — Free Trial
-    // =========================================================
 
     #[Route('/{id}/premium/trial', name: 'free_trial', methods: ['POST'])]
     public function freeTrial(Request $request, User $user): Response
@@ -239,70 +217,50 @@ class UserController extends AbstractController
             $this->addFlash('danger', 'Invalid security token.');
             return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
         }
-
         if ($user->isPremium()) {
             $this->addFlash('warning', 'User already has premium access.');
             return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
         }
-
         $days = max(1, min(365, (int) $request->request->get('trial_days', 7)));
         $plan = strtoupper($request->request->get('plan', 'MONTHLY'));
         if (!in_array($plan, ['MONTHLY', 'YEARLY'], true)) {
             $plan = 'MONTHLY';
         }
-
         try {
             $this->stripeService->adminGrantTrial($user, $plan, $days);
-            $this->addFlash('success', sprintf(
-                '🎁 %d-day free trial (%s) granted to %s.',
-                $days, strtolower($plan), $user->getFullName()
-            ));
+            $this->addFlash('success', sprintf('🎁 %d-day free trial (%s) granted to %s.', $days, strtolower($plan), $user->getFullName()));
         } catch (\Throwable $e) {
             $this->addFlash('danger', 'Could not start trial: ' . $e->getMessage());
         }
-
         return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
     }
-
-    // =========================================================
-    //  PREMIUM — Change Plan (upgrade / downgrade)
-    // =========================================================
 
     #[Route('/{id}/premium/change/{plan}', name: 'change_plan', methods: ['POST'])]
     public function changePlan(Request $request, User $user, string $plan): Response
     {
         $plan = strtoupper($plan);
-
         if (!in_array($plan, ['MONTHLY', 'YEARLY'], true)) {
             $this->addFlash('danger', 'Invalid plan.');
             return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
         }
-
         if (!$this->isCsrfTokenValid('change_plan_' . $user->getId(), $request->request->get('_token'))) {
             $this->addFlash('danger', 'Invalid security token.');
             return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
         }
-
         if (!$user->isPremium()) {
             $this->addFlash('warning', 'User is not on a premium plan.');
             return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
         }
-
         if ($user->getSubscriptionPlan() === $plan) {
             $this->addFlash('info', sprintf('User is already on the %s plan.', strtolower($plan)));
             return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
         }
-
         try {
             $this->stripeService->adminChangePlan($user, $plan);
-            $this->addFlash('success', sprintf(
-                '%s switched to %s plan.',
-                $user->getFullName(), strtolower($plan)
-            ));
+            $this->addFlash('success', sprintf('%s switched to %s plan.', $user->getFullName(), strtolower($plan)));
         } catch (\Throwable $e) {
             $this->addFlash('danger', 'Could not change plan: ' . $e->getMessage());
         }
-
         return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
     }
 
@@ -320,7 +278,6 @@ class UserController extends AbstractController
             $this->addFlash('warning', 'No users selected or invalid action.');
             return $this->redirectToRoute('admin_users_index');
         }
-
         if (!$this->isCsrfTokenValid('bulk_action', $request->request->get('_token'))) {
             $this->addFlash('danger', 'Invalid security token.');
             return $this->redirectToRoute('admin_users_index');
@@ -424,9 +381,12 @@ class UserController extends AbstractController
     }
 
     // =========================================================
-    //  NOTIFICATIONS
+    //  NOTIFICATIONS — Send / List / Mark Read / Reply
     // =========================================================
 
+    /**
+     * Admin sends a notification to a user + lists existing ones.
+     */
     #[Route('/{id}/notify', name: 'notify', methods: ['GET', 'POST'])]
     public function notify(Request $request, User $user): Response
     {
@@ -444,29 +404,21 @@ class UserController extends AbstractController
                 return $this->redirectToRoute('admin_users_notify', ['id' => $user->getId()]);
             }
 
-            if (!in_array($type, ['info', 'warning', 'success', 'premium', 'system'], true)) {
-                $type = 'info';
-            }
+            $this->notificationService->sendFromAdmin(
+                $user,
+                $message,
+                $type,
+                (int) $this->getUser()?->getId(),
+            );
 
-            $notification = new Notification();
-            $notification->setUser($user);
-            $notification->setType($type);
-            $notification->setMessage($message);
-            $notification->setMetadata([
-                'sender'   => 'admin',
-                'admin_id' => $this->getUser()?->getId(),
-                'sent_at'  => (new \DateTime())->format(\DateTime::ATOM),
-            ]);
-
-            $this->entityManager->persist($notification);
-            $this->entityManager->flush();
             $this->addFlash('success', sprintf('Notification sent to %s.', $user->getFullName()));
-            return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
+            return $this->redirectToRoute('admin_users_notify', ['id' => $user->getId()]);
         }
 
         return $this->render('user_management/notify.html.twig', [
             'user'                => $user,
-            'recentNotifications' => $this->userService->getRecentNotifications($user, 10),
+            'recentNotifications' => $this->notificationService->getForUser($user, 20),
+            'unreadCount'         => $this->notificationService->countUnread($user),
             'notificationTypes'   => [
                 'info'    => 'ℹ️ Info',
                 'warning' => '⚠️ Warning',
@@ -475,6 +427,69 @@ class UserController extends AbstractController
                 'system'  => '⚙️ System',
             ],
         ]);
+    }
+
+    /**
+     * Mark a single notification as read.
+     */
+    #[Route('/notification/{id}/read', name: 'notification_read', methods: ['POST'])]
+    public function notificationMarkRead(Request $request, Notification $notification): Response
+    {
+        if (!$this->isCsrfTokenValid('notif_read' . $notification->getId(), $request->request->get('_token'))) {
+            $this->addFlash('danger', 'Invalid security token.');
+            return $this->redirectToRoute('admin_users_notify', ['id' => $notification->getUser()->getId()]);
+        }
+
+        $this->notificationService->markAsRead($notification);
+        $this->addFlash('success', 'Notification marked as read.');
+
+        return $this->redirectToRoute('admin_users_notify', ['id' => $notification->getUser()->getId()]);
+    }
+
+    /**
+     * Mark ALL notifications as read for a user.
+     */
+    #[Route('/{id}/notifications/read-all', name: 'notifications_read_all', methods: ['POST'])]
+    public function notificationsMarkAllRead(Request $request, User $user): Response
+    {
+        if (!$this->isCsrfTokenValid('notif_read_all' . $user->getId(), $request->request->get('_token'))) {
+            $this->addFlash('danger', 'Invalid security token.');
+            return $this->redirectToRoute('admin_users_notify', ['id' => $user->getId()]);
+        }
+
+        $this->notificationService->markAllAsRead($user);
+        $this->addFlash('success', 'All notifications marked as read.');
+
+        return $this->redirectToRoute('admin_users_notify', ['id' => $user->getId()]);
+    }
+
+    /**
+     * Admin replies to a notification — saves a new notification in the thread.
+     */
+    #[Route('/notification/{id}/reply', name: 'notification_reply', methods: ['POST'])]
+    public function notificationReply(Request $request, Notification $notification): Response
+    {
+        if (!$this->isCsrfTokenValid('notif_reply' . $notification->getId(), $request->request->get('_token'))) {
+            $this->addFlash('danger', 'Invalid security token.');
+            return $this->redirectToRoute('admin_users_notify', ['id' => $notification->getUser()->getId()]);
+        }
+
+        $replyMessage = trim($request->request->get('reply', ''));
+
+        if (empty($replyMessage)) {
+            $this->addFlash('warning', 'Reply cannot be empty.');
+            return $this->redirectToRoute('admin_users_notify', ['id' => $notification->getUser()->getId()]);
+        }
+
+        $this->notificationService->replyFromAdmin(
+            $notification,
+            $replyMessage,
+            (int) $this->getUser()?->getId(),
+        );
+
+        $this->addFlash('success', 'Reply sent and original notification marked as read.');
+
+        return $this->redirectToRoute('admin_users_notify', ['id' => $notification->getUser()->getId()]);
     }
 
     // =========================================================
@@ -521,7 +536,7 @@ class UserController extends AbstractController
                     }
                 }
 
-                $userLanguage = new \App\Module\UserManagement\Entity\UserLanguage();
+                $userLanguage = new UserLanguage();
                 $userLanguage->setUser($user);
                 $userLanguage->setPlatformLanguage($platformLanguage);
                 $userLanguage->setProficiencyLevel($isNative ? 'native' : $proficiency);
@@ -533,7 +548,7 @@ class UserController extends AbstractController
 
             if ($action === 'remove') {
                 $userLanguage = $this->entityManager
-                    ->getRepository(\App\Module\UserManagement\Entity\UserLanguage::class)
+                    ->getRepository(UserLanguage::class)
                     ->find((int) $request->request->get('user_language_id'));
 
                 if ($userLanguage && $userLanguage->getUser() === $user) {

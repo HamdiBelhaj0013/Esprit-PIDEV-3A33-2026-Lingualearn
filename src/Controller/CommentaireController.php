@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Stichoza\GoogleTranslate\GoogleTranslate;
 use App\Service\BadWordChecker;
- use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use App\Service\TranslationService ;
 
@@ -34,7 +34,7 @@ public function ajouter(
             ? $this->redirectToRoute('ressourcesA')
             : $this->redirectToRoute('ressources');
     }
-  
+
     if ($badWordChecker->containsBadWords($contenu)) {
 
     $this->addFlash('error', '⚠️ Votre commentaire contient des mots inappropriés et n\'a pas été publié.');
@@ -49,7 +49,7 @@ public function ajouter(
     ->html('
         <div style="font-family: Arial, sans-serif; background-color: #f4f6f9; padding: 30px;">
             <div style="max-width: 600px; margin: auto; background: #ffffff; border-radius: 10px; padding: 30px; box-shadow: 0 5px 15px rgba(0,0,0,0.08);">
-                
+
                 <h2 style="color: #e74c3c; margin-bottom: 20px;">
                     ⚠️ Commentaire non publié
                 </h2>
