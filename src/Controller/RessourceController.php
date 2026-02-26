@@ -14,7 +14,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Stichoza\GoogleTranslate\GoogleTranslate;
 use App\Service\NotificationService;
 use App\Service\TranslationService ;
-
+use App\Entity\Commentaire;
 
 class RessourceController extends AbstractController
 {
@@ -56,6 +56,24 @@ public function index(EntityManagerInterface $em, Request $request): Response
     {
         return $this->render('frontoffice/ressource/ajout_publication.html.twig');
     }
+
+
+    #[Route('/commentaire/traduire/{id}/{lang}', name: 'traduire_commentaire')]
+public function traduireCommentaire(
+    Commentaire $commentaire,
+    string $lang,
+    TranslationService $translationService
+): JsonResponse {
+    try {
+        $result = $translationService->translateCommentaire(
+            $commentaire->getContenuC(),
+            $lang
+        );
+        return $this->json(['contenu' => $result]);
+    } catch (\Exception $e) {
+        return $this->json(['error' => $e->getMessage()], 500);
+    }
+}
 
 #[Route('/traitement-publication', name: 'traitement_publication', methods: ['GET','POST'])]
 public function traitement(

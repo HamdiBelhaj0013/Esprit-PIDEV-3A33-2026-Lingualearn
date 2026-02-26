@@ -23,7 +23,7 @@ class Publication
     #[ORM\Column(length: 255)]
     private ?string $typePub = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(nullable: true)]
     private ?string $lienPub = null;
 
     #[ORM\Column(type: Types::TEXT)]

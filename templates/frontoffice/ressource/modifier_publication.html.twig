@@ -519,12 +519,12 @@
         </ul>
         <div class="nav-actions">
             {% if app.user %}
-                {# Utilisateur connecté - afficher l'email avec getEmailU #}
+                {# Utilisateur connecté - afficher l'email avec getEmail #}
                 <div class="user-info">
                     <div class="user-avatar">
-                        {{ app.user.emailU|first|upper }}
+                        {{ app.user.email|first|upper }}
                     </div>
-                    <span>{{ app.user.emailU }}</span>
+                    <span>{{ app.user.email }}</span>
                     <a href="{{ path('app_logout') }}" class="logout-btn" title="Déconnexion">
                         <i class="bi bi-box-arrow-right"></i>
                     </a>
@@ -543,14 +543,14 @@
     <!-- Mobile Menu avec la même logique -->
     <div class="mobile-menu" id="mobileMenu">
         <button class="mobile-close" id="mobileClose">✕</button>
-        <a href="{{ path('home') }}" class="mobile-link">Home</a>
+        <a href="" class="mobile-link">Home</a>
         <a href="{{ path('ressources') }}" class="mobile-link">Ressources</a>
         <a href="#features" class="mobile-link">Features</a>
         <a href="#about" class="mobile-link">About</a>
         <div class="mobile-actions">
             {% if app.user %}
                 <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
-                    <span style="color: var(--ink); font-size: 1rem;">{{ app.user.emailU }}</span>
+                    <span style="color: var(--ink); font-size: 1rem;">{{ app.user.email }}</span>
                     <a href="{{ path('app_logout') }}" class="btn-ghost" style="color: #ef4444; border-color: #ef4444;">
                         <i class="bi bi-box-arrow-right"></i> Déconnexion
                     </a>

@@ -24,24 +24,12 @@
             --ink-soft:  #2c3a52;
             --muted:     #7a87a0;
             --border:    #e2e8f2;
-
             --blue:      #2563eb;
             --blue-dark: #1d4ed8;
             --blue-bg:   #eff6ff;
-
             --radius:    12px;
             --radius-lg: 20px;
             --radius-xl: 28px;
-
-            /* Language accent palette */
-            --c-en: #2563eb;
-            --c-fr: #7c3aed;
-            --c-es: #ea580c;
-            --c-de: #16a34a;
-            --c-ar: #dc2626;
-            --c-zh: #ca8a04;
-            --c-pt: #0891b2;
-            --c-it: #be185d;
         }
 
         html { scroll-behavior: smooth; }
@@ -54,7 +42,7 @@
             padding-top: 70px;
         }
 
-        /* ─── NAV STYLE DU DESIGN FOURNI ─── */
+        /* Navbar */
         .nav {
             position: fixed;
             top: 0;
@@ -152,7 +140,7 @@
             box-shadow: 0 6px 18px rgba(37,99,235,.28);
         }
 
-        /* User info quand connecté */
+        /* User info */
         .user-info {
             display: flex;
             align-items: center;
@@ -203,7 +191,7 @@
             border-radius: 2px;
         }
 
-        /* ─── MOBILE MENU ─── */
+        /* Mobile Menu */
         .mobile-menu {
             display: none;
             position: fixed;
@@ -251,7 +239,7 @@
             margin-top: 1rem;
         }
 
-        /* Layout principal - 3 colonnes */
+        /* Layout principal */
         .main-layout {
             max-width: 1280px;
             margin: 0 auto;
@@ -297,7 +285,6 @@
             width: 24px;
         }
 
-        /* Bouton Ajouter */
         .create-post-btn {
             background: var(--blue);
             color: white;
@@ -329,7 +316,6 @@
             width: 100%;
         }
 
-        /* Barre de recherche */
         .search-box {
             background: white;
             border: 1.5px solid var(--border);
@@ -484,7 +470,7 @@
             color: #ef4444;
         }
 
-        /* Commentaires */
+        /* ===== STYLES DES COMMENTAIRES RESTAURÉS ===== */
         .comments-section {
             padding: 16px;
             background: var(--off-white);
@@ -567,6 +553,7 @@
         .comment-actions {
             display: flex;
             gap: 8px;
+            margin-top: 8px;
         }
 
         .comment-actions button,
@@ -575,12 +562,26 @@
             border: none;
             color: var(--muted);
             font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .comment-actions button:hover,
+        .comment-actions a:hover {
+            background: var(--blue-bg);
+            color: var(--blue);
         }
 
         .comment-text {
             font-size: 0.85rem;
             color: var(--ink-soft);
             margin-bottom: 4px;
+            line-height: 1.5;
         }
 
         .comment-date {
@@ -650,11 +651,11 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Notifications - REPOSITIONNÉES À GAUCHE */
+        /* ===== SYSTÈME DE NOTIFICATIONS ===== */
         .notif-badge {
             position: fixed;
             bottom: 20px;
-            left: 20px;  /* Changé de right à left */
+            left: 20px;
             background: var(--blue);
             color: white;
             border: none;
@@ -673,21 +674,19 @@
             transform: translateY(-2px);
         }
 
-        /* Container des notifications repositionné à gauche */
         #notification-container {
             position: fixed;
             bottom: 80px;
-            left: 20px;  /* Changé de right à left */
+            left: 20px;
             z-index: 9999;
             width: 320px;
         }
 
-        /* Historique des notifications repositionné à gauche */
         #notification-history {
             display: none;
             position: fixed;
             bottom: 80px;
-            left: 20px;  /* Changé de right à left */
+            left: 20px;
             background: white;
             border: 1.5px solid var(--border);
             border-radius: var(--radius);
@@ -698,11 +697,63 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
 
+        .notification-item {
+            background: white;
+            border-left: 4px solid #2563eb;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: slideIn 0.3s ease;
+        }
+
+        .notification-item.error {
+            border-left-color: #ef4444;
+        }
+
+        .notification-item.success {
+            border-left-color: #10b981;
+        }
+
+        .notification-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .notification-close {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 0 5px;
+            margin-left: 8px;
+        }
+
+        .notification-close:hover {
+            color: #ef4444;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
         .blurred {
             filter: blur(4px);
         }
 
-        /* Pagination cachée */
         .pagination {
             display: none;
         }
@@ -724,7 +775,6 @@
                 display: flex;
             }
             
-            /* Ajustement pour mobile */
             .notif-badge {
                 bottom: 20px;
                 left: 20px;
@@ -748,7 +798,7 @@
 </head>
 <body>
 
-    <!-- Navbar du design fourni avec logique de connexion -->
+    <!-- Navbar -->
     <nav class="nav" id="navbar">
         <a href="{{ path('user_dashboard') }}" class="nav-logo">Lingua<span>Learn</span></a>
         <ul class="nav-links">
@@ -759,7 +809,6 @@
         </ul>
         <div class="nav-actions">
             {% if app.user %}
-                {# Utilisateur connecté - afficher l'email avec email #}
                 <div class="user-info">
                     <div class="user-avatar">
                         {{ app.user.email|first|upper }}
@@ -770,7 +819,6 @@
                     </a>
                 </div>
             {% else %}
-                {# Utilisateur non connecté - afficher boutons de connexion #}
                 <a href="{{ path('app_login') }}" class="btn-ghost">Log In</a>
                 <a href="{{ path('app_register') }}" class="btn-primary">Sign Up</a>
             {% endif %}
@@ -780,7 +828,7 @@
         </button>
     </nav>
 
-    <!-- Mobile Menu avec la même logique -->
+    <!-- Mobile Menu -->
     <div class="mobile-menu" id="mobileMenu">
         <button class="mobile-close" id="mobileClose">✕</button>
         <a href="{{ path('user_dashboard') }}" class="mobile-link">Home</a>
@@ -804,7 +852,7 @@
 
     {% include 'frontoffice/ressource/chat.html.twig' %}
 
-    <!-- Notifications - REPOSITIONNÉES À GAUCHE -->
+    <!-- Notifications -->
     <button id="btn-notifications" class="notif-badge">
         <i class="bi bi-bell"></i> <span id="notification-count">0</span>
     </button>
@@ -827,18 +875,7 @@
                     <i class="bi bi-house-door"></i>
                     <span>Accueil</span>
                 </a>
-                <a href="#" class="menu-item">
-                    <i class="bi bi-people"></i>
-                    <span>Communauté</span>
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="bi bi-bookmark"></i>
-                    <span>Favoris</span>
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="bi bi-gear"></i>
-                    <span>Paramètres</span>
-                </a>
+               
             </div>
         </aside>
 
@@ -896,7 +933,7 @@
         </aside>
     </div>
 
-    <!-- Pagination cachée mais nécessaire pour le scroll infini -->
+    <!-- Pagination cachée -->
     <div style="display: none;">
         {% if totalPages > 1 %}
             <ul class="pagination">
@@ -908,7 +945,114 @@
     </div>
 
     <script>
-        // ==================== FONCTIONS EXISTANTES ====================
+        // ==================== SYSTÈME DE NOTIFICATIONS ====================
+        const notifContainer = document.getElementById('notification-container');
+        const notifHistory = document.getElementById('notification-history');
+        const btnNotif = document.getElementById('btn-notifications');
+        const notificationCountSpan = document.getElementById('notification-count');
+        let notificationsCount = 0;
+
+        function showNotification(message, type = 'success') {
+            notificationsCount++;
+            notificationCountSpan.innerText = notificationsCount;
+            
+            const notif = document.createElement('div');
+            notif.className = `notification-item ${type}`;
+            
+            let icon = 'bi-check-circle-fill';
+            let iconColor = '#10b981';
+            
+            if (type === 'error') {
+                icon = 'bi-exclamation-circle-fill';
+                iconColor = '#ef4444';
+            } else if (type === 'info') {
+                icon = 'bi-info-circle-fill';
+                iconColor = '#2563eb';
+            }
+            
+            notif.innerHTML = `
+                <div class="notification-content">
+                    <i class="${icon}" style="color: ${iconColor};"></i>
+                    <span>${message}</span>
+                </div>
+                <button class="notification-close" onclick="removeNotification(this)">&times;</button>
+            `;
+            
+            notifContainer.appendChild(notif);
+            
+            try {
+                let saved = JSON.parse(localStorage.getItem('notifHistory')) || [];
+                saved.push(message);
+                localStorage.setItem('notifHistory', JSON.stringify(saved));
+                
+                const histItem = document.createElement('div');
+                histItem.innerText = message;
+                histItem.style.padding = '8px';
+                histItem.style.borderBottom = '1px solid var(--border)';
+                notifHistory.appendChild(histItem);
+            } catch(e) {
+                console.error('Erreur localStorage:', e);
+            }
+            
+            setTimeout(() => {
+                if (notif.parentNode) {
+                    notif.remove();
+                    updateNotificationCount();
+                }
+            }, 8000);
+        }
+
+        function removeNotification(btn) {
+            const notif = btn.closest('.notification-item');
+            if (notif) {
+                notif.remove();
+                updateNotificationCount();
+            }
+        }
+
+        function updateNotificationCount() {
+            notificationsCount = document.querySelectorAll('.notification-item').length;
+            notificationCountSpan.innerText = notificationsCount;
+        }
+
+        btnNotif.onclick = function() {
+            if (notifHistory.style.display === 'none' || notifHistory.style.display === '') {
+                notifHistory.style.display = 'block';
+            } else {
+                notifHistory.style.display = 'none';
+            }
+        };
+
+        document.addEventListener("DOMContentLoaded", function() {
+            {% for message in app.flashes('error') %}
+                showNotification("{{ message|e('js') }}", 'error');
+            {% endfor %}
+            
+            {% for message in app.flashes('success') %}
+                showNotification("{{ message|e('js') }}", 'success');
+            {% endfor %}
+            
+            {% for message in app.flashes('notification') %}
+                showNotification("{{ message|e('js') }}", 'success');
+            {% endfor %}
+            
+            try {
+                let saved = JSON.parse(localStorage.getItem('notifHistory')) || [];
+                saved.forEach(msg => {
+                    const h = document.createElement('div');
+                    h.innerText = msg;
+                    h.style.padding = '8px';
+                    h.style.borderBottom = '1px solid var(--border)';
+                    notifHistory.appendChild(h);
+                });
+                notificationsCount = saved.length;
+                notificationCountSpan.innerText = notificationsCount;
+            } catch(e) {
+                console.error('Erreur chargement historique:', e);
+            }
+        });
+
+        // ==================== AUTRES FONCTIONS ====================
         function validateAddComment(pubId) {
             const input = document.getElementById(`add-comment-input-${pubId}`);
             const value = input.value.trim();
@@ -950,42 +1094,13 @@
         function signalPublication(pubId) {
             fetch(`/publication/signal/${pubId}`, { method: 'POST', headers: {'X-Requested-With': 'XMLHttpRequest'} })
                 .then(r => r.json())
-                .then(d => { document.getElementById(`report-count-${pubId}`).innerText = d.report; showNotification('Publication signalée'); });
+                .then(d => { 
+                    document.getElementById(`report-count-${pubId}`).innerText = d.report; 
+                    showNotification('Publication signalée', 'info'); 
+                });
         }
 
-        // Notifications
-        const notifContainer = document.getElementById('notification-container');
-        const notifHistory = document.getElementById('notification-history');
-        const btnNotif = document.getElementById('btn-notifications');
-        const notificationCountSpan = document.getElementById('notification-count');
-        let notificationsCount = 0;
-
-        function showNotification(message) {
-            notificationsCount++; notificationCountSpan.innerText = notificationsCount;
-            const notif = document.createElement('div'); 
-            notif.style.cssText = 'background:white; border-left:4px solid #2563eb; border-radius:8px; padding:12px; margin-bottom:8px; box-shadow:0 4px 12px rgba(0,0,0,0.1); display:flex; justify-content:space-between; align-items:center;';
-            notif.innerHTML = `<span>${message}</span><button onclick="this.parentElement.remove(); notificationsCount--; notificationCountSpan.innerText=notificationsCount;" style="background:none;border:none;font-size:1.2rem;">×</button>`;
-            notifContainer.appendChild(notif);
-            
-            let saved = JSON.parse(localStorage.getItem('notifHistory')) || [];
-            saved.push(message); localStorage.setItem('notifHistory', JSON.stringify(saved));
-            
-            const histItem = document.createElement('div'); histItem.innerText = message; histItem.style.padding = '8px'; histItem.style.borderBottom = '1px solid var(--border)';
-            notifHistory.appendChild(histItem);
-            
-            setTimeout(() => { if(notifContainer.contains(notif)) { notifContainer.removeChild(notif); notificationsCount--; notificationCountSpan.innerText = notificationsCount; } }, 10000);
-        }
-
-        btnNotif.onclick = () => notifHistory.style.display = notifHistory.style.display === 'none' ? 'block' : 'none';
-
-        document.addEventListener("DOMContentLoaded", function() {
-            {% for message in app.flashes('notification') %} showNotification("{{ message|e('js') }}"); {% endfor %}
-            let saved = JSON.parse(localStorage.getItem('notifHistory')) || [];
-            saved.forEach(msg => { const h = document.createElement('div'); h.innerText = msg; h.style.padding = '8px'; h.style.borderBottom = '1px solid var(--border)'; notifHistory.appendChild(h); });
-            notificationsCount = saved.length; notificationCountSpan.innerText = notificationsCount;
-        });
-
-        // ==================== MOBILE MENU ====================
+        // Mobile menu
         document.getElementById('hamburger').addEventListener('click', () =>
             document.getElementById('mobileMenu').classList.add('open')
         );
@@ -1002,7 +1117,7 @@
             navbar.classList.toggle('scrolled', window.scrollY > 50);
         }, { passive: true });
 
-        // ==================== SCROLL INFINI ====================
+        // Scroll infini
         let currentPage = {{ currentPage|default(1) }};
         const totalPages = {{ totalPages|default(1) }};
         let loading = false;
@@ -1064,6 +1179,93 @@
                 loading = false;
             });
         }
+
+        // ==================== FONCTIONS DE TRADUCTION ====================
+// ===== TRADUCTION PUBLICATION =====
+function traduirePublication(id, lang, bouton) {
+    bouton.disabled = true;
+    const original = bouton.textContent;
+    bouton.textContent = '⏳';
+
+    const url = `/publication/traduire/${id}/${lang}`;
+
+    fetch(url)
+        .then(r => {
+            if (!r.ok) {
+                throw new Error('Erreur HTTP: ' + r.status);
+            }
+            return r.json();
+        })
+        .then(data => {
+            if (data.error) {
+                alert('Erreur : ' + data.error);
+                return;
+            }
+            document.getElementById('titre-traduit-' + id).innerHTML = '<strong>' + data.titre + '</strong>';
+            document.getElementById('contenu-traduit-' + id).textContent = data.contenu;
+            document.getElementById('traduction-pub-' + id).style.display = 'block';
+        })
+        .catch(err => {
+            console.error('Erreur:', err);
+            alert('Erreur de traduction: ' + err.message);
+        })
+        .finally(() => {
+            bouton.disabled = false;
+            bouton.textContent = original;
+        });
+}
+
+function resetPublication(id) {
+    document.getElementById('traduction-pub-' + id).style.display = 'none';
+}
+
+// ===== TRADUCTION COMMENTAIRE =====
+function toggleTraductionComment(id) {
+    const btns = document.getElementById('lang-buttons-' + id);
+    if (btns) {
+        btns.style.display = btns.style.display === 'none' ? 'inline-flex' : 'none';
+    }
+}
+
+function traduireCommentaire(id, lang, bouton) {
+    bouton.disabled = true;
+
+    fetch(`/commentaire/traduire/${id}/${lang}`)
+        .then(r => {
+            if (!r.ok) {
+                throw new Error('Erreur HTTP: ' + r.status);
+            }
+            return r.json();
+        })
+        .then(data => {
+            if (data.error) {
+                alert('Erreur : ' + data.error);
+                return;
+            }
+            const zone = document.getElementById('traduction-com-' + id);
+            if (zone) {
+                zone.textContent = data.contenu;
+                zone.style.display = 'block';
+            }
+        })
+        .catch(err => {
+            console.error('Erreur:', err);
+            alert('Erreur de traduction: ' + err.message);
+        })
+        .finally(() => { bouton.disabled = false; });
+}
+
+function resetCommentaire(id) {
+    const zone = document.getElementById('traduction-com-' + id);
+    if (zone) {
+        zone.style.display = 'none';
+        zone.textContent = '';
+    }
+    const btns = document.getElementById('lang-buttons-' + id);
+    if (btns) {
+        btns.style.display = 'none';
+    }
+}
     </script>
 </body>
 </html>

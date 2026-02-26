@@ -552,7 +552,7 @@
     <main class="add-post-container">
         <div class="add-post-card">
             <h2>Ajouter une publication</h2>
-            <p class="subtitle">Partage ton savoir avec la communauté LinguLearn</p>
+            <p class="subtitle">Partage ton savoir avec la communauté LinguaLearn</p>
 
             <form action="{{ path('traitement_publication') }}" method="POST" enctype="multipart/form-data" id="publication-form">
                 
@@ -791,13 +791,7 @@
                 }
             }
 
-            // Vérifier qu'il y a une image (soit upload, soit IA)
-            if (!media && !mediaAI) {
-                showNotification("Vous devez ajouter une image ou générer une image IA !", 'error');
-                e.preventDefault();
-                return;
-            }
-
+           
             // Désactiver le bouton pendant l'envoi
             const publishBtn = document.getElementById('publish-btn');
             publishBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Publication en cours...';
