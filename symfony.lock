@@ -88,7 +88,7 @@
         }
     },
     "stripe/stripe-php": {
-        "version": "19.3",
+        "version": "19.4",
         "recipe": {
             "repo": "github.com/symfony/recipes-contrib",
             "branch": "main",
@@ -182,6 +182,15 @@
             "./src/Kernel.php",
             "./.editorconfig"
         ]
+    },
+    "symfony/google-mailer": {
+        "version": "7.4",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "4.4",
+            "ref": "f8fd4ddb9b477510f8f4bce2b9c054ab428c0120"
+        }
     },
     "symfony/lock": {
         "version": "7.4",
@@ -451,6 +460,19 @@
         },
         "files": [
             "./config/packages/vich_uploader.yaml"
+        ]
+    },
+    "web-auth/webauthn-symfony-bundle": {
+        "version": "5.2",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "main",
+            "version": "3.0",
+            "ref": "a5dff33bd46575bea263af94069650af7742dcb6"
+        },
+        "files": [
+            "./config/packages/webauthn.yaml",
+            "./config/routes/webauthn_routes.yaml"
         ]
     },
     "winzou/state-machine-bundle": {
