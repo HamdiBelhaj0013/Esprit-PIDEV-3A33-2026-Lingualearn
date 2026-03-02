@@ -14,8 +14,15 @@ class UserService
     public function __construct(
         private EntityManagerInterface $entityManager,
         private UserRepository $userRepository,
-        private UserPasswordHasherInterface $passwordHasher
-    ) {}
+        private UserPasswordHasherInterface $passwordHasher,
+        private StripeService $stripeService,
+    ) {
+        // Break the circular dependency: StripeService needs UserService
+        // for adminGrantPremium/adminRevokePremium, but cannot take it
+        // in its own constructor (that would be circular). We push ourselves
+        // into StripeService here after both are fully constructed.
+        $this->stripeService->setUserService($this);
+    }
 
     // ── Original methods (unchanged) ─────────────────────────
 
@@ -31,7 +38,8 @@ class UserService
         $user->setLastName($lastName);
         $user->setStatus('active');
         $user->setSubscriptionPlan('FREE');
-        $user->setPremium(false);
+        // isPremium is computed from subscriptionPlan + subscriptionExpiry;
+        // no need to call setPremium() — updatePremiumStatus() handles it.
 
         $user->setPassword($this->passwordHasher->hashPassword($user, $plainPassword));
 
@@ -79,18 +87,29 @@ class UserService
 
     public function upgradeToPremium(User $user, string $plan, \DateTimeInterface $expiryDate): void
     {
-        $user->setSubscriptionPlan($plan);
+        // ORDER MATTERS:
+        // 1. Set expiry first — updatePremiumStatus() inside setSubscriptionPlan()
+        //    needs it already set to correctly compute isPremium = true.
+        // 2. Set plan second — this triggers updatePremiumStatus(), which reads
+        //    the expiry we just set and sets isPremium = true automatically.
+        // 3. Do NOT call setPremium(true) — it is a no-op by design.
+        //    isPremium is governed exclusively by updatePremiumStatus().
         $user->setSubscriptionExpiry($expiryDate);
-        $user->setPremium(true);
+        $user->setSubscriptionPlan($plan);
         $user->setLastPaymentStatus('success');
         $this->entityManager->flush();
     }
 
     public function downgradeToFree(User $user): void
     {
+        // ORDER MATTERS:
+        // setSubscriptionPlan('FREE') triggers updatePremiumStatus().
+        // At that point expiry may still be set, but plan='FREE' alone
+        // is enough for updatePremiumStatus() to resolve isPremium = false.
+        // setSubscriptionExpiry(null) then fires updatePremiumStatus() again
+        // as a double-clean. No need to call setPremium(false) — it is a no-op.
         $user->setSubscriptionPlan('FREE');
         $user->setSubscriptionExpiry(null);
-        $user->setPremium(false);
         $this->entityManager->flush();
     }
 

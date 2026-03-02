@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modifier Publication - LinguaLearn</title>
+
+    <!-- Bootstrap & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --white:     #ffffff;
+            --off-white: #f7f9fc;
+            --surface:   #eef1f8;
+            --ink:       #0d1526;
+            --ink-soft:  #2c3a52;
+            --muted:     #7a87a0;
+            --border:    #e2e8f2;
+
+            --blue:      #2563eb;
+            --blue-dark: #1d4ed8;
+            --blue-bg:   #eff6ff;
+
+            --radius:    12px;
+            --radius-lg: 20px;
+            --radius-xl: 28px;
+
+            /* Language accent palette */
+            --c-en: #2563eb;
+            --c-fr: #7c3aed;
+            --c-es: #ea580c;
+            --c-de: #16a34a;
+            --c-ar: #dc2626;
+            --c-zh: #ca8a04;
+            --c-pt: #0891b2;
+            --c-it: #be185d;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Sora', sans-serif;
+            min-height: 100vh;
+            background:
+                linear-gradient(rgba(255,255,255,0.85), rgba(255,255,255,0.85)),
+                url("{{ asset('images/heroo-bg.jpg') }}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            margin: 0;
+            padding-top: 70px;
+        }
+
+        /* ─── NAV STYLE DU DESIGN FOURNI ─── */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 1.1rem 5vw;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.3s, box-shadow 0.3s;
+            background: rgba(255,255,255,.95);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 1px 0 var(--border);
+        }
+
+        .nav-logo {
+            font-family: 'Fraunces', serif;
+            font-size: 1.4rem;
+            font-weight: 400;
+            color: var(--ink);
+            text-decoration: none;
+            letter-spacing: -.01em;
+        }
+
+        .nav-logo span {
+            color: var(--blue);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            font-size: .82rem;
+            font-weight: 500;
+            color: var(--muted);
+            text-decoration: none;
+            letter-spacing: .01em;
+            transition: color .2s;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--ink);
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: .6rem;
+            align-items: center;
+        }
+
+        .btn-ghost {
+            padding: .48rem 1.25rem;
+            border-radius: 100px;
+            border: 1.5px solid var(--border);
+            background: transparent;
+            color: var(--ink-soft);
+            font-family: 'Sora', sans-serif;
+            font-size: .79rem;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: border-color .2s, color .2s, background .2s;
+            display: inline-block;
+        }
+
+        .btn-ghost:hover {
+            border-color: var(--blue);
+            color: var(--blue);
+            background: var(--blue-bg);
+        }
+
+        .btn-primary {
+            padding: .52rem 1.35rem;
+            border-radius: 100px;
+            background: var(--blue);
+            border: none;
+            color: var(--white);
+            font-family: 'Sora', sans-serif;
+            font-size: .79rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background .2s, transform .2s, box-shadow .2s;
+            display: inline-block;
+        }
+
+        .btn-primary:hover {
+            background: var(--blue-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(37,99,235,.28);
+        }
+
+        /* User info quand connecté */
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--ink);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--blue), #7c3aed);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .logout-btn {
+            color: var(--muted);
+            font-size: 1rem;
+            transition: color 0.2s;
+        }
+
+        .logout-btn:hover {
+            color: #ef4444;
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .hamburger span {
+            width: 22px;
+            height: 2px;
+            background: var(--ink);
+            display: block;
+            border-radius: 2px;
+        }
+
+        /* ─── MOBILE MENU ─── */
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(255,255,255,.98);
+            backdrop-filter: blur(20px);
+            z-index: 2000;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.75rem;
+        }
+
+        .mobile-menu.open {
+            display: flex;
+        }
+
+        .mobile-menu a {
+            font-family: 'Fraunces', serif;
+            font-size: 2rem;
+            font-weight: 300;
+            color: var(--ink);
+            text-decoration: none;
+            transition: color .2s;
+        }
+
+        .mobile-menu a:hover {
+            color: var(--blue);
+        }
+
+        .mobile-close {
+            position: absolute;
+            top: 1.5rem;
+            right: 2rem;
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 1.4rem;
+            cursor: pointer;
+        }
+
+        .mobile-actions {
+            display: flex;
+            gap: .75rem;
+            margin-top: 1rem;
+        }
+
+        /* Formulaire de modification */
+        .edit-post-container {
+            max-width: 680px;
+            margin: 20px auto 40px;
+            padding: 0 20px;
+        }
+
+        .edit-post-card {
+            background: white;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+            backdrop-filter: blur(10px);
+        }
+
+        .edit-post-card h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--ink);
+            margin-bottom: 8px;
+        }
+
+        .edit-post-card .subtitle {
+            color: var(--muted);
+            font-size: 0.95rem;
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 1.5px solid var(--border);
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--ink);
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+        }
+
+        .form-control {
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            padding: 12px 16px;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            font-family: 'Sora', sans-serif;
+        }
+
+        .form-control:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+            outline: none;
+        }
+
+        .form-control-lg {
+            padding: 14px 18px;
+            font-size: 1rem;
+        }
+
+        /* Fichier actuel */
+        .current-file {
+            margin: 16px 0;
+            padding: 16px;
+            background: var(--off-white);
+            border-radius: var(--radius);
+            border: 1.5px solid var(--border);
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--ink);
+        }
+
+        .file-info i {
+            color: var(--blue);
+            font-size: 1.5rem;
+        }
+
+        .file-details {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .file-hint {
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        /* Upload manuel */
+        .upload-manual {
+            margin: 24px 0;
+            padding: 20px;
+            background: var(--off-white);
+            border-radius: var(--radius);
+            border: 1.5px solid var(--border);
+        }
+
+        .upload-manual small {
+            color: var(--muted);
+            display: block;
+            margin-top: 8px;
+        }
+
+        /* Prévisualisation */
+        .preview-container {
+            border: 2px dashed var(--blue);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            background: var(--blue-bg);
+            margin: 24px 0;
+            text-align: center;
+        }
+
+        .preview-img {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: var(--radius);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .preview-video {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: var(--radius);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .preview-success {
+            color: #059669;
+            font-size: 0.9rem;
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        /* Boutons de soumission - TAILLE RÉDUITE */
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 32px;
+        }
+
+        .btn-save {
+            background: var(--blue);
+            color: white;
+            border: none;
+            border-radius: 100px;
+            padding: 12px 24px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            flex: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            cursor: pointer;
+            font-family: 'Sora', sans-serif;
+        }
+
+        .btn-save:hover {
+            background: var(--blue-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(37,99,235,.28);
+        }
+
+        .btn-cancel {
+            background: white;
+            color: var(--muted);
+            border: 1.5px solid var(--border);
+            border-radius: 100px;
+            padding: 12px 24px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            text-decoration: none;
+            font-family: 'Sora', sans-serif;
+        }
+
+        .btn-cancel:hover {
+            background: var(--off-white);
+            color: #ef4444;
+            border-color: #ef4444;
+            transform: translateY(-1px);
+        }
+
+        /* Alertes toast */
+        .alert-toast {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: white;
+            border-left: 4px solid var(--blue);
+            border-radius: 8px;
+            padding: 16px 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+            max-width: 350px;
+        }
+
+        .alert-toast.error {
+            border-left-color: #ef4444;
+        }
+
+        .alert-toast.success {
+            border-left-color: #10b981;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links, .nav-actions {
+                display: none;
+            }
+            .hamburger {
+                display: flex;
+            }
+            
+            .edit-post-card {
+                padding: 20px;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar du design fourni avec logique de connexion -->
+    <nav class="nav" id="navbar">
+        <a href="{{ path('user_dashboard') }}" class="nav-logo">Lingua<span>Learn</span></a>
+        <ul class="nav-links">
+            <li><a href="{{ path('user_dashboard') }}">Home</a></li>
+            <li><a href="{{ path('ressources') }}" class="active">Ressources</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#about">About</a></li>
+        </ul>
+        <div class="nav-actions">
+            {% if app.user %}
+                {# Utilisateur connecté - afficher l'email avec getEmail #}
+                <div class="user-info">
+                    <div class="user-avatar">
+                        {{ app.user.email|first|upper }}
+                    </div>
+                    <span>{{ app.user.email }}</span>
+                    <a href="{{ path('app_logout') }}" class="logout-btn" title="Déconnexion">
+                        <i class="bi bi-box-arrow-right"></i>
+                    </a>
+                </div>
+            {% else %}
+                {# Utilisateur non connecté - afficher boutons de connexion #}
+                <a href="{{ path('app_login') }}" class="btn-ghost">Log In</a>
+                <a href="{{ path('app_register') }}" class="btn-primary">Sign Up</a>
+            {% endif %}
+        </div>
+        <button class="hamburger" id="hamburger" aria-label="Open menu">
+            <span></span><span></span><span></span>
+        </button>
+    </nav>
+
+    <!-- Mobile Menu avec la même logique -->
+    <div class="mobile-menu" id="mobileMenu">
+        <button class="mobile-close" id="mobileClose">✕</button>
+        <a href="" class="mobile-link">Home</a>
+        <a href="{{ path('ressources') }}" class="mobile-link">Ressources</a>
+        <a href="#features" class="mobile-link">Features</a>
+        <a href="#about" class="mobile-link">About</a>
+        <div class="mobile-actions">
+            {% if app.user %}
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                    <span style="color: var(--ink); font-size: 1rem;">{{ app.user.email }}</span>
+                    <a href="{{ path('app_logout') }}" class="btn-ghost" style="color: #ef4444; border-color: #ef4444;">
+                        <i class="bi bi-box-arrow-right"></i> Déconnexion
+                    </a>
+                </div>
+            {% else %}
+                <a href="{{ path('app_login') }}" class="btn-ghost">Log In</a>
+                <a href="{{ path('app_register') }}" class="btn-primary">Sign Up</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Notifications Toast -->
+    <div id="notification-toast" style="display: none;"></div>
+
+    {% for message in app.flashes('error') %}
+        <script>
+            showNotification("{{ message|e('js') }}", 'error');
+        </script>
+    {% endfor %}
+
+    {% for message in app.flashes('success') %}
+        <script>
+            showNotification("{{ message|e('js') }}", 'success');
+        </script>
+    {% endfor %}
+
+    <!-- Formulaire de modification -->
+    <main class="edit-post-container">
+        <div class="edit-post-card">
+            <h2>Modifier la publication</h2>
+            <p class="subtitle">Améliore ton contenu avant de le partager</p>
+
+            <form method="post" enctype="multipart/form-data" action="{{ path('modifier_publication', {'id': publication.id}) }}" id="edit-form">
+                
+                <!-- Titre -->
+                <div class="mb-4">
+                    <label class="form-label">Titre de la publication</label>
+                    <input type="text" 
+                           name="titre" 
+                           class="form-control form-control-lg" 
+                           value="{{ publication.titrePub }}"
+                           placeholder="Ex: Comment apprendre une langue rapidement ?"
+                           required
+                           minlength="5"
+                           id="titre-input">
+                    <small class="text-muted mt-1">Minimum 5 caractères</small>
+                </div>
+
+                <!-- Contenu -->
+                <div class="mb-4">
+                    <label class="form-label">Contenu</label>
+                    <textarea name="contenu" 
+                              rows="6" 
+                              class="form-control form-control-lg" 
+                              placeholder="Décris ton sujet en détail..."
+                              required
+                              minlength="10"
+                              id="contenu-input">{{ publication.contenuPub }}</textarea>
+                    <small class="text-muted mt-1">Minimum 10 caractères</small>
+                </div>
+
+                <!-- Fichier actuel -->
+                {% if publication.lienPub %}
+                <div class="current-file">
+                    <div class="file-info">
+                        <i class="bi bi-file-earmark-fill"></i>
+                        <div class="file-details">
+                            <div class="file-name">{{ publication.lienPub }}</div>
+                            <div class="file-hint">Fichier actuel - Laissez vide pour conserver ce fichier</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Upload manuel -->
+                <div class="upload-manual">
+                    <label class="form-label">Nouvelle image ou vidéo</label>
+                    <input type="file" 
+                           id="file-input" 
+                           name="media" 
+                           class="form-control" 
+                           accept="image/*,video/*">
+                    <small class="text-muted d-block mt-1">
+                        Formats acceptés : JPG, PNG, MP4 • Taille max : 2 Mo • Laissez vide pour conserver le fichier actuel
+                    </small>
+                </div>
+
+                <!-- Prévisualisation du nouveau fichier -->
+                <div id="preview-container" class="preview-container" style="display:none;">
+                    <img id="preview-image" src="" class="preview-img" alt="Aperçu" style="display:none;">
+                    <video id="preview-video" class="preview-video" controls style="display:none;">
+                        <source src="" type="video/mp4">
+                    </video>
+                    <div class="preview-success">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Nouveau fichier sélectionné</span>
+                    </div>
+                </div>
+
+                <!-- Boutons d'action - TAILLE RÉDUITE -->
+                <div class="form-actions">
+                    <button type="submit" class="btn-save" id="save-btn">
+                        <i class="bi bi-check-lg"></i>
+                        Enregistrer
+                    </button>
+                    <a href="{{ path('ressources') }}" class="btn-cancel">
+                        <i class="bi bi-x-lg"></i>
+                        Annuler
+                    </a>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // === FONCTION DE NOTIFICATION ===
+        function showNotification(message, type = 'info') {
+            // Supprimer les anciennes notifications
+            const oldToasts = document.querySelectorAll('.alert-toast');
+            oldToasts.forEach(toast => toast.remove());
+
+            const toast = document.createElement('div');
+            toast.className = `alert-toast ${type}`;
+            toast.innerHTML = `
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi ${type === 'error' ? 'bi-exclamation-triangle-fill' : type === 'success' ? 'bi-check-circle-fill' : 'bi-info-circle-fill'}"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideIn 0.3s reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+        }
+
+        // === MOBILE MENU ===
+        document.getElementById('hamburger').addEventListener('click', () =>
+            document.getElementById('mobileMenu').classList.add('open')
+        );
+        document.getElementById('mobileClose').addEventListener('click', () =>
+            document.getElementById('mobileMenu').classList.remove('open')
+        );
+        document.querySelectorAll('.mobile-link').forEach(l =>
+            l.addEventListener('click', () => document.getElementById('mobileMenu').classList.remove('open'))
+        );
+
+        // Nav scroll state
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            navbar.classList.toggle('scrolled', window.scrollY > 50);
+        }, { passive: true });
+
+        // === PRÉVISUALISATION FICHIER ===
+        document.getElementById('file-input').addEventListener('change', function(e) {
+            const previewContainer = document.getElementById('preview-container');
+            const previewImage = document.getElementById('preview-image');
+            const previewVideo = document.getElementById('preview-video');
+            
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                const fileType = file.type;
+                const reader = new FileReader();
+                
+                previewContainer.style.display = 'block';
+                
+                reader.onload = function(e) {
+                    if (fileType.startsWith('image/')) {
+                        previewImage.src = e.target.result;
+                        previewImage.style.display = 'block';
+                        previewVideo.style.display = 'none';
+                    } else if (fileType.startsWith('video/')) {
+                        previewVideo.querySelector('source').src = e.target.result;
+                        previewVideo.load();
+                        previewVideo.style.display = 'block';
+                        previewImage.style.display = 'none';
+                    }
+                };
+                
+                reader.readAsDataURL(file);
+            } else {
+                previewContainer.style.display = 'none';
+                previewImage.style.display = 'none';
+                previewVideo.style.display = 'none';
+            }
+        });
+
+        // === VALIDATION FORMULAIRE ===
+        document.getElementById('edit-form').addEventListener('submit', function(e) {
+            const titre = document.querySelector('input[name="titre"]').value.trim();
+            const contenu = document.querySelector('textarea[name="contenu"]').value.trim();
+            const media = document.querySelector('input[name="media"]').files[0];
+
+            // Validation titre
+            if (titre.length < 5) {
+                showNotification("Le titre doit contenir au moins 5 caractères !", 'error');
+                e.preventDefault();
+                return;
+            }
+
+            // Validation contenu
+            if (contenu.length < 10) {
+                showNotification("Le contenu doit contenir au moins 10 caractères !", 'error');
+                e.preventDefault();
+                return;
+            }
+
+            // Validation fichier si upload manuel
+            if (media) {
+                const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'video/mp4'];
+                if (!allowedTypes.includes(media.type)) {
+                    showNotification("Format de fichier invalide (JPG, PNG, MP4 uniquement).", 'error');
+                    e.preventDefault();
+                    return;
+                }
+                if (media.size > 2 * 1024 * 1024) {
+                    showNotification("Le fichier ne doit pas dépasser 2 Mo.", 'error');
+                    e.preventDefault();
+                    return;
+                }
+            }
+
+            // Désactiver le bouton pendant l'envoi
+            const saveBtn = document.getElementById('save-btn');
+            saveBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Enregistrement...';
+            saveBtn.disabled = true;
+        });
+
+        // === COMPTEURS DE CARACTÈRES ===
+        document.getElementById('titre-input').addEventListener('input', function() {
+            const length = this.value.length;
+            const small = this.nextElementSibling;
+            if (length < 5) {
+                small.style.color = '#ef4444';
+            } else {
+                small.style.color = 'var(--muted)';
+            }
+        });
+
+        document.getElementById('contenu-input').addEventListener('input', function() {
+            const length = this.value.length;
+            const small = this.nextElementSibling;
+            if (length < 10) {
+                small.style.color = '#ef4444';
+            } else {
+                small.style.color = 'var(--muted)';
+            }
+        });
+    </script>
+
+</body>
+</html>

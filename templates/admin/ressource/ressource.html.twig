@@ -1,0 +1,83 @@
+{# templates/admin/ressource/ressource.html.twig #}
+{% extends 'layouts/admin.html.twig' %}
+
+{% block page_title %}Gestion des Ressources{% endblock %}
+
+{% block breadcrumb %}
+    <ol class="breadcrumb" aria-label="breadcrumbs">
+        <li class="breadcrumb-item">
+            <a href="{{ path('admin_dashboard') }}"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">Ressources</li>
+    </ol>
+{% endblock %}
+
+{% block page_actions %}
+    {# No actions needed for this page #}
+{% endblock %}
+
+{% block admin_styles %}
+    <style>
+        .cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2.25rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .card-link {
+            width: 280px;
+            height: 164px;
+            background: linear-gradient(135deg, #6d28d9, #a78bfa);
+            color: white;
+            border-radius: 12px;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.32rem;
+            font-weight: 600;
+            box-shadow: 0 4px 14px rgba(109,40,217,0.18);
+            transition: all 0.25s ease;
+        }
+
+        .card-link:hover {
+            transform: translateY(-7px);
+            box-shadow: 0 12px 28px rgba(109,40,217,0.28);
+        }
+
+        .card-link i {
+            font-size: 3.2rem;
+            margin-bottom: 0.9rem;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="row g-3 mt-1">
+        <div class="col-12">
+            <div class="card ll-card">
+                <div class="card-body">
+                    <div class="cards">
+                        <a href="{{ path('admin_gestion_publications') }}" class="card-link">
+                            <i class="ti ti-file-text"></i>
+                            Gestion Publications
+                        </a>
+
+                        <a href="{{ path('admin_gestion_commentaires') }}" class="card-link">
+                            <i class="ti ti-messages"></i>
+                            Gestion Commentaires
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {# Add any page-specific JavaScript here if needed #}
+{% endblock %}

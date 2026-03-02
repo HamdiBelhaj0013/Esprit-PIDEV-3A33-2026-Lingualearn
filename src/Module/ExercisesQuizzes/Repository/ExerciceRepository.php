@@ -3,6 +3,7 @@
 namespace App\Module\ExercisesQuizzes\Repository;
 
 use App\Module\ExercisesQuizzes\Entity\Exercice;
+use App\Module\ExercisesQuizzes\Entity\Quiz;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -40,41 +41,60 @@ class ExerciceRepository extends ServiceEntityRepository
     }
 
     /**
-     * Filtrer les exercices par recherche et par IA, avec tri.
+     * Filtrer les exercices par recherche, IA et quiz, avec tri.
      *
      * @param string $search Mot-clé pour type/question
      * @param bool|null $ai Filtrer par exercice généré par IA
      * @param string $sortField Champ pour trier ('id','type','question','aiGenerated','enabled')
      * @param string $sortOrder 'ASC' ou 'DESC'
+     * @param int|null $quizId Filtrer par quiz (optionnel)
      * @return Exercice[]
      */
-    public function findByFilter(string $search = '', ?bool $ai = null, string $sortField = 'id', string $sortOrder = 'DESC'): array
+    public function findByFilter(string $search = '', ?bool $ai = null, string $sortField = 'id', string $sortOrder = 'DESC', ?int $quizId = null): array
     {
         $qb = $this->createQueryBuilder('e');
 
-        // Filtrage par mot-clé
         if ($search !== '') {
             $qb->andWhere('e.question LIKE :search OR e.type LIKE :search')
                ->setParameter('search', '%'.$search.'%');
         }
 
-        // Filtrage par IA
         if ($ai !== null) {
             $qb->andWhere('e.aiGenerated = :ai')
                ->setParameter('ai', $ai);
         }
 
-        // Vérifier que le champ de tri est valide
+        if ($quizId !== null) {
+            $qb->andWhere('e.quiz = :quizId')
+               ->setParameter('quizId', $quizId);
+        }
+
         $allowedFields = ['id', 'type', 'question', 'aiGenerated', 'enabled'];
         if (!in_array($sortField, $allowedFields)) {
             $sortField = 'id';
         }
 
-        // Vérifier l'ordre
         $sortOrder = strtoupper($sortOrder) === 'ASC' ? 'ASC' : 'DESC';
 
         $qb->orderBy('e.' . $sortField, $sortOrder);
 
         return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * Exercices activés d'un quiz (requête directe en base pour refléter l'état réel).
+     *
+     * @return Exercice[]
+     */
+    public function findEnabledByQuiz(Quiz $quiz): array
+    {
+        return $this->createQueryBuilder('e')
+            ->where('e.quiz = :quiz')
+            ->andWhere('e.enabled = :enabled')
+            ->setParameter('quiz', $quiz)
+            ->setParameter('enabled', true)
+            ->orderBy('e.id', 'ASC')
+            ->getQuery()
+            ->getResult();
     }
 }

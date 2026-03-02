@@ -101,12 +101,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $bannedAt = null;
 
-    // ← NOUVEAU : date de fin du ban temporaire (7 jours)
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $bannedUntil = null;
 
     // =========================================================
-    // EMAIL VERIFICATION  (new fields)
+    // EMAIL VERIFICATION
     // =========================================================
     /** Whether the user has clicked the link in their verification email */
     #[ORM\Column(options: ['default' => false])]
@@ -121,7 +120,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?\DateTimeInterface $emailVerificationTokenExpiresAt = null;
 
     // =========================================================
-    // PASSWORD RESET  (new fields)
+    // PASSWORD RESET
     // =========================================================
     /** Random hex token included in the reset link */
     #[ORM\Column(length: 100, nullable: true)]
@@ -130,6 +129,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /** Token becomes invalid after this timestamp (default: 1 h from issuance) */
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $passwordResetTokenExpiresAt = null;
+
+    // =========================================================
+    // STRIPE PAYMENT
+    // =========================================================
+    /** Stripe Customer ID — created once per user on first checkout */
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $stripeCustomerId = null;
+
+    /** Stripe Subscription ID — set after checkout.session.completed webhook */
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $stripeSubscriptionId = null;
 
     // =========================================================
     // RELATIONS
@@ -155,11 +165,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     // =========================================================
     public function __construct()
     {
-        $this->userLanguages      = new ArrayCollection();
-        $this->notifications      = new ArrayCollection();
-        $this->reclamations       = new ArrayCollection();
-        $this->supportResponses   = new ArrayCollection();
-        $this->roles              = ['ROLE_USER'];
+        $this->userLanguages    = new ArrayCollection();
+        $this->notifications    = new ArrayCollection();
+        $this->reclamations     = new ArrayCollection();
+        $this->supportResponses = new ArrayCollection();
+        $this->roles            = ['ROLE_USER'];
     }
 
     #[ORM\PrePersist]
@@ -219,8 +229,33 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     public function isPremium(): bool { return $this->isPremium; }
-    public function setPremium(bool $isPremium): static { $this->isPremium = $isPremium; return $this; }
 
+    /**
+     * DO NOT call this directly to grant or revoke premium.
+     *
+     * isPremium is a COMPUTED field — always derived from subscriptionPlan
+     * + subscriptionExpiry via updatePremiumStatus(). Calling setPremium(true)
+     * without a valid plan and future expiry is meaningless: the next call to
+     * setSubscriptionPlan() or setSubscriptionExpiry() will immediately
+     * overwrite whatever was set here.
+     *
+     * To upgrade: call UserService::upgradeToPremium()
+     * To downgrade: call UserService::downgradeToFree()
+     *
+     * @internal Kept only so legacy call-sites do not throw fatal errors.
+     *           All writes are intentionally ignored.
+     */
+    public function setPremium(bool $isPremium): static
+    {
+        // No-op: isPremium is governed exclusively by updatePremiumStatus().
+        return $this;
+    }
+
+    /**
+     * Recomputes isPremium from subscriptionPlan + subscriptionExpiry.
+     * This is the ONLY place that writes to $this->isPremium.
+     * Called automatically by setSubscriptionPlan() and setSubscriptionExpiry().
+     */
     private function updatePremiumStatus(): void
     {
         $this->isPremium = (
@@ -355,72 +390,57 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     // =========================================================
+    // STRIPE PAYMENT METHODS
+    // =========================================================
+    public function getStripeCustomerId(): ?string { return $this->stripeCustomerId; }
+    public function setStripeCustomerId(?string $id): static { $this->stripeCustomerId = $id; return $this; }
+
+    public function getStripeSubscriptionId(): ?string { return $this->stripeSubscriptionId; }
+    public function setStripeSubscriptionId(?string $id): static { $this->stripeSubscriptionId = $id; return $this; }
+
+    // =========================================================
     // BAN METHODS
     // =========================================================
 
     /**
-     * Retourne la valeur BRUTE de isBanned (sans vérifier l'expiration)
-     * Utilisé par BanCheckSubscriber pour détecter et lever le ban expiré en DB
+     * Returns the raw isBanned flag without checking expiry.
+     * Used by BanCheckSubscriber to detect and lift expired bans in DB.
      */
-    public function getIsBanned(): bool
-    {
-        return $this->isBanned;
-    }
+    public function getIsBanned(): bool { return $this->isBanned; }
+    public function setIsBanned(bool $isBanned): static { $this->isBanned = $isBanned; return $this; }
 
     /**
-     * Vérifie si l'user est VRAIMENT banni (ban actif ET non expiré)
-     * Si bannedUntil est dépassé → retourne false automatiquement
+     * Returns true if the user is ACTIVELY banned (flag set AND not yet expired).
+     * Automatically returns false if a temporary ban's bannedUntil has passed.
      */
     public function isBanned(): bool
     {
-        if (!$this->isBanned) return false;
-
-        // Ban temporaire expiré → plus banni
+        if (!$this->isBanned) {
+            return false;
+        }
+        // Temporary ban expired → no longer banned
         if ($this->bannedUntil !== null && $this->bannedUntil < new \DateTime()) {
             return false;
         }
-
         return true;
     }
 
-    public function setIsBanned(bool $isBanned): static
+    /**
+     * Alias for isBanned() — explicit name used in controllers/services.
+     */
+    public function isCurrentlyBanned(): bool
     {
-        $this->isBanned = $isBanned;
-        return $this;
+        return $this->isBanned();
     }
 
-    public function getBanReason(): ?string
-    {
-        return $this->banReason;
-    }
+    public function getBanReason(): ?string { return $this->banReason; }
+    public function setBanReason(?string $banReason): static { $this->banReason = $banReason; return $this; }
 
-    public function setBanReason(?string $banReason): static
-    {
-        $this->banReason = $banReason;
-        return $this;
-    }
+    public function getBannedAt(): ?\DateTimeInterface { return $this->bannedAt; }
+    public function setBannedAt(?\DateTimeInterface $bannedAt): static { $this->bannedAt = $bannedAt; return $this; }
 
-    public function getBannedAt(): ?\DateTimeInterface
-    {
-        return $this->bannedAt;
-    }
-
-    public function setBannedAt(?\DateTimeInterface $bannedAt): static
-    {
-        $this->bannedAt = $bannedAt;
-        return $this;
-    }
-
-    public function getBannedUntil(): ?\DateTimeInterface
-    {
-        return $this->bannedUntil;
-    }
-
-    public function setBannedUntil(?\DateTimeInterface $bannedUntil): static
-    {
-        $this->bannedUntil = $bannedUntil;
-        return $this;
-    }
+    public function getBannedUntil(): ?\DateTimeInterface { return $this->bannedUntil; }
+    public function setBannedUntil(?\DateTimeInterface $bannedUntil): static { $this->bannedUntil = $bannedUntil; return $this; }
 
     // =========================================================
     // RECLAMATION / SUPPORT RESPONSE METHODS

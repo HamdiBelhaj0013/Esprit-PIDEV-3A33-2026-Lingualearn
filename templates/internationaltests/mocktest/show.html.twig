@@ -9,322 +9,372 @@
 {% block page_actions %}
     <div class="col-auto ms-auto d-print-none">
         <a href="{{ path('mocktest_edit', {id: mockTest.id}) }}" class="btn btn-primary me-2">
-            <i class="ti ti-pencil icon"></i>
-            Edit
+            <i class="ti ti-pencil icon"></i> Edit
         </a>
         <a href="{{ path('mocktest_index') }}" class="btn btn-secondary">
-            <i class="ti ti-arrow-left icon"></i>
-            Back to List
+            <i class="ti ti-arrow-left icon"></i> Back to List
         </a>
     </div>
 {% endblock %}
 
 {% block content %}
-    <div class="row">
-        {# Main Information Card #}
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Test Information</h3>
-                    <div class="card-actions">
-                        <span class="badge {{ mockTest.isActive ? 'bg-success' : 'bg-warning' }} badge-lg">
-                            {{ mockTest.isActive ? 'Active' : 'Inactive' }}
-                        </span>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label text-muted">Title</label>
-                                <div class="h3">{{ mockTest.title }}</div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label text-muted">Test Type</label>
-                                <div>
-                                    <span class="badge bg-azure-lt fs-3">{{ mockTest.testType }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label text-muted">Duration</label>
-                                <div class="h4">
-                                    <i class="ti ti-clock text-blue me-2"></i>
-                                    {{ mockTest.durationMinutes }} minutes
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label text-muted">Platform Language ID</label>
-                                <div class="h4">
-                                    <i class="ti ti-world text-purple me-2"></i>
-                                    {{ mockTest.platformLanguageId }}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <hr>
-
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label text-muted">Created At</label>
-                                <div>
-                                    <i class="ti ti-calendar me-2"></i>
-                                    {{ mockTest.createdAt|date('Y-m-d H:i:s') }}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label text-muted">Last Updated</label>
-                                <div>
-                                    <i class="ti ti-clock me-2"></i>
-                                    {{ mockTest.updatedAt ? mockTest.updatedAt|date('Y-m-d H:i:s') : 'Never' }}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <label class="form-label text-muted">Test ID</label>
-                                <div>
-                                    <code>#{{ mockTest.id }}</code>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+<div class="row">
+    {# Main Information Card #}
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Test Information</h3>
+                <div class="card-actions">
+                    <span class="badge {{ mockTest.isActive ? 'bg-success' : 'bg-warning' }} badge-lg">
+                        {{ mockTest.isActive ? 'Active' : 'Inactive' }}
+                    </span>
                 </div>
             </div>
-
-            {# Questions List #}
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h3 class="card-title">
-                        <i class="ti ti-help me-2"></i>
-                        Test Questions
-                        <span class="badge bg-blue ms-2">{{ mockTest.testQuestions|length }}</span>
-                    </h3>
-                    <div class="card-actions">
-                        <a href="{{ path('testquestion_new') }}?mockTest={{ mockTest.id }}" class="btn btn-sm btn-primary">
-                            <i class="ti ti-plus"></i>
-                            Add Question
-                        </a>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Title</label>
+                        <div class="h3">{{ mockTest.title }}</div>
                     </div>
-                </div>
-                {% if mockTest.testQuestions|length > 0 %}
-                    <div class="table-responsive">
-                        <table class="table table-vcenter card-table">
-                            <thead>
-                                <tr>
-                                    <th>Section</th>
-                                    <th>Question</th>
-                                    <th>Points</th>
-                                    <th>Options</th>
-                                    <th>Status</th>
-                                    <th class="w-1">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for question in mockTest.testQuestions %}
-                                <tr>
-                                    <td>
-                                        <span class="badge bg-purple-lt">{{ question.sectionCategory }}</span>
-                                    </td>
-                                    <td>
-                                        <div class="text-truncate" style="max-width: 300px;">
-                                            {{ question.questionText }}
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-success">{{ question.points }} pts</span>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-info">{{ question.options|length }} options</span>
-                                    </td>
-                                    <td>
-                                        <span class="badge {{ question.isActive ? 'bg-success' : 'bg-warning' }}">
-                                            {{ question.isActive ? 'Active' : 'Inactive' }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div class="btn-list flex-nowrap">
-                                            <a href="{{ path('testquestion_show', {id: question.id}) }}" 
-                                               class="btn btn-sm btn-ghost-primary" title="View">
-                                                <i class="ti ti-eye"></i>
-                                            </a>
-                                            <a href="{{ path('testquestion_edit', {id: question.id}) }}" 
-                                               class="btn btn-sm btn-ghost-primary" title="Edit">
-                                                <i class="ti ti-pencil"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                    <div class="col-md-3">
+                        <label class="form-label text-muted">Test Type</label>
+                        <div><span class="badge bg-azure-lt fs-3">{{ mockTest.testType }}</span></div>
                     </div>
-                {% else %}
-                    <div class="card-body">
-                        <div class="empty">
-                            <div class="empty-img">
-                                <i class="ti ti-help" style="font-size: 96px; opacity: 0.2;"></i>
-                            </div>
-                            <p class="empty-title">No questions yet</p>
-                            <p class="empty-subtitle text-muted">
-                                This test doesn't have any questions. Add questions to get started.
-                            </p>
-                            <div class="empty-action">
-                                <a href="{{ path('testquestion_new') }}?mockTest={{ mockTest.id }}" 
-                                   class="btn btn-primary">
-                                    <i class="ti ti-plus icon"></i>
-                                    Add First Question
-                                </a>
-                            </div>
+                    <div class="col-md-3">
+                        <label class="form-label text-muted">Test Category</label>
+                        <div>
+                            {% set catColor = {'QCM': 'bg-blue-lt', 'Writing': 'bg-orange-lt', 'Speaking': 'bg-purple-lt', 'Listening': 'bg-green-lt'} %}
+                            <span class="badge {{ catColor[mockTest.testCategory] ?? 'bg-secondary-lt' }} fs-3">
+                                {{ mockTest.testCategory }}
+                            </span>
                         </div>
                     </div>
-                {% endif %}
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Duration</label>
+                        <div class="h4"><i class="ti ti-clock text-blue me-2"></i>{{ mockTest.durationMinutes }} minutes</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Platform Language</label>
+                        <div class="h4">
+                            <i class="ti ti-world text-purple me-2"></i>
+                            {% if mockTest.platformLanguage %}
+                                {{ mockTest.platformLanguage.name }}
+                                {% if mockTest.platformLanguage.code is defined %}
+                                    <span class="badge bg-purple-lt ms-2">{{ mockTest.platformLanguage.code }}</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">Not defined</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="form-label text-muted">Created At</label>
+                        <div><i class="ti ti-calendar me-2"></i>{{ mockTest.createdAt|date('Y-m-d H:i:s') }}</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-muted">Last Updated</label>
+                        <div><i class="ti ti-clock me-2"></i>{{ mockTest.updatedAt ? mockTest.updatedAt|date('Y-m-d H:i:s') : 'Never' }}</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-muted">Test ID</label>
+                        <div><code>#{{ mockTest.id }}</code></div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        {# Sidebar #}
-        <div class="col-md-4">
-            {# Statistics Card #}
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Statistics</h3>
+        {# Questions List #}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="ti ti-help me-2"></i>
+                    Test Questions
+                    <span class="badge bg-blue ms-2">{{ mockTest.testQuestions|length }}</span>
+                </h3>
+                <div class="card-actions">
+                    <a href="{{ path('testquestion_new') }}?mockTest={{ mockTest.id }}" class="btn btn-sm btn-primary">
+                        <i class="ti ti-plus"></i> Add Question
+                    </a>
                 </div>
+            </div>
+            {% if mockTest.testQuestions|length > 0 %}
+                <div class="table-responsive">
+                    <table class="table table-vcenter card-table">
+                        <thead>
+                            <tr>
+                                <th>Section</th>
+                                <th>Question</th>
+                                <th>Points</th>
+                                <th>Options</th>
+                                <th>Status</th>
+                                <th class="w-1">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for question in mockTest.testQuestions %}
+                            <tr>
+                                <td><span class="badge bg-purple-lt">{{ question.sectionCategory }}</span></td>
+                                <td>
+                                    <div class="text-truncate" style="max-width:300px;">{{ question.questionText }}</div>
+                                </td>
+                                <td><span class="badge bg-success">{{ question.points }} pts</span></td>
+                                <td><span class="badge bg-info">{{ question.options|length }} options</span></td>
+                                <td>
+                                    <span class="badge {{ question.isActive ? 'bg-success' : 'bg-warning' }}">
+                                        {{ question.isActive ? 'Active' : 'Inactive' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-list flex-nowrap">
+                                        <a href="{{ path('testquestion_show', {id: question.id}) }}" class="btn btn-sm btn-ghost-primary" title="View">
+                                            <i class="ti ti-eye"></i>
+                                        </a>
+                                        <a href="{{ path('testquestion_edit', {id: question.id}) }}" class="btn btn-sm btn-ghost-primary" title="Edit">
+                                            <i class="ti ti-pencil"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-ghost-danger" title="Delete"
+                                                onclick="openDeleteQuestionModal({{ question.id }}, '{{ question.questionText|slice(0, 50)|e('js') }}...', '{{ path('testquestion_delete', {id: question.id}) }}', '{{ csrf_token('delete' ~ question.id) }}')">
+                                            <i class="ti ti-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
                 <div class="card-body">
-                    <div class="mb-3">
-                        <div class="row align-items-center">
-                            <div class="col">
-                                <div class="text-muted">Total Questions</div>
-                                <div class="h2 mb-0">{{ mockTest.testQuestions|length }}</div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="ti ti-help text-blue" style="font-size: 2.5rem;"></i>
-                            </div>
+                    <div class="empty">
+                        <div class="empty-img">
+                            <i class="ti ti-help" style="font-size:96px;opacity:.2;"></i>
                         </div>
-                    </div>
-
-                    {% set totalPoints = 0 %}
-                    {% for question in mockTest.testQuestions %}
-                        {% set totalPoints = totalPoints + question.points %}
-                    {% endfor %}
-
-                    <div class="mb-3">
-                        <div class="row align-items-center">
-                            <div class="col">
-                                <div class="text-muted">Total Points</div>
-                                <div class="h2 mb-0">{{ totalPoints }}</div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="ti ti-star text-yellow" style="font-size: 2.5rem;"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    {% set sections = [] %}
-                    {% for question in mockTest.testQuestions %}
-                        {% if question.sectionCategory not in sections %}
-                            {% set sections = sections|merge([question.sectionCategory]) %}
-                        {% endif %}
-                    {% endfor %}
-
-                    <div class="mb-3">
-                        <div class="row align-items-center">
-                            <div class="col">
-                                <div class="text-muted">Sections</div>
-                                <div class="h2 mb-0">{{ sections|length }}</div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="ti ti-layout text-purple" style="font-size: 2.5rem;"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <div class="row align-items-center">
-                            <div class="col">
-                                <div class="text-muted">Est. Completion</div>
-                                <div class="h2 mb-0">
-                                    {{ mockTest.durationMinutes }} min
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="ti ti-clock text-green" style="font-size: 2.5rem;"></i>
-                            </div>
+                        <p class="empty-title">No questions yet</p>
+                        <p class="empty-subtitle text-muted">This test doesn't have any questions. Add questions to get started.</p>
+                        <div class="empty-action">
+                            <a href="{{ path('testquestion_new') }}?mockTest={{ mockTest.id }}" class="btn btn-primary">
+                                <i class="ti ti-plus icon"></i> Add First Question
+                            </a>
                         </div>
                     </div>
                 </div>
-            </div>
-
-            {# Actions Card #}
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h3 class="card-title">Actions</h3>
-                </div>
-                <div class="list-group list-group-flush">
-                    <a href="{{ path('mocktest_edit', {id: mockTest.id}) }}" 
-                       class="list-group-item list-group-item-action">
-                        <i class="ti ti-pencil me-2"></i>
-                        Edit Test
-                    </a>
-                    <a href="{{ path('testquestion_new') }}?mockTest={{ mockTest.id }}" 
-                       class="list-group-item list-group-item-action">
-                        <i class="ti ti-plus me-2"></i>
-                        Add Question
-                    </a>
-                    <div class="list-group-item">
-                        <form method="post" 
-                              action="{{ path('mocktest_delete', {id: mockTest.id}) }}" 
-                              onsubmit="return confirm('Are you sure you want to delete this test and all its questions?');">
-                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ mockTest.id) }}">
-                            <button type="submit" class="btn btn-ghost-danger w-100">
-                                <i class="ti ti-trash me-2"></i>
-                                Delete Test
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            {# Sections Breakdown #}
-            {% if sections|length > 0 %}
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h3 class="card-title">Section Breakdown</h3>
-                </div>
-                <div class="list-group list-group-flush">
-                    {% for section in sections %}
-                        {% set sectionQuestions = 0 %}
-                        {% for question in mockTest.testQuestions %}
-                            {% if question.sectionCategory == section %}
-                                {% set sectionQuestions = sectionQuestions + 1 %}
-                            {% endif %}
-                        {% endfor %}
-                        <div class="list-group-item">
-                            <div class="row align-items-center">
-                                <div class="col">
-                                    <span class="badge bg-purple-lt">{{ section }}</span>
-                                </div>
-                                <div class="col-auto">
-                                    <span class="badge bg-blue">{{ sectionQuestions }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
             {% endif %}
         </div>
     </div>
-{% endblock %}
 
+    {# Sidebar #}
+    <div class="col-md-4">
+        {# Statistics Card #}
+        <div class="card">
+            <div class="card-header"><h3 class="card-title">Statistics</h3></div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-muted">Total Questions</div>
+                            <div class="h2 mb-0">{{ mockTest.testQuestions|length }}</div>
+                        </div>
+                        <div class="col-auto"><i class="ti ti-help text-blue" style="font-size:2.5rem;"></i></div>
+                    </div>
+                </div>
+
+                {% set totalPoints = 0 %}
+                {% for question in mockTest.testQuestions %}
+                    {% set totalPoints = totalPoints + question.points %}
+                {% endfor %}
+
+                <div class="mb-3">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-muted">Total Points</div>
+                            <div class="h2 mb-0">{{ totalPoints }}</div>
+                        </div>
+                        <div class="col-auto"><i class="ti ti-star text-yellow" style="font-size:2.5rem;"></i></div>
+                    </div>
+                </div>
+
+                {% set sections = [] %}
+                {% for question in mockTest.testQuestions %}
+                    {% if question.sectionCategory not in sections %}
+                        {% set sections = sections|merge([question.sectionCategory]) %}
+                    {% endif %}
+                {% endfor %}
+
+                <div class="mb-3">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-muted">Sections</div>
+                            <div class="h2 mb-0">{{ sections|length }}</div>
+                        </div>
+                        <div class="col-auto"><i class="ti ti-layout text-purple" style="font-size:2.5rem;"></i></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-muted">Est. Completion</div>
+                            <div class="h2 mb-0">{{ mockTest.durationMinutes }} min</div>
+                        </div>
+                        <div class="col-auto"><i class="ti ti-clock text-green" style="font-size:2.5rem;"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Actions Card #}
+        <div class="card mt-3">
+            <div class="card-header"><h3 class="card-title">Actions</h3></div>
+            <div class="list-group list-group-flush">
+                <a href="{{ path('mocktest_edit', {id: mockTest.id}) }}" class="list-group-item list-group-item-action">
+                    <i class="ti ti-pencil me-2"></i> Edit Test
+                </a>
+                <a href="{{ path('testquestion_new') }}?mockTest={{ mockTest.id }}" class="list-group-item list-group-item-action">
+                    <i class="ti ti-plus me-2"></i> Add Question
+                </a>
+                <div class="list-group-item">
+                    {# Bouton qui ouvre la modale — remplace confirm() natif #}
+                    <button type="button" class="btn btn-ghost-danger w-100"
+                            onclick="document.getElementById('deleteTestModal').classList.add('show-modal')">
+                        <i class="ti ti-trash me-2"></i> Delete Test
+                    </button>
+                    {# Formulaire caché soumis par la modale #}
+                    <form id="deleteTestForm" method="post" action="{{ path('mocktest_delete', {id: mockTest.id}) }}" style="display:none;">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ mockTest.id) }}">
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {# Section Breakdown #}
+        {% if sections|length > 0 %}
+        <div class="card mt-3">
+            <div class="card-header"><h3 class="card-title">Section Breakdown</h3></div>
+            <div class="list-group list-group-flush">
+                {% for section in sections %}
+                    {% set sectionQuestions = 0 %}
+                    {% for question in mockTest.testQuestions %}
+                        {% if question.sectionCategory == section %}
+                            {% set sectionQuestions = sectionQuestions + 1 %}
+                        {% endif %}
+                    {% endfor %}
+                    <div class="list-group-item">
+                        <div class="row align-items-center">
+                            <div class="col"><span class="badge bg-purple-lt">{{ section }}</span></div>
+                            <div class="col-auto"><span class="badge bg-blue">{{ sectionQuestions }}</span></div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{# ═══ MODALE DE CONFIRMATION PROFESSIONNELLE - DELETE TEST ═══ #}
+<div id="deleteTestModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-icon">🗑️</div>
+        <h3 class="modal-title">Delete Test</h3>
+        <p class="modal-msg">
+            Are you sure you want to delete <strong>"{{ mockTest.title }}"</strong>
+            and all its questions?<br>
+            This action <strong>cannot be undone</strong>.
+        </p>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-secondary"
+                    onclick="document.getElementById('deleteTestModal').classList.remove('show-modal')">
+                <i class="ti ti-x me-1"></i> Cancel
+            </button>
+            <button type="button" class="btn btn-danger"
+                    onclick="document.getElementById('deleteTestForm').submit()">
+                <i class="ti ti-trash me-1"></i> Yes, Delete
+            </button>
+        </div>
+    </div>
+</div>
+
+{# ═══ MODALE DE CONFIRMATION PROFESSIONNELLE - DELETE QUESTION ═══ #}
+<div id="deleteQuestionModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-icon">🗑️</div>
+        <h3 class="modal-title">Delete Question</h3>
+        <p class="modal-msg">
+            Are you sure you want to delete question <strong id="modalQuestionText"></strong>?<br>
+            This action <strong>cannot be undone</strong>.
+        </p>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" onclick="closeDeleteQuestionModal()">
+                <i class="ti ti-x me-1"></i> Cancel
+            </button>
+            <button type="button" class="btn btn-danger" onclick="document.getElementById('deleteQuestionForm').submit()">
+                <i class="ti ti-trash me-1"></i> Yes, Delete
+            </button>
+        </div>
+    </div>
+</div>
+<form id="deleteQuestionForm" method="post" style="display:none;">
+    <input type="hidden" name="_token" id="deleteQuestionToken">
+</form>
+
+<script>
+// Delete question modal functions
+function openDeleteQuestionModal(id, text, action, token) {
+    document.getElementById('modalQuestionText').textContent = '"' + text + '"';
+    document.getElementById('deleteQuestionForm').action = action;
+    document.getElementById('deleteQuestionToken').value = token;
+    document.getElementById('deleteQuestionModal').classList.add('show-modal');
+}
+
+function closeDeleteQuestionModal() {
+    document.getElementById('deleteQuestionModal').classList.remove('show-modal');
+}
+
+// Close modals when clicking outside
+document.getElementById('deleteTestModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        this.classList.remove('show-modal');
+    }
+});
+
+document.getElementById('deleteQuestionModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeDeleteQuestionModal();
+    }
+});
+</script>
+
+<style>
+.modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.5); z-index: 9999;
+    align-items: center; justify-content: center;
+    backdrop-filter: blur(4px);
+}
+.modal-overlay.show-modal { display: flex; }
+.modal-box {
+    background: #fff; border-radius: 16px;
+    padding: 2.5rem 2rem; max-width: 440px; width: 90%;
+    text-align: center;
+    box-shadow: 0 24px 60px rgba(0,0,0,.18);
+    animation: modalIn .25s ease;
+}
+@keyframes modalIn {
+    from { transform: translateY(-20px); opacity: 0; }
+    to   { transform: translateY(0);     opacity: 1; }
+}
+.modal-icon { font-size: 3rem; margin-bottom: 1rem; }
+.modal-title { font-size: 1.3rem; font-weight: 700; color: #1a1a2e; margin-bottom: .5rem; }
+.modal-msg { color: #6c757d; font-size: .9rem; margin-bottom: 1.75rem; line-height: 1.6; }
+.modal-actions { display: flex; gap: .75rem; justify-content: center; }
+.modal-actions .btn { min-width: 130px; border-radius: 8px; font-weight: 600; padding: .65rem 1.25rem; }
+</style>
+{% endblock %}

@@ -56,7 +56,7 @@ class RegistrationController extends AbstractController
                     $user->setLastName($lastName);
                     $user->setRoles(['ROLE_USER']);
                     $user->setStatus('active');
-                    $user->setPremium(false);
+                    $user->setSubscriptionPlan('FREE'); // isPremium computed from plan+expiry
                     $user->setIsVerified(false);   // explicitly unverified
 
                     $hashedPassword = $passwordHasher->hashPassword($user, $password);

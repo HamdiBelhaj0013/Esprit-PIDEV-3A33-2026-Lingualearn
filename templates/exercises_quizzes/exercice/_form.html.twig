@@ -1,66 +1,96 @@
+<<<<<<< Updated upstream
 {# templates/exercises_quizzes/exercice/_form.html.twig #}
-{% extends 'layouts/admin.html.twig' %}
+{% extends 'base.html.twig' %}
 
 {% block title %}{{ is_edit ? 'Modifier' : 'Créer' }} un Exercice{% endblock %}
 
-{% block content %}
+{% block body %}
 <div class="row">
     <div class="col-lg-8 mx-auto">
         <div class="card">
+=======
+{# Fragment formulaire exercice — design cohérent Quiz/Exercice #}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-9">
+        <div class="card eq-card shadow-sm">
+>>>>>>> Stashed changes
             <div class="card-header">
-                <h3 class="card-title">
+                <h3 class="card-title mb-0">
                     <i class="ti ti-forms me-2"></i>
                     {{ is_edit ? 'Modifier l\'exercice' : 'Nouvel exercice' }}
                 </h3>
             </div>
 
-            {{ form_start(form) }}
+            {{ form_start(form, { attr: { class: 'eq-form' } }) }}
             <div class="card-body">
-                <div class="mb-3">
-                    {{ form_label(form.type, 'Type d\'exercice', {'label_attr': {'class': 'form-label required'}}) }}
-                    {{ form_widget(form.type, {'attr': {'class': 'form-control', 'placeholder': 'Ex: QCM, Vrai/Faux, Texte à trous'}}) }}
-                    {{ form_errors(form.type) }}
+                <div class="mb-4">
+                    <div class="eq-section-title">Contexte</div>
+                    <div class="mb-3">
+                        {{ form_label(form.quiz, null, { label_attr: { class: 'form-label required' } }) }}
+                        {{ form_widget(form.quiz, { attr: { class: 'form-select' } }) }}
+                        {{ form_errors(form.quiz) }}
+                    </div>
                 </div>
 
-                <div class="mb-3">
-                    {{ form_label(form.question, 'Question', {'label_attr': {'class': 'form-label required'}}) }}
-                    {{ form_widget(form.question, {'attr': {'class': 'form-control', 'rows': 4, 'placeholder': 'Saisissez la question ici...'}}) }}
-                    {{ form_errors(form.question) }}
+                <div class="mb-4">
+                    <div class="eq-section-title">Type & énoncé</div>
+                    <div class="mb-3">
+                        {{ form_label(form.type, null, { label_attr: { class: 'form-label required' } }) }}
+                        {{ form_widget(form.type, { attr: { class: 'form-select' } }) }}
+                        {{ form_errors(form.type) }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form_label(form.question, null, { label_attr: { class: 'form-label required' } }) }}
+                        {{ form_widget(form.question, { attr: { class: 'form-control', rows: 4, placeholder: 'Saisissez la question...' } }) }}
+                        {{ form_errors(form.question) }}
+                    </div>
                 </div>
 
-                <div class="mb-3">
-                    {{ form_label(form.options, 'Options de réponse', {'label_attr': {'class': 'form-label'}}) }}
-                    {{ form_widget(form.options, {'attr': {'class': 'form-control', 'rows': 6}}) }}
-                    {{ form_errors(form.options) }}
+                <div class="mb-4">
+                    <div class="eq-section-title">Réponses</div>
+                    <div class="mb-3">
+                        {{ form_label(form.optionsText, null, { label_attr: { class: 'form-label' } }) }}
+                        {{ form_widget(form.optionsText, { attr: { class: 'form-control font-monospace', rows: 5, placeholder: "Une option par ligne\nOption 1\nOption 2" } }) }}
+                        {{ form_help(form.optionsText) }}
+                        {{ form_errors(form.optionsText) }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form_label(form.correctAnswer, null, { label_attr: { class: 'form-label required' } }) }}
+                        {{ form_widget(form.correctAnswer, { attr: { class: 'form-control', placeholder: 'La bonne réponse (doit figurer dans les options)' } }) }}
+                        {{ form_errors(form.correctAnswer) }}
+                    </div>
                 </div>
 
-                <div class="mb-3">
-                    {{ form_label(form.correctAnswer, 'Réponse correcte', {'label_attr': {'class': 'form-label required'}}) }}
-                    {{ form_widget(form.correctAnswer, {'attr': {'class': 'form-control'}}) }}
-                    {{ form_errors(form.correctAnswer) }}
-                </div>
-
-                <div class="mb-3">
-                    {{ form_label(form.aiGenerated, 'Généré par IA', {'label_attr': {'class': 'form-label'}}) }}
-                    {{ form_widget(form.aiGenerated, {'attr': {'class': 'form-select'}}) }}
-                    {{ form_errors(form.aiGenerated) }}
+                <div class="mb-0">
+                    <div class="eq-section-title">Métadonnées</div>
+                    <div class="mb-3">
+                        {{ form_label(form.enabled, null, { label_attr: { class: 'form-label' } }) }}
+                        {{ form_widget(form.enabled, { attr: { class: 'form-select' } }) }}
+                        {{ form_help(form.enabled) }}
+                        {{ form_errors(form.enabled) }}
+                    </div>
+                    <div class="mb-0">
+                        {{ form_label(form.aiGenerated, null, { label_attr: { class: 'form-label' } }) }}
+                        {{ form_widget(form.aiGenerated, { attr: { class: 'form-select' } }) }}
+                        {{ form_errors(form.aiGenerated) }}
+                    </div>
                 </div>
             </div>
 
-            <div class="card-footer bg-transparent">
-                <div class="btn-list justify-content-end">
-                    <a href="{{ path('exercice_index') }}" class="btn btn-outline-secondary">
-                        <i class="ti ti-arrow-left me-2"></i>Annuler
-                    </a>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="ti ti-device-floppy me-2"></i>
-                        {{ is_edit ? 'Mettre à jour' : 'Créer l\'exercice' }}
-                    </button>
-                </div>
+            <div class="card-footer d-flex justify-content-center justify-content-md-end gap-2 flex-wrap">
+                <a href="{{ path('exercice_index') }}" class="btn eq-btn eq-btn-outline">
+                    <i class="ti ti-arrow-left me-1"></i> Annuler
+                </a>
+                <button type="submit" class="btn eq-btn eq-btn-primary">
+                    <i class="ti ti-device-floppy me-1"></i>
+                    {{ is_edit ? 'Enregistrer' : 'Créer l\'exercice' }}
+                </button>
             </div>
             {{ form_end(form) }}
         </div>
     </div>
 </div>
+<<<<<<< Updated upstream
 {% endblock %}
-
+=======
+>>>>>>> Stashed changes

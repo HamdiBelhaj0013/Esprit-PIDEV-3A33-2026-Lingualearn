@@ -338,47 +338,7 @@
 </head>
 <body>
 
-{# ─── SIDEBAR ─── #}
-<aside class="sidebar" id="sidebar">
-    <a href="{{ path('app_homepage') }}" class="sidebar-logo">
-        <div class="sidebar-logo-text">Lingua<span>Learn</span></div>
-    </a>
-    <div class="sidebar-user">
-        <div class="user-avatar {{ user.isPremium ? 'premium' : '' }}">
-            {{ user.firstName|first|upper }}{{ user.lastName|first|upper }}
-        </div>
-        <div class="user-info">
-            <div class="user-name">{{ user.fullName }}</div>
-            <div class="user-plan {{ user.isPremium ? 'premium' : 'free' }}">
-                {{ user.isPremium ? '★ ' ~ user.subscriptionPlan : 'Free Plan' }}
-            </div>
-        </div>
-    </div>
-    <nav class="sidebar-nav">
-        <span class="nav-section-label">Main</span>
-        <a href="{{ path('user_dashboard') }}" class="nav-item">
-            <span class="nav-icon">⊞</span> Dashboard
-        </a>
-        <a href="{{ path('language_select') }}" class="nav-item">
-            <span class="nav-icon">📚</span> My Courses
-        </a>
-        <a href="#" class="nav-item"><span class="nav-icon">🧩</span> Practice</a>
-        <a href="#" class="nav-item"><span class="nav-icon">📝</span> Mock Tests</a>
-        <span class="nav-section-label">Account</span>
-        <a href="{{ path('user_profile') }}" class="nav-item active">
-            <span class="nav-icon">👤</span> My Profile
-        </a>
-        <a href="#" class="nav-item">
-            <span class="nav-icon">🔔</span> Notifications
-            {% set unread = 0 %}
-            {% for n in user.notifications %}{% if not n.isRead %}{% set unread = unread + 1 %}{% endif %}{% endfor %}
-            {% if unread > 0 %}<span class="nav-badge orange">{{ unread }}</span>{% endif %}
-        </a>
-        <a href="#" class="nav-item"><span class="nav-icon">👑</span> Subscription</a>
-        <span class="nav-section-label">System</span>
-        <a href="{{ path('app_logout') }}" class="nav-item"><span class="nav-icon">→</span> Log Out</a>
-    </nav>
-</aside>
+{% include 'components/sidebar.html.twig' %}
 
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
@@ -653,40 +613,186 @@
         </div>
 
         {# ─── NOTIFICATIONS ─── #}
-        <div class="card reveal">
-            <div class="card-head">
+        <!--
+  DROP-IN REPLACEMENT for the Notifications card in profile.html.twig
+  Replace the entire:  {# ─── NOTIFICATIONS ─── #}  card block with this.
+-->
+
+        {# ─── NOTIFICATIONS ─── #}
+        <div class="card reveal" style="margin-bottom:1.75rem;">
+            <div class="card-head" style="padding:1.25rem 1.5rem;">
                 <div class="card-title">All <em>Notifications</em></div>
-                {% set unread = 0 %}
-                {% for n in user.notifications %}{% if not n.isRead %}{% set unread = unread + 1 %}{% endif %}{% endfor %}
-                {% if unread > 0 %}
-                    <span style="font-size:.75rem;color:var(--orange);font-weight:600;">{{ unread }} unread</span>
-                {% endif %}
+                <div style="display:flex;align-items:center;gap:.75rem;">
+                    {% set unread = 0 %}
+                    {% for n in user.notifications %}{% if not n.isRead %}{% set unread = unread + 1 %}{% endif %}{% endfor %}
+                    {% if unread > 0 %}
+                        <span style="font-size:.72rem;font-family:'DM Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--orange);font-weight:600;background:var(--orange-bg);padding:.2rem .65rem;border-radius:100px;border:1px solid rgba(234,88,12,.2);">
+                            {{ unread }} unread
+                        </span>
+                        {# Mark ALL as read #}
+                        <form method="post" action="{{ path('user_notifications_read_all') }}" style="display:inline;">
+                            <input type="hidden" name="_csrf_token" value="{{ csrf_token('user_notif_read_all') }}">
+                            <button type="submit"
+                                    style="background:none;border:1.5px solid var(--border);border-radius:100px;padding:.2rem .75rem;font-family:'Sora',sans-serif;font-size:.72rem;font-weight:600;color:var(--muted);cursor:pointer;transition:all .2s;"
+                                    onmouseover="this.style.borderColor='var(--green)';this.style.color='var(--green)';"
+                                    onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)';">
+                                ✓ Mark all read
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
             </div>
-            <div class="card-body">
+
+            <div class="card-body" style="padding:0;">
                 {% if user.notifications|length > 0 %}
-                    {% for n in user.notifications|slice(0, 20) %}
-                        <div class="notif-row">
-                            <div class="notif-dot nd-{{ n.type }}"></div>
-                            <div class="notif-body">
-                                <div class="notif-msg {{ not n.isRead ? 'unread' : '' }}">{{ n.message }}</div>
-                                <div class="notif-meta">
-                                    <span class="notif-time">{{ n.createdAt|date('M j, Y · H:i') }}</span>
-                                    <span class="notif-type">{{ n.type }}</span>
-                                    {% if n.isRead %}
-                                        <span style="font-size:.62rem;color:var(--green);font-family:'DM Mono',monospace;">✓ read</span>
-                                    {% endif %}
+
+                    {# Group: unread first, then read #}
+                    {% set notifs = user.notifications|slice(0, 20) %}
+
+                    <div id="notif-list">
+                        {% for n in notifs %}
+                            {% set isReply = n.metadata.reply_to is defined %}
+                            <div class="notif-item" id="notif-{{ n.id }}"
+                                 style="
+                                     display:flex;gap:0;
+                                     border-bottom:1px solid var(--border);
+                                     background:{{ not n.isRead ? 'linear-gradient(90deg,rgba(37,99,235,.04) 0%,transparent 100%)' : 'transparent' }};
+                                     transition:background .4s;
+                                 {% if isReply %}padding-left:2.5rem;background:var(--off-white);{% endif %}
+                                     ">
+
+                                {# Left accent bar #}
+                                <div style="
+                                    width:3px;flex-shrink:0;border-radius:0;
+                                    background:{% if not n.isRead %}var(--blue){% else %}transparent{% endif %};
+                                    transition:background .4s;
+                                {% if isReply %}background:var(--border);{% endif %}
+                                    "></div>
+
+                                <div style="flex:1;padding:1rem 1.5rem;">
+                                    {# Top meta row #}
+                                    <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem;flex-wrap:wrap;">
+
+                                        {% if isReply %}
+                                            <span style="font-size:.65rem;color:var(--muted);font-family:'DM Mono',monospace;display:flex;align-items:center;gap:.25rem;">
+                                            ↳ admin reply
+                                        </span>
+                                        {% endif %}
+
+                                        {# Type dot + label #}
+                                        <span style="
+                                            display:inline-flex;align-items:center;gap:.35rem;
+                                            font-family:'DM Mono',monospace;font-size:.6rem;
+                                            letter-spacing:.12em;text-transform:uppercase;
+                                            padding:.18rem .6rem;border-radius:6px;
+                                        {% if n.type == 'info' %}background:var(--blue-bg);color:var(--blue);{% endif %}
+                                        {% if n.type == 'warning' %}background:var(--orange-bg);color:var(--orange);{% endif %}
+                                        {% if n.type == 'success' %}background:var(--green-bg);color:var(--green);{% endif %}
+                                        {% if n.type == 'premium' %}background:var(--gold-bg);color:var(--gold);{% endif %}
+                                        {% if n.type == 'system' %}background:var(--surface);color:var(--muted);{% endif %}
+                                            ">
+                                        <span style="width:5px;height:5px;border-radius:50%;flex-shrink:0;
+                                        {% if n.type == 'info' %}background:var(--blue);{% endif %}
+                                            {% if n.type == 'warning' %}background:var(--orange);{% endif %}
+                                            {% if n.type == 'success' %}background:var(--green);{% endif %}
+                                            {% if n.type == 'premium' %}background:var(--gold);{% endif %}
+                                            {% if n.type == 'system' %}background:var(--muted);{% endif %}
+                                            "></span>
+                                        {{ n.type }}
+                                    </span>
+
+                                        <span style="font-size:.68rem;color:var(--muted);font-family:'DM Mono',monospace;margin-left:auto;">
+                                        {{ n.createdAt|date('M j · H:i') }}
+                                    </span>
+
+                                        {% if n.isRead %}
+                                            <span style="font-size:.62rem;color:var(--green);font-family:'DM Mono',monospace;">✓ read</span>
+                                        {% endif %}
+                                    </div>
+
+                                    {# Message #}
+                                    <p style="
+                                        font-size:.85rem;line-height:1.6;margin:0 0 .75rem;
+                                        color:{{ not n.isRead ? 'var(--ink)' : 'var(--ink-soft)' }};
+                                        font-weight:{{ not n.isRead ? '500' : '400' }};
+                                        ">{{ n.message }}</p>
+
+                                    {# Action row #}
+                                    {% if not isReply %}
+                                        <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;">
+
+                                            {# Mark as read #}
+                                            {% if not n.isRead %}
+                                                <form method="post" action="{{ path('user_notification_read', {id: n.id}) }}" style="display:inline;">
+                                                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('user_notif_read_' ~ n.id) }}">
+                                                    <button type="submit"
+                                                            style="background:none;border:1.5px solid rgba(22,163,74,.3);border-radius:100px;padding:.22rem .75rem;font-family:'Sora',sans-serif;font-size:.72rem;font-weight:600;color:var(--green);cursor:pointer;transition:all .2s;"
+                                                            onmouseover="this.style.background='var(--green-bg)';"
+                                                            onmouseout="this.style.background='none';">
+                                                        ✓ Mark as read
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+
+                                            {# Toggle reply form #}
+                                            <button type="button"
+                                                    onclick="toggleReply({{ n.id }})"
+                                                    id="reply-btn-{{ n.id }}"
+                                                    style="background:none;border:1.5px solid var(--border);border-radius:100px;padding:.22rem .75rem;font-family:'Sora',sans-serif;font-size:.72rem;font-weight:600;color:var(--muted);cursor:pointer;transition:all .2s;"
+                                                    onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)';"
+                                                    onmouseout="if(!this.dataset.open){this.style.borderColor='var(--border)';this.style.color='var(--muted)';}">
+                                                ↩ Reply
+                                            </button>
+                                        </div>
+
+                                        {# Inline reply form — hidden by default #}
+                                        <div id="reply-form-{{ n.id }}" style="display:none;margin-top:.85rem;">
+                                            <form method="post" action="{{ path('user_notification_reply', {id: n.id}) }}">
+                                                <input type="hidden" name="_csrf_token" value="{{ csrf_token('user_notif_reply_' ~ n.id) }}">
+                                                <div style="display:flex;gap:.6rem;align-items:flex-end;">
+                                                    <div style="flex:1;">
+                                                <textarea name="reply" rows="2" required placeholder="Write your reply…"
+                                                          style="
+                                                        width:100%;padding:.6rem .9rem;
+                                                        border-radius:10px;border:1.5px solid var(--border);
+                                                        background:var(--white);font-family:'Sora',sans-serif;
+                                                        font-size:.82rem;color:var(--ink);resize:none;outline:none;
+                                                        transition:border-color .2s;
+                                                    "
+                                                          onfocus="this.style.borderColor='var(--blue)'"
+                                                          onblur="this.style.borderColor='var(--border)'"></textarea>
+                                                    </div>
+                                                    <button type="submit"
+                                                            style="
+                                                    background:var(--blue);color:var(--white);
+                                                    border:none;border-radius:10px;
+                                                    padding:.6rem 1.1rem;font-family:'Sora',sans-serif;
+                                                    font-size:.8rem;font-weight:600;cursor:pointer;
+                                                    transition:all .2s;white-space:nowrap;
+                                                "
+                                                            onmouseover="this.style.background='var(--blue-dark)';this.style.transform='translateY(-1px)';"
+                                                            onmouseout="this.style.background='var(--blue)';this.style.transform='none';">
+                                                        Send ↑
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    {% endif %}{# end if not isReply #}
+
                                 </div>
                             </div>
-                        </div>
-                    {% endfor %}
+                        {% endfor %}
+                    </div>
+
                 {% else %}
-                    <div class="notif-empty">
-                        <div style="font-size:2rem;margin-bottom:.5rem;">🔔</div>
-                        No notifications yet.
+                    <div style="text-align:center;padding:3rem;color:var(--muted);">
+                        <div style="font-size:2.5rem;margin-bottom:.75rem;opacity:.4;">🔔</div>
+                        <div style="font-size:.85rem;">No notifications yet.</div>
                     </div>
                 {% endif %}
             </div>
         </div>
+
 
     </main>
 </div>
@@ -702,6 +808,38 @@
         entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); ro.unobserve(e.target); } });
     }, { threshold: 0.06 });
     document.querySelectorAll('.reveal').forEach(el => ro.observe(el));
+
+    // ─── Notification reply toggle ───────────────────────────
+    function toggleReply(id) {
+        const form = document.getElementById('reply-form-' + id);
+        const btn  = document.getElementById('reply-btn-' + id);
+        const open = form.style.display === 'none' || form.style.display === '';
+
+        form.style.display = open ? 'block' : 'none';
+        btn.dataset.open   = open ? '1' : '';
+
+        if (open) {
+            btn.style.borderColor = 'var(--blue)';
+            btn.style.color       = 'var(--blue)';
+            btn.style.background  = 'var(--blue-bg)';
+            form.querySelector('textarea')?.focus();
+        } else {
+            btn.style.borderColor = 'var(--border)';
+            btn.style.color       = 'var(--muted)';
+            btn.style.background  = 'none';
+        }
+    }
+
+    // Smooth fade-out after mark-as-read (optional enhancement)
+    document.querySelectorAll('form[action*="read"]').forEach(form => {
+        form.addEventListener('submit', () => {
+            const item = form.closest('.notif-item');
+            if (item) {
+                item.style.transition = 'opacity .3s';
+                item.style.opacity    = '0.5';
+            }
+        });
+    });
 </script>
 </body>
 </html>

@@ -165,81 +165,112 @@
         {% endif %}
     </div>
 
-    <div class="col-md-4">
-        {# Quick Actions Card #}
-        <div class="card shadow-sm border-0 rounded-3 mb-3">
-            <div class="card-header bg-light">
-                <h3 class="card-title mb-0">
-                    <i class="ti ti-bolt text-warning me-2"></i> Actions rapides
-                </h3>
-            </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <a href="{{ path('admin_lesson_edit', {'id': lesson.id}) }}" class="btn btn-primary">
-                        <i class="ti ti-edit me-1"></i> Modifier cette leçon
-                    </a>
-                    {% if lesson.course %}
+   <div class="col-md-4">
+    {# Quick Actions Card #}
+    <div class="card shadow-sm border-0 rounded-3 mb-3">
+        <div class="card-header bg-light">
+            <h3 class="card-title mb-0">
+                <i class="ti ti-bolt text-warning me-2"></i> Actions rapides
+            </h3>
+        </div>
+        <div class="card-body">
+            <div class="d-grid gap-2">
+                <a href="{{ path('admin_lesson_edit', {'id': lesson.id}) }}" class="btn btn-primary">
+                    <i class="ti ti-edit me-1"></i> Modifier cette leçon
+                </a>
+                {% if lesson.course %}
                     <a href="{{ path('admin_course_show', {'id': lesson.course.id}) }}" class="btn btn-info">
                         <i class="ti ti-book me-1"></i> Voir le cours
                     </a>
-                    {% endif %}
-                    <a href="{{ path('admin_lesson_index') }}" class="btn btn-secondary">
-                        <i class="ti ti-list me-1"></i> Liste des leçons
-                    </a>
-                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-form-id="deleteForm{{ lesson.id }}">
-                        <i class="ti ti-trash me-1"></i> Supprimer
-                    </button>
+                {% endif %}
+                <a href="{{ path('admin_lesson_index') }}" class="btn btn-secondary">
+                    <i class="ti ti-list me-1"></i> Liste des leçons
+                </a>
+                <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-form-id="deleteForm{{ lesson.id }}">
+                    <i class="ti ti-trash me-1"></i> Supprimer
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {# Media Card (admin only: thumb + video) #}
+    <div class="card shadow-sm border-0 rounded-3 mb-3">
+        <div class="card-header bg-light">
+            <h3 class="card-title mb-0">
+                <i class="ti ti-photo text-primary me-2"></i> Médias
+            </h3>
+        </div>
+        <div class="card-body">
+
+            {% set thumb = vich_uploader_asset(lesson, 'thumbFile') %}
+            {% if thumb %}
+                <div class="mb-3">
+                    <div class="text-muted small mb-1">Thumbnail</div>
+                    <img src="{{ thumb }}" alt="Thumbnail" class="img-fluid rounded">
+                </div>
+            {% endif %}
+
+            {% set video = vich_uploader_asset(lesson, 'videoFile') %}
+            {% if video %}
+                <div class="mb-3">
+                    <div class="text-muted small mb-1">Vidéo</div>
+                    <video controls class="w-100 rounded">
+                        <source src="{{ video }}">
+                    </video>
+                </div>
+            {% endif %}
+
+            {# ✅ PDF resource intentionally hidden in admin #}
+
+        </div>
+    </div>
+
+    {# Statistics Card #}
+    <div class="card shadow-sm border-0 rounded-3 mb-3">
+        <div class="card-header bg-light">
+            <h3 class="card-title mb-0">
+                <i class="ti ti-chart-bar text-info me-2"></i> Statistiques
+            </h3>
+        </div>
+        <div class="card-body">
+            <div class="mb-3 pb-3 border-bottom">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted">Points XP</span>
+                    <span class="fs-3 fw-bold text-warning">{{ lesson.xpReward }}</span>
+                </div>
+            </div>
+            <div class="mb-3 pb-3 border-bottom">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted">Mots de vocabulaire</span>
+                    <span class="fs-3 fw-bold text-success">{{ lesson.vocabularyData ? lesson.vocabularyData|length : 0 }}</span>
+                </div>
+            </div>
+            <div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted">Règles de grammaire</span>
+                    <span class="fs-3 fw-bold text-info">{{ lesson.grammarData ? lesson.grammarData|length : 0 }}</span>
                 </div>
             </div>
         </div>
+    </div>
 
-        {# Statistics Card #}
-        <div class="card shadow-sm border-0 rounded-3 mb-3">
-            <div class="card-header bg-light">
-                <h3 class="card-title mb-0">
-                    <i class="ti ti-chart-bar text-info me-2"></i> Statistiques
-                </h3>
-            </div>
-            <div class="card-body">
-                <div class="mb-3 pb-3 border-bottom">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="text-muted">Points XP</span>
-                        <span class="fs-3 fw-bold text-warning">{{ lesson.xpReward }}</span>
-                    </div>
-                </div>
-                <div class="mb-3 pb-3 border-bottom">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="text-muted">Mots de vocabulaire</span>
-                        <span class="fs-3 fw-bold text-success">{{ lesson.vocabularyData ? lesson.vocabularyData|length : 0 }}</span>
-                    </div>
-                </div>
-                <div>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="text-muted">Règles de grammaire</span>
-                        <span class="fs-3 fw-bold text-info">{{ lesson.grammarData ? lesson.grammarData|length : 0 }}</span>
-                    </div>
-                </div>
-            </div>
+    {# Metadata Card #}
+    <div class="card shadow-sm border-0 rounded-3">
+        <div class="card-header bg-light">
+            <h3 class="card-title mb-0">
+                <i class="ti ti-clock text-secondary me-2"></i> Métadonnées
+            </h3>
         </div>
-
-        {# Metadata Card #}
-        <div class="card shadow-sm border-0 rounded-3">
-            <div class="card-header bg-light">
-                <h3 class="card-title mb-0">
-                    <i class="ti ti-clock text-secondary me-2"></i> Métadonnées
-                </h3>
-            </div>
-            <div class="card-body">
-                <p class="mb-2 small"><strong>ID:</strong> <span class="badge bg-secondary">{{ lesson.id }}</span></p>
-                {% if lesson.createdAt is defined %}
+        <div class="card-body">
+            <p class="mb-2 small"><strong>ID:</strong> <span class="badge bg-secondary">{{ lesson.id }}</span></p>
+            {% if lesson.createdAt is defined %}
                 <p class="mb-2 small"><strong>Créée le:</strong><br>{{ lesson.createdAt|date('d/m/Y à H:i:s') }}</p>
-                {% endif %}
-                {% if lesson.updatedAt is defined and lesson.updatedAt %}
+            {% endif %}
+            {% if lesson.updatedAt is defined and lesson.updatedAt %}
                 <p class="mb-0 small"><strong>Dernière modification:</strong><br>{{ lesson.updatedAt|date('d/m/Y à H:i:s') }}</p>
-                {% elseif lesson.createdAt is not defined %}
+            {% elseif lesson.createdAt is not defined %}
                 <p class="mb-0 small text-muted">Pas d'informations temporelles</p>
-                {% endif %}
-            </div>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -247,13 +278,4 @@
 <form method="post" action="{{ path('admin_lesson_delete', {'id': lesson.id}) }}" style="display:none;" id="deleteForm{{ lesson.id }}">
     <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ lesson.id) }}">
 </form>
-{% endblock %}
-
-{% block stylesheets %}
-{{ parent() }}
-<style>
-.card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
-.table-hover tbody tr:hover { background-color: #f0f8ff; transition: 0.2s; }
-code { font-size: 0.875rem; }
-</style>
 {% endblock %}

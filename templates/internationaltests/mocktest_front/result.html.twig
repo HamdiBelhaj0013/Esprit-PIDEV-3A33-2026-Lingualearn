@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results — {{ mockTest.title }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+        :root{--white:#fff;--off-white:#f7f9fc;--surface:#eef1f8;--ink:#0d1526;--ink-soft:#2c3a52;--muted:#7a87a0;--border:#e2e8f2;--blue:#2563eb;--blue-dark:#1d4ed8;--blue-bg:#eff6ff;--blue-mid:#3b82f6;--green:#16a34a;--green-bg:#f0fdf4;--orange:#ea580c;--orange-bg:#fff7ed;--violet:#7c3aed;--violet-bg:#f5f3ff;--gold:#ca8a04;--red:#dc2626;--red-bg:#fef2f2;--sidebar-w:260px;--radius:12px;--radius-lg:20px;}
+        body{font-family:'Sora',sans-serif;background:var(--off-white);color:var(--ink);min-height:100vh;}
+
+        /* SIDEBAR */
+        .sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:50;transition:transform .3s;}
+        .sidebar-logo{padding:1.5rem 1.5rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.75rem;text-decoration:none;}
+        .sidebar-logo-text{font-family:'Fraunces',serif;font-size:1.3rem;font-weight:400;color:var(--ink);}
+        .sidebar-logo-text span{color:var(--blue);}
+        .sidebar-user{padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.85rem;}
+        .user-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--blue-mid));display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:1rem;color:var(--white);flex-shrink:0;}
+        .user-avatar.premium{background:linear-gradient(135deg,var(--gold),#fbbf24);}
+        .user-info{flex:1;min-width:0;}
+        .user-name{font-size:.85rem;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .user-plan{font-size:.7rem;font-family:'DM Mono',monospace;letter-spacing:.08em;text-transform:uppercase;margin-top:.1rem;}
+        .user-plan.free{color:var(--muted);}.user-plan.premium{color:var(--gold);}
+        .sidebar-nav{flex:1;padding:1rem 0;overflow-y:auto;}
+        .nav-section-label{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);padding:.75rem 1.5rem .35rem;display:block;}
+        .nav-item{display:flex;align-items:center;gap:.75rem;padding:.65rem 1.5rem;font-size:.84rem;font-weight:500;color:var(--muted);text-decoration:none;transition:color .2s,background .2s;position:relative;}
+        .nav-item:hover{color:var(--ink);background:var(--off-white);}
+        .nav-item.active{color:var(--blue);background:var(--blue-bg);font-weight:600;}
+        .nav-item.active::before{content:'';position:absolute;left:0;top:4px;bottom:4px;width:3px;background:var(--blue);border-radius:0 3px 3px 0;}
+        .nav-icon{font-size:1.1rem;width:20px;text-align:center;}
+        .main{margin-left:var(--sidebar-w);min-height:100vh;display:flex;flex-direction:column;}
+        .topbar{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:.85rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+        .page-heading{font-family:'Fraunces',serif;font-size:1.25rem;font-weight:400;color:var(--ink);}
+        .page-sub{font-size:.78rem;color:var(--muted);margin-top:.1rem;}
+        .topbar-right{display:flex;align-items:center;gap:.75rem;}
+        .topbar-btn{width:38px;height:38px;border-radius:var(--radius);border:1.5px solid var(--border);background:transparent;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:1.1rem;color:var(--ink-soft);transition:border-color .2s,background .2s;}
+        .topbar-btn:hover{border-color:var(--blue);background:var(--blue-bg);color:var(--blue);}
+        .hamburger-btn{display:none;width:38px;height:38px;border-radius:var(--radius);border:1.5px solid var(--border);background:transparent;align-items:center;justify-content:center;cursor:pointer;flex-direction:column;gap:4px;}
+        .hamburger-btn span{width:16px;height:1.5px;background:var(--ink);display:block;border-radius:2px;}
+        .page-content{padding:2rem;flex:1;}
+        .reveal{opacity:0;transform:translateY(16px);transition:opacity .5s,transform .5s;}
+        .reveal.visible{opacity:1;transform:translateY(0);}
+        .d1{transition-delay:.08s}.d2{transition-delay:.16s}.d3{transition-delay:.24s}
+
+        /* HERO SCORE */
+        .score-hero{border-radius:var(--radius-lg);padding:3rem 2rem;text-align:center;margin-bottom:2rem;position:relative;overflow:hidden;}
+        .score-hero.excellent{background:linear-gradient(135deg,#052e16,#166534);}
+        .score-hero.good{background:linear-gradient(135deg,#1e3a5f,#1e40af);}
+        .score-hero.average{background:linear-gradient(135deg,#431407,#9a3412);}
+        .score-hero.poor{background:linear-gradient(135deg,#1a0a0a,#7f1d1d);}
+        .score-eyebrow{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:1rem;}
+        .score-circle{width:120px;height:120px;border-radius:50%;border:2.5px solid rgba(255,255,255,.25);display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto 1.25rem;}
+        .score-number{font-family:'Fraunces',serif;font-size:2.5rem;font-weight:300;line-height:1;}
+        .score-hero.excellent .score-number{color:#86efac;}
+        .score-hero.good      .score-number{color:#93c5fd;}
+        .score-hero.average   .score-number{color:#fdba74;}
+        .score-hero.poor      .score-number{color:#fca5a5;}
+        .score-denom{font-family:'DM Mono',monospace;font-size:.75rem;color:rgba(255,255,255,.4);margin-top:.2rem;}
+        .score-label{font-family:'Fraunces',serif;font-size:1.4rem;font-weight:300;color:#fff;margin-bottom:.5rem;}
+        .score-meta{font-family:'DM Mono',monospace;font-size:.7rem;letter-spacing:.08em;color:rgba(255,255,255,.45);margin-bottom:1.5rem;}
+
+        /* PASS/FAIL + UNLOCK */
+        .pass-banner{display:inline-flex;align-items:center;gap:.6rem;padding:.6rem 1.5rem;border-radius:100px;font-size:.85rem;font-weight:600;margin-bottom:1rem;}
+        .pass-banner.passed{background:rgba(134,239,172,.15);color:#86efac;border:1.5px solid rgba(134,239,172,.3);}
+        .pass-banner.failed{background:rgba(252,165,165,.12);color:#fca5a5;border:1.5px solid rgba(252,165,165,.25);}
+        .unlock-notice{display:inline-flex;align-items:center;gap:.6rem;padding:.6rem 1.5rem;border-radius:100px;font-size:.82rem;margin-bottom:1.25rem;}
+        .unlock-notice.unlocked{background:rgba(134,239,172,.12);color:#86efac;border:1.5px solid rgba(134,239,172,.25);}
+        .unlock-notice.locked{background:rgba(252,165,165,.1);color:#fca5a5;border:1.5px solid rgba(252,165,165,.2);}
+
+        /* ── TIME REPORT BANNER (ExamTimeGuardService) ── */
+        .time-report{display:flex;align-items:stretch;gap:.75rem;margin-bottom:1.5rem;flex-wrap:wrap;justify-content:center;}
+        .time-chip{display:inline-flex;flex-direction:column;align-items:center;gap:.2rem;padding:.55rem 1.1rem;border-radius:100px;font-family:'DM Mono',monospace;}
+        .time-chip-val{font-size:.85rem;font-weight:400;}
+        .time-chip-lbl{font-size:.55rem;letter-spacing:.12em;text-transform:uppercase;opacity:.6;}
+        .tc-green{background:rgba(134,239,172,.12);color:#86efac;border:1px solid rgba(134,239,172,.2);}
+        .tc-orange{background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.2);}
+        .tc-red{background:rgba(252,165,165,.12);color:#fca5a5;border:1px solid rgba(252,165,165,.2);}
+        .tc-blue{background:rgba(147,197,253,.1);color:#93c5fd;border:1px solid rgba(147,197,253,.2);}
+
+        /* penalty badge */
+        .penalty-notice{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1.2rem;border-radius:100px;font-size:.78rem;background:rgba(252,165,165,.12);color:#fca5a5;border:1px solid rgba(252,165,165,.2);margin-bottom:1rem;}
+        .suspicious-notice{display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1.2rem;border-radius:100px;font-size:.78rem;background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.2);margin-bottom:1rem;}
+
+        /* TIME PROGRESS BAR */
+        .time-usage-wrap{width:240px;margin:0 auto .75rem;}
+        .time-usage-label{display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:.6rem;color:rgba(255,255,255,.35);margin-bottom:.35rem;}
+        .time-usage-bar{height:5px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden;}
+        .time-usage-fill{height:100%;border-radius:3px;transition:width 1s ease;}
+        .tuf-green{background:#86efac;}.tuf-orange{background:#fbbf24;}.tuf-red{background:#fca5a5;}
+
+        /* ACTIONS */
+        .hero-actions{display:flex;align-items:center;justify-content:center;gap:1rem;flex-wrap:wrap;}
+        .btn-retake{padding:.7rem 1.75rem;border-radius:100px;background:rgba(255,255,255,.1);color:#fff;border:1.5px solid rgba(255,255,255,.2);font-family:'Sora',sans-serif;font-size:.85rem;font-weight:500;text-decoration:none;transition:all .2s;}
+        .btn-retake:hover{background:rgba(255,255,255,.2);}
+        .btn-next-level{padding:.7rem 1.75rem;border-radius:100px;background:var(--green);color:#fff;border:none;font-family:'Sora',sans-serif;font-size:.85rem;font-weight:600;text-decoration:none;transition:all .2s;}
+        .btn-next-level:hover{background:#15803d;transform:translateY(-1px);}
+        .btn-all-results{padding:.7rem 1.75rem;border-radius:100px;background:var(--blue);color:#fff;border:none;font-family:'Sora',sans-serif;font-size:.85rem;font-weight:600;text-decoration:none;transition:all .2s;}
+        .btn-all-results:hover{background:var(--blue-dark);}
+        .btn-certificate{padding:.7rem 1.75rem;border-radius:100px;background:var(--gold);color:#fff;border:none;font-family:'Sora',sans-serif;font-size:.85rem;font-weight:600;text-decoration:none;transition:all .2s;}
+        .btn-certificate:hover{background:#a16207;transform:translateY(-1px);}
+        .btn-facebook{padding:.7rem 1.75rem;border-radius:100px;background:#1877f2;color:#fff;border:none;font-family:'Sora',sans-serif;font-size:.85rem;font-weight:600;text-decoration:none;transition:all .2s;}
+        .btn-facebook:hover{background:#166fe5;transform:translateY(-1px);}
+
+        /* WRITING CORRECTION */
+        .writing-correction-card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:1.5rem;}
+        .writing-correction-header{padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);background:var(--orange-bg);}
+        .writing-correction-title{font-family:'Fraunces',serif;font-size:1.2rem;font-weight:400;color:var(--orange);}
+        .writing-correction-body{padding:1.5rem;}
+        .writing-section{margin-bottom:1.5rem;}
+        .writing-section:last-child{margin-bottom:0;}
+        .writing-section-label{font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem;}
+        .writing-section-content{font-size:.92rem;line-height:1.8;color:var(--ink-soft);background:var(--off-white);padding:1rem 1.25rem;border-radius:var(--radius);border:1px solid var(--border);}
+        .writing-note-display{font-size:2rem;font-weight:700;color:var(--orange);text-align:center;margin-bottom:1rem;}
+        .writing-suggestions{list-style:none;padding:0;}
+        .writing-suggestions li{padding:.5rem 0;border-bottom:1px solid var(--border);font-size:.88rem;color:var(--ink-soft);}
+        .writing-suggestions li:last-child{border-bottom:none;}
+        .writing-suggestions li::before{content:'💡';margin-right:.5rem;}
+
+        /* BODY */
+        .result-body{display:grid;grid-template-columns:1fr 360px;gap:1.5rem;align-items:start;}
+        .result-card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;}
+        .result-card-header{padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+        .result-card-title{font-family:'Fraunces',serif;font-size:1.1rem;font-weight:300;color:var(--ink);}
+        .result-card-title em{font-style:italic;color:var(--blue);}
+        .result-card-body{padding:1.25rem 1.5rem;}
+
+        /* QUESTION REVIEW */
+        .q-review-item{padding:1rem;border-radius:var(--radius);border:1.5px solid var(--border);margin-bottom:.85rem;}
+        .q-review-item.correct{border-color:rgba(22,163,74,.2);background:var(--green-bg);}
+        .q-review-item.wrong{border-color:rgba(220,38,38,.15);background:var(--red-bg);}
+        .q-review-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;}
+        .q-review-label{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);}
+        .q-status{font-family:'DM Mono',monospace;font-size:.62rem;}
+        .q-status.correct{color:var(--green);}.q-status.wrong{color:var(--red);}
+        .q-review-text{font-size:.85rem;color:var(--ink);margin-bottom:.75rem;line-height:1.6;}
+        .q-answers{display:flex;flex-direction:column;gap:.35rem;}
+        .q-answer-row{display:flex;align-items:center;gap:.5rem;font-size:.78rem;}
+        .q-answer-label{font-family:'DM Mono',monospace;font-size:.6rem;text-transform:uppercase;color:var(--muted);width:85px;flex-shrink:0;}
+        .q-answer-val{padding:.2rem .6rem;border-radius:5px;font-weight:500;}
+        .q-answer-val.user-correct{background:var(--green-bg);color:var(--green);}
+        .q-answer-val.user-wrong{background:var(--red-bg);color:var(--red);}
+        .q-answer-val.correct-ans{background:var(--green-bg);color:var(--green);}
+        .q-answer-val.not-answered{background:var(--surface);color:var(--muted);font-style:italic;}
+
+        /* SECTION ANALYSIS */
+        .section-row{margin-bottom:1rem;}
+        .section-row-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem;font-size:.8rem;}
+        .section-name{font-weight:600;color:var(--ink);}
+        .section-pct{font-family:'DM Mono',monospace;color:var(--muted);font-size:.72rem;}
+        .section-bar{height:8px;background:var(--surface);border-radius:4px;overflow:hidden;}
+        .section-bar-fill{height:100%;border-radius:4px;transition:width 1s ease;}
+        .section-bar-fill.good{background:var(--green);}
+        .section-bar-fill.bad{background:var(--orange);}
+
+        /* TIME ANALYSIS CARD */
+        .time-analysis-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem;}
+        .time-stat{background:var(--off-white);border-radius:var(--radius);padding:.85rem 1rem;text-align:center;}
+        .time-stat-val{font-family:'Fraunces',serif;font-size:1.3rem;font-weight:300;color:var(--ink);}
+        .time-stat-lbl{font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:.2rem;}
+        .verdict-row{display:flex;align-items:center;justify-content:space-between;padding:.7rem .85rem;border-radius:var(--radius);border:1.5px solid var(--border);margin-bottom:.75rem;}
+        .verdict-label{font-size:.82rem;color:var(--muted);}
+        .verdict-value{font-family:'DM Mono',monospace;font-size:.75rem;font-weight:500;}
+        .vv-green{color:var(--green);}.vv-orange{color:var(--orange);}.vv-red{color:var(--red);}.vv-blue{color:var(--blue);}
+        .time-bar-wrap{height:8px;background:var(--surface);border-radius:4px;overflow:hidden;margin-bottom:.35rem;}
+        .time-bar-fill{height:100%;border-radius:4px;transition:width 1.2s ease;}
+
+        /* SUMMARY */
+        .summary-row{display:flex;justify-content:space-between;align-items:center;padding:.65rem 0;border-bottom:1px solid var(--border);font-size:.82rem;}
+        .summary-row:last-child{border-bottom:none;}
+        .summary-label{color:var(--muted);}
+        .summary-val{font-weight:600;color:var(--ink);}
+
+        /* SCORE CORRECTION */
+        .score-correction-banner{padding:.75rem 1rem;border-radius:var(--radius);margin-bottom:.85rem;font-size:.82rem;}
+        .scb-penalty{background:var(--orange-bg);border:1.5px solid rgba(234,88,12,.2);color:var(--orange);}
+        .scb-ok{background:var(--green-bg);border:1.5px solid rgba(22,163,74,.2);color:var(--green);}
+
+        @media(max-width:1024px){.result-body{grid-template-columns:1fr;}}
+        @media(max-width:768px){:root{--sidebar-w:0px;}.sidebar{transform:translateX(-260px);width:260px;}.sidebar.open{transform:translateX(0);}.main{margin-left:0;}.hamburger-btn{display:flex;}.page-content{padding:1.25rem;}}
+        .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(13,21,38,.4);z-index:45;}
+        .sidebar-overlay.visible{display:block;}
+    </style>
+</head>
+<body>
+{% include 'components/sidebar.html.twig' %}
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="main">
+    <header class="topbar">
+        <div style="display:flex;align-items:center;gap:1rem;">
+            <button class="hamburger-btn" id="hamburgerBtn"><span></span><span></span><span></span></button>
+            <div>
+                <div class="page-heading">Test Results</div>
+                <div class="page-sub">{{ mockTest.title }} · {{ testResult.dateTaken|date('M d, Y · H:i') }}</div>
+            </div>
+        </div>
+        <div class="topbar-right">
+            <a href="{{ path('mock_tests_my_results') }}" class="topbar-btn" title="All Results">📊</a>
+        </div>
+    </header>
+
+    <main class="page-content">
+
+        {% set score = testResult.overallScore %}
+        {% if score >= 16 %}{% set heroClass = 'excellent' %}{% set scoreLabel = 'Excellent! Outstanding performance.' %}
+        {% elseif score >= 12 %}{% set heroClass = 'good' %}{% set scoreLabel = 'Good job! Solid performance.' %}
+        {% elseif score >= 8 %}{% set heroClass = 'average' %}{% set scoreLabel = "Keep practicing. You're improving!" %}
+        {% else %}{% set heroClass = 'poor' %}{% set scoreLabel = 'More practice needed.' %}
+        {% endif %}
+
+        <div class="score-hero {{ heroClass }} reveal">
+            <div class="score-eyebrow">Your Score</div>
+            <div class="score-circle">
+                <div class="score-number">{{ score|number_format(1) }}</div>
+                <div class="score-denom">/ {{ totalScore }}</div>
+            </div>
+            <div class="score-label">{{ scoreLabel }}</div>
+            <div class="score-meta">{{ mockTest.testType }} · {{ mockTest.level }} · {{ testResult.dateTaken|date('F j, Y') }}</div>
+
+            {# ── RAPPORT TEMPOREL — ExamTimeGuardService ── #}
+            {% if timeReport is not null %}
+
+                {# Penalty notice si score ajusté #}
+                {% if timeReport.penaltyPct > 0 %}
+                    <div class="penalty-notice" style="margin:0 auto .85rem;">
+                        ⏱ Late submission — Score reduced by {{ timeReport.penaltyPct }}%
+                        ({{ rawScore|number_format(1) }} → {{ score|number_format(1) }})
+                    </div>
+                {% elseif timeReport.isSuspicious %}
+                    <div class="suspicious-notice" style="margin:0 auto .85rem;">
+                        ⚠️ Submitted unusually fast — flagged for review
+                    </div>
+                {% endif %}
+
+                {# Time chips #}
+                {% set timeUsed = elapsedTime.formatted ?? 'N/A' %}
+                {% set timeRatioPct = timeReport.timeUsedPct ?? 0 %}
+                {% set chipColor = timeReport.verdict == 'on_time' ? 'tc-green' : (timeReport.verdict == 'overtime' ? 'tc-orange' : 'tc-red') %}
+
+                <div class="time-report">
+                    <div class="time-chip {{ chipColor }}">
+                        <span class="time-chip-val">{{ timeUsed }}</span>
+                        <span class="time-chip-lbl">Time used</span>
+                    </div>
+                    <div class="time-chip tc-blue">
+                        <span class="time-chip-val">{{ mockTest.durationMinutes }} min</span>
+                        <span class="time-chip-lbl">Allowed</span>
+                    </div>
+                    <div class="time-chip {{ chipColor }}">
+                        <span class="time-chip-val">{{ timeRatioPct }}%</span>
+                        <span class="time-chip-lbl">Used</span>
+                    </div>
+                    <div class="time-chip {{ timeReport.verdict == 'on_time' ? 'tc-green' : 'tc-orange' }}">
+                        <span class="time-chip-val">{{ timeReport.verdictLabel }}</span>
+                        <span class="time-chip-lbl">Status</span>
+                    </div>
+                </div>
+
+                {# Time usage bar #}
+                {% set barColor = timeRatioPct > 100 ? 'tuf-red' : (timeRatioPct > 80 ? 'tuf-orange' : 'tuf-green') %}
+                <div class="time-usage-wrap">
+                    <div class="time-usage-label">
+                        <span>0</span>
+                        <span>{{ mockTest.durationMinutes }} min</span>
+                    </div>
+                    <div class="time-usage-bar">
+                        <div class="time-usage-fill {{ barColor }}" style="width:{{ timeRatioPct < 100 ? timeRatioPct : 100 }}%;"></div>
+                    </div>
+                </div>
+
+            {% endif %}
+            {# ── FIN RAPPORT TEMPOREL ── #}
+
+            {% if passed %}
+                <div class="pass-banner passed">✓ Passed — {{ score|number_format(1) }}/{{ totalScore }}</div>
+            {% else %}
+                <div class="pass-banner failed">✗ Not passed — Need {{ passScore }}/{{ totalScore }} minimum</div>
+            {% endif %}
+
+            {% if passed and nextLevel %}
+                <div class="unlock-notice unlocked">🔓 {{ nextLevel }} level is now unlocked!</div>
+            {% elseif not passed %}
+                <div class="unlock-notice locked">🔒 Score {{ passScore }}/{{ totalScore }} to unlock {{ nextLevel ?? 'next level' }}</div>
+            {% endif %}
+
+            <div class="hero-actions">
+                <a href="{{ path('mock_tests_start', {id: mockTest.id}) }}" class="btn-retake">🔄 Retake Test</a>
+                {% if passed and nextLevel and langId %}
+                    <a href="{{ path('mock_tests_by_level', {langId: langId, level: nextLevel}) }}" class="btn-next-level">→ Go to {{ nextLevel }}</a>
+                {% endif %}
+                {% if certificate %}
+                    <a href="{{ path('certificate_view', {code: certificate.uniqueCode}) }}" class="btn-certificate">🎓 View Certificate</a>
+                {% endif %}
+                <a href="{{ path('mock_tests_my_results') }}" class="btn-all-results">📊 All my results</a>
+                <a href="https://www.facebook.com/sharer/sharer.php?u={{ url('mock_tests_result', {id: mockTest.id, resultId: testResult.id})|url_encode }}" target="_blank" class="btn-facebook">📘 Share on Facebook</a>
+            </div>
+        </div>
+
+        {# WRITING CORRECTION (if exists) #}
+        {% if testResult.aiCorrection and mockTest.testCategory == 'Writing' %}
+        <div class="writing-correction-card reveal d1">
+            <div class="writing-correction-header">
+                <div class="writing-correction-title">✍️ Gemini AI Correction</div>
+            </div>
+            <div class="writing-correction-body">
+                <div class="writing-note-display">
+                    {{ testResult.aiNote }}/20
+                </div>
+
+                <div class="writing-section">
+                    <div class="writing-section-label">📝 Overall Feedback</div>
+                    <div class="writing-section-content">{{ testResult.aiCorrection.feedback }}</div>
+                </div>
+
+                <div class="writing-section">
+                    <div class="writing-section-label">📚 Grammar Analysis</div>
+                    <div class="writing-section-content">{{ testResult.aiCorrection.grammar }}</div>
+                </div>
+
+                <div class="writing-section">
+                    <div class="writing-section-label">🔗 Coherence & Structure</div>
+                    <div class="writing-section-content">{{ testResult.aiCorrection.coherence }}</div>
+                </div>
+
+                <div class="writing-section">
+                    <div class="writing-section-label">💬 Vocabulary</div>
+                    <div class="writing-section-content">{{ testResult.aiCorrection.vocabulary }}</div>
+                </div>
+
+                {% if testResult.aiCorrection.suggestions %}
+                <div class="writing-section">
+                    <div class="writing-section-label">💡 Suggestions for Improvement</div>
+                    <ul class="writing-suggestions">
+                        {% for suggestion in testResult.aiCorrection.suggestions %}
+                            <li>{{ suggestion }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="result-body">
+
+            {# LEFT : Question Review #}
+            <div class="result-card reveal d1">
+                <div class="result-card-header">
+                    <div class="result-card-title">Question <em>Review</em></div>
+                    {% set correctCount = detailedResults|filter(r => r.isCorrect)|length %}
+                    <span style="font-family:'DM Mono',monospace;font-size:.72rem;color:var(--muted);">{{ correctCount }}/{{ detailedResults|length }} correct</span>
+                </div>
+                <div class="result-card-body">
+                    {% for i, r in detailedResults %}
+                        <div class="q-review-item {{ r.isCorrect ? 'correct' : 'wrong' }}">
+                            <div class="q-review-header">
+                                <span class="q-review-label">Q{{ i + 1 }} · {{ r.sectionCategory }}</span>
+                                <span class="q-status {{ r.isCorrect ? 'correct' : 'wrong' }}">
+                                    {{ r.isCorrect ? '✓ CORRECT' : '✗ WRONG' }}
+                                </span>
+                            </div>
+                            <div class="q-review-text">{{ r.questionText }}</div>
+                            <div class="q-answers">
+                                <div class="q-answer-row">
+                                    <span class="q-answer-label">Your answer:</span>
+                                    {% if r.userAnswer %}
+                                        <span class="q-answer-val {{ r.isCorrect ? 'user-correct' : 'user-wrong' }}">{{ r.userAnswer }}</span>
+                                    {% else %}
+                                        <span class="q-answer-val not-answered">Not answered</span>
+                                    {% endif %}
+                                </div>
+                                {% if not r.isCorrect %}
+                                    <div class="q-answer-row">
+                                        <span class="q-answer-label">✓ Correct:</span>
+                                        <span class="q-answer-val correct-ans">{{ r.correctAnswer }}</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% else %}
+                        <p style="color:var(--muted);font-size:.85rem;">No details available.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {# RIGHT COLUMN #}
+            <div style="display:flex;flex-direction:column;gap:1.25rem;">
+
+                {# Section Analysis #}
+                {% if testResult.aiWeaknessReport is not empty %}
+                <div class="result-card reveal d2">
+                    <div class="result-card-header">
+                        <div class="result-card-title">Section <em>Analysis</em></div>
+                    </div>
+                    <div class="result-card-body">
+                        {% for section in testResult.aiWeaknessReport %}
+                            <div class="section-row">
+                                <div class="section-row-header">
+                                    <span class="section-name">{{ section.section }}</span>
+                                    <span class="section-pct">{{ section.correct }}/{{ section.total }} ({{ section.score }}%)</span>
+                                </div>
+                                <div class="section-bar">
+                                    <div class="section-bar-fill {{ section.score >= 50 ? 'good' : 'bad' }}" style="width:{{ section.score }}%"></div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {# ── TIME ANALYSIS CARD — ExamTimeGuardService ── #}
+                {% if timeReport is not null %}
+                <div class="result-card reveal d2">
+                    <div class="result-card-header">
+                        <div class="result-card-title">⏱ Time <em>Analysis</em></div>
+                        <span style="font-family:'DM Mono',monospace;font-size:.65rem;color:{{ timeReport.verdict == 'on_time' ? 'var(--green)' : 'var(--orange)' }};">
+                            {{ timeReport.verdictLabel }}
+                        </span>
+                    </div>
+                    <div class="result-card-body">
+
+                        {# Score correction info if penalty applied #}
+                        {% if timeReport.penaltyPct > 0 %}
+                            <div class="score-correction-banner scb-penalty">
+                                ⚠️ <strong>Score adjusted:</strong> {{ rawScore|number_format(1) }} → {{ score|number_format(1) }}
+                                (−{{ timeReport.penaltyPct }}% late penalty)
+                            </div>
+                        {% else %}
+                            <div class="score-correction-banner scb-ok">
+                                ✓ <strong>No time penalty</strong> — submitted on time
+                            </div>
+                        {% endif %}
+
+                        {# Stats grid #}
+                        <div class="time-analysis-grid">
+                            <div class="time-stat">
+                                <div class="time-stat-val">{{ elapsedTime.formatted ?? 'N/A' }}</div>
+                                <div class="time-stat-lbl">Time used</div>
+                            </div>
+                            <div class="time-stat">
+                                <div class="time-stat-val">{{ mockTest.durationMinutes }} min</div>
+                                <div class="time-stat-lbl">Allowed</div>
+                            </div>
+                        </div>
+
+                        {# Time bar #}
+                        {% set tpct = timeReport.timeUsedPct ?? 0 %}
+                        {% set tbarColor = tpct > 100 ? '#dc2626' : (tpct > 85 ? '#ea580c' : '#16a34a') %}
+                        <div style="margin-bottom:.85rem;">
+                            <div style="display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:.6rem;color:var(--muted);margin-bottom:.3rem;">
+                                <span>Time used</span><span>{{ tpct }}%</span>
+                            </div>
+                            <div class="time-bar-wrap">
+                                <div class="time-bar-fill" style="width:{{ tpct < 100 ? tpct : 100 }}%;background:{{ tbarColor }};"></div>
+                            </div>
+                        </div>
+
+                        {# Verdict rows #}
+                        <div class="verdict-row">
+                            <span class="verdict-label">Verdict</span>
+                            <span class="verdict-value vv-{{ timeReport.verdictColor }}">{{ timeReport.verdictLabel }}</span>
+                        </div>
+                        {% if timeReport.overageSeconds > 0 %}
+                            <div class="verdict-row">
+                                <span class="verdict-label">Overage</span>
+                                <span class="verdict-value vv-orange">
+                                    +{{ (timeReport.overageSeconds / 60)|round }} min {{ timeReport.overageSeconds % 60 }} sec
+                                </span>
+                            </div>
+                            <div class="verdict-row">
+                                <span class="verdict-label">Penalty applied</span>
+                                <span class="verdict-value vv-red">−{{ timeReport.penaltyPct }}%</span>
+                            </div>
+                        {% endif %}
+                        {% if timeReport.isSuspicious %}
+                            <div class="verdict-row">
+                                <span class="verdict-label">Flag</span>
+                                <span class="verdict-value vv-orange">⚠️ Suspicious speed</span>
+                            </div>
+                        {% endif %}
+
+                    </div>
+                </div>
+                {% endif %}
+                {# ── FIN TIME ANALYSIS CARD ── #}
+
+                {# Test Summary #}
+                <div class="result-card reveal d3">
+                    <div class="result-card-header">
+                        <div class="result-card-title">Test <em>Summary</em></div>
+                    </div>
+                    <div class="result-card-body">
+                        <div class="summary-row"><span class="summary-label">Test</span><span class="summary-val">{{ mockTest.title }}</span></div>
+                        <div class="summary-row"><span class="summary-label">Type</span><span class="summary-val">{{ mockTest.testType }}</span></div>
+                        <div class="summary-row"><span class="summary-label">Level</span><span class="summary-val">{{ mockTest.level }}</span></div>
+                        {% if timeReport is not null and timeReport.penaltyPct > 0 %}
+                            <div class="summary-row">
+                                <span class="summary-label">Raw score</span>
+                                <span class="summary-val" style="color:var(--muted);text-decoration:line-through;">{{ rawScore|number_format(1) }} / {{ totalScore }}</span>
+                            </div>
+                        {% endif %}
+                        <div class="summary-row">
+                            <span class="summary-label">Final score</span>
+                            <span class="summary-val" style="color:{{ passed ? 'var(--green)' : 'var(--orange)' }}">{{ score|number_format(1) }} / {{ totalScore }}</span>
+                        </div>
+                        <div class="summary-row">
+                            <span class="summary-label">Status</span>
+                            <span class="summary-val" style="color:{{ passed ? 'var(--green)' : 'var(--orange)' }}">{{ passed ? '✓ Passed' : '✗ Failed' }}</span>
+                        </div>
+                        <div class="summary-row"><span class="summary-label">Date</span><span class="summary-val">{{ testResult.dateTaken|date('d/m/Y H:i') }}</span></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    const sidebar=document.getElementById('sidebar'),overlay=document.getElementById('sidebarOverlay'),hamburger=document.getElementById('hamburgerBtn');
+    hamburger.addEventListener('click',()=>{sidebar.classList.toggle('open');overlay.classList.toggle('visible');});
+    overlay.addEventListener('click',()=>{sidebar.classList.remove('open');overlay.classList.remove('visible');});
+    const ro=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');ro.unobserve(e.target);}});},{threshold:0.06});
+    document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
+</script>
+</body>
+</html>

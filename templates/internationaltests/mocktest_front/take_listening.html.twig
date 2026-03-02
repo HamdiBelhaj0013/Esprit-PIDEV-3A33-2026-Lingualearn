@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ mockTest.title }} — Listening</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+        :root{
+            --ink:#0d1526;--ink-soft:#2c3a52;--muted:#7a87a0;--border:#e2e8f2;
+            --white:#fff;--off-white:#f4f6fb;--surface:#eef1f8;
+            --violet:#6d28d9;--violet-dark:#5b21b6;--violet-mid:#7c3aed;
+            --violet-bg:#f5f3ff;--violet-light:#ede9fe;
+            --green:#16a34a;--green-bg:#f0fdf4;
+            --orange:#ea580c;--orange-bg:#fff7ed;
+            --red:#dc2626;--red-bg:#fef2f2;
+            --blue:#2563eb;--blue-bg:#eff6ff;
+            --radius:12px;--radius-lg:20px;--radius-xl:28px;
+        }
+        html{scroll-behavior:smooth;}
+        body{font-family:'Sora',sans-serif;background:var(--off-white);color:var(--ink);min-height:100vh;}
+
+        /* TOPBAR */
+        .topbar{position:sticky;top:0;z-index:40;background:var(--white);border-bottom:1.5px solid var(--border);padding:.85rem 2rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;}
+        .brand{font-family:'Fraunces',serif;font-size:1.1rem;color:var(--ink);}
+        .brand span{color:var(--violet);}
+        .meta{display:flex;align-items:center;gap:.65rem;}
+        .badge{font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;padding:.2rem .6rem;border-radius:5px;}
+        .badge-violet{background:var(--violet-bg);color:var(--violet-dark);}
+        .badge-blue{background:var(--blue-bg);color:var(--blue);}
+        .badge-gray{background:var(--surface);color:var(--ink-soft);}
+        .badge-green{background:var(--green-bg);color:var(--green);}
+        .timer{display:flex;align-items:center;gap:.6rem;padding:.45rem 1.1rem;border-radius:100px;border:1.5px solid var(--border);background:var(--white);font-family:'DM Mono',monospace;font-size:1rem;transition:all .3s;}
+        .timer.warning{border-color:var(--orange);background:var(--orange-bg);color:var(--orange);}
+        .timer.danger{border-color:var(--red);background:var(--red-bg);color:var(--red);animation:blink 1s infinite;}
+        @keyframes blink{0%,100%{opacity:1;}50%{opacity:.5;}}
+        .progress-wrap{height:3px;background:var(--border);position:sticky;top:65px;z-index:39;}
+        .progress-fill{height:100%;background:linear-gradient(90deg,var(--violet),var(--violet-mid));transition:width .4s;}
+
+        /* BODY */
+        .body{max-width:780px;margin:0 auto;padding:2rem 1.25rem 5rem;}
+
+        /* AUDIO PLAYER CARD */
+        .audio-card{background:linear-gradient(135deg,#1e3a5f,#1e4976,#2563eb);border-radius:var(--radius-xl);padding:1.75rem 2rem;margin-bottom:1.5rem;color:var(--white);position:relative;overflow:hidden;}
+        .audio-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 80% 20%,rgba(255,255,255,.08),transparent 60%);}
+        .audio-label{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.6);margin-bottom:.5rem;}
+        .audio-title{font-family:'Fraunces',serif;font-size:1.35rem;font-weight:400;font-style:italic;line-height:1.3;margin-bottom:1.25rem;}
+        .audio-meta{display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem;flex-wrap:wrap;}
+        .audio-meta-chip{font-family:'DM Mono',monospace;font-size:.62rem;color:rgba(255,255,255,.65);background:rgba(255,255,255,.12);padding:.25rem .65rem;border-radius:100px;}
+
+        /* Player controls */
+        .player-controls{display:flex;align-items:center;gap:1rem;background:rgba(0,0,0,.2);border-radius:var(--radius-lg);padding:1rem 1.25rem;}
+        .play-btn{width:48px;height:48px;border-radius:50%;border:none;background:var(--white);color:var(--blue);font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
+        .play-btn:hover{transform:scale(1.08);}
+        .play-btn.playing{background:rgba(255,255,255,.9);}
+        .player-right{flex:1;min-width:0;}
+        .player-status{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:.4rem;}
+        .progress-bar-wrap{height:4px;background:rgba(255,255,255,.2);border-radius:2px;overflow:hidden;cursor:pointer;}
+        .progress-bar-fill{height:100%;background:var(--white);border-radius:2px;transition:width .3s linear;width:0%;}
+        .player-time{font-family:'DM Mono',monospace;font-size:.65rem;color:rgba(255,255,255,.7);margin-top:.35rem;display:flex;justify-content:space-between;}
+        .replay-wrap{display:flex;align-items:center;gap:.5rem;margin-top:.85rem;}
+        .replay-btn{font-family:'DM Mono',monospace;font-size:.65rem;padding:.3rem .8rem;border-radius:100px;border:1px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.8);cursor:pointer;transition:all .2s;}
+        .replay-btn:hover:not(:disabled){background:rgba(255,255,255,.12);}
+        .replay-btn:disabled{opacity:.35;cursor:not-allowed;}
+        .replay-count{font-family:'DM Mono',monospace;font-size:.58rem;color:rgba(255,255,255,.5);}
+
+        /* QUESTIONS SECTION */
+        .section-title{font-size:.7rem;font-family:'DM Mono',monospace;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem;}
+        .questions-locked{background:var(--white);border:2px dashed var(--border);border-radius:var(--radius-xl);padding:3rem 2rem;text-align:center;margin-bottom:1.5rem;}
+        .locked-icon{font-size:2rem;margin-bottom:.75rem;}
+        .locked-title{font-size:1rem;font-weight:600;color:var(--ink);margin-bottom:.35rem;}
+        .locked-sub{font-size:.82rem;color:var(--muted);}
+
+        /* QUESTION CARD */
+        .question-card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius-xl);padding:1.5rem 1.75rem;margin-bottom:1.25rem;transition:border-color .2s;}
+        .question-card.answered{border-color:var(--violet-mid);}
+        .q-number{font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem;}
+        .q-type-badge{display:inline-block;font-family:'DM Mono',monospace;font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;padding:.15rem .5rem;border-radius:4px;margin-left:.5rem;}
+        .q-type-qcm{background:var(--blue-bg);color:var(--blue);}
+        .q-type-open{background:var(--violet-bg);color:var(--violet-dark);}
+        .q-text{font-size:.95rem;font-weight:500;line-height:1.6;color:var(--ink);margin-bottom:1rem;}
+
+        /* OPTIONS */
+        .options{display:flex;flex-direction:column;gap:.5rem;}
+        .option-label{display:flex;align-items:flex-start;gap:.75rem;padding:.75rem 1rem;border-radius:var(--radius);border:1.5px solid var(--border);cursor:pointer;transition:all .2s;font-size:.9rem;}
+        .option-label:hover{border-color:var(--violet-mid);background:var(--violet-bg);}
+        .option-label input[type="radio"]{display:none;}
+        .option-label input[type="radio"]:checked ~ .option-key{background:var(--violet);color:var(--white);border-color:var(--violet);}
+        .option-label:has(input:checked){border-color:var(--violet);background:var(--violet-bg);}
+        .option-key{width:24px;height:24px;border-radius:6px;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:.7rem;font-weight:600;flex-shrink:0;transition:all .2s;}
+        .option-text{line-height:1.5;padding-top:2px;}
+
+        /* OPEN ANSWER */
+        .open-textarea{width:100%;border:1.5px solid var(--border);border-radius:var(--radius);padding:.85rem 1rem;font-family:'Sora',sans-serif;font-size:.9rem;color:var(--ink);resize:vertical;min-height:80px;transition:border-color .2s;outline:none;}
+        .open-textarea:focus{border-color:var(--violet-mid);}
+        .open-hint{font-size:.72rem;color:var(--muted);margin-top:.35rem;}
+
+        /* SUBMIT */
+        .submit-zone{margin-top:2rem;text-align:center;}
+        .btn-submit{padding:.95rem 2.5rem;border-radius:100px;background:var(--violet);color:var(--white);font-family:'Sora',sans-serif;font-size:.95rem;font-weight:600;border:none;cursor:pointer;transition:all .22s;display:inline-flex;align-items:center;gap:.65rem;}
+        .btn-submit:hover{background:var(--violet-dark);transform:translateY(-2px);box-shadow:0 8px 24px rgba(109,40,217,.3);}
+        .btn-submit:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+
+        /* MODAL */
+        .modal-overlay{position:fixed;inset:0;background:rgba(13,21,38,.5);z-index:100;display:none;align-items:center;justify-content:center;padding:1.5rem;backdrop-filter:blur(4px);}
+        .modal-overlay.open{display:flex;}
+        .modal-box{background:var(--white);border-radius:var(--radius-xl);padding:2.25rem;max-width:400px;width:100%;text-align:center;animation:popIn .25s ease;}
+        @keyframes popIn{from{transform:scale(.93);opacity:0;}to{transform:scale(1);opacity:1;}}
+        .modal-icon{font-size:2.5rem;margin-bottom:1rem;}
+        .modal-title{font-size:1.1rem;font-weight:700;margin-bottom:.5rem;}
+        .modal-body{font-size:.875rem;color:var(--muted);line-height:1.7;margin-bottom:1.75rem;}
+        .modal-actions{display:flex;gap:.75rem;}
+        .modal-btn{flex:1;padding:.8rem;border-radius:100px;font-family:'Sora',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
+        .modal-btn-cancel{background:var(--surface);color:var(--ink-soft);}
+        .modal-btn-confirm{background:var(--violet);color:var(--white);}
+        .modal-btn-confirm:hover{background:var(--violet-dark);}
+
+        @media(max-width:768px){
+            .topbar{padding:.75rem 1rem;}
+            .meta{display:none;}
+            .body{padding:1rem 1rem 4rem;}
+        }
+    </style>
+</head>
+<body>
+
+{# TOPBAR #}
+<header class="topbar">
+    <div class="brand">Lingua<span>Learn</span></div>
+    <div class="meta">
+        <span class="badge badge-gray">{{ mockTest.level }}</span>
+        <span class="badge badge-blue">{{ mockTest.testType }}</span>
+        <span class="badge badge-green">🎧 Listening</span>
+    </div>
+    <div class="timer" id="timerWrap">⏱ <span id="timerDisplay">{{ mockTest.durationMinutes < 10 ? '0' ~ mockTest.durationMinutes : mockTest.durationMinutes }}:00</span></div>
+</header>
+<div class="progress-wrap"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+<div class="body">
+
+    {# AUDIO PLAYER CARD #}
+    <div class="audio-card">
+        <div style="position:relative;z-index:1;">
+            <div class="audio-label">🎧 Listening — {{ mockTest.level }}</div>
+            <div class="audio-title">{{ listeningContent.audioType|capitalize }} — {{ mockTest.platformLanguage.name }}</div>
+            <div class="audio-meta">
+                <span class="audio-meta-chip">{{ listeningContent.wordCount }} words</span>
+                <span class="audio-meta-chip">{{ listeningContent.questions|length }} questions</span>
+                <span class="audio-meta-chip">{{ maxReplays }} replay(s) allowed</span>
+            </div>
+            <div class="player-controls">
+                <button type="button" class="play-btn" id="playBtn" onclick="togglePlay()">▶</button>
+                <div class="player-right">
+                    <div class="player-status" id="playerStatus">Press ▶ to listen</div>
+                    <div class="progress-bar-wrap" id="progressBarWrap">
+                        <div class="progress-bar-fill" id="progressBarFill"></div>
+                    </div>
+                    <div class="player-time">
+                        <span id="timeElapsed">0:00</span>
+                        <span id="timeDuration">—</span>
+                    </div>
+                </div>
+            </div>
+            <div class="replay-wrap">
+                <button type="button" class="replay-btn" id="replayBtn" onclick="replayAudio()" disabled>
+                    🔄 Replay
+                </button>
+                <span class="replay-count" id="replayCount">{{ maxReplays }} remaining</span>
+            </div>
+        </div>
+    </div>
+
+    {# QUESTIONS — locked until audio played #}
+    <div id="questionsLocked" class="questions-locked">
+        <div class="locked-icon">🔒</div>
+        <div class="locked-title">Questions locked</div>
+        <div class="locked-sub">Listen to the audio first to unlock the questions.</div>
+    </div>
+
+    <form method="post" action="{{ path('mock_tests_submit_listening', {id: mockTest.id}) }}" id="listeningForm" style="display:none;">
+        <input type="hidden" name="_token" value="{{ csrf_token('mock_test_submit_' ~ mockTest.id) }}">
+
+        <div class="section-title">📝 Answer the questions</div>
+
+        {% for idx, question in listeningContent.questions %}
+        <div class="question-card" id="qcard-{{ idx }}">
+            <div class="q-number">
+                Question {{ idx + 1 }}
+                {% if question.type == 'qcm' %}
+                    <span class="q-type-badge q-type-qcm">QCM</span>
+                {% else %}
+                    <span class="q-type-badge q-type-open">Open</span>
+                {% endif %}
+            </div>
+            <div class="q-text">{{ question.questionText }}</div>
+
+            {% if question.type == 'qcm' %}
+                <div class="options">
+                    {% for key, text in question.options %}
+                    <label class="option-label" onclick="markAnswered({{ idx }})">
+                        <input type="radio" name="answers[{{ idx }}]" value="{{ key }}" required>
+                        <span class="option-key">{{ key }}</span>
+                        <span class="option-text">{{ text }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <textarea
+                    class="open-textarea"
+                    name="answers[{{ idx }}]"
+                    placeholder="Write your answer here…"
+                    oninput="markAnswered({{ idx }})"
+                    rows="3"
+                ></textarea>
+                <div class="open-hint">Short answer — write what you heard.</div>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <div class="submit-zone">
+            <button type="button" class="btn-submit" id="submitBtn" onclick="openModal()">
+                <span>Submit answers</span> <span>✓</span>
+            </button>
+        </div>
+    </form>
+
+</div>
+
+{# MODAL CONFIRMATION #}
+<div class="modal-overlay" id="modalConfirm">
+    <div class="modal-box">
+        <div class="modal-icon">🎧</div>
+        <div class="modal-title">Submit your answers?</div>
+        <div class="modal-body">Your answers will be graded automatically.<br><strong>This action cannot be undone.</strong></div>
+        <div class="modal-actions">
+            <button class="modal-btn modal-btn-cancel" onclick="closeModal()">← Continue</button>
+            <button class="modal-btn modal-btn-confirm" onclick="doSubmit()">Submit ✓</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════
+const AUDIO_TEXT   = {{ listeningContent.audioText|json_encode|raw }};
+const LANGUAGE     = '{{ mockTest.platformLanguage.name|lower }}';
+const LEVEL        = '{{ mockTest.level }}';
+const MAX_REPLAYS  = {{ maxReplays }};
+
+let replaysLeft    = MAX_REPLAYS;
+let hasListened    = false;
+let isSpeaking     = false;
+let utterance      = null;
+let speechProgress = 0;
+let wordIndex      = 0;
+let totalWords     = 0;
+
+// ═══════════════════════════════════════════════
+// TIMER
+// ═══════════════════════════════════════════════
+const duration    = {{ mockTest.durationMinutes }} * 60;
+const endTime     = Date.now() + duration * 1000;
+let autoSubmitted = false;
+
+function updateTimer() {
+    const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+    const mins = Math.floor(remaining / 60), secs = remaining % 60;
+    document.getElementById('timerDisplay').textContent = `${mins<10?'0'+mins:mins}:${secs<10?'0'+secs:secs}`;
+    document.getElementById('progressFill').style.width = ((duration - remaining) / duration * 100) + '%';
+    const tw = document.getElementById('timerWrap');
+    if      (remaining <= 60)  tw.className = 'timer danger';
+    else if (remaining <= 300) tw.className = 'timer warning';
+    if (remaining <= 0 && !autoSubmitted) { autoSubmitted = true; document.getElementById('listeningForm').submit(); }
+}
+setInterval(updateTimer, 1000); updateTimer();
+
+// ═══════════════════════════════════════════════
+// TEXT-TO-SPEECH
+// ═══════════════════════════════════════════════
+const langMap = {
+    english: 'en-US', french: 'fr-FR', français: 'fr-FR',
+    spanish: 'es-ES', german: 'de-DE', italian: 'it-IT', arabic: 'ar-SA',
+    portuguese: 'pt-PT', chinese: 'zh-CN', japanese: 'ja-JP', korean: 'ko-KR'
+};
+
+const rateMap = { beginner: 0.80, intermediate: 0.95, advanced: 1.05 };
+
+function togglePlay() {
+    if (isSpeaking) {
+        stopAudio();
+    } else {
+        playAudio();
+    }
+}
+
+function playAudio() {
+    if (!window.speechSynthesis) {
+        alert('Text-to-speech is not supported in your browser. Please use Chrome or Edge.');
+        return;
+    }
+
+    window.speechSynthesis.cancel();
+
+    utterance        = new SpeechSynthesisUtterance(AUDIO_TEXT);
+    utterance.lang   = langMap[LANGUAGE] || 'en-US';
+    utterance.rate   = rateMap[LEVEL.toLowerCase()] || 0.9;
+    utterance.pitch  = 1.0;
+
+    const words = AUDIO_TEXT.split(/\s+/);
+    totalWords  = words.length;
+
+    utterance.onstart = () => {
+        isSpeaking = true;
+        wordIndex  = 0;
+        document.getElementById('playBtn').textContent    = '⏸';
+        document.getElementById('playerStatus').textContent = 'Playing…';
+        document.getElementById('timeDuration').textContent = estimateDuration(totalWords, utterance.rate);
+    };
+
+    utterance.onboundary = (e) => {
+        if (e.name === 'word') {
+            wordIndex++;
+            const pct = Math.min((wordIndex / totalWords) * 100, 100);
+            document.getElementById('progressBarFill').style.width = pct + '%';
+            const elapsed = Math.round((wordIndex / totalWords) * estimateDurationSeconds(totalWords, utterance.rate));
+            document.getElementById('timeElapsed').textContent = formatTime(elapsed);
+        }
+    };
+
+    utterance.onend = () => {
+        isSpeaking = false;
+        hasListened = true;
+        document.getElementById('playBtn').textContent       = '▶';
+        document.getElementById('playerStatus').textContent  = '✅ Listened — questions unlocked';
+        document.getElementById('progressBarFill').style.width = '100%';
+        unlockQuestions();
+        if (replaysLeft > 0) {
+            document.getElementById('replayBtn').disabled = false;
+        }
+    };
+
+    utterance.onerror = () => {
+        isSpeaking = false;
+        document.getElementById('playBtn').textContent      = '▶';
+        document.getElementById('playerStatus').textContent = 'Error — try again';
+    };
+
+    window.speechSynthesis.speak(utterance);
+
+    // Chrome keep-alive
+    const keepAlive = setInterval(() => {
+        if (!isSpeaking) { clearInterval(keepAlive); return; }
+        if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+    }, 5000);
+}
+
+function stopAudio() {
+    window.speechSynthesis.cancel();
+    isSpeaking = false;
+    document.getElementById('playBtn').textContent      = '▶';
+    document.getElementById('playerStatus').textContent = 'Paused — press ▶ to resume';
+}
+
+function replayAudio() {
+    if (replaysLeft <= 0) return;
+    replaysLeft--;
+    document.getElementById('replayCount').textContent = replaysLeft + ' remaining';
+    if (replaysLeft === 0) document.getElementById('replayBtn').disabled = true;
+    document.getElementById('progressBarFill').style.width = '0%';
+    document.getElementById('timeElapsed').textContent = '0:00';
+    playAudio();
+}
+
+function estimateDurationSeconds(words, rate) {
+    return Math.round(words / (rate * 2.5));
+}
+
+function estimateDuration(words, rate) {
+    const secs = estimateDurationSeconds(words, rate);
+    return formatTime(secs);
+}
+
+function formatTime(secs) {
+    const m = Math.floor(secs / 60), s = secs % 60;
+    return `${m}:${s<10?'0'+s:s}`;
+}
+
+// ═══════════════════════════════════════════════
+// UNLOCK QUESTIONS
+// ═══════════════════════════════════════════════
+function unlockQuestions() {
+    document.getElementById('questionsLocked').style.display = 'none';
+    document.getElementById('listeningForm').style.display   = 'block';
+    document.getElementById('listeningForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ═══════════════════════════════════════════════
+// MARK ANSWERED
+// ═══════════════════════════════════════════════
+function markAnswered(idx) {
+    document.getElementById('qcard-' + idx)?.classList.add('answered');
+}
+
+// ═══════════════════════════════════════════════
+// MODAL + SUBMIT
+// ═══════════════════════════════════════════════
+function openModal()  { document.getElementById('modalConfirm').classList.add('open'); }
+function closeModal() { document.getElementById('modalConfirm').classList.remove('open'); }
+function doSubmit()   { document.getElementById('listeningForm').submit(); }
+document.getElementById('modalConfirm').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeModal();
+});
+</script>
+</body>
+</html>

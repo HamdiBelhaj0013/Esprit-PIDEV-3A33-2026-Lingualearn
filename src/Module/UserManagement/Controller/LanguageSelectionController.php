@@ -2,6 +2,8 @@
 
 namespace App\Module\UserManagement\Controller;
 
+use App\Module\UserManagement\Entity\LearningStats;
+use App\Module\UserManagement\Repository\LearningStatsRepository;
 use App\Module\UserManagement\Entity\UserLanguage;
 use App\Module\PedagogicalContent\Entity\PlatformLanguage;
 use App\Module\PedagogicalContent\Entity\Course;
@@ -161,6 +163,7 @@ class LanguageSelectionController extends AbstractController
         $this->addFlash('warning', 'You were not enrolled in that language.');
         return $this->redirectToRoute('language_select');
     }
+
     #[Route('/learn/course/{id}', name: 'course_show', methods: ['GET'])]
     public function courseShow(\App\Module\PedagogicalContent\Entity\Course $course): Response
     {
@@ -219,7 +222,7 @@ class LanguageSelectionController extends AbstractController
 
         // Ordered lesson list for prev/next navigation
         $lessons = $course->getLessons()->toArray();
-        $currentIndex = array_search($lesson, $lessons);
+        $currentIndex = array_search($lesson, $lessons, true);
         $prevLesson = $currentIndex > 0 ? $lessons[$currentIndex - 1] : null;
         $nextLesson = $currentIndex < count($lessons) - 1 ? $lessons[$currentIndex + 1] : null;
 
@@ -232,5 +235,66 @@ class LanguageSelectionController extends AbstractController
             'lessonIndex' => $currentIndex + 1,
             'totalLessons'=> count($lessons),
         ]);
+    }
+
+    #[Route('/learn/lesson/{id}/complete', name: 'lesson_complete', methods: ['POST'])]
+    public function completeLesson(
+        Request $request,
+        \App\Module\PedagogicalContent\Entity\Lesson $lesson,
+        LearningStatsRepository $statsRepo
+    ): Response
+    {
+        if (!$this->isCsrfTokenValid('complete_lesson_' . $lesson->getId(), $request->request->get('_token'))) {
+            $this->addFlash('danger', 'Invalid security token.');
+            return $this->redirectToRoute('lesson_show', ['id' => $lesson->getId()]);
+        }
+
+        /** @var \App\Module\UserManagement\Entity\User $user */
+        $user = $this->getUser();
+        if (!$user) {
+            throw $this->createAccessDeniedException('Vous devez être connecté.');
+        }
+
+        $course = $lesson->getCourse();
+        $platformLanguage = $course->getPlatformLanguage();
+
+        $enrolled = false;
+        foreach ($user->getUserLanguages() as $ul) {
+            if ($ul->getPlatformLanguage()->getId() === $platformLanguage->getId()) {
+                $enrolled = true;
+                break;
+            }
+        }
+
+        if (!$enrolled) {
+            $this->addFlash('warning', 'You must enroll in ' . $platformLanguage->getName() . ' to complete this lesson.');
+            return $this->redirectToRoute('language_select');
+        }
+
+        // Récupérer (ou créer) LearningStats
+        $stats = $statsRepo->findOneBy(['user' => $user]);
+        if (!$stats) {
+            $stats = new LearningStats();
+            $stats->setUser($user);
+            $this->entityManager->persist($stats);
+        }
+
+        // XP
+        $xp = (int) ($lesson->getXpReward() ?? 0);
+        $stats->addXP($xp);
+
+        // Minutes (sent by frontend)
+        $minutes = (int) $request->request->get('minutes', 0);
+        if ($minutes < 0) $minutes = 0;
+        if ($minutes > 240) $minutes = 240; // max 4h to prevent cheating
+
+        $stats->addMinutesStudied($minutes);
+        $stats->updateLastStudySession();
+
+        $this->entityManager->flush();
+
+        $this->addFlash('success', 'Lesson completed! +' . $xp . ' XP, +' . $minutes . ' min');
+
+        return $this->redirectToRoute('lesson_show', ['id' => $lesson->getId()]);
     }
 }

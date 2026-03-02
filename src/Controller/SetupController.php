@@ -49,7 +49,9 @@ class SetupController extends AbstractController
                     $user->setLastName($lastName);
                     $user->setRoles(['ROLE_ADMIN', 'ROLE_USER']); // Admin role
                     $user->setStatus('active');
-                    $user->setPremium(true); // Give admin premium
+                    // Admins don't need a Stripe subscription — leave on FREE.
+                    // isPremium is computed from subscriptionPlan+expiry; setPremium() is a no-op.
+                    $user->setSubscriptionPlan('FREE');
 
                     // Hash password
                     $hashedPassword = $passwordHasher->hashPassword($user, $password);

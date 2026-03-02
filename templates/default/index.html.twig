@@ -555,8 +555,10 @@
     <button class="mobile-close" id="mobileClose">✕</button>
     <a href="#home" class="mobile-link">Home</a>
     <a href="#languages" class="mobile-link">Languages</a>
-    <a href="#features" class="mobile-link">Features</a>
+    <a href="#features" class="mobile-link">Ressources</a>
+        <a href="{{ path('ressources') }}" class="mobile-link">Ressources</a>
     <a href="#about" class="mobile-link">About</a>
+
     <div class="mobile-actions">
         <a href="{{ path('app_login') }}" class="btn-ghost">Log In</a>
         <a href="{{ path('app_register') }}" class="btn-primary">Sign Up</a>
@@ -570,7 +572,9 @@
         <li><a href="#home">Home</a></li>
         <li><a href="#languages">Languages</a></li>
         <li><a href="#features">Features</a></li>
+        <li><a href="{{ path('ressources') }}">Ressources</a></li>
         <li><a href="#about">About</a></li>
+
     </ul>
     <div class="nav-actions">
         <a href="{{ path('app_login') }}" class="btn-ghost">Log In</a>
