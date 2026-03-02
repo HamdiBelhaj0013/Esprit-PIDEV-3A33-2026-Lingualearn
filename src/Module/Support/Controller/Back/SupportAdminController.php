@@ -87,7 +87,7 @@ class SupportAdminController extends AbstractController
 
         if (empty($message)) {
             $this->addFlash('error', 'Le message ne peut pas être vide.');
-            return $this->redirectToRoute('app_reclamation_show', ['id' => $reclamation->getId(), 'methods' => ['GET', 'POST']]);
+            return $this->redirectToRoute('app_reclamation_show', ['id' => $reclamation->getId()]);
         }
 
         // ── Ajouter la réponse ──

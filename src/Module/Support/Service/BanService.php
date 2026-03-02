@@ -22,6 +22,11 @@ class BanService
         $user->setBannedUntil($bannedUntil);
         $this->entityManager->flush();
     }
+        public function banUserForBadWords(User $user, array $detectedWords): void
+    {
+        $reason = 'Mots inappropriés détectés : ' . implode(', ', $detectedWords);
+        $this->banUser($user, $reason, 7);
+    }
 
     public function unbanUser(User $user): void
     {

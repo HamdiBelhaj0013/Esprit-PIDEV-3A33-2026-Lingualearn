@@ -11,7 +11,7 @@ class BadWordService
         'fils de pute', 'va te faire', 'nique', 'niquer', 'baise',
         'couille', 'foutre', 'bite', 'con', 'conne', 'pute', 'pd',
         'tapette', 'grosse vache', 'abruti', 'idiot', 'imbécile',
-        'crétin', 'débile', 'mongol', 'attardé', 'bâtard',
+        'crétin', 'débile', 'mongol', 'attardé', 'bâtard','tester bad word',
 
         // Insultes anglaises
         'fuck', 'shit', 'bitch', 'asshole', 'bastard', 'dick',

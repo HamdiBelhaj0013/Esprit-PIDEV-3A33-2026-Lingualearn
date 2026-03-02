@@ -18,6 +18,19 @@
 {% endblock %}
 
 {% block content %}
+
+{# ── BOUTONS STATS & AUDIT (admin seulement) ── #}
+{% if is_granted('ROLE_ADMIN') %}
+<div class="d-flex gap-2 mb-3">
+    <a href="{{ path('admin_support_stats') }}" class="btn btn-outline-primary">
+        <i class="ti ti-chart-bar"></i> Statistiques avancées
+    </a>
+    <a href="{{ path('admin_support_audit') }}" class="btn btn-outline-secondary">
+        <i class="ti ti-history"></i> Audit Trail
+    </a>
+</div>
+{% endif %}
+
 <div class="row">
     <div class="col-12">
         <!-- Search & Filter Bar -->
@@ -33,7 +46,6 @@
                                    placeholder="Search question..." value="{{ search }}">
                         </div>
                     </div>
-                    
                     <div class="col-md-2">
                         <select name="subject" class="form-select">
                             <option value="">All Subjects</option>
@@ -42,7 +54,6 @@
                             {% endfor %}
                         </select>
                     </div>
-                    
                     <div class="col-md-2">
                         <select name="sort" class="form-select">
                             <option value="submittedAt" {% if sort == 'submittedAt' %}selected{% endif %}>Sort by Date</option>
@@ -51,20 +62,17 @@
                             <option value="category" {% if sort == 'category' %}selected{% endif %}>Sort by Category</option>
                         </select>
                     </div>
-                    
                     <div class="col-md-2">
                         <select name="order" class="form-select">
                             <option value="DESC" {% if order == 'DESC' %}selected{% endif %}>Descending</option>
                             <option value="ASC" {% if order == 'ASC' %}selected{% endif %}>Ascending</option>
                         </select>
                     </div>
-                    
                     <div class="col-md-1">
                         <button type="submit" class="btn btn-primary w-100">
                             <i class="ti ti-filter"></i>
                         </button>
                     </div>
-                    
                     {% if is_granted('ROLE_ADMIN') %}
                     <div class="col-md-1 text-end">
                         <a href="{{ path('app_faq_new') }}" class="btn btn-success w-100">
@@ -137,10 +145,7 @@
                                  aria-labelledby="heading{{ faq.id }}" 
                                  data-bs-parent="#faqAccordion">
                                 <div class="accordion-body">
-                                    <div class="mb-3">
-                                        {{ faq.answer|nl2br }}
-                                    </div>
-                                    
+                                    <div class="mb-3">{{ faq.answer|nl2br }}</div>
                                     {% if is_granted('ROLE_ADMIN') %}
                                     <div class="d-flex gap-2 border-top pt-3">
                                         <a href="{{ path('app_faq_edit', {'id': faq.id}) }}"
@@ -158,9 +163,7 @@
                                         </form>
                                         <div class="ms-auto text-muted small">
                                             Created: {{ faq.submittedAt|date('d/m/Y') }}
-                                            {% if faq.category %}
-                                                | Category: {{ faq.category|capitalize }}
-                                            {% endif %}
+                                            {% if faq.category %} | Category: {{ faq.category|capitalize }}{% endif %}
                                         </div>
                                     </div>
                                     {% endif %}
@@ -170,7 +173,6 @@
                         {% endfor %}
                     </div>
 
-                    <!-- Pagination -->
                     {% if pages > 1 %}
                     <div class="d-flex justify-content-center mt-3">
                         <ul class="pagination">
@@ -179,13 +181,11 @@
                                     <i class="ti ti-chevron-left"></i>
                                 </a>
                             </li>
-                            
                             {% for p in 1..pages %}
                                 <li class="page-item {% if p == page %}active{% endif %}">
                                     <a class="page-link" href="{{ path('app_faq_index', app.request.query.all|merge({'page': p})) }}">{{ p }}</a>
                                 </li>
                             {% endfor %}
-                            
                             <li class="page-item {% if page >= pages %}disabled{% endif %}">
                                 <a class="page-link" href="{{ path('app_faq_index', app.request.query.all|merge({'page': page + 1})) }}">
                                     <i class="ti ti-chevron-right"></i>
@@ -194,21 +194,16 @@
                         </ul>
                     </div>
                     {% endif %}
+
                 {% else %}
                     <div class="empty">
-                        <div class="empty-icon">
-                            <i class="ti ti-help-off"></i>
-                        </div>
+                        <div class="empty-icon"><i class="ti ti-help-off"></i></div>
                         <p class="empty-title">No FAQs found</p>
                         <p class="empty-subtitle text-muted">
                             {% if search or selected_subject %}
                                 No results for your search.
                             {% else %}
-                                {% if is_granted('ROLE_ADMIN') %}
-                                    Start by creating a new FAQ to help your users.
-                                {% else %}
-                                    Check back later for helpful answers.
-                                {% endif %}
+                                {% if is_granted('ROLE_ADMIN') %}Start by creating a new FAQ.{% else %}Check back later.{% endif %}
                             {% endif %}
                         </p>
                         <div class="empty-action">

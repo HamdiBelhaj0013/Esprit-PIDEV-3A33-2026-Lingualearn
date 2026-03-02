@@ -1,0 +1,304 @@
+{% extends 'base.html.twig' %}
+{% block title %}Mes réclamations{% endblock %}
+{% block body %}
+
+<aside class="sidebar" id="sidebar">
+    <a href="{{ path('app_homepage') }}" class="sidebar-logo">
+        <div class="sidebar-logo-text">Lingua<span>Learn</span></div>
+    </a>
+    <div class="sidebar-user">
+        <div class="user-avatar">{{ app.user.firstName|first|upper }}{{ app.user.lastName|first|upper }}</div>
+        <div class="user-info">
+            <div class="user-name">{{ app.user.fullName }}</div>
+            <div class="user-plan free">Free Plan</div>
+        </div>
+    </div>
+    <nav class="sidebar-nav">
+        <span class="nav-section-label">Main</span>
+        <a href="{{ path('user_dashboard') }}" class="nav-item"><span class="nav-icon">⊞</span> Dashboard</a>
+        <a href="#" class="nav-item"><span class="nav-icon">📚</span> My Courses</a>
+        <a href="#" class="nav-item"><span class="nav-icon">🧩</span> Practice</a>
+        <a href="#" class="nav-item"><span class="nav-icon">📝</span> Mock Tests</a>
+        <span class="nav-section-label">Account</span>
+        <a href="{{ path('user_profile') }}" class="nav-item"><span class="nav-icon">👤</span> My Profile</a>
+        <a href="{{ path('app_user_notifications') }}" class="nav-item"><span class="nav-icon">🔔</span> Notifications</a>
+        <a href="#" class="nav-item"><span class="nav-icon">👑</span> Subscription</a>
+        <span class="nav-section-label">Support</span>
+        <a href="{{ path('app_user_faq_index') }}" class="nav-item"><span class="nav-icon">❓</span> FAQ</a>
+        <a href="{{ path('app_user_reclamation_index') }}" class="nav-item active"><span class="nav-icon">💬</span> Mes réclamations</a>
+        <span class="nav-section-label">System</span>
+        <a href="{{ path('app_logout') }}" class="nav-item"><span class="nav-icon">→</span> Log Out</a>
+    </nav>
+</aside>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="main">
+    <header class="topbar">
+        <div class="topbar-left">
+            <button class="hamburger-btn" id="hamburgerBtn"><span></span><span></span><span></span></button>
+            <div>
+                <div class="page-heading">Mes réclamations 💬</div>
+                <div class="page-sub">Suivez l'état de vos demandes de support</div>
+            </div>
+        </div>
+        <div class="topbar-right">
+            {# Cloche de notification Pusher #}
+            <div class="notif-bell" id="notifBell">
+                🔔
+                <span class="notif-dot" id="notifDot" style="display:none"></span>
+            </div>
+            <a href="{{ path('app_user_reclamation_new') }}" class="btn-new-reclamation">+ Nouvelle réclamation</a>
+            <a href="{{ path('user_profile') }}" class="topbar-btn">👤</a>
+        </div>
+    </header>
+
+    {# ── Toast notification Pusher ── #}
+    <div id="pusherToast" class="pusher-toast" style="display:none">
+        <div class="toast-icon" id="toastIcon">💬</div>
+        <div class="toast-content">
+            <div class="toast-title" id="toastTitle">Nouvelle notification</div>
+            <div class="toast-msg" id="toastMsg"></div>
+        </div>
+        <a href="#" class="toast-link" id="toastLink">Voir →</a>
+        <button class="toast-close" onclick="closeToast()">✕</button>
+    </div>
+
+    <main class="page-content">
+
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success reveal">✅ {{ message }}</div>
+        {% endfor %}
+        {% for message in app.flashes('error') %}
+            <div class="alert alert-error reveal">❌ {{ message }}</div>
+        {% endfor %}
+
+        <div class="support-tabs reveal">
+            <a href="{{ path('app_user_faq_index') }}" class="stab">❓ FAQ</a>
+            <a href="{{ path('app_user_reclamation_index') }}" class="stab active">💬 Mes réclamations</a>
+        </div>
+
+        {% if reclamations is empty %}
+            <div class="empty-card reveal">
+                <div style="font-size:2.5rem;margin-bottom:.75rem;">📭</div>
+                <p style="font-weight:700;font-size:1.05rem;margin-bottom:.5rem;">Aucune réclamation</p>
+                <p style="color:var(--muted);font-size:.875rem;margin-bottom:1.25rem;">Vous n'avez soumis aucune réclamation pour le moment.</p>
+                <a href="{{ path('app_user_reclamation_new') }}" class="btn-primary">+ Soumettre une réclamation</a>
+            </div>
+        {% else %}
+            <div class="ticket-list">
+                {% for rec in reclamations %}
+                <div class="ticket-card reveal" id="ticket-{{ rec.id }}">
+                    <a href="{{ path('app_user_reclamation_show', {id: rec.id}) }}" class="ticket-link">
+                        <div class="ticket-header">
+                            <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+                                <span class="ticket-subject">{{ rec.subject|capitalize }}</span>
+                                {% if rec.priority == 'URGENT' %}
+                                    <span class="priority-badge priority-urgent">🔴 URGENT</span>
+                                {% elseif rec.priority == 'HIGH' %}
+                                    <span class="priority-badge priority-high">🟠 HIGH</span>
+                                {% elseif rec.priority == 'LOW' %}
+                                    <span class="priority-badge priority-low">🟢 LOW</span>
+                                {% endif %}
+                            </div>
+                            <span class="ticket-status status-{{ rec.status|lower }}" id="status-{{ rec.id }}">
+                                {% if rec.status == 'PENDING' %}⏳ En attente
+                                {% elseif rec.status == 'IN_PROGRESS' %}🔄 En cours
+                                {% elseif rec.status == 'RESOLVED' %}✅ Résolu
+                                {% else %}🔒 Fermé{% endif %}
+                            </span>
+                        </div>
+                        <p class="ticket-body">{{ rec.messageBody|slice(0, 120) }}{% if rec.messageBody|length > 120 %}…{% endif %}</p>
+                        <div class="ticket-meta">
+                            <span>📅 {{ rec.submittedAt|date('d/m/Y à H:i') }}</span>
+                            {% if rec.responses|length > 0 %}
+                                <span id="resp-count-{{ rec.id }}">💬 {{ rec.responses|length }} réponse(s)</span>
+                            {% endif %}
+                            {% if rec.isLate() %}
+                                <span class="sla-late">🚨 SLA dépassé</span>
+                            {% elseif rec.slaDeadline and rec.status in ['PENDING', 'IN_PROGRESS'] %}
+                                <span class="sla-ok">⏱️ {{ rec.remainingHours }}h restantes</span>
+                            {% endif %}
+                        </div>
+                    </a>
+
+                    {% if rec.status == 'PENDING' %}
+                    <div class="ticket-actions">
+                        <a href="{{ path('app_user_reclamation_edit', {id: rec.id}) }}" class="btn-edit">✏️ Modifier</a>
+                        <form method="post" action="{{ path('app_user_reclamation_delete', {id: rec.id}) }}"
+                              onsubmit="return confirm('Supprimer cette réclamation ?')">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ rec.id) }}">
+                            <button type="submit" class="btn-delete">🗑️ Supprimer</button>
+                        </form>
+                    </div>
+                    {% elseif rec.status == 'RESOLVED' %}
+                    <div class="ticket-actions">
+                        {% if rec.canBeRated() %}
+                            <a href="{{ path('app_reclamation_rate', {id: rec.id}) }}" class="btn-rate">⭐ Évaluer ce ticket</a>
+                        {% elseif rec.hasBeenRated() %}
+                            <span class="rated-badge">⭐ Noté {{ rec.satisfactionScore }}/5 — Merci !</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+    </main>
+</div>
+
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root { --white: #ffffff; --off-white: #f7f9fc; --surface: #eef1f8; --ink: #0d1526; --ink-soft: #2c3a52; --muted: #7a87a0; --border: #e2e8f2; --blue: #2563eb; --blue-dark: #1d4ed8; --blue-bg: #eff6ff; --blue-mid: #3b82f6; --green: #16a34a; --green-bg: #f0fdf4; --gold: #ca8a04; --sidebar-w: 260px; --radius: 12px; --radius-lg: 20px; }
+body { font-family: 'Sora', sans-serif; background: var(--off-white); color: var(--ink); min-height: 100vh; }
+.sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w); background: var(--white); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 50; transition: transform .3s ease; }
+.sidebar-logo { padding: 1.5rem 1.5rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: .75rem; text-decoration: none; }
+.sidebar-logo-text { font-size: 1.3rem; font-weight: 700; color: var(--ink); }
+.sidebar-logo-text span { color: var(--blue); }
+.sidebar-user { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: .85rem; }
+.user-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--blue), var(--blue-mid)); display: flex; align-items: center; justify-content: center; font-size: .9rem; font-weight: 700; color: var(--white); flex-shrink: 0; }
+.user-info { flex: 1; min-width: 0; }
+.user-name { font-size: .85rem; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-plan { font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; margin-top: .1rem; }
+.user-plan.free { color: var(--muted); }
+.sidebar-nav { flex: 1; padding: 1rem 0; overflow-y: auto; }
+.nav-section-label { font-size: .6rem; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); padding: .75rem 1.5rem .35rem; display: block; }
+.nav-item { display: flex; align-items: center; gap: .75rem; padding: .65rem 1.5rem; font-size: .84rem; font-weight: 500; color: var(--muted); text-decoration: none; transition: color .2s, background .2s; position: relative; }
+.nav-item:hover { color: var(--ink); background: var(--off-white); }
+.nav-item.active { color: var(--blue); background: var(--blue-bg); font-weight: 600; }
+.nav-item.active::before { content: ''; position: absolute; left: 0; top: 4px; bottom: 4px; width: 3px; background: var(--blue); border-radius: 0 3px 3px 0; }
+.nav-icon { font-size: 1.1rem; width: 20px; text-align: center; }
+.main { margin-left: var(--sidebar-w); min-height: 100vh; display: flex; flex-direction: column; }
+.topbar { position: sticky; top: 0; z-index: 40; background: rgba(255,255,255,.92); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: .85rem 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.topbar-left { display: flex; align-items: center; gap: 1rem; }
+.page-heading { font-size: 1.25rem; font-weight: 700; color: var(--ink); }
+.page-sub { font-size: .78rem; color: var(--muted); margin-top: .1rem; }
+.topbar-right { display: flex; align-items: center; gap: .75rem; }
+.topbar-btn { width: 38px; height: 38px; border-radius: var(--radius); border: 1.5px solid var(--border); background: transparent; display: flex; align-items: center; justify-content: center; text-decoration: none; color: var(--ink-soft); font-size: 1.1rem; }
+.btn-new-reclamation { display: inline-flex; align-items: center; background: var(--blue); color: #fff; padding: .5rem 1.1rem; border-radius: 8px; font-size: .8rem; font-weight: 600; text-decoration: none; transition: background .15s; }
+.btn-new-reclamation:hover { background: var(--blue-dark); color: #fff; }
+.hamburger-btn { display: none; width: 38px; height: 38px; border-radius: var(--radius); border: 1.5px solid var(--border); background: transparent; align-items: center; justify-content: center; cursor: pointer; flex-direction: column; gap: 4px; }
+.hamburger-btn span { width: 16px; height: 1.5px; background: var(--ink); display: block; border-radius: 2px; }
+.page-content { padding: 2rem; flex: 1; max-width: 860px; }
+.alert { padding: .85rem 1.25rem; border-radius: var(--radius); margin-bottom: 1rem; font-size: .875rem; font-weight: 500; }
+.alert-success { background: var(--green-bg); color: var(--green); border: 1.5px solid #bbf7d0; }
+.alert-error { background: #fee2e2; color: #991b1b; border: 1.5px solid #fecaca; }
+.support-tabs { display: flex; gap: .5rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border); padding-bottom: .5rem; }
+.stab { display: inline-flex; align-items: center; gap: .4rem; padding: .5rem 1rem; color: var(--muted); text-decoration: none; font-size: .875rem; font-weight: 500; border-radius: 8px 8px 0 0; transition: all .15s; }
+.stab:hover { color: var(--blue); }
+.stab.active { color: var(--blue); font-weight: 700; border-bottom: 2px solid var(--blue); margin-bottom: -2px; }
+.ticket-list { display: flex; flex-direction: column; gap: .75rem; }
+.ticket-card { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; transition: box-shadow .2s, border-color .2s; }
+.ticket-card:hover { box-shadow: 0 8px 24px rgba(13,21,38,.08); border-color: #c7d2fe; }
+.ticket-card.new-notif { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.15); animation: pulse 1.5s ease 3; }
+@keyframes pulse { 0%,100%{box-shadow:0 0 0 3px rgba(37,99,235,.15)} 50%{box-shadow:0 0 0 6px rgba(37,99,235,.25)} }
+.ticket-link { display: block; padding: 1.25rem 1.4rem; text-decoration: none; color: var(--ink); }
+.ticket-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: .6rem; }
+.ticket-subject { font-weight: 700; font-size: .95rem; color: var(--ink); }
+.ticket-status { font-size: .72rem; font-weight: 700; padding: .25rem .85rem; border-radius: 999px; white-space: nowrap; }
+.status-pending { background: #fef3c7; color: #92400e; }
+.status-in_progress { background: var(--blue-bg); color: var(--blue); }
+.status-resolved { background: var(--green-bg); color: var(--green); }
+.status-closed { background: var(--surface); color: var(--muted); }
+.ticket-body { color: var(--muted); font-size: .875rem; line-height: 1.55; margin: .4rem 0 .75rem; }
+.ticket-meta { display: flex; gap: 1rem; font-size: .78rem; color: var(--muted); flex-wrap: wrap; align-items: center; }
+.ticket-actions { display: flex; align-items: center; gap: .6rem; padding: .75rem 1.4rem; border-top: 1px solid var(--border); background: var(--off-white); }
+.btn-edit { display: inline-flex; align-items: center; gap: .35rem; padding: .4rem .9rem; border-radius: 8px; font-size: .8rem; font-weight: 600; background: var(--blue-bg); color: var(--blue); text-decoration: none; border: 1.5px solid #bfdbfe; transition: background .15s; }
+.btn-delete { display: inline-flex; align-items: center; gap: .35rem; padding: .4rem .9rem; border-radius: 8px; font-size: .8rem; font-weight: 600; background: #fee2e2; color: #991b1b; border: 1.5px solid #fecaca; cursor: pointer; transition: background .15s; font-family: inherit; }
+.btn-primary { display: inline-flex; align-items: center; gap: .5rem; background: var(--blue); color: #fff; padding: .6rem 1.3rem; border-radius: var(--radius); font-size: .875rem; font-weight: 600; text-decoration: none; border: none; cursor: pointer; transition: background .15s; }
+.btn-primary:hover { background: var(--blue-dark); color: #fff; }
+.empty-card { text-align: center; padding: 3.5rem 1rem; background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius-lg); }
+.btn-rate { display: inline-flex; align-items: center; gap: .4rem; padding: .45rem 1.1rem; border-radius: 8px; font-size: .82rem; font-weight: 700; background: #fefce8; color: #ca8a04; border: 1.5px solid #fde68a; text-decoration: none; }
+.rated-badge { display: inline-flex; align-items: center; gap: .4rem; font-size: .82rem; font-weight: 600; color: var(--gold); padding: .45rem 1rem; background: #fefce8; border-radius: 8px; border: 1.5px solid #fde68a; }
+.priority-badge { font-size: .65rem; font-weight: 700; padding: .18rem .6rem; border-radius: 999px; }
+.priority-urgent { background: #fee2e2; color: #dc2626; }
+.priority-high { background: #fff7ed; color: #ea580c; }
+.priority-low { background: var(--green-bg); color: var(--green); }
+.sla-late { font-size: .72rem; font-weight: 700; color: #dc2626; background: #fee2e2; padding: .15rem .6rem; border-radius: 999px; }
+.sla-ok { font-size: .72rem; color: var(--muted); }
+.reveal { opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+@media (max-width: 768px) { :root { --sidebar-w: 0px; } .sidebar { transform: translateX(-260px); width: 260px; } .sidebar.open { transform: translateX(0); } .main { margin-left: 0; } .hamburger-btn { display: flex; } .page-content { padding: 1.25rem; } }
+.sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(13,21,38,.4); z-index: 45; }
+.sidebar-overlay.visible { display: block; }
+
+/* ── Pusher Toast ── */
+.pusher-toast { position: fixed; bottom: 2rem; right: 2rem; z-index: 9999; background: var(--white); border: 1.5px solid var(--blue); border-radius: var(--radius-lg); padding: 1rem 1.25rem; display: flex; align-items: center; gap: .85rem; box-shadow: 0 12px 32px rgba(37,99,235,.18); min-width: 320px; max-width: 420px; animation: slideIn .35s ease; }
+@keyframes slideIn { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.toast-icon { font-size: 1.5rem; flex-shrink: 0; }
+.toast-content { flex: 1; }
+.toast-title { font-weight: 700; font-size: .9rem; color: var(--ink); margin-bottom: .2rem; }
+.toast-msg { font-size: .8rem; color: var(--muted); }
+.toast-link { font-size: .78rem; font-weight: 600; color: var(--blue); text-decoration: none; white-space: nowrap; }
+.toast-close { background: none; border: none; cursor: pointer; font-size: 1rem; color: var(--muted); padding: .2rem; margin-left: .5rem; }
+.toast-close:hover { color: var(--ink); }
+
+/* ── Cloche ── */
+.notif-bell { position: relative; font-size: 1.3rem; cursor: pointer; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius); border: 1.5px solid var(--border); transition: all .2s; }
+.notif-bell:hover { border-color: var(--blue); background: var(--blue-bg); }
+.notif-bell.ringing { animation: ring .5s ease 3; }
+@keyframes ring { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-15deg)} 75%{transform:rotate(15deg)} }
+.notif-dot { position: absolute; top: 4px; right: 4px; width: 9px; height: 9px; background: #ef4444; border-radius: 50%; border: 2px solid white; }
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pusher/8.2.0/pusher.min.js"></script>
+<script>
+// Sidebar
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('sidebarOverlay');
+const hamburger = document.getElementById('hamburgerBtn');
+if(hamburger) { hamburger.addEventListener('click', () => { sidebar.classList.toggle('open'); overlay.classList.toggle('visible'); }); }
+if(overlay) { overlay.addEventListener('click', () => { sidebar.classList.remove('open'); overlay.classList.remove('visible'); }); }
+const ro = new IntersectionObserver(entries => { entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); ro.unobserve(e.target); } }); }, {threshold:.06});
+document.querySelectorAll('.reveal').forEach(el => ro.observe(el));
+
+// ── Pusher ──
+const pusher = new Pusher('5f6021b614f01111799d', { cluster: 'eu' });
+const userId = {{ app.user.id }};
+const channel = pusher.subscribe('notifications-user-' + userId);
+
+function showToast(data) {
+    document.getElementById('toastIcon').textContent  = data.type === 'status' ? '🔔' : '💬';
+    document.getElementById('toastTitle').textContent = data.title;
+    document.getElementById('toastMsg').textContent   = data.message;
+    document.getElementById('toastLink').href         = data.url;
+
+    const toast = document.getElementById('pusherToast');
+    toast.style.display = 'flex';
+
+    // Cloche
+    const bell = document.getElementById('notifBell');
+    bell.classList.add('ringing');
+    document.getElementById('notifDot').style.display = 'block';
+    setTimeout(() => bell.classList.remove('ringing'), 1500);
+
+    // Auto-fermer après 6s
+    setTimeout(closeToast, 6000);
+}
+
+function closeToast() {
+    document.getElementById('pusherToast').style.display = 'none';
+}
+
+// Event : nouvelle réponse
+channel.bind('new-response', function(data) {
+    showToast(data);
+    // Highlight le ticket concerné
+    const card = document.getElementById('ticket-' + data.reclamation_id);
+    if (card) {
+        card.classList.add('new-notif');
+        setTimeout(() => card.classList.remove('new-notif'), 5000);
+    }
+});
+
+// Event : statut changé
+channel.bind('status-changed', function(data) {
+    showToast(data);
+    // Met à jour le badge statut sans recharger la page
+    const statusEl = document.getElementById('status-' + data.reclamation_id);
+    if (statusEl) {
+        statusEl.textContent = data.message.split(': ')[1] || '';
+    }
+});
+</script>
+{% endblock %}

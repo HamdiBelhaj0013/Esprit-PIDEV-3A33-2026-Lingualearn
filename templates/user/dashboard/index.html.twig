@@ -450,6 +450,13 @@
         <a href="{{ path('pricing') }}" class="nav-item">
             <span class="nav-icon">👑</span> Plans & Billing
         </a>
+        <span class="nav-section-label">Support</span>
+        <a href="{{ path('app_user_faq_index') }}" class="nav-item">
+            <span class="nav-icon">❓</span> FAQ
+        </a>
+        <a href="{{ path('app_user_reclamation_index') }}" class="nav-item">
+            <span class="nav-icon">💬</span> Mes réclamations
+        </a>
 
         {% if not user.isPremium %}
             <div class="sidebar-upgrade">

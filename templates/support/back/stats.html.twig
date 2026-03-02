@@ -1,0 +1,245 @@
+{% extends 'base.html.twig' %}
+{% block title %}Statistiques Support{% endblock %}
+{% block body %}
+
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--white:#ffffff;--off-white:#f7f9fc;--surface:#eef1f8;--ink:#0d1526;--ink-soft:#2c3a52;--muted:#7a87a0;--border:#e2e8f2;--blue:#2563eb;--blue-dark:#1d4ed8;--blue-bg:#eff6ff;--green:#16a34a;--green-bg:#f0fdf4;--gold:#ca8a04;--gold-bg:#fefce8;--red:#dc2626;--red-bg:#fee2e2;--sidebar-w:260px;--radius:12px;--radius-lg:20px}
+body{font-family:'Sora',sans-serif;background:var(--off-white);color:var(--ink);min-height:100vh}
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:50}
+.sidebar-logo{padding:1.5rem 1.5rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.75rem;text-decoration:none}
+.sidebar-logo-text{font-size:1.3rem;font-weight:700;color:var(--ink)}
+.sidebar-logo-text span{color:var(--blue)}
+.sidebar-nav{flex:1;padding:1rem 0;overflow-y:auto}
+.nav-section-label{font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);padding:.75rem 1.5rem .35rem;display:block}
+.nav-item{display:flex;align-items:center;gap:.75rem;padding:.65rem 1.5rem;font-size:.84rem;font-weight:500;color:var(--muted);text-decoration:none;transition:color .2s,background .2s;position:relative}
+.nav-item:hover{color:var(--ink);background:var(--off-white)}
+.nav-item.active{color:var(--blue);background:var(--blue-bg);font-weight:600}
+.nav-item.active::before{content:'';position:absolute;left:0;top:4px;bottom:4px;width:3px;background:var(--blue);border-radius:0 3px 3px 0}
+.nav-icon{font-size:1.1rem;width:20px;text-align:center}
+.main{margin-left:var(--sidebar-w);min-height:100vh;display:flex;flex-direction:column}
+.topbar{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:.85rem 2rem;display:flex;align-items:center;justify-content:space-between}
+.topbar-left{display:flex;align-items:center;gap:1rem}
+.page-heading{font-size:1.25rem;font-weight:700;color:var(--ink)}
+.page-sub{font-size:.78rem;color:var(--muted)}
+.topbar-right{display:flex;align-items:center;gap:.75rem}
+.topbar-btn{padding:.5rem 1rem;border-radius:var(--radius);font-size:.8rem;font-weight:600;text-decoration:none;border:1.5px solid var(--border);color:var(--ink-soft);background:var(--white)}
+.topbar-btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.page-content{padding:2rem;flex:1}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.25rem;margin-bottom:2rem}
+.stat-card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.stat-card.blue::before{background:var(--blue)}
+.stat-card.gold::before{background:var(--gold)}
+.stat-card.green::before{background:var(--green)}
+.stat-card.red::before{background:var(--red)}
+.stat-card.purple::before{background:#7c3aed}
+.stat-icon{font-size:1.75rem;margin-bottom:.75rem}
+.stat-value{font-size:2.25rem;font-weight:700;color:var(--ink);line-height:1}
+.stat-label{font-size:.78rem;color:var(--muted);margin-top:.35rem;font-weight:500}
+.stat-sub{font-size:.72rem;color:var(--muted);margin-top:.5rem}
+.section-title{font-size:1rem;font-weight:700;color:var(--ink);margin-bottom:1rem}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.5rem}
+.card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem}
+.bar-row{display:flex;align-items:center;gap:1rem;margin-bottom:.75rem}
+.bar-label{font-size:.82rem;color:var(--ink-soft);min-width:100px;font-weight:500}
+.bar-track{flex:1;height:8px;background:var(--surface);border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;transition:width .6s ease}
+.bar-fill.blue{background:var(--blue)}
+.bar-fill.green{background:var(--green)}
+.bar-fill.gold{background:var(--gold)}
+.bar-fill.red{background:var(--red)}
+.bar-fill.purple{background:#7c3aed}
+.bar-count{font-size:.78rem;font-weight:700;color:var(--ink);min-width:30px;text-align:right}
+.status-row{display:flex;justify-content:space-between;align-items:center;padding:.75rem 0;border-bottom:1px solid var(--surface)}
+.status-row:last-child{border-bottom:none}
+.status-badge{padding:.25rem .75rem;border-radius:20px;font-size:.72rem;font-weight:700}
+.badge-pending{background:var(--gold-bg);color:var(--gold)}
+.badge-progress{background:var(--blue-bg);color:var(--blue)}
+.badge-resolved{background:var(--green-bg);color:var(--green)}
+.badge-closed{background:var(--surface);color:var(--muted)}
+.badge-banned{background:var(--red-bg);color:var(--red)}
+.badge-spam{background:#fce7f3;color:#9d174d}
+.security-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-bottom:1.5rem}
+.security-card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;display:flex;align-items:center;gap:1rem}
+.security-icon{font-size:2rem}
+.security-value{font-size:1.75rem;font-weight:700}
+.security-label{font-size:.78rem;color:var(--muted)}
+.top-user-row{display:flex;justify-content:space-between;align-items:center;padding:.6rem 0;border-bottom:1px solid var(--surface)}
+.top-user-row:last-child{border-bottom:none}
+.top-user-email{font-size:.82rem;color:var(--ink-soft)}
+.top-user-count{background:var(--blue-bg);color:var(--blue);font-size:.72rem;font-weight:700;padding:.2rem .6rem;border-radius:20px}
+.resolution-ring{text-align:center;padding:1rem}
+.ring-value{font-size:3rem;font-weight:700;color:var(--blue)}
+.ring-label{font-size:.82rem;color:var(--muted);margin-top:.25rem}
+.ring-sub{font-size:.75rem;color:var(--muted);margin-top:.5rem}
+.days-chart{display:flex;align-items:flex-end;gap:6px;height:80px;margin-top:1rem}
+.day-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.day-bar{width:100%;background:var(--blue);border-radius:4px 4px 0 0;min-height:4px;transition:height .4s}
+.day-label{font-size:.6rem;color:var(--muted)}
+.day-count{font-size:.65rem;font-weight:700;color:var(--ink)}
+</style>
+
+<aside class="sidebar">
+    <a href="#" class="sidebar-logo">
+        <div class="sidebar-logo-text">Lingua<span>Learn</span> <small style="font-size:.6rem;color:var(--muted)">Admin</small></div>
+    </a>
+    <nav class="sidebar-nav">
+        <span class="nav-section-label">Support Admin</span>
+        <a href="{{ path('admin_support_stats') }}" class="nav-item active"><span class="nav-icon">📊</span> Statistiques</a>
+        <a href="{{ path('admin_support_audit') }}" class="nav-item"><span class="nav-icon">📋</span> Audit Trail</a>
+        <span class="nav-section-label">Gestion</span>
+        <a href="{{ path('app_faq_index') }}" class="nav-item">...FAQ</a>
+        <a href="{{ path('app_reclamation_index') }}" class="nav-item"><span class="nav-icon">💬</span> Réclamations</a>
+        <span class="nav-section-label">Système</span>
+        <a href="{{ path('app_logout') }}" class="nav-item"><span class="nav-icon">→</span> Log Out</a>
+    </nav>
+</aside>
+
+<div class="main">
+    <header class="topbar">
+        <div class="topbar-left">
+            <div>
+                <div class="page-heading">📊 Statistiques Support</div>
+                <div class="page-sub">Vue d'ensemble du module support</div>
+            </div>
+        </div>
+        <div class="topbar-right">
+            <a href="{{ path('admin_support_stats') }}" class="topbar-btn active">📊 Stats</a>
+            <a href="{{ path('admin_support_audit') }}" class="topbar-btn">📋 Audit</a>
+        </div>
+    </header>
+
+    <main class="page-content">
+
+        {# ── KPI Cards ── #}
+        <div class="stats-grid">
+            <div class="stat-card blue">
+                <div class="stat-icon">🎟️</div>
+                <div class="stat-value">{{ stats.total }}</div>
+                <div class="stat-label">Total Réclamations</div>
+                <div class="stat-sub">{{ stats.last_30_days }} ce mois-ci</div>
+            </div>
+            <div class="stat-card gold">
+                <div class="stat-icon">⏳</div>
+                <div class="stat-value">{{ stats.pending }}</div>
+                <div class="stat-label">En attente</div>
+                <div class="stat-sub">À traiter en priorité</div>
+            </div>
+            <div class="stat-card green">
+                <div class="stat-icon">✅</div>
+                <div class="stat-value">{{ stats.resolution_rate }}%</div>
+                <div class="stat-label">Taux de résolution</div>
+                <div class="stat-sub">{{ stats.resolved }} résolues / {{ stats.closed }} fermées</div>
+            </div>
+            <div class="stat-card red">
+                <div class="stat-icon">⚡</div>
+                <div class="stat-value">{{ stats.avg_resolution_h }}h</div>
+                <div class="stat-label">Temps moyen réponse</div>
+                <div class="stat-sub">Première réponse admin</div>
+            </div>
+        </div>
+
+        <div class="grid-2">
+
+            {# ── Distribution par statut ── #}
+            <div class="card">
+                <div class="section-title">📈 Distribution par statut</div>
+                {% set total = stats.total > 0 ? stats.total : 1 %}
+
+                <div class="bar-row">
+                    <span class="bar-label">⏳ En attente</span>
+                    <div class="bar-track"><div class="bar-fill gold" style="width:{{ (stats.pending/total*100)|round }}%"></div></div>
+                    <span class="bar-count">{{ stats.pending }}</span>
+                </div>
+                <div class="bar-row">
+                    <span class="bar-label">🔄 En cours</span>
+                    <div class="bar-track"><div class="bar-fill blue" style="width:{{ (stats.in_progress/total*100)|round }}%"></div></div>
+                    <span class="bar-count">{{ stats.in_progress }}</span>
+                </div>
+                <div class="bar-row">
+                    <span class="bar-label">✅ Résolues</span>
+                    <div class="bar-track"><div class="bar-fill green" style="width:{{ (stats.resolved/total*100)|round }}%"></div></div>
+                    <span class="bar-count">{{ stats.resolved }}</span>
+                </div>
+                <div class="bar-row">
+                    <span class="bar-label">🔒 Fermées</span>
+                    <div class="bar-track"><div class="bar-fill purple" style="width:{{ (stats.closed/total*100)|round }}%"></div></div>
+                    <span class="bar-count">{{ stats.closed }}</span>
+                </div>
+            </div>
+
+            {# ── Tickets par sujet ── #}
+            <div class="card">
+                <div class="section-title">🏷️ Réclamations par sujet</div>
+                {% set maxSubject = stats.by_subject|length > 0 ? stats.by_subject|first : 1 %}
+                {% for subject, count in stats.by_subject %}
+                <div class="bar-row">
+                    <span class="bar-label">{{ subject }}</span>
+                    <div class="bar-track"><div class="bar-fill blue" style="width:{{ (count/maxSubject*100)|round }}%"></div></div>
+                    <span class="bar-count">{{ count }}</span>
+                </div>
+                {% endfor %}
+                {% if stats.by_subject is empty %}
+                <p style="color:var(--muted);font-size:.85rem;text-align:center;padding:1rem">Aucune donnée</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="grid-2">
+
+            {# ── Activité 7 derniers jours ── #}
+            <div class="card">
+                <div class="section-title">📅 Tickets — 7 derniers jours</div>
+                {% set maxDay = 1 %}
+                {% for label, count in stats.last_7_days %}
+                    {% if count > maxDay %}{% set maxDay = count %}{% endif %}
+                {% endfor %}
+                <div class="days-chart">
+                    {% for label, count in stats.last_7_days %}
+                    <div class="day-bar-wrap">
+                        <span class="day-count">{{ count }}</span>
+                        <div class="day-bar" style="height:{{ maxDay > 0 ? (count/maxDay*60)|round : 4 }}px"></div>
+                        <span class="day-label">{{ label }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {# ── Top utilisateurs ── #}
+            <div class="card">
+                <div class="section-title">👥 Top utilisateurs</div>
+                {% for email, count in stats.top_users %}
+                <div class="top-user-row">
+                    <span class="top-user-email">{{ email }}</span>
+                    <span class="top-user-count">{{ count }} tickets</span>
+                </div>
+                {% else %}
+                <p style="color:var(--muted);font-size:.85rem;text-align:center;padding:1rem">Aucune donnée</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        {# ── Sécurité ── #}
+        <div class="section-title">🔐 Sécurité & Modération</div>
+        <div class="security-grid">
+            <div class="security-card">
+                <div class="security-icon">🚫</div>
+                <div>
+                    <div class="security-value" style="color:var(--red)">{{ stats.total_bans }}</div>
+                    <div class="security-label">Utilisateurs bannis (bad words)</div>
+                </div>
+            </div>
+            <div class="security-card">
+                <div class="security-icon">🚦</div>
+                <div>
+                    <div class="security-value" style="color:#9d174d">{{ stats.total_spam_blocked }}</div>
+                    <div class="security-label">Tentatives de spam bloquées</div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+{% endblock %}
