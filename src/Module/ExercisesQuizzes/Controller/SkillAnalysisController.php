@@ -51,7 +51,9 @@ class SkillAnalysisController extends AbstractController
         $profiles = $this->skillProfileRepository->findByUser($user);
         $weakCodes = $session->getWeakSkillCodes();
         $recommendedIds = $session->getRecommendedExerciseIds();
-        $recommendedExercises = $recommendedIds !== [] ? $this->exerciceRepository->findByIds($recommendedIds) : [];
+        $recommendedExercises = $recommendedIds !== []
+    ? $this->exerciceRepository->findBy(['id' => $recommendedIds])
+    : [];
         usort($recommendedExercises, fn ($a, $b) => (array_search($a->getId(), $recommendedIds, true) ?: 0) <=> (array_search($b->getId(), $recommendedIds, true) ?: 0));
 
         $aiFeedback = $session->getAiFeedback();

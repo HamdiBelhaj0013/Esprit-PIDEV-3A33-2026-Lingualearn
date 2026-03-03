@@ -11,6 +11,8 @@ use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class QuizType extends AbstractType
@@ -60,6 +62,29 @@ class QuizType extends AbstractType
                 ],
                 'help' => 'Nombre total de questions dans ce quiz.',
             ])
+            ->add('difficulty', \Symfony\Component\Form\Extension\Core\Type\ChoiceType::class, [
+                'choices' => [
+                    '1 - Très facile' => 1,
+                    '2 - Facile' => 2,
+                    '3 - Moyen' => 3,
+                    '4 - Difficile' => 4,
+                    '5 - Très difficile' => 5,
+                ],
+                'label' => 'Niveau de difficulté',
+                'attr' => ['class' => 'form-select'],
+                'help' => 'Niveau global du quiz (affichage et pré-remplissage des exercices).',
+            ])
+            ->add('skillCodesText', TextareaType::class, [
+                'mapped' => false,
+                'label' => 'Compétences couvertes',
+                'required' => false,
+                'attr' => [
+                    'placeholder' => "grammar\nvocab\nlistening",
+                    'rows' => 3,
+                    'class' => 'form-control',
+                ],
+                'help' => 'Une compétence par ligne ou séparées par des virgules. Pour affichage et analyse.',
+            ])
             ->add('enabled', CheckboxType::class, [
                 'label' => 'Quiz activé',
                 'required' => false,
@@ -67,6 +92,26 @@ class QuizType extends AbstractType
                 'label_attr' => ['class' => 'form-check-label'],
                 'row_attr' => ['class' => 'form-check form-switch mb-0'],
             ]);
+
+        $builder->addEventListener(FormEvents::POST_SET_DATA, function (FormEvent $event): void {
+            $quiz = $event->getData();
+            if (!$quiz instanceof Quiz) {
+                return;
+            }
+            $event->getForm()->get('skillCodesText')->setData(implode("\n", $quiz->getSkillCodes()));
+        });
+
+        $builder->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event): void {
+            $data = $event->getData();
+            if (!is_array($data)) {
+                return;
+            }
+            $quiz = $event->getForm()->getData();
+            if ($quiz instanceof Quiz) {
+                $text = $data['skillCodesText'] ?? '';
+                $quiz->setSkillCodes(ExerciceType::normalizeSkillCodesText($text));
+            }
+        });
     }
 
     public function configureOptions(OptionsResolver $resolver): void

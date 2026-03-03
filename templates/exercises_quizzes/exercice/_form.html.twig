@@ -1,19 +1,10 @@
-<<<<<<< Updated upstream
+
 {# templates/exercises_quizzes/exercice/_form.html.twig #}
-{% extends 'base.html.twig' %}
-
-{% block title %}{{ is_edit ? 'Modifier' : 'Créer' }} un Exercice{% endblock %}
-
-{% block body %}
-<div class="row">
-    <div class="col-lg-8 mx-auto">
-        <div class="card">
-=======
-{# Fragment formulaire exercice — design cohérent Quiz/Exercice #}
+{# Fragment uniquement : utilisé dans les pages admin qui étendent déjà layouts/admin.html.twig #}
 <div class="row justify-content-center">
     <div class="col-12 col-lg-9">
         <div class="card eq-card shadow-sm">
->>>>>>> Stashed changes
+
             <div class="card-header">
                 <h3 class="card-title mb-0">
                     <i class="ti ti-forms me-2"></i>
@@ -61,6 +52,22 @@
                     </div>
                 </div>
 
+                <div class="mb-4">
+                    <div class="eq-section-title">Compétences & difficulté</div>
+                    <div class="mb-3">
+                        {{ form_label(form.difficulty, null, { label_attr: { class: 'form-label' } }) }}
+                        {{ form_widget(form.difficulty, { attr: { class: 'form-select' } }) }}
+                        {{ form_help(form.difficulty) }}
+                        {{ form_errors(form.difficulty) }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form_label(form.skillCodesText, null, { label_attr: { class: 'form-label' } }) }}
+                        {{ form_widget(form.skillCodesText, { attr: { class: 'form-control font-monospace', rows: 3, placeholder: "grammar\nvocab\nlistening" } }) }}
+                        {{ form_help(form.skillCodesText) }}
+                        {{ form_errors(form.skillCodesText) }}
+                    </div>
+                </div>
+
                 <div class="mb-0">
                     <div class="eq-section-title">Métadonnées</div>
                     <div class="mb-3">
@@ -90,7 +97,3 @@
         </div>
     </div>
 </div>
-<<<<<<< Updated upstream
-{% endblock %}
-=======
->>>>>>> Stashed changes

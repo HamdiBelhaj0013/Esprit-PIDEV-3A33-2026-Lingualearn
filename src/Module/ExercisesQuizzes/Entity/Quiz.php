@@ -44,6 +44,14 @@ class Quiz
     #[Assert\Positive(message: "Le nombre de questions doit être supérieur à zéro.")]
     private ?int $questionCount = null;
 
+    /** Niveau de difficulté global du quiz (1-5), pour affichage et pré-remplissage des exercices. */
+    #[ORM\Column(type: 'smallint', options: ['default' => 3])]
+    private int $difficulty = 3;
+
+    /** Codes de compétences couverts par ce quiz (ex: grammar, vocab), pour affichage. */
+    #[ORM\Column(type: 'json', options: ['default' => '[]'])]
+    private array $skillCodes = [];
+
     #[ORM\OneToMany(mappedBy: 'quiz', targetEntity: Exercice::class, cascade: ['persist', 'remove'])]
     private Collection $exercices;
 
@@ -153,6 +161,35 @@ private ?\DateTimeImmutable $createdAt = null;
     public function setQuestionCount(int $questionCount): self
     {
         $this->questionCount = $questionCount;
+        return $this;
+    }
+
+    public function getDifficulty(): int
+    {
+        return $this->difficulty;
+    }
+
+    public function setDifficulty(int $difficulty): self
+    {
+        $this->difficulty = max(1, min(5, $difficulty));
+        return $this;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getSkillCodes(): array
+    {
+        return $this->skillCodes;
+    }
+
+    /**
+     * @param string[] $skillCodes
+     */
+    public function setSkillCodes(array $skillCodes): self
+    {
+        $skillCodes = array_map('strval', $skillCodes);
+        $this->skillCodes = array_values(array_unique(array_filter($skillCodes, fn ($v) => trim($v) !== '')));
         return $this;
     }
 

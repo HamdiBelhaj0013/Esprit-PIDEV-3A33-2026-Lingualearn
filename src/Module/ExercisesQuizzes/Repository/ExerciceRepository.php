@@ -97,4 +97,51 @@ class ExerciceRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Trouve des exercices activés qui ont au moins un des skillCodes donné.
+     *
+     * @param string[] $skillCodes
+     * @param int|null $maxDifficulty Difficulté max (1-5), null = pas de filtre
+     * @param int[] $excludeIds IDs d'exercices à exclure
+     * @return Exercice[]
+     */
+    public function findBySkillCodes(array $skillCodes, ?int $maxDifficulty = null, array $excludeIds = [], int $limit = 20): array
+    {
+        if ($skillCodes === []) {
+            $all = $this->findBy(['enabled' => true], ['id' => 'ASC'], min($limit * 2, 500));
+            $filtered = array_slice(array_filter($all, fn ($e) => !in_array($e->getId(), $excludeIds, true)), 0, $limit);
+            return array_values($filtered);
+        }
+
+        $qb = $this->createQueryBuilder('e')
+            ->where('e.enabled = :enabled')
+            ->setParameter('enabled', true)
+            ->orderBy('e.id', 'ASC')
+            ->setMaxResults(min($limit * 3, 500));
+
+        if ($excludeIds !== []) {
+            $qb->andWhere('e.id NOT IN (:excludeIds)')->setParameter('excludeIds', $excludeIds);
+        }
+        if ($maxDifficulty !== null) {
+            $qb->andWhere('e.difficulty <= :maxDiff')->setParameter('maxDiff', max(1, min(5, $maxDifficulty)));
+        }
+
+        $candidates = $qb->getQuery()->getResult();
+        $result = [];
+        foreach ($candidates as $e) {
+            $skills = $e->getSkillCodes();
+            if ($skills === []) {
+                continue;
+            }
+            $overlap = array_intersect($skillCodes, $skills);
+            if ($overlap !== [] && !in_array($e->getId(), $excludeIds, true)) {
+                $result[] = $e;
+                if (count($result) >= $limit) {
+                    break;
+                }
+            }
+        }
+        return $result;
+    }
 }

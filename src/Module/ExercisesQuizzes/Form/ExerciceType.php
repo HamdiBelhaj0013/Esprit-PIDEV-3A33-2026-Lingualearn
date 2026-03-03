@@ -64,6 +64,29 @@ class ExerciceType extends AbstractType
                     'class' => 'form-control',
                 ],
             ])
+            ->add('difficulty', ChoiceType::class, [
+                'choices' => [
+                    '1 - Très facile' => 1,
+                    '2 - Facile' => 2,
+                    '3 - Moyen' => 3,
+                    '4 - Difficile' => 4,
+                    '5 - Très difficile' => 5,
+                ],
+                'label' => 'Niveau de difficulté',
+                'attr' => ['class' => 'form-control'],
+                'help' => 'Utilisé pour l\'analyse des compétences et les recommandations.',
+            ])
+            ->add('skillCodesText', TextareaType::class, [
+                'mapped' => false,
+                'label' => 'Compétences (skills)',
+                'help' => 'Une compétence par ligne ou séparées par des virgules (ex: grammar, vocab, listening). Utilisé pour l\'analyse des compétences.',
+                'required' => false,
+                'attr' => [
+                    'placeholder' => "grammar\nvocab\nlistening",
+                    'rows' => 3,
+                    'class' => 'form-control',
+                ],
+            ])
             ->add('enabled', ChoiceType::class, [
                 'choices' => [
                     'Non' => false,
@@ -89,6 +112,7 @@ class ExerciceType extends AbstractType
             }
             $options = $entity->getOptions();
             $event->getForm()->get('optionsText')->setData(implode("\n", $options));
+            $event->getForm()->get('skillCodesText')->setData(implode("\n", $entity->getSkillCodes()));
         });
 
         $builder->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event): void {
@@ -101,6 +125,8 @@ class ExerciceType extends AbstractType
             $entity = $event->getForm()->getData();
             if ($entity instanceof Exercice) {
                 $entity->setOptions($options);
+                $skillText = $data['skillCodesText'] ?? '';
+                $entity->setSkillCodes(self::normalizeSkillCodesText($skillText));
             }
             // Validation : quand des options sont fournies, la réponse correcte doit être parmi elles
             $correctAnswer = trim((string) ($data['correctAnswer'] ?? ''));
@@ -130,6 +156,26 @@ class ExerciceType extends AbstractType
             }
         }
         return array_values(array_unique($options));
+    }
+
+    /**
+     * Convertit le textarea compétences (lignes ou virgules) en tableau de codes.
+     *
+     * @return string[]
+     */
+    public static function normalizeSkillCodesText(string $text): array
+    {
+        $text = str_replace(["\r\n", "\r"], "\n", $text);
+        $text = str_replace(',', "\n", $text);
+        $lines = explode("\n", $text);
+        $codes = [];
+        foreach ($lines as $line) {
+            $code = trim($line);
+            if ($code !== '' && !in_array($code, $codes, true)) {
+                $codes[] = $code;
+            }
+        }
+        return array_values($codes);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
