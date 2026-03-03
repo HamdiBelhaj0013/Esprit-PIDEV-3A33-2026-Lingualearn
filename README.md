@@ -18,23 +18,22 @@ LinguaLearn is a full-stack web application designed to make language learning i
 - 💳 **Stripe Payments** — Monthly & yearly subscription plans
 - 🔔 **Real-time Notifications** — Powered by Pusher
 - 📄 **PDF Export** — Generate documents with DomPDF
-- 📊 **Audit Logging** — Full activity tracking with DamienHarper Auditor
 - 🔄 **Workflow & State Machine** — Quiz attempt lifecycle management
 
 ## Tech Stack
 
 ### Frontend
 
-- Twig 3.x (templating)
+- Twig 3 (templating)
 - Symfony UX Turbo + Stimulus (SPA-like interactions)
 - Webpack Encore (asset bundling)
 - HTML5 / CSS3 / JavaScript
 
 ### Backend
 
-- PHP 8.2+
+- PHP 8.2
 - Symfony 7.4
-- Doctrine ORM 3.x + Migrations
+- Doctrine ORM 3 + Migrations
 - Symfony Security, Form, Validator, Serializer
 - Symfony Messenger (async jobs via Doctrine transport)
 - Symfony Workflow (state machines)
