@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Module\UserManagement\Entity\User;
+use App\Module\UserManagement\Service\FaceRecognitionService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,21 +15,22 @@ class SetupController extends AbstractController
 {
     #[Route('/setup/create-admin', name: 'setup_create_admin')]
     public function createAdmin(
-        Request $request,
+        Request                     $request,
         UserPasswordHasherInterface $passwordHasher,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface      $entityManager,
     ): Response {
-        $error = null;
+        $error   = null;
         $success = false;
+        $token   = null;
+        $userId  = null;
 
         if ($request->isMethod('POST')) {
-            $email = $request->request->get('email');
-            $password = $request->request->get('password');
+            $email           = $request->request->get('email');
+            $password        = $request->request->get('password');
             $confirmPassword = $request->request->get('confirm_password');
-            $firstName = $request->request->get('first_name');
-            $lastName = $request->request->get('last_name');
+            $firstName       = $request->request->get('first_name');
+            $lastName        = $request->request->get('last_name');
 
-            // Basic validation
             if (empty($email) || empty($password) || empty($firstName) || empty($lastName)) {
                 $error = 'All fields are required.';
             } elseif ($password !== $confirmPassword) {
@@ -36,30 +38,29 @@ class SetupController extends AbstractController
             } elseif (strlen($password) < 6) {
                 $error = 'Password must be at least 6 characters long.';
             } else {
-                // Check if user already exists
                 $existingUser = $entityManager->getRepository(User::class)->findOneBy(['email' => $email]);
 
                 if ($existingUser) {
                     $error = 'An account with this email already exists.';
                 } else {
-                    // Create admin user
                     $user = new User();
                     $user->setEmail($email);
                     $user->setFirstName($firstName);
                     $user->setLastName($lastName);
-                    $user->setRoles(['ROLE_ADMIN', 'ROLE_USER']); // Admin role
+                    $user->setRoles(['ROLE_ADMIN', 'ROLE_USER']);
                     $user->setStatus('active');
-                    // Admins don't need a Stripe subscription — leave on FREE.
-                    // isPremium is computed from subscriptionPlan+expiry; setPremium() is a no-op.
                     $user->setSubscriptionPlan('FREE');
+                    $user->setPassword($passwordHasher->hashPassword($user, $password));
 
-                    // Hash password
-                    $hashedPassword = $passwordHasher->hashPassword($user, $password);
-                    $user->setPassword($hashedPassword);
-
-                    // Save to database
                     $entityManager->persist($user);
                     $entityManager->flush();
+
+                    // ── Generate one-time setup token for face enrollment ──
+                    $token  = bin2hex(random_bytes(16));
+                    $userId = $user->getId();
+
+                    $request->getSession()->set('setup_enroll_token',   $token);
+                    $request->getSession()->set('setup_enroll_user_id', $userId);
 
                     $success = true;
                 }
@@ -67,8 +68,10 @@ class SetupController extends AbstractController
         }
 
         return $this->render('setup/create_admin.html.twig', [
-            'error' => $error,
+            'error'   => $error,
             'success' => $success,
+            'token'   => $token,   // null when form not yet submitted
+            'user_id' => $userId,  // null when form not yet submitted
         ]);
     }
 }

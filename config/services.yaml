@@ -112,14 +112,20 @@ services:
             $model: '%env(HUGGINGFACE_MODEL)%'
             $apiToken: '%env(HUGGINGFACE_API_TOKEN)%'
 
-
     App\Module\ExercisesQuizzes\Client\AiCoachClientInterface:
         alias: App\Module\ExercisesQuizzes\Client\HuggingFaceAiCoachClient
 
-    
     App\Service\NotificationService:
         arguments:
             $appId: '%env(PUSHER_APP_ID)%'
             $key: '%env(PUSHER_APP_KEY)%'
             $secret: '%env(PUSHER_APP_SECRET)%'
             $cluster: '%env(PUSHER_APP_CLUSTER)%'
+
+    # =========================================================
+    # FACE RECOGNITION
+    # =========================================================
+
+    App\Module\UserManagement\Service\FaceRecognitionService:
+        arguments:
+            $faceApiUrl: '%env(FACE_API_URL)%'
