@@ -58,7 +58,7 @@ class UserSupportController extends AbstractController
         $user = $this->getUser();
 
         if ($user->isBanned()) {
-            return $this->redirectToRoute('app_support_banned');
+            $this->redirectToRoute('app_banned');
         }
 
         $reclamation = new Reclamation();

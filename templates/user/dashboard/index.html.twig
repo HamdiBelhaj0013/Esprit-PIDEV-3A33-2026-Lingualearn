@@ -394,86 +394,8 @@
 </head>
 <body>
 
-{# ─── SIDEBAR OVERLAY ─── #}
-<div class="sidebar-overlay" id="sidebarOverlay"></div>
+{% include 'components/sidebar.html.twig' %}
 
-{# ─── SIDEBAR ─── #}
-<aside class="sidebar" id="sidebar">
-
-    <a href="{{ path('app_homepage') }}" class="sidebar-logo">
-        <div class="sidebar-logo-icon">L</div>
-        <span class="sidebar-logo-text">Lingua<span>Learn</span></span>
-    </a>
-
-    <div class="sidebar-user">
-        <div class="user-avatar {{ user.isPremium ? 'premium' : '' }}">
-            {{ user.firstName|first|upper }}{{ user.lastName|first|upper }}
-        </div>
-        <div class="user-info">
-            <div class="user-name">{{ user.fullName }}</div>
-            <div class="user-plan {{ user.isPremium ? 'premium' : 'free' }}">
-                {{ user.isPremium ? '👑 ' ~ user.subscriptionPlan : 'Free Plan' }}
-            </div>
-        </div>
-    </div>
-
-    <nav class="sidebar-nav">
-        <span class="nav-section-label">Main</span>
-        <a href="{{ path('user_dashboard') }}" class="nav-item active">
-            <span class="nav-icon">🏠</span> Dashboard
-        </a>
-        <a href="#" class="nav-item">
-            <span class="nav-icon">📚</span> My Courses
-            <span class="nav-badge">0</span>
-        </a>
-        <a href="{{ path('learn_practice') }}" class="nav-item">
-            <span class="nav-icon">🧩</span> Practice
-        </a>
-        <a href="{{ path('ressources') }}" class="nav-item">
-            <span class="nav-icon"><i class="ti ti-layout-dashboard me-2"></i></span> Forum
-        </a>
-        <a href="#" class="nav-item">
-            <span class="nav-icon">📝</span> Mock Tests
-            {% if not user.isPremium %}<span class="nav-badge" style="background:var(--gold)">PRO</span>{% endif %}
-        </a>
-
-        <span class="nav-section-label">Account</span>
-        <a href="{{ path('user_profile') }}" class="nav-item">
-            <span class="nav-icon">👤</span> My Profile
-        </a>
-        <a href="{{ path('user_profile') }}" class="nav-item">
-            <span class="nav-icon">🔔</span> Notifications
-            {% set unread = 0 %}
-            {% for n in user.notifications %}{% if not n.isRead %}{% set unread = unread + 1 %}{% endif %}{% endfor %}
-            {% if unread > 0 %}<span class="nav-badge orange">{{ unread }}</span>{% endif %}
-        </a>
-        <a href="{{ path('pricing') }}" class="nav-item">
-            <span class="nav-icon">👑</span> Plans & Billing
-        </a>
-        <span class="nav-section-label">Support</span>
-        <a href="{{ path('app_user_faq_index') }}" class="nav-item">
-            <span class="nav-icon">❓</span> FAQ
-        </a>
-        <a href="{{ path('app_user_reclamation_index') }}" class="nav-item">
-            <span class="nav-icon">💬</span> Mes réclamations
-        </a>
-
-        {% if not user.isPremium %}
-            <div class="sidebar-upgrade">
-                <div class="sidebar-upgrade-label">✦ Go Premium</div>
-                <p>Unlock all courses, mock tests & AI practice.</p>
-                <a href="{{ path('pricing') }}" class="sidebar-upgrade-btn">Upgrade Now →</a>
-            </div>
-        {% endif %}
-    </nav>
-
-    <div class="sidebar-bottom">
-        <a href="{{ path('app_logout') }}" class="nav-item">
-            <span class="nav-icon">🚪</span> Log Out
-        </a>
-    </div>
-
-</aside>
 
 {# ─── MAIN ─── #}
 <div class="main">
@@ -619,26 +541,39 @@
         <div class="card reveal" style="margin-bottom:1.75rem;">
             <div class="card-body">
                 <div class="actions-grid">
-                    <a href="#" class="action-card">
+
+                    <a href="{{ path('language_select') }}" class="action-card">
                         <div class="action-icon ai-blue">📚</div>
                         <div class="action-label">Browse Courses</div>
                         <div class="action-sub">Find your next lesson</div>
                     </a>
+
                     <a href="{{ path('learn_practice') }}" class="action-card">
                         <div class="action-icon ai-green">🧩</div>
                         <div class="action-label">Practice Now</div>
                         <div class="action-sub">Daily exercises</div>
                     </a>
-                    <a href="#" class="action-card {{ not user.isPremium ? 'locked' : '' }}">
-                        <div class="action-icon ai-orange">📝</div>
-                        <div class="action-label">Mock Test</div>
-                        <div class="action-sub">{{ user.isPremium ? 'CEFR preparation' : 'Premium only' }}</div>
-                    </a>
+
+                    {% if user.isPremium %}
+                        <a href="{{ path('mock_tests_index') }}" class="action-card">
+                            <div class="action-icon ai-orange">📝</div>
+                            <div class="action-label">Mock Test</div>
+                            <div class="action-sub">CEFR preparation</div>
+                        </a>
+                    {% else %}
+                        <a href="{{ path('pricing') }}" class="action-card">
+                            <div class="action-icon ai-orange">📝</div>
+                            <div class="action-label">Mock Test</div>
+                            <div class="action-sub">Premium only 👑</div>
+                        </a>
+                    {% endif %}
+
                     <a href="{{ path('user_profile') }}" class="action-card">
                         <div class="action-icon ai-violet">👤</div>
                         <div class="action-label">Edit Profile</div>
                         <div class="action-sub">Update your info</div>
                     </a>
+
                 </div>
             </div>
         </div>
@@ -745,12 +680,6 @@
 </div>
 
 <script>
-    const sidebar   = document.getElementById('sidebar');
-    const overlay   = document.getElementById('sidebarOverlay');
-    const hamburger = document.getElementById('hamburgerBtn');
-    hamburger.addEventListener('click', () => { sidebar.classList.toggle('open'); overlay.classList.toggle('visible'); });
-    overlay.addEventListener('click',   () => { sidebar.classList.remove('open'); overlay.classList.remove('visible'); });
-
     const ro = new IntersectionObserver(entries => {
         entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); ro.unobserve(e.target); } });
     }, { threshold: 0.06 });

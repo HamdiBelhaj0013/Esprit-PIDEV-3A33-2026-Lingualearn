@@ -54,7 +54,6 @@
         <a href="{{ path('ressources') }}" class="nav-item">
             <span class="nav-icon">💬</span> Forum
         </a>
-
         {% if app.user and app.user.isPremium %}
             <a href="{{ path('mock_tests_index') }}"
                class="nav-item {{ route starts with 'mock_tests' ? 'active' : '' }}">
