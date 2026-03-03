@@ -7,336 +7,336 @@
 {% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-lg-8">
+    <div class="row">
+        <div class="col-lg-8">
 
-        <!-- Ticket Details -->
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Ticket Details</h3>
-                <div class="card-actions d-flex gap-2 align-items-center">
-                    {# ── Badge Priorité ── #}
-                    {% if reclamation.priority == 'URGENT' %}
-                        <span class="badge bg-red">🔴 URGENT</span>
-                    {% elseif reclamation.priority == 'HIGH' %}
-                        <span class="badge bg-orange">🟠 HIGH</span>
-                    {% elseif reclamation.priority == 'MEDIUM' %}
-                        <span class="badge bg-blue">🟡 MEDIUM</span>
-                    {% elseif reclamation.priority == 'LOW' %}
-                        <span class="badge bg-green">🟢 LOW</span>
-                    {% endif %}
-                    {# ── Badge Statut ── #}
-                    {% if reclamation.status == 'PENDING' %}
-                        <span class="badge bg-yellow">⏳ Pending</span>
-                    {% elseif reclamation.status == 'IN_PROGRESS' %}
-                        <span class="badge bg-blue">🔄 In Progress</span>
-                    {% elseif reclamation.status == 'RESOLVED' %}
-                        <span class="badge bg-green">✅ Resolved</span>
-                    {% elseif reclamation.status == 'CLOSED' %}
-                        <span class="badge bg-secondary">🔒 Closed</span>
-                    {% endif %}
-                </div>
-            </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Subject</label>
-                    <div>
-                        {% if reclamation.subject == 'payment' %}
-                            <span class="badge bg-primary">Problème de paiement</span>
-                        {% elseif reclamation.subject == 'technical' %}
-                            <span class="badge bg-info">Bug technique</span>
-                        {% elseif reclamation.subject == 'content' %}
-                            <span class="badge bg-warning">Erreur de contenu</span>
-                        {% elseif reclamation.subject == 'premium' %}
-                            <span class="badge bg-danger">Accès premium</span>
-                        {% elseif reclamation.subject == 'account' %}
-                            <span class="badge bg-success">Problème de compte</span>
-                        {% else %}
-                            <span class="badge bg-secondary">{{ reclamation.subject }}</span>
+            <!-- Ticket Details -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Ticket Details</h3>
+                    <div class="card-actions d-flex gap-2 align-items-center">
+                        {# ── Badge Priorité ── #}
+                        {% if reclamation.priority == 'URGENT' %}
+                            <span class="badge bg-red">🔴 URGENT</span>
+                        {% elseif reclamation.priority == 'HIGH' %}
+                            <span class="badge bg-orange">🟠 HIGH</span>
+                        {% elseif reclamation.priority == 'MEDIUM' %}
+                            <span class="badge bg-blue">🟡 MEDIUM</span>
+                        {% elseif reclamation.priority == 'LOW' %}
+                            <span class="badge bg-green">🟢 LOW</span>
+                        {% endif %}
+                        {# ── Badge Statut ── #}
+                        {% if reclamation.status == 'PENDING' %}
+                            <span class="badge bg-yellow">⏳ Pending</span>
+                        {% elseif reclamation.status == 'IN_PROGRESS' %}
+                            <span class="badge bg-blue">🔄 In Progress</span>
+                        {% elseif reclamation.status == 'RESOLVED' %}
+                            <span class="badge bg-green">✅ Resolved</span>
+                        {% elseif reclamation.status == 'CLOSED' %}
+                            <span class="badge bg-secondary">🔒 Closed</span>
                         {% endif %}
                     </div>
                 </div>
-
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Description</label>
-                    <div class="card card-sm bg-light">
-                        <div class="card-body">{{ reclamation.messageBody|nl2br }}</div>
-                    </div>
-                </div>
-
-                {% if is_granted('ROLE_ADMIN') %}
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Submitted By</label>
-                    <div>
-                        {% if reclamation.user %}
-                            <span class="text-muted">{{ reclamation.user.email }}</span>
-                        {% else %}
-                            <span class="text-muted">Anonymous User</span>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Responses -->
-        <div class="card mt-3">
-            <div class="card-header">
-                <h3 class="card-title">
-                    Responses
-                    <span class="badge bg-azure ms-2">{{ reclamation.responses|length }}</span>
-                </h3>
-            </div>
-            <div class="card-body">
-                {% if reclamation.responses|length > 0 %}
-                    {% for response in reclamation.responses %}
-                        <div class="card card-sm mb-3 {% if response.author and is_granted('ROLE_ADMIN', response.author) %}bg-primary-lt{% endif %}">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <div>
-                                        <strong>
-                                            {% if response.author %}
-                                                {{ response.author.email }}
-                                                {% if is_granted('ROLE_ADMIN', response.author) %}
-                                                    <span class="badge bg-red ms-2">Admin</span>
-                                                {% endif %}
-                                            {% else %}
-                                                Anonymous
-                                            {% endif %}
-                                        </strong>
-                                    </div>
-                                    <small class="text-muted">{{ response.respondedAt|date('d/m/Y H:i') }}</small>
-                                </div>
-                                <div>{{ response.message|nl2br }}</div>
-                            </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Subject</label>
+                        <div>
+                            {% if reclamation.subject == 'payment' %}
+                                <span class="badge bg-primary">Problème de paiement</span>
+                            {% elseif reclamation.subject == 'technical' %}
+                                <span class="badge bg-info">Bug technique</span>
+                            {% elseif reclamation.subject == 'content' %}
+                                <span class="badge bg-warning">Erreur de contenu</span>
+                            {% elseif reclamation.subject == 'premium' %}
+                                <span class="badge bg-danger">Accès premium</span>
+                            {% elseif reclamation.subject == 'account' %}
+                                <span class="badge bg-success">Problème de compte</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ reclamation.subject }}</span>
+                            {% endif %}
                         </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="empty">
-                        <p class="empty-title">No responses yet</p>
-                        <p class="empty-subtitle text-muted">Be the first to respond to this ticket.</p>
                     </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Add Response + Workflow Transitions -->
-        <div class="card mt-3">
-            <div class="card-header">
-                <h3 class="card-title">Add Response</h3>
-            </div>
-            <div class="card-body">
-                <form method="post" action="{{ path('admin_support_respond', {id: reclamation.id}) }}">
-                    <input type="hidden" name="_token" value="{{ csrf_token('respond' ~ reclamation.id) }}">
 
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Message <span class="text-red">*</span></label>
-                        <textarea name="message" class="form-control" rows="4"
-                                  placeholder="Votre réponse..." required></textarea>
+                        <label class="form-label fw-bold">Description</label>
+                        <div class="card card-sm bg-light">
+                            <div class="card-body">{{ reclamation.messageBody|nl2br }}</div>
+                        </div>
                     </div>
 
                     {% if is_granted('ROLE_ADMIN') %}
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">
-                            🔄 Changer le statut via Workflow
-                            <small class="text-muted ms-1">(transitions disponibles)</small>
-                        </label>
-
-                        {% set transitions = workflow_transitions(reclamation, 'support_ticket') %}
-
-                        {% if transitions|length > 0 %}
-                            <div class="d-flex flex-wrap gap-2 mt-2">
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio"
-                                           name="transition" id="transition_none" value="" checked>
-                                    <label class="form-check-label" for="transition_none">
-                                        Garder statut actuel
-                                    </label>
-                                </div>
-
-                                {% for transition in transitions %}
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio"
-                                           name="transition"
-                                           id="transition_{{ transition.name }}"
-                                           value="{{ transition.name }}">
-                                    <label class="form-check-label" for="transition_{{ transition.name }}">
-                                        {% if transition.name == 'start_processing' %}
-                                            🔄 Mettre En cours
-                                        {% elseif transition.name == 'resolve' %}
-                                            ✅ Résoudre
-                                        {% elseif transition.name == 'close' %}
-                                            🔒 Fermer
-                                        {% elseif transition.name == 'reopen' %}
-                                            🔓 Réouvrir
-                                        {% else %}
-                                            {{ transition.name }}
-                                        {% endif %}
-                                    </label>
-                                </div>
-                                {% endfor %}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Submitted By</label>
+                            <div>
+                                {% if reclamation.user %}
+                                    <span class="text-muted">{{ reclamation.user.email }}</span>
+                                {% else %}
+                                    <span class="text-muted">Anonymous User</span>
+                                {% endif %}
                             </div>
-                        {% else %}
-                            <div class="alert alert-info mt-2">
-                                <i class="ti ti-info-circle me-1"></i>
-                                Aucune transition disponible pour le statut actuel.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Responses -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        Responses
+                        <span class="badge bg-azure ms-2">{{ reclamation.responses|length }}</span>
+                    </h3>
+                </div>
+                <div class="card-body">
+                    {% if reclamation.responses|length > 0 %}
+                        {% for response in reclamation.responses %}
+                            <div class="card card-sm mb-3 {% if response.author and is_granted('ROLE_ADMIN', response.author) %}bg-primary-lt{% endif %}">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <strong>
+                                                {% if response.author %}
+                                                    {{ response.author.email }}
+                                                    {% if is_granted('ROLE_ADMIN', response.author) %}
+                                                        <span class="badge bg-red ms-2">Admin</span>
+                                                    {% endif %}
+                                                {% else %}
+                                                    Anonymous
+                                                {% endif %}
+                                            </strong>
+                                        </div>
+                                        <small class="text-muted">{{ response.respondedAt|date('d/m/Y H:i') }}</small>
+                                    </div>
+                                    <div>{{ response.message|nl2br }}</div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty">
+                            <p class="empty-title">No responses yet</p>
+                            <p class="empty-subtitle text-muted">Be the first to respond to this ticket.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Add Response + Workflow Transitions -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h3 class="card-title">Add Response</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{{ path('admin_support_respond', {id: reclamation.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('respond' ~ reclamation.id) }}">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Message <span class="text-red">*</span></label>
+                            <textarea name="message" class="form-control" rows="4"
+                                      placeholder="Votre réponse..." required></textarea>
+                        </div>
+
+                        {% if is_granted('ROLE_ADMIN') %}
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">
+                                    🔄 Changer le statut via Workflow
+                                    <small class="text-muted ms-1">(transitions disponibles)</small>
+                                </label>
+
+                                {% set transitions = workflow_transitions(reclamation, 'support_ticket') %}
+
+                                {% if transitions|length > 0 %}
+                                    <div class="d-flex flex-wrap gap-2 mt-2">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio"
+                                                   name="transition" id="transition_none" value="" checked>
+                                            <label class="form-check-label" for="transition_none">
+                                                Garder statut actuel
+                                            </label>
+                                        </div>
+
+                                        {% for transition in transitions %}
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio"
+                                                       name="transition"
+                                                       id="transition_{{ transition.name }}"
+                                                       value="{{ transition.name }}">
+                                                <label class="form-check-label" for="transition_{{ transition.name }}">
+                                                    {% if transition.name == 'start_processing' %}
+                                                        🔄 Mettre En cours
+                                                    {% elseif transition.name == 'resolve' %}
+                                                        ✅ Résoudre
+                                                    {% elseif transition.name == 'close' %}
+                                                        🔒 Fermer
+                                                    {% elseif transition.name == 'reopen' %}
+                                                        🔓 Réouvrir
+                                                    {% else %}
+                                                        {{ transition.name }}
+                                                    {% endif %}
+                                                </label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-info mt-2">
+                                        <i class="ti ti-info-circle me-1"></i>
+                                        Aucune transition disponible pour le statut actuel.
+                                    </div>
+                                {% endif %}
                             </div>
                         {% endif %}
-                    </div>
-                    {% endif %}
 
-                    <div class="form-footer">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="ti ti-send"></i> Envoyer la réponse
-                        </button>
-                    </div>
-                </form>
+                        <div class="form-footer">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="ti ti-send"></i> Envoyer la réponse
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Sidebar -->
-    <div class="col-lg-4">
+        <!-- Sidebar -->
+        <div class="col-lg-4">
 
-        <!-- Info Card -->
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Information</h3>
-            </div>
-            <div class="list-group list-group-flush">
-                <div class="list-group-item">
-                    <div class="row align-items-center">
-                        <div class="col text-muted">Ticket ID</div>
-                        <div class="col-auto"><strong>#{{ reclamation.id }}</strong></div>
-                    </div>
+            <!-- Info Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Information</h3>
                 </div>
-                <div class="list-group-item">
-                    <div class="row align-items-center">
-                        <div class="col text-muted">Statut</div>
-                        <div class="col-auto">
-                            {% if reclamation.status == 'PENDING' %}
-                                <span class="badge bg-yellow">⏳ Pending</span>
-                            {% elseif reclamation.status == 'IN_PROGRESS' %}
-                                <span class="badge bg-blue">🔄 In Progress</span>
-                            {% elseif reclamation.status == 'RESOLVED' %}
-                                <span class="badge bg-green">✅ Resolved</span>
-                            {% elseif reclamation.status == 'CLOSED' %}
-                                <span class="badge bg-secondary">🔒 Closed</span>
-                            {% endif %}
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item">
+                        <div class="row align-items-center">
+                            <div class="col text-muted">Ticket ID</div>
+                            <div class="col-auto"><strong>#{{ reclamation.id }}</strong></div>
                         </div>
                     </div>
-                </div>
-                <div class="list-group-item">
-                    <div class="row align-items-center">
-                        <div class="col text-muted">Priorité</div>
-                        <div class="col-auto">
-                            {% if reclamation.priority == 'URGENT' %}
-                                <span class="badge bg-red">🔴 URGENT</span>
-                            {% elseif reclamation.priority == 'HIGH' %}
-                                <span class="badge bg-orange">🟠 HIGH</span>
-                            {% elseif reclamation.priority == 'MEDIUM' %}
-                                <span class="badge bg-blue">🟡 MEDIUM</span>
-                            {% elseif reclamation.priority == 'LOW' %}
-                                <span class="badge bg-green">🟢 LOW</span>
-                            {% endif %}
+                    <div class="list-group-item">
+                        <div class="row align-items-center">
+                            <div class="col text-muted">Statut</div>
+                            <div class="col-auto">
+                                {% if reclamation.status == 'PENDING' %}
+                                    <span class="badge bg-yellow">⏳ Pending</span>
+                                {% elseif reclamation.status == 'IN_PROGRESS' %}
+                                    <span class="badge bg-blue">🔄 In Progress</span>
+                                {% elseif reclamation.status == 'RESOLVED' %}
+                                    <span class="badge bg-green">✅ Resolved</span>
+                                {% elseif reclamation.status == 'CLOSED' %}
+                                    <span class="badge bg-secondary">🔒 Closed</span>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="list-group-item">
-                    <div class="row align-items-center">
-                        <div class="col text-muted">SLA</div>
-                        <div class="col-auto">
-                            {% if reclamation.isLate() %}
-                                <span class="badge bg-red">🚨 EN RETARD</span>
-                            {% elseif reclamation.slaDeadline and reclamation.status in ['PENDING','IN_PROGRESS'] %}
-                                <span class="badge bg-teal">⏱️ {{ reclamation.remainingHours }}h restantes</span>
-                            {% else %}
-                                <span class="badge bg-green">✅ Traité</span>
-                            {% endif %}
+                    <div class="list-group-item">
+                        <div class="row align-items-center">
+                            <div class="col text-muted">Priorité</div>
+                            <div class="col-auto">
+                                {% if reclamation.priority == 'URGENT' %}
+                                    <span class="badge bg-red">🔴 URGENT</span>
+                                {% elseif reclamation.priority == 'HIGH' %}
+                                    <span class="badge bg-orange">🟠 HIGH</span>
+                                {% elseif reclamation.priority == 'MEDIUM' %}
+                                    <span class="badge bg-blue">🟡 MEDIUM</span>
+                                {% elseif reclamation.priority == 'LOW' %}
+                                    <span class="badge bg-green">🟢 LOW</span>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="list-group-item">
-                    <div class="row align-items-center">
-                        <div class="col text-muted">Soumis le</div>
-                        <div class="col-auto">{{ reclamation.submittedAt|date('d/m/Y H:i') }}</div>
-                    </div>
-                </div>
-                {% if reclamation.resolvedAt %}
-                <div class="list-group-item">
-                    <div class="row align-items-center">
-                        <div class="col text-muted">Résolu le</div>
-                        <div class="col-auto">{{ reclamation.resolvedAt|date('d/m/Y H:i') }}</div>
-                    </div>
-                </div>
-                {% endif %}
-                <div class="list-group-item">
-                    <div class="row align-items-center">
-                        <div class="col text-muted">Réponses</div>
-                        <div class="col-auto">
-                            <span class="badge bg-azure">{{ reclamation.responses|length }}</span>
+                    <div class="list-group-item">
+                        <div class="row align-items-center">
+                            <div class="col text-muted">SLA</div>
+                            <div class="col-auto">
+                                {% if reclamation.isLate() %}
+                                    <span class="badge bg-red">🚨 EN RETARD</span>
+                                {% elseif reclamation.slaDeadline and reclamation.status in ['PENDING','IN_PROGRESS'] %}
+                                    <span class="badge bg-teal">⏱️ {{ reclamation.remainingHours }}h restantes</span>
+                                {% else %}
+                                    <span class="badge bg-green">✅ Traité</span>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
-                </div>
+                    <div class="list-group-item">
+                        <div class="row align-items-center">
+                            <div class="col text-muted">Soumis le</div>
+                            <div class="col-auto">{{ reclamation.submittedAt|date('d/m/Y H:i') }}</div>
+                        </div>
+                    </div>
+                    {% if reclamation.resolvedAt %}
+                        <div class="list-group-item">
+                            <div class="row align-items-center">
+                                <div class="col text-muted">Résolu le</div>
+                                <div class="col-auto">{{ reclamation.resolvedAt|date('d/m/Y H:i') }}</div>
+                            </div>
+                        </div>
+                    {% endif %}
+                    <div class="list-group-item">
+                        <div class="row align-items-center">
+                            <div class="col text-muted">Réponses</div>
+                            <div class="col-auto">
+                                <span class="badge bg-azure">{{ reclamation.responses|length }}</span>
+                            </div>
+                        </div>
+                    </div>
 
-                {# ✅ ÉMOTION IA — Analyse Ollama — AJOUT ICI #}
-                <div class="list-group-item">
-                    <div class="row align-items-center">
-                        <div class="col text-muted">🧠 Émotion IA</div>
-                        <div class="col-auto">
-                            {{ include('support/reclamation/_emotion_badge.html.twig', {reclamation: reclamation}) }}
+                    {# ✅ ÉMOTION IA — Analyse Ollama — AJOUT ICI #}
+                    <div class="list-group-item">
+                        <div class="row align-items-center">
+                            <div class="col text-muted">🧠 Émotion IA</div>
+                            <div class="col-auto">
+                                {{ include('support/reclamation/_emotion_badge.html.twig', {reclamation: reclamation}) }}
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                {# ── Satisfaction ── #}
-                {% if reclamation.hasBeenRated() %}
-                <div class="list-group-item">
-                    <div class="row align-items-center">
-                        <div class="col text-muted">Satisfaction</div>
-                        <div class="col-auto">
+                    {# ── Satisfaction ── #}
+                    {% if reclamation.hasBeenRated() %}
+                        <div class="list-group-item">
+                            <div class="row align-items-center">
+                                <div class="col text-muted">Satisfaction</div>
+                                <div class="col-auto">
                             <span style="color:#ca8a04;font-size:1rem">
                                 {% for i in 1..5 %}{{ i <= reclamation.satisfactionScore ? '★' : '☆' }}{% endfor %}
                             </span>
-                            <small class="text-muted ms-1">{{ reclamation.satisfactionScore }}/5</small>
+                                    <small class="text-muted ms-1">{{ reclamation.satisfactionScore }}/5</small>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                {% if reclamation.satisfactionComment %}
-                <div class="list-group-item">
-                    <div class="col text-muted mb-1">Commentaire</div>
-                    <div class="fst-italic text-muted small">
-                        "{{ reclamation.satisfactionComment }}"
-                    </div>
-                </div>
-                {% endif %}
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Actions Card -->
-        <div class="card mt-3">
-            <div class="card-header">
-                <h3 class="card-title">Actions</h3>
-            </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <a href="{{ path('app_reclamation_index') }}" class="btn btn-outline-primary">
-                        <i class="ti ti-arrow-back"></i> Back to list
-                    </a>
-                    {% if is_granted('ROLE_ADMIN') or can_modify %}
-                        <form method="post" action="{{ path('app_reclamation_delete', {'id': reclamation.id}) }}">
-                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reclamation.id) }}">
-                            <button type="submit" class="btn btn-danger w-100"
-                                    onclick="return confirm('Are you sure you want to delete this ticket?')">
-                                <i class="ti ti-trash"></i> Delete Ticket
-                            </button>
-                        </form>
+                        {% if reclamation.satisfactionComment %}
+                            <div class="list-group-item">
+                                <div class="col text-muted mb-1">Commentaire</div>
+                                <div class="fst-italic text-muted small">
+                                    "{{ reclamation.satisfactionComment }}"
+                                </div>
+                            </div>
+                        {% endif %}
                     {% endif %}
                 </div>
             </div>
-        </div>
 
+            <!-- Actions Card -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h3 class="card-title">Actions</h3>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ path('app_reclamation_index') }}" class="btn btn-outline-primary">
+                            <i class="ti ti-arrow-back"></i> Back to list
+                        </a>
+                        {% if is_granted('ROLE_ADMIN') or can_modify %}
+                            <form method="post" action="{{ path('app_reclamation_delete', {'id': reclamation.id}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ reclamation.id) }}">
+                                <button type="submit" class="btn btn-danger w-100"
+                                        onclick="return confirm('Are you sure you want to delete this ticket?')">
+                                    <i class="ti ti-trash"></i> Delete Ticket
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
     </div>
-</div>
 {% endblock %}

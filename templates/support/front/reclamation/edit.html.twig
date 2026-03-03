@@ -2,59 +2,59 @@
 {% block title %}Modifier la réclamation #{{ reclamation.id }}{% endblock %}
 {% block body %}
 
-<aside class="sidebar" id="sidebar">
-    <a href="{{ path('app_homepage') }}" class="sidebar-logo">
-        <div class="sidebar-logo-text">Lingua<span>Learn</span></div>
-    </a>
-    <div class="sidebar-user">
-        <div class="user-avatar">{{ app.user.firstName|first|upper }}{{ app.user.lastName|first|upper }}</div>
-        <div class="user-info">
-            <div class="user-name">{{ app.user.fullName }}</div>
-            <div class="user-plan free">Free Plan</div>
-        </div>
-    </div>
-    <nav class="sidebar-nav">
-        <span class="nav-section-label">Main</span>
-        <a href="{{ path('user_dashboard') }}" class="nav-item"><span class="nav-icon">⊞</span> Dashboard</a>
-        <a href="#" class="nav-item"><span class="nav-icon">📚</span> My Courses</a>
-        <a href="#" class="nav-item"><span class="nav-icon">🧩</span> Practice</a>
-        <a href="#" class="nav-item"><span class="nav-icon">📝</span> Mock Tests</a>
-        <span class="nav-section-label">Account</span>
-        <a href="{{ path('user_profile') }}" class="nav-item"><span class="nav-icon">👤</span> My Profile</a>
-        <a href="{{ path('app_user_notifications') }}" class="nav-item"><span class="nav-icon">🔔</span> Notifications</a>
-        <a href="#" class="nav-item"><span class="nav-icon">👑</span> Subscription</a>
-        <span class="nav-section-label">Support</span>
-        <a href="#" class="nav-item"><span class="nav-icon">❓</span> FAQ</a>
-        <a href="{{ path('app_user_reclamation_index') }}" class="nav-item active"><span class="nav-icon">💬</span> Mes réclamations</a>
-        <span class="nav-section-label">System</span>
-        <a href="{{ path('app_logout') }}" class="nav-item"><span class="nav-icon">→</span> Log Out</a>
-    </nav>
-</aside>
-<div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-<div class="main">
-    <header class="topbar">
-        <div class="topbar-left">
-            <button class="hamburger-btn" id="hamburgerBtn"><span></span><span></span><span></span></button>
-            <div>
-                <a href="{{ path('app_user_reclamation_index') }}" class="back-link">← Mes réclamations</a>
-                <div class="page-heading">Modifier la réclamation #{{ reclamation.id }}</div>
-                <div class="page-sub">Modification possible tant que le statut est "En attente"</div>
+    <aside class="sidebar" id="sidebar">
+        <a href="{{ path('app_homepage') }}" class="sidebar-logo">
+            <div class="sidebar-logo-text">Lingua<span>Learn</span></div>
+        </a>
+        <div class="sidebar-user">
+            <div class="user-avatar">{{ app.user.firstName|first|upper }}{{ app.user.lastName|first|upper }}</div>
+            <div class="user-info">
+                <div class="user-name">{{ app.user.fullName }}</div>
+                <div class="user-plan free">Free Plan</div>
             </div>
         </div>
-        <div class="topbar-right">
-            <a href="{{ path('user_profile') }}" class="topbar-btn">👤</a>
-        </div>
-    </header>
+        <nav class="sidebar-nav">
+            <span class="nav-section-label">Main</span>
+            <a href="{{ path('user_dashboard') }}" class="nav-item"><span class="nav-icon">⊞</span> Dashboard</a>
+            <a href="#" class="nav-item"><span class="nav-icon">📚</span> My Courses</a>
+            <a href="#" class="nav-item"><span class="nav-icon">🧩</span> Practice</a>
+            <a href="#" class="nav-item"><span class="nav-icon">📝</span> Mock Tests</a>
+            <span class="nav-section-label">Account</span>
+            <a href="{{ path('user_profile') }}" class="nav-item"><span class="nav-icon">👤</span> My Profile</a>
+            <a href="{{ path('app_user_notifications') }}" class="nav-item"><span class="nav-icon">🔔</span> Notifications</a>
+            <a href="#" class="nav-item"><span class="nav-icon">👑</span> Subscription</a>
+            <span class="nav-section-label">Support</span>
+            <a href="#" class="nav-item"><span class="nav-icon">❓</span> FAQ</a>
+            <a href="{{ path('app_user_reclamation_index') }}" class="nav-item active"><span class="nav-icon">💬</span> Mes réclamations</a>
+            <span class="nav-section-label">System</span>
+            <a href="{{ path('app_logout') }}" class="nav-item"><span class="nav-icon">→</span> Log Out</a>
+        </nav>
+    </aside>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <main class="page-content">
-
-        <div class="form-card reveal">
-            <div class="form-warning-banner">
-                ⚠️ Vous modifiez une réclamation en attente. Une fois traitée, la modification ne sera plus possible.
+    <div class="main">
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="hamburger-btn" id="hamburgerBtn"><span></span><span></span><span></span></button>
+                <div>
+                    <a href="{{ path('app_user_reclamation_index') }}" class="back-link">← Mes réclamations</a>
+                    <div class="page-heading">Modifier la réclamation #{{ reclamation.id }}</div>
+                    <div class="page-sub">Modification possible tant que le statut est "En attente"</div>
+                </div>
             </div>
+            <div class="topbar-right">
+                <a href="{{ path('user_profile') }}" class="topbar-btn">👤</a>
+            </div>
+        </header>
 
-            {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'class': 'support-form'}}) }}
+        <main class="page-content">
+
+            <div class="form-card reveal">
+                <div class="form-warning-banner">
+                    ⚠️ Vous modifiez une réclamation en attente. Une fois traitée, la modification ne sera plus possible.
+                </div>
+
+                {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'class': 'support-form'}}) }}
                 <div class="form-group">
                     {{ form_label(form.subject, 'Sujet', {'label_attr': {'class': 'form-label'}}) }}
                     {{ form_widget(form.subject, {'attr': {'class': 'form-select'}}) }}
@@ -69,72 +69,72 @@
                     <a href="{{ path('app_user_reclamation_index') }}" class="btn-cancel">Annuler</a>
                     <button type="submit" class="btn-submit">💾 Enregistrer les modifications</button>
                 </div>
-            {{ form_end(form) }}
-        </div>
+                {{ form_end(form) }}
+            </div>
 
-    </main>
-</div>
+        </main>
+    </div>
 
-<style>
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-:root { --white: #ffffff; --off-white: #f7f9fc; --surface: #eef1f8; --ink: #0d1526; --ink-soft: #2c3a52; --muted: #7a87a0; --border: #e2e8f2; --blue: #2563eb; --blue-dark: #1d4ed8; --blue-bg: #eff6ff; --blue-mid: #3b82f6; --sidebar-w: 260px; --radius: 12px; --radius-lg: 20px; }
-body { font-family: 'Sora', sans-serif; background: var(--off-white); color: var(--ink); min-height: 100vh; }
-.sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w); background: var(--white); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 50; }
-.sidebar-logo { padding: 1.5rem 1.5rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: .75rem; text-decoration: none; }
-.sidebar-logo-text { font-size: 1.3rem; font-weight: 700; color: var(--ink); }
-.sidebar-logo-text span { color: var(--blue); }
-.sidebar-user { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: .85rem; }
-.user-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--blue), var(--blue-mid)); display: flex; align-items: center; justify-content: center; font-size: .9rem; font-weight: 700; color: var(--white); flex-shrink: 0; }
-.user-info { flex: 1; min-width: 0; }
-.user-name { font-size: .85rem; font-weight: 600; color: var(--ink); }
-.user-plan { font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; margin-top: .1rem; }
-.user-plan.free { color: var(--muted); }
-.sidebar-nav { flex: 1; padding: 1rem 0; overflow-y: auto; }
-.nav-section-label { font-size: .6rem; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); padding: .75rem 1.5rem .35rem; display: block; }
-.nav-item { display: flex; align-items: center; gap: .75rem; padding: .65rem 1.5rem; font-size: .84rem; font-weight: 500; color: var(--muted); text-decoration: none; transition: color .2s, background .2s; position: relative; }
-.nav-item:hover { color: var(--ink); background: var(--off-white); }
-.nav-item.active { color: var(--blue); background: var(--blue-bg); font-weight: 600; }
-.nav-item.active::before { content: ''; position: absolute; left: 0; top: 4px; bottom: 4px; width: 3px; background: var(--blue); border-radius: 0 3px 3px 0; }
-.nav-icon { font-size: 1.1rem; width: 20px; text-align: center; }
-.main { margin-left: var(--sidebar-w); min-height: 100vh; display: flex; flex-direction: column; }
-.topbar { position: sticky; top: 0; z-index: 40; background: rgba(255,255,255,.92); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: .85rem 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
-.topbar-left { display: flex; align-items: center; gap: 1rem; }
-.back-link { font-size: .78rem; color: var(--blue); text-decoration: none; display: block; margin-bottom: .15rem; }
-.back-link:hover { text-decoration: underline; }
-.page-heading { font-size: 1.25rem; font-weight: 700; color: var(--ink); }
-.page-sub { font-size: .78rem; color: var(--muted); }
-.topbar-right { display: flex; align-items: center; gap: .75rem; }
-.topbar-btn { width: 38px; height: 38px; border-radius: var(--radius); border: 1.5px solid var(--border); background: transparent; display: flex; align-items: center; justify-content: center; text-decoration: none; color: var(--ink-soft); font-size: 1.1rem; }
-.hamburger-btn { display: none; width: 38px; height: 38px; border-radius: var(--radius); border: 1.5px solid var(--border); background: transparent; align-items: center; justify-content: center; cursor: pointer; flex-direction: column; gap: 4px; }
-.hamburger-btn span { width: 16px; height: 1.5px; background: var(--ink); display: block; border-radius: 2px; }
-.page-content { padding: 2rem; flex: 1; max-width: 720px; }
-.form-card { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; }
-.form-warning-banner { display: flex; align-items: center; gap: .5rem; padding: .85rem 1.25rem; background: #fffbeb; border: 1.5px solid #fde68a; border-radius: var(--radius); margin-bottom: 1.75rem; font-size: .825rem; color: #92400e; font-weight: 500; }
-.support-form { display: flex; flex-direction: column; gap: 1.4rem; }
-.form-group { display: flex; flex-direction: column; gap: .4rem; }
-.form-label { font-size: .875rem; font-weight: 600; color: var(--ink); }
-.form-select, .form-textarea { padding: .7rem 1rem; border: 1.5px solid var(--border); border-radius: var(--radius); font-size: .9rem; color: var(--ink); background: var(--off-white); width: 100%; box-sizing: border-box; font-family: inherit; outline: none; transition: border-color .15s, box-shadow .15s; }
-.form-select:focus, .form-textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
-.form-textarea { resize: vertical; min-height: 160px; }
-.form-actions { display: flex; justify-content: flex-end; gap: .75rem; padding-top: .5rem; }
-.btn-submit { display: inline-flex; align-items: center; gap: .5rem; background: var(--blue); color: #fff; padding: .7rem 1.5rem; border-radius: var(--radius); font-size: .875rem; font-weight: 600; border: none; cursor: pointer; font-family: inherit; transition: background .15s; }
-.btn-submit:hover { background: var(--blue-dark); }
-.btn-cancel { display: inline-flex; align-items: center; background: transparent; color: var(--muted); padding: .7rem 1.25rem; border-radius: var(--radius); font-size: .875rem; text-decoration: none; border: 1.5px solid var(--border); font-family: inherit; transition: all .15s; }
-.btn-cancel:hover { border-color: var(--muted); color: var(--ink); }
-.reveal { opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease; }
-.reveal.visible { opacity: 1; transform: translateY(0); }
-@media (max-width: 768px) { :root { --sidebar-w: 0px; } .sidebar { transform: translateX(-260px); width: 260px; } .sidebar.open { transform: translateX(0); } .main { margin-left: 0; } .hamburger-btn { display: flex; } .page-content { padding: 1.25rem; } }
-.sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(13,21,38,.4); z-index: 45; }
-.sidebar-overlay.visible { display: block; }
-</style>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --white: #ffffff; --off-white: #f7f9fc; --surface: #eef1f8; --ink: #0d1526; --ink-soft: #2c3a52; --muted: #7a87a0; --border: #e2e8f2; --blue: #2563eb; --blue-dark: #1d4ed8; --blue-bg: #eff6ff; --blue-mid: #3b82f6; --sidebar-w: 260px; --radius: 12px; --radius-lg: 20px; }
+        body { font-family: 'Sora', sans-serif; background: var(--off-white); color: var(--ink); min-height: 100vh; }
+        .sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w); background: var(--white); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 50; }
+        .sidebar-logo { padding: 1.5rem 1.5rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: .75rem; text-decoration: none; }
+        .sidebar-logo-text { font-size: 1.3rem; font-weight: 700; color: var(--ink); }
+        .sidebar-logo-text span { color: var(--blue); }
+        .sidebar-user { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: .85rem; }
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--blue), var(--blue-mid)); display: flex; align-items: center; justify-content: center; font-size: .9rem; font-weight: 700; color: var(--white); flex-shrink: 0; }
+        .user-info { flex: 1; min-width: 0; }
+        .user-name { font-size: .85rem; font-weight: 600; color: var(--ink); }
+        .user-plan { font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; margin-top: .1rem; }
+        .user-plan.free { color: var(--muted); }
+        .sidebar-nav { flex: 1; padding: 1rem 0; overflow-y: auto; }
+        .nav-section-label { font-size: .6rem; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); padding: .75rem 1.5rem .35rem; display: block; }
+        .nav-item { display: flex; align-items: center; gap: .75rem; padding: .65rem 1.5rem; font-size: .84rem; font-weight: 500; color: var(--muted); text-decoration: none; transition: color .2s, background .2s; position: relative; }
+        .nav-item:hover { color: var(--ink); background: var(--off-white); }
+        .nav-item.active { color: var(--blue); background: var(--blue-bg); font-weight: 600; }
+        .nav-item.active::before { content: ''; position: absolute; left: 0; top: 4px; bottom: 4px; width: 3px; background: var(--blue); border-radius: 0 3px 3px 0; }
+        .nav-icon { font-size: 1.1rem; width: 20px; text-align: center; }
+        .main { margin-left: var(--sidebar-w); min-height: 100vh; display: flex; flex-direction: column; }
+        .topbar { position: sticky; top: 0; z-index: 40; background: rgba(255,255,255,.92); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: .85rem 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+        .topbar-left { display: flex; align-items: center; gap: 1rem; }
+        .back-link { font-size: .78rem; color: var(--blue); text-decoration: none; display: block; margin-bottom: .15rem; }
+        .back-link:hover { text-decoration: underline; }
+        .page-heading { font-size: 1.25rem; font-weight: 700; color: var(--ink); }
+        .page-sub { font-size: .78rem; color: var(--muted); }
+        .topbar-right { display: flex; align-items: center; gap: .75rem; }
+        .topbar-btn { width: 38px; height: 38px; border-radius: var(--radius); border: 1.5px solid var(--border); background: transparent; display: flex; align-items: center; justify-content: center; text-decoration: none; color: var(--ink-soft); font-size: 1.1rem; }
+        .hamburger-btn { display: none; width: 38px; height: 38px; border-radius: var(--radius); border: 1.5px solid var(--border); background: transparent; align-items: center; justify-content: center; cursor: pointer; flex-direction: column; gap: 4px; }
+        .hamburger-btn span { width: 16px; height: 1.5px; background: var(--ink); display: block; border-radius: 2px; }
+        .page-content { padding: 2rem; flex: 1; max-width: 720px; }
+        .form-card { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; }
+        .form-warning-banner { display: flex; align-items: center; gap: .5rem; padding: .85rem 1.25rem; background: #fffbeb; border: 1.5px solid #fde68a; border-radius: var(--radius); margin-bottom: 1.75rem; font-size: .825rem; color: #92400e; font-weight: 500; }
+        .support-form { display: flex; flex-direction: column; gap: 1.4rem; }
+        .form-group { display: flex; flex-direction: column; gap: .4rem; }
+        .form-label { font-size: .875rem; font-weight: 600; color: var(--ink); }
+        .form-select, .form-textarea { padding: .7rem 1rem; border: 1.5px solid var(--border); border-radius: var(--radius); font-size: .9rem; color: var(--ink); background: var(--off-white); width: 100%; box-sizing: border-box; font-family: inherit; outline: none; transition: border-color .15s, box-shadow .15s; }
+        .form-select:focus, .form-textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+        .form-textarea { resize: vertical; min-height: 160px; }
+        .form-actions { display: flex; justify-content: flex-end; gap: .75rem; padding-top: .5rem; }
+        .btn-submit { display: inline-flex; align-items: center; gap: .5rem; background: var(--blue); color: #fff; padding: .7rem 1.5rem; border-radius: var(--radius); font-size: .875rem; font-weight: 600; border: none; cursor: pointer; font-family: inherit; transition: background .15s; }
+        .btn-submit:hover { background: var(--blue-dark); }
+        .btn-cancel { display: inline-flex; align-items: center; background: transparent; color: var(--muted); padding: .7rem 1.25rem; border-radius: var(--radius); font-size: .875rem; text-decoration: none; border: 1.5px solid var(--border); font-family: inherit; transition: all .15s; }
+        .btn-cancel:hover { border-color: var(--muted); color: var(--ink); }
+        .reveal { opacity: 0; transform: translateY(16px); transition: opacity .5s ease, transform .5s ease; }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+        @media (max-width: 768px) { :root { --sidebar-w: 0px; } .sidebar { transform: translateX(-260px); width: 260px; } .sidebar.open { transform: translateX(0); } .main { margin-left: 0; } .hamburger-btn { display: flex; } .page-content { padding: 1.25rem; } }
+        .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(13,21,38,.4); z-index: 45; }
+        .sidebar-overlay.visible { display: block; }
+    </style>
 
-<script>
-const sidebar = document.getElementById('sidebar');
-const overlay = document.getElementById('sidebarOverlay');
-const hamburger = document.getElementById('hamburgerBtn');
-if(hamburger) { hamburger.addEventListener('click', () => { sidebar.classList.toggle('open'); overlay.classList.toggle('visible'); }); }
-if(overlay) { overlay.addEventListener('click', () => { sidebar.classList.remove('open'); overlay.classList.remove('visible'); }); }
-const ro = new IntersectionObserver(entries => { entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); ro.unobserve(e.target); } }); }, {threshold:.06});
-document.querySelectorAll('.reveal').forEach(el => ro.observe(el));
-</script>
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const hamburger = document.getElementById('hamburgerBtn');
+        if(hamburger) { hamburger.addEventListener('click', () => { sidebar.classList.toggle('open'); overlay.classList.toggle('visible'); }); }
+        if(overlay) { overlay.addEventListener('click', () => { sidebar.classList.remove('open'); overlay.classList.remove('visible'); }); }
+        const ro = new IntersectionObserver(entries => { entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); ro.unobserve(e.target); } }); }, {threshold:.06});
+        document.querySelectorAll('.reveal').forEach(el => ro.observe(el));
+    </script>
 {% endblock %}

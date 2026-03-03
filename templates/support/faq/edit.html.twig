@@ -7,14 +7,14 @@
 {% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-lg-8">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">FAQ Details</h3>
-            </div>
-            <div class="card-body">
-                {{ form_start(form) }}
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">FAQ Details</h3>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form) }}
 
                     <div class="mb-3">
                         {{ form_row(form.question) }}
@@ -47,55 +47,55 @@
                         </a>
                     </div>
 
-                {{ form_end(form) }}
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-4">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Information</h3>
-            </div>
-            <div class="list-group list-group-flush">
-                <div class="list-group-item">
-                    <div class="row align-items-center">
-                        <div class="col text-muted">ID</div>
-                        <div class="col-auto">
-                            <strong>#{{ faq.id }}</strong>
-                        </div>
-                    </div>
-                </div>
-                <div class="list-group-item">
-                    <div class="row align-items-center">
-                        <div class="col text-muted">Created</div>
-                        <div class="col-auto">
-                            {{ faq.submittedAt|date('d/m/Y H:i') }}
-                        </div>
-                    </div>
+                    {{ form_end(form) }}
                 </div>
             </div>
         </div>
 
-        <div class="card mt-3">
-            <div class="card-header">
-                <h3 class="card-title">Actions</h3>
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Information</h3>
+                </div>
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item">
+                        <div class="row align-items-center">
+                            <div class="col text-muted">ID</div>
+                            <div class="col-auto">
+                                <strong>#{{ faq.id }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="list-group-item">
+                        <div class="row align-items-center">
+                            <div class="col text-muted">Created</div>
+                            <div class="col-auto">
+                                {{ faq.submittedAt|date('d/m/Y H:i') }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <a href="{{ path('app_faq_index') }}" class="btn btn-outline-primary">
-                        <i class="ti ti-arrow-back"></i> Back to list
-                    </a>
-                    <form method="post" action="{{ path('app_faq_delete', {'id': faq.id}) }}">
-                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ faq.id) }}">
-                        <button type="submit" class="btn btn-danger w-100"
-                                onclick="return confirm('Are you sure?')">
-                            <i class="ti ti-trash"></i> Delete FAQ
-                        </button>
-                    </form>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h3 class="card-title">Actions</h3>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ path('app_faq_index') }}" class="btn btn-outline-primary">
+                            <i class="ti ti-arrow-back"></i> Back to list
+                        </a>
+                        <form method="post" action="{{ path('app_faq_delete', {'id': faq.id}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ faq.id) }}">
+                            <button type="submit" class="btn btn-danger w-100"
+                                    onclick="return confirm('Are you sure?')">
+                                <i class="ti ti-trash"></i> Delete FAQ
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 {% endblock %}

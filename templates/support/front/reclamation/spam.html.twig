@@ -2,170 +2,170 @@
 {% block title %}Trop de réclamations{% endblock %}
 {% block body %}
 
-<aside class="sidebar" id="sidebar">
-    <a href="{{ path('app_homepage') }}" class="sidebar-logo">
-        <div class="sidebar-logo-text">Lingua<span>Learn</span></div>
-    </a>
-    <div class="sidebar-user">
-        <div class="user-avatar">{{ app.user.firstName|first|upper }}{{ app.user.lastName|first|upper }}</div>
-        <div class="user-info">
-            <div class="user-name">{{ app.user.fullName }}</div>
-            <div class="user-plan free">Free Plan</div>
-        </div>
-    </div>
-    <nav class="sidebar-nav">
-        <span class="nav-section-label">Main</span>
-        <a href="{{ path('user_dashboard') }}" class="nav-item"><span class="nav-icon">⊞</span> Dashboard</a>
-        <span class="nav-section-label">Support</span>
-        <a href="{{ path('app_user_faq_index') }}" class="nav-item"><span class="nav-icon">❓</span> FAQ</a>
-        <a href="{{ path('app_user_reclamation_index') }}" class="nav-item active"><span class="nav-icon">💬</span> Mes réclamations</a>
-        <span class="nav-section-label">System</span>
-        <a href="{{ path('app_logout') }}" class="nav-item"><span class="nav-icon">→</span> Log Out</a>
-    </nav>
-</aside>
-<div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-<div class="main">
-    <header class="topbar">
-        <div class="topbar-left">
-            <button class="hamburger-btn" id="hamburgerBtn"><span></span><span></span><span></span></button>
-            <div>
-                <div class="page-heading">Limite atteinte 🚦</div>
-                <div class="page-sub">Trop de réclamations en peu de temps</div>
+    <aside class="sidebar" id="sidebar">
+        <a href="{{ path('app_homepage') }}" class="sidebar-logo">
+            <div class="sidebar-logo-text">Lingua<span>Learn</span></div>
+        </a>
+        <div class="sidebar-user">
+            <div class="user-avatar">{{ app.user.firstName|first|upper }}{{ app.user.lastName|first|upper }}</div>
+            <div class="user-info">
+                <div class="user-name">{{ app.user.fullName }}</div>
+                <div class="user-plan free">Free Plan</div>
             </div>
         </div>
-        <div class="topbar-right">
-            <a href="{{ path('user_profile') }}" class="topbar-btn">👤</a>
-        </div>
-    </header>
+        <nav class="sidebar-nav">
+            <span class="nav-section-label">Main</span>
+            <a href="{{ path('user_dashboard') }}" class="nav-item"><span class="nav-icon">⊞</span> Dashboard</a>
+            <span class="nav-section-label">Support</span>
+            <a href="{{ path('app_user_faq_index') }}" class="nav-item"><span class="nav-icon">❓</span> FAQ</a>
+            <a href="{{ path('app_user_reclamation_index') }}" class="nav-item active"><span class="nav-icon">💬</span> Mes réclamations</a>
+            <span class="nav-section-label">System</span>
+            <a href="{{ path('app_logout') }}" class="nav-item"><span class="nav-icon">→</span> Log Out</a>
+        </nav>
+    </aside>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <main class="page-content">
-        <div class="spam-card">
-
-            <div class="spam-icon">🚦</div>
-
-            <h1 class="spam-title">Limite de réclamations atteinte</h1>
-            <p class="spam-subtitle">
-                Vous avez soumis <strong>{{ maxTickets }} réclamations</strong> en moins de
-                <strong>{{ window }} minutes</strong>.<br>
-                Merci de patienter avant d'en soumettre une nouvelle.
-            </p>
-
-            {# Compte à rebours #}
-            <div class="countdown-box">
-                <p class="countdown-label">Vous pourrez soumettre à nouveau dans</p>
-                <div class="countdown-grid">
-                    <div class="countdown-unit">
-                        <div class="countdown-value" id="cd-minutes">--</div>
-                        <div class="countdown-text">MINUTES</div>
-                    </div>
-                    <div class="countdown-sep">:</div>
-                    <div class="countdown-unit">
-                        <div class="countdown-value" id="cd-seconds">--</div>
-                        <div class="countdown-text">SECONDES</div>
-                    </div>
+    <div class="main">
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="hamburger-btn" id="hamburgerBtn"><span></span><span></span><span></span></button>
+                <div>
+                    <div class="page-heading">Limite atteinte 🚦</div>
+                    <div class="page-sub">Trop de réclamations en peu de temps</div>
                 </div>
             </div>
-
-            <div class="spam-actions">
-                <a href="{{ path('app_user_reclamation_index') }}" class="btn-back">
-                    ← Voir mes réclamations
-                </a>
-                <a href="{{ path('app_user_faq_index') }}" class="btn-faq">
-                    💡 Consulter la FAQ
-                </a>
+            <div class="topbar-right">
+                <a href="{{ path('user_profile') }}" class="topbar-btn">👤</a>
             </div>
+        </header>
 
-            <p class="spam-note">
-                ℹ️ Cette limite existe pour garantir la qualité du support.<br>
-                Si votre problème est urgent, consultez la <a href="{{ path('app_user_faq_index') }}">FAQ</a>.
-            </p>
+        <main class="page-content">
+            <div class="spam-card">
 
-        </div>
-    </main>
-</div>
+                <div class="spam-icon">🚦</div>
 
-<style>
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-:root { --white: #ffffff; --off-white: #f7f9fc; --surface: #eef1f8; --ink: #0d1526; --ink-soft: #2c3a52; --muted: #7a87a0; --border: #e2e8f2; --blue: #2563eb; --blue-dark: #1d4ed8; --blue-bg: #eff6ff; --blue-mid: #3b82f6; --sidebar-w: 260px; --radius: 12px; --radius-lg: 20px; }
-body { font-family: 'Sora', sans-serif; background: var(--off-white); color: var(--ink); min-height: 100vh; }
-.sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w); background: var(--white); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 50; }
-.sidebar-logo { padding: 1.5rem 1.5rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: .75rem; text-decoration: none; }
-.sidebar-logo-text { font-size: 1.3rem; font-weight: 700; color: var(--ink); }
-.sidebar-logo-text span { color: var(--blue); }
-.sidebar-user { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: .85rem; }
-.user-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--blue), var(--blue-mid)); display: flex; align-items: center; justify-content: center; font-size: .9rem; font-weight: 700; color: var(--white); flex-shrink: 0; }
-.user-info { flex: 1; min-width: 0; }
-.user-name { font-size: .85rem; font-weight: 600; color: var(--ink); }
-.user-plan { font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; margin-top: .1rem; color: var(--muted); }
-.sidebar-nav { flex: 1; padding: 1rem 0; overflow-y: auto; }
-.nav-section-label { font-size: .6rem; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); padding: .75rem 1.5rem .35rem; display: block; }
-.nav-item { display: flex; align-items: center; gap: .75rem; padding: .65rem 1.5rem; font-size: .84rem; font-weight: 500; color: var(--muted); text-decoration: none; transition: color .2s, background .2s; position: relative; }
-.nav-item:hover { color: var(--ink); background: var(--off-white); }
-.nav-item.active { color: var(--blue); background: var(--blue-bg); font-weight: 600; }
-.nav-item.active::before { content: ''; position: absolute; left: 0; top: 4px; bottom: 4px; width: 3px; background: var(--blue); border-radius: 0 3px 3px 0; }
-.nav-icon { font-size: 1.1rem; width: 20px; text-align: center; }
-.main { margin-left: var(--sidebar-w); min-height: 100vh; display: flex; flex-direction: column; }
-.topbar { position: sticky; top: 0; z-index: 40; background: rgba(255,255,255,.92); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: .85rem 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
-.topbar-left { display: flex; align-items: center; gap: 1rem; }
-.page-heading { font-size: 1.25rem; font-weight: 700; color: var(--ink); }
-.page-sub { font-size: .78rem; color: var(--muted); }
-.topbar-right { display: flex; align-items: center; gap: .75rem; }
-.topbar-btn { width: 38px; height: 38px; border-radius: var(--radius); border: 1.5px solid var(--border); background: transparent; display: flex; align-items: center; justify-content: center; text-decoration: none; color: var(--ink-soft); font-size: 1.1rem; }
-.hamburger-btn { display: none; width: 38px; height: 38px; border-radius: var(--radius); border: 1.5px solid var(--border); background: transparent; align-items: center; justify-content: center; cursor: pointer; flex-direction: column; gap: 4px; }
-.hamburger-btn span { width: 16px; height: 1.5px; background: var(--ink); display: block; border-radius: 2px; }
-.page-content { padding: 2rem; flex: 1; display: flex; align-items: center; justify-content: center; }
-.spam-card { background: var(--white); border: 1.5px solid #fed7aa; border-radius: var(--radius-lg); padding: 3rem 2.5rem; max-width: 520px; width: 100%; text-align: center; box-shadow: 0 8px 32px rgba(234,88,12,.08); }
-.spam-icon { font-size: 3.5rem; margin-bottom: 1.25rem; }
-.spam-title { font-size: 1.4rem; font-weight: 700; color: #c2410c; margin-bottom: .75rem; }
-.spam-subtitle { font-size: .9rem; color: var(--muted); line-height: 1.65; margin-bottom: 2rem; }
-.spam-subtitle strong { color: var(--ink); }
-.countdown-box { background: #fff7ed; border: 1.5px solid #fed7aa; border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 2rem; }
-.countdown-label { font-size: .78rem; font-weight: 600; color: #c2410c; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 1rem; }
-.countdown-grid { display: flex; align-items: center; justify-content: center; gap: .75rem; }
-.countdown-unit { background: var(--white); border-radius: var(--radius); padding: .75rem 1.25rem; min-width: 80px; }
-.countdown-value { font-size: 2.5rem; font-weight: 700; color: #ea580c; line-height: 1; }
-.countdown-text { font-size: .65rem; font-weight: 600; color: #9ca3af; letter-spacing: .12em; margin-top: .3rem; }
-.countdown-sep { font-size: 2rem; font-weight: 700; color: #ea580c; margin-top: -.5rem; }
-.spam-actions { display: flex; gap: .75rem; justify-content: center; margin-bottom: 1.5rem; flex-wrap: wrap; }
-.btn-back { display: inline-flex; align-items: center; gap: .4rem; padding: .65rem 1.25rem; border-radius: var(--radius); font-size: .875rem; font-weight: 600; background: var(--white); color: var(--ink-soft); text-decoration: none; border: 1.5px solid var(--border); transition: all .15s; }
-.btn-back:hover { border-color: var(--blue); color: var(--blue); }
-.btn-faq { display: inline-flex; align-items: center; gap: .4rem; padding: .65rem 1.25rem; border-radius: var(--radius); font-size: .875rem; font-weight: 600; background: var(--blue); color: #fff; text-decoration: none; transition: background .15s; }
-.btn-faq:hover { background: var(--blue-dark); }
-.spam-note { font-size: .78rem; color: var(--muted); line-height: 1.6; }
-.spam-note a { color: var(--blue); text-decoration: none; font-weight: 600; }
-@media (max-width: 768px) { :root { --sidebar-w: 0px; } .sidebar { transform: translateX(-260px); width: 260px; } .sidebar.open { transform: translateX(0); } .main { margin-left: 0; } .hamburger-btn { display: flex; } .page-content { padding: 1.25rem; } }
-.sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(13,21,38,.4); z-index: 45; }
-.sidebar-overlay.visible { display: block; }
-</style>
+                <h1 class="spam-title">Limite de réclamations atteinte</h1>
+                <p class="spam-subtitle">
+                    Vous avez soumis <strong>{{ maxTickets }} réclamations</strong> en moins de
+                    <strong>{{ window }} minutes</strong>.<br>
+                    Merci de patienter avant d'en soumettre une nouvelle.
+                </p>
 
-<script>
-const sidebar = document.getElementById('sidebar');
-const overlay = document.getElementById('sidebarOverlay');
-const hamburger = document.getElementById('hamburgerBtn');
-if(hamburger) { hamburger.addEventListener('click', () => { sidebar.classList.toggle('open'); overlay.classList.toggle('visible'); }); }
-if(overlay) { overlay.addEventListener('click', () => { sidebar.classList.remove('open'); overlay.classList.remove('visible'); }); }
+                {# Compte à rebours #}
+                <div class="countdown-box">
+                    <p class="countdown-label">Vous pourrez soumettre à nouveau dans</p>
+                    <div class="countdown-grid">
+                        <div class="countdown-unit">
+                            <div class="countdown-value" id="cd-minutes">--</div>
+                            <div class="countdown-text">MINUTES</div>
+                        </div>
+                        <div class="countdown-sep">:</div>
+                        <div class="countdown-unit">
+                            <div class="countdown-value" id="cd-seconds">--</div>
+                            <div class="countdown-text">SECONDES</div>
+                        </div>
+                    </div>
+                </div>
 
-// Compte à rebours
-let totalSeconds = {{ waitSeconds }};
+                <div class="spam-actions">
+                    <a href="{{ path('app_user_reclamation_index') }}" class="btn-back">
+                        ← Voir mes réclamations
+                    </a>
+                    <a href="{{ path('app_user_faq_index') }}" class="btn-faq">
+                        💡 Consulter la FAQ
+                    </a>
+                </div>
 
-function updateCountdown() {
-    if (totalSeconds <= 0) {
-        // Rediriger automatiquement quand le temps est écoulé
-        window.location.href = "{{ path('app_user_reclamation_new') }}";
-        return;
-    }
+                <p class="spam-note">
+                    ℹ️ Cette limite existe pour garantir la qualité du support.<br>
+                    Si votre problème est urgent, consultez la <a href="{{ path('app_user_faq_index') }}">FAQ</a>.
+                </p>
 
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
+            </div>
+        </main>
+    </div>
 
-    document.getElementById('cd-minutes').textContent = String(minutes).padStart(2, '0');
-    document.getElementById('cd-seconds').textContent = String(seconds).padStart(2, '0');
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --white: #ffffff; --off-white: #f7f9fc; --surface: #eef1f8; --ink: #0d1526; --ink-soft: #2c3a52; --muted: #7a87a0; --border: #e2e8f2; --blue: #2563eb; --blue-dark: #1d4ed8; --blue-bg: #eff6ff; --blue-mid: #3b82f6; --sidebar-w: 260px; --radius: 12px; --radius-lg: 20px; }
+        body { font-family: 'Sora', sans-serif; background: var(--off-white); color: var(--ink); min-height: 100vh; }
+        .sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w); background: var(--white); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 50; }
+        .sidebar-logo { padding: 1.5rem 1.5rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: .75rem; text-decoration: none; }
+        .sidebar-logo-text { font-size: 1.3rem; font-weight: 700; color: var(--ink); }
+        .sidebar-logo-text span { color: var(--blue); }
+        .sidebar-user { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: .85rem; }
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--blue), var(--blue-mid)); display: flex; align-items: center; justify-content: center; font-size: .9rem; font-weight: 700; color: var(--white); flex-shrink: 0; }
+        .user-info { flex: 1; min-width: 0; }
+        .user-name { font-size: .85rem; font-weight: 600; color: var(--ink); }
+        .user-plan { font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; margin-top: .1rem; color: var(--muted); }
+        .sidebar-nav { flex: 1; padding: 1rem 0; overflow-y: auto; }
+        .nav-section-label { font-size: .6rem; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); padding: .75rem 1.5rem .35rem; display: block; }
+        .nav-item { display: flex; align-items: center; gap: .75rem; padding: .65rem 1.5rem; font-size: .84rem; font-weight: 500; color: var(--muted); text-decoration: none; transition: color .2s, background .2s; position: relative; }
+        .nav-item:hover { color: var(--ink); background: var(--off-white); }
+        .nav-item.active { color: var(--blue); background: var(--blue-bg); font-weight: 600; }
+        .nav-item.active::before { content: ''; position: absolute; left: 0; top: 4px; bottom: 4px; width: 3px; background: var(--blue); border-radius: 0 3px 3px 0; }
+        .nav-icon { font-size: 1.1rem; width: 20px; text-align: center; }
+        .main { margin-left: var(--sidebar-w); min-height: 100vh; display: flex; flex-direction: column; }
+        .topbar { position: sticky; top: 0; z-index: 40; background: rgba(255,255,255,.92); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: .85rem 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+        .topbar-left { display: flex; align-items: center; gap: 1rem; }
+        .page-heading { font-size: 1.25rem; font-weight: 700; color: var(--ink); }
+        .page-sub { font-size: .78rem; color: var(--muted); }
+        .topbar-right { display: flex; align-items: center; gap: .75rem; }
+        .topbar-btn { width: 38px; height: 38px; border-radius: var(--radius); border: 1.5px solid var(--border); background: transparent; display: flex; align-items: center; justify-content: center; text-decoration: none; color: var(--ink-soft); font-size: 1.1rem; }
+        .hamburger-btn { display: none; width: 38px; height: 38px; border-radius: var(--radius); border: 1.5px solid var(--border); background: transparent; align-items: center; justify-content: center; cursor: pointer; flex-direction: column; gap: 4px; }
+        .hamburger-btn span { width: 16px; height: 1.5px; background: var(--ink); display: block; border-radius: 2px; }
+        .page-content { padding: 2rem; flex: 1; display: flex; align-items: center; justify-content: center; }
+        .spam-card { background: var(--white); border: 1.5px solid #fed7aa; border-radius: var(--radius-lg); padding: 3rem 2.5rem; max-width: 520px; width: 100%; text-align: center; box-shadow: 0 8px 32px rgba(234,88,12,.08); }
+        .spam-icon { font-size: 3.5rem; margin-bottom: 1.25rem; }
+        .spam-title { font-size: 1.4rem; font-weight: 700; color: #c2410c; margin-bottom: .75rem; }
+        .spam-subtitle { font-size: .9rem; color: var(--muted); line-height: 1.65; margin-bottom: 2rem; }
+        .spam-subtitle strong { color: var(--ink); }
+        .countdown-box { background: #fff7ed; border: 1.5px solid #fed7aa; border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 2rem; }
+        .countdown-label { font-size: .78rem; font-weight: 600; color: #c2410c; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 1rem; }
+        .countdown-grid { display: flex; align-items: center; justify-content: center; gap: .75rem; }
+        .countdown-unit { background: var(--white); border-radius: var(--radius); padding: .75rem 1.25rem; min-width: 80px; }
+        .countdown-value { font-size: 2.5rem; font-weight: 700; color: #ea580c; line-height: 1; }
+        .countdown-text { font-size: .65rem; font-weight: 600; color: #9ca3af; letter-spacing: .12em; margin-top: .3rem; }
+        .countdown-sep { font-size: 2rem; font-weight: 700; color: #ea580c; margin-top: -.5rem; }
+        .spam-actions { display: flex; gap: .75rem; justify-content: center; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .btn-back { display: inline-flex; align-items: center; gap: .4rem; padding: .65rem 1.25rem; border-radius: var(--radius); font-size: .875rem; font-weight: 600; background: var(--white); color: var(--ink-soft); text-decoration: none; border: 1.5px solid var(--border); transition: all .15s; }
+        .btn-back:hover { border-color: var(--blue); color: var(--blue); }
+        .btn-faq { display: inline-flex; align-items: center; gap: .4rem; padding: .65rem 1.25rem; border-radius: var(--radius); font-size: .875rem; font-weight: 600; background: var(--blue); color: #fff; text-decoration: none; transition: background .15s; }
+        .btn-faq:hover { background: var(--blue-dark); }
+        .spam-note { font-size: .78rem; color: var(--muted); line-height: 1.6; }
+        .spam-note a { color: var(--blue); text-decoration: none; font-weight: 600; }
+        @media (max-width: 768px) { :root { --sidebar-w: 0px; } .sidebar { transform: translateX(-260px); width: 260px; } .sidebar.open { transform: translateX(0); } .main { margin-left: 0; } .hamburger-btn { display: flex; } .page-content { padding: 1.25rem; } }
+        .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(13,21,38,.4); z-index: 45; }
+        .sidebar-overlay.visible { display: block; }
+    </style>
 
-    totalSeconds--;
-}
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const hamburger = document.getElementById('hamburgerBtn');
+        if(hamburger) { hamburger.addEventListener('click', () => { sidebar.classList.toggle('open'); overlay.classList.toggle('visible'); }); }
+        if(overlay) { overlay.addEventListener('click', () => { sidebar.classList.remove('open'); overlay.classList.remove('visible'); }); }
 
-updateCountdown();
-setInterval(updateCountdown, 1000);
-</script>
+        // Compte à rebours
+        let totalSeconds = {{ waitSeconds }};
+
+        function updateCountdown() {
+            if (totalSeconds <= 0) {
+                // Rediriger automatiquement quand le temps est écoulé
+                window.location.href = "{{ path('app_user_reclamation_new') }}";
+                return;
+            }
+
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+
+            document.getElementById('cd-minutes').textContent = String(minutes).padStart(2, '0');
+            document.getElementById('cd-seconds').textContent = String(seconds).padStart(2, '0');
+
+            totalSeconds--;
+        }
+
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+    </script>
 {% endblock %}
