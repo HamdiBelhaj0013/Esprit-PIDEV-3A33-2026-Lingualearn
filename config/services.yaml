@@ -7,54 +7,54 @@ services:
 
     # Load all services from src/
     App\:
-        resource: '../src/'
+        resource: "../src/"
         exclude:
-            - '../src/DependencyInjection/'
-            - '../src/Kernel.php'
-            - '../src/Module/*/Entity/'
+            - "../src/DependencyInjection/"
+            - "../src/Kernel.php"
+            - "../src/Module/*/Entity/"
 
     # Main app controllers (including User subfolder)
     App\Controller\:
-        resource: '../src/Controller/'
-        tags: ['controller.service_arguments']
+        resource: "../src/Controller/"
+        tags: ["controller.service_arguments"]
 
     # Load controllers from each module individually
     App\Module\UserManagement\Controller\:
-        resource: '../src/Module/UserManagement/Controller'
-        tags: ['controller.service_arguments']
+        resource: "../src/Module/UserManagement/Controller"
+        tags: ["controller.service_arguments"]
 
     App\Module\ExercisesQuizzes\Controller\:
-        resource: '../src/Module/ExercisesQuizzes/Controller'
-        tags: ['controller.service_arguments']
+        resource: "../src/Module/ExercisesQuizzes/Controller"
+        tags: ["controller.service_arguments"]
 
     App\Module\Forum\Controller\:
-        resource: '../src/Module/Forum/Controller'
-        tags: ['controller.service_arguments']
+        resource: "../src/Module/Forum/Controller"
+        tags: ["controller.service_arguments"]
 
     App\Module\InternationalTests\Controller\:
-        resource: '../src/Module/InternationalTests/Controller'
-        tags: ['controller.service_arguments']
+        resource: "../src/Module/InternationalTests/Controller"
+        tags: ["controller.service_arguments"]
 
     App\Module\PedagogicalContent\Controller\:
-        resource: '../src/Module/PedagogicalContent/Controller'
-        tags: ['controller.service_arguments']
+        resource: "../src/Module/PedagogicalContent/Controller"
+        tags: ["controller.service_arguments"]
 
     App\Module\Support\Controller\:
-        resource: '../src/Module/Support/Controller'
-        tags: ['controller.service_arguments']
+        resource: "../src/Module/Support/Controller"
+        tags: ["controller.service_arguments"]
 
     # Security - Login Success Handler for role-based redirects
     App\Security\LoginSuccessHandler:
         arguments:
-            $urlGenerator: '@router'
+            $urlGenerator: "@router"
 
     App\Module\UserManagement\Service\EmailVerificationService:
         arguments:
-            $mailerFrom: '%env(MAILER_FROM)%'
+            $mailerFrom: "%env(MAILER_FROM)%"
 
     App\Module\UserManagement\Service\PasswordResetService:
         arguments:
-            $mailerFrom: '%env(MAILER_FROM)%'
+            $mailerFrom: "%env(MAILER_FROM)%"
 
     # =========================================================
     # STRIPE PAYMENT
@@ -62,19 +62,19 @@ services:
 
     Stripe\StripeClient:
         arguments:
-            - '%env(STRIPE_SECRET_KEY)%'
+            - "%env(STRIPE_SECRET_KEY)%"
 
     App\Module\UserManagement\Service\StripeService:
         arguments:
-            $priceMonthly: '%env(STRIPE_PRICE_MONTHLY)%'
-            $priceYearly:  '%env(STRIPE_PRICE_YEARLY)%'
+            $priceMonthly: "%env(STRIPE_PRICE_MONTHLY)%"
+            $priceYearly: "%env(STRIPE_PRICE_YEARLY)%"
         calls:
             - setUserService: ['@App\Module\UserManagement\Service\UserService']
 
     App\Module\UserManagement\Controller\StripeWebhookController:
         arguments:
-            $webhookSecret: '%env(STRIPE_WEBHOOK_SECRET)%'
-        tags: ['controller.service_arguments']
+            $webhookSecret: "%env(STRIPE_WEBHOOK_SECRET)%"
+        tags: ["controller.service_arguments"]
 
     # =========================================================
     # INTERNATIONAL TESTS
@@ -82,19 +82,19 @@ services:
 
     App\Module\InternationalTests\Service\GeminiListeningService:
         arguments:
-            $geminiApiKey: '%env(GEMINI_API_KEY)%'
+            $geminiApiKey: "%env(GEMINI_API_KEY)%"
 
     App\Module\InternationalTests\Service\GeminiWritingService:
         arguments:
-            $geminiApiKey: '%env(GEMINI_API_KEY)%'
+            $geminiApiKey: "%env(GEMINI_API_KEY)%"
 
     App\Module\InternationalTests\Service\AssemblyAiService:
         arguments:
-            $assemblyAiApiKey: '%env(ASSEMBLYAI_API_KEY)%'
+            $assemblyAiApiKey: "%env(ASSEMBLYAI_API_KEY)%"
 
     App\Module\InternationalTests\Service\GeminiSpeakingService:
         arguments:
-            $geminiApiKey: '%env(GEMINI_API_KEY)%'
+            $geminiApiKey: "%env(GEMINI_API_KEY)%"
 
     # =========================================================
     # EXERCISES & QUIZZES - AI
@@ -102,16 +102,17 @@ services:
 
     App\Module\ExercisesQuizzes\Client\HuggingFaceInferenceClient:
         arguments:
-            $baseUrl: '%env(HUGGINGFACE_API_URL)%'
-            $model: '%env(HUGGINGFACE_MODEL)%'
-            $apiToken: '%env(HUGGINGFACE_API_TOKEN)%'
+            $baseUrl: "%env(HUGGINGFACE_API_URL)%"
+            $model: "%env(HUGGINGFACE_MODEL)%"
+            $apiToken: "%env(HUGGINGFACE_API_TOKEN)%"
 
     App\Module\ExercisesQuizzes\Client\HuggingFaceAiCoachClient:
         arguments:
-            $baseUrl: '%env(HUGGINGFACE_API_URL)%'
-            $model: '%env(HUGGINGFACE_MODEL)%'
-            $apiToken: '%env(HUGGINGFACE_API_TOKEN)%'
-
+            $baseUrl: "%env(HUGGINGFACE_API_URL)%"
+            $model: "%env(HUGGINGFACE_MODEL)%"
+            $apiToken: "%env(HUGGINGFACE_API_TOKEN)%"
 
     App\Module\ExercisesQuizzes\Client\AiCoachClientInterface:
         alias: App\Module\ExercisesQuizzes\Client\HuggingFaceAiCoachClient
+    App\Module\ExercisesQuizzes\Service\QuizAttemptStateMachineGuard:
+        public: true

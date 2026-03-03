@@ -4,331 +4,317 @@
 
 {% block stylesheets %}
     {{ parent() }}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Fraunces:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
     <style>
-        /* User sidebar - uses same design system as admin but with different accent */
-        .ll-user-sidebar {
-            background: var(--ll-sidebar-bg) !important;
-            border-right: 1px solid rgba(255,255,255,0.05);
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --white:      #ffffff;
+            --off-white:  #f7f9fc;
+            --surface:    #eef1f8;
+            --ink:        #0d1526;
+            --ink-soft:   #2c3a52;
+            --muted:      #7a87a0;
+            --border:     #e2e8f2;
+            --blue:       #2563eb;
+            --blue-dark:  #1d4ed8;
+            --blue-bg:    #eff6ff;
+            --blue-mid:   #3b82f6;
+            --green:      #16a34a;
+            --green-bg:   #f0fdf4;
+            --orange:     #ea580c;
+            --orange-bg:  #fff7ed;
+            --gold:       #ca8a04;
+            --gold-light: #fbbf24;
+            --gold-bg:    #fefce8;
+            --red:        #dc2626;
+            --red-bg:     #fef2f2;
+            --sidebar-w:  260px;
+            --radius:     12px;
+            --radius-lg:  20px;
         }
-        .ll-user-sidebar .navbar-brand a {
-            text-decoration: none;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Sora', sans-serif;
+            background: var(--off-white);
+            color: var(--ink);
+            min-height: 100vh;
         }
-        .ll-user-sidebar .navbar-brand .ll-logo-icon {
-            width: 36px;
-            height: 36px;
-            background: linear-gradient(135deg, var(--ll-primary), #7c3aed);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-            color: #fff;
+
+        /* ─── SIDEBAR (same as dashboard) ─── */
+        .sidebar {
+            position: fixed; top: 0; left: 0; bottom: 0;
+            width: var(--sidebar-w);
+            background: var(--white);
+            border-right: 1px solid var(--border);
+            display: flex; flex-direction: column;
+            z-index: 50;
+            transition: transform .3s ease;
+        }
+        .sidebar-logo {
+            padding: 1.4rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: .75rem;
+            text-decoration: none; flex-shrink: 0;
+        }
+        .sidebar-logo-icon {
+            width: 34px; height: 34px; border-radius: 10px;
+            background: linear-gradient(135deg, var(--blue), var(--blue-mid));
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Fraunces', serif; font-size: 1rem; font-weight: 400;
+            color: var(--white); flex-shrink: 0;
+        }
+        .sidebar-logo-text {
+            font-family: 'Fraunces', serif; font-size: 1.3rem;
+            font-weight: 400; color: var(--ink); letter-spacing: -.01em;
+        }
+        .sidebar-logo-text span { color: var(--blue); }
+        .sidebar-user {
+            padding: 1.1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: .85rem;
             flex-shrink: 0;
         }
-        .ll-user-sidebar .navbar-brand .ll-logo-text {
-            font-weight: 700;
-            font-size: 1.15rem;
-            letter-spacing: -0.02em;
+        .user-avatar {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--blue), var(--blue-mid));
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Fraunces', serif; font-size: 1rem; font-weight: 400;
+            color: var(--white); flex-shrink: 0;
         }
-        .ll-user-sidebar .nav-link {
-            color: var(--ll-sidebar-text) !important;
-            border-radius: 8px;
-            margin: 1px 8px;
-            padding: 0.5rem 0.75rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-            transition: var(--ll-transition);
+        .user-avatar.premium { background: linear-gradient(135deg, var(--gold), var(--gold-light)); }
+        .user-info { flex: 1; min-width: 0; }
+        .user-name { font-size: .85rem; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-plan { font-size: .68rem; font-family: 'DM Mono', monospace; letter-spacing: .08em; text-transform: uppercase; margin-top: .15rem; }
+        .user-plan.free { color: var(--muted); }
+        .user-plan.premium { color: var(--gold); }
+        .sidebar-nav { flex: 1; padding: .75rem 0; overflow-y: auto; }
+        .nav-section-label {
+            font-family: 'DM Mono', monospace; font-size: .58rem;
+            letter-spacing: .22em; text-transform: uppercase; color: var(--muted);
+            padding: .85rem 1.5rem .3rem; display: block;
         }
-        .ll-user-sidebar .nav-link:hover {
-            color: var(--ll-sidebar-text-active) !important;
-            background: var(--ll-sidebar-hover);
+        .nav-item {
+            display: flex; align-items: center; gap: .75rem;
+            padding: .62rem 1.5rem; font-size: .84rem; font-weight: 500;
+            color: var(--muted); text-decoration: none;
+            transition: color .2s, background .2s;
+            position: relative;
         }
-        .ll-user-sidebar .nav-link.active {
-            color: var(--ll-sidebar-text-active) !important;
-            background: var(--ll-sidebar-active);
+        .nav-item:hover { color: var(--ink); background: var(--off-white); }
+        .nav-item.active { color: var(--blue); background: var(--blue-bg); font-weight: 600; }
+        .nav-item.active::before {
+            content: ''; position: absolute; left: 0; top: 4px; bottom: 4px;
+            width: 3px; background: var(--blue); border-radius: 0 3px 3px 0;
         }
-        .ll-user-sidebar .nav-link.active .nav-link-icon {
-            color: var(--ll-primary) !important;
+        .nav-icon { font-size: 1.05rem; width: 20px; text-align: center; flex-shrink: 0; }
+        .nav-badge {
+            margin-left: auto; background: var(--blue); color: var(--white);
+            font-size: .6rem; font-weight: 700; padding: .15rem .5rem;
+            border-radius: 100px; font-family: 'DM Mono', monospace;
         }
-        .ll-user-sidebar .nav-link-icon {
-            color: var(--ll-sidebar-text) !important;
-            opacity: 0.7;
-            width: 1.5rem;
+        .nav-badge.orange { background: var(--orange); }
+        .sidebar-upgrade {
+            margin: .75rem 1rem 0;
+            background: linear-gradient(135deg, var(--gold-bg), #fff9e0);
+            border: 1.5px solid rgba(202,138,4,.2);
+            border-radius: var(--radius);
+            padding: .9rem 1rem;
         }
-        .ll-user-sidebar .nav-link:hover .nav-link-icon { opacity: 1; }
-        .ll-user-sidebar .dropdown-menu {
-            background: var(--ll-sidebar-hover);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 8px;
-            padding: 0.25rem;
-            margin-left: 8px;
-            margin-right: 8px;
+        .sidebar-upgrade-label {
+            font-size: .68rem; font-family: 'DM Mono', monospace;
+            letter-spacing: .1em; text-transform: uppercase; color: var(--gold);
+            margin-bottom: .35rem;
         }
-        .ll-user-sidebar .dropdown-menu .dropdown-item {
-            color: var(--ll-sidebar-text);
-            border-radius: 6px;
-            padding: 0.4rem 0.75rem;
-            font-size: 0.8125rem;
-            transition: var(--ll-transition);
+        .sidebar-upgrade p { font-size: .75rem; color: #92400e; line-height: 1.5; margin-bottom: .6rem; }
+        .sidebar-upgrade-btn {
+            display: block; text-align: center;
+            padding: .45rem .75rem; border-radius: 8px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            color: var(--white); font-size: .75rem; font-weight: 700;
+            text-decoration: none; transition: opacity .2s, transform .2s;
         }
-        .ll-user-sidebar .dropdown-menu .dropdown-item:hover {
-            color: #fff;
-            background: rgba(255,255,255,0.06);
-        }
-        .ll-user-sidebar .dropdown-menu .dropdown-item i { opacity: 0.6; }
-        .ll-user-sidebar .dropdown-divider { border-color: rgba(255,255,255,0.06); }
+        .sidebar-upgrade-btn:hover { opacity: .9; transform: translateY(-1px); }
+        .sidebar-bottom { padding: .75rem 0; border-top: 1px solid var(--border); flex-shrink: 0; }
 
-        .ll-nav-section {
-            font-size: 0.65rem;
-            font-weight: 700;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: rgba(148, 163, 184, 0.5);
-            padding: 1rem 1.25rem 0.4rem;
+        /* ─── MAIN ─── */
+        .main { margin-left: var(--sidebar-w); min-height: 100vh; display: flex; flex-direction: column; }
+
+        /* ─── TOPBAR ─── */
+        .topbar {
+            position: sticky; top: 0; z-index: 40;
+            background: rgba(255,255,255,.92); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: .85rem 2rem;
+            display: flex; align-items: center; justify-content: space-between; gap: 1rem;
         }
+        .topbar-left { display: flex; align-items: center; gap: 1rem; }
+        .page-heading { font-family: 'Fraunces', serif; font-size: 1.25rem; font-weight: 400; color: var(--ink); }
+        .page-sub { font-size: .78rem; color: var(--muted); margin-top: .1rem; }
+        .topbar-right { display: flex; align-items: center; gap: .75rem; }
+        .topbar-btn {
+            width: 38px; height: 38px; border-radius: var(--radius);
+            border: 1.5px solid var(--border); background: transparent;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; position: relative;
+            transition: border-color .2s, background .2s;
+            font-size: 1.1rem; text-decoration: none; color: var(--ink-soft);
+        }
+        .topbar-btn:hover { border-color: var(--blue); background: var(--blue-bg); color: var(--blue); }
+        .notif-dot {
+            position: absolute; top: 6px; right: 6px;
+            width: 7px; height: 7px; border-radius: 50%;
+            background: var(--orange); border: 1.5px solid var(--white);
+        }
+        .hamburger-btn {
+            display: none; width: 38px; height: 38px; border-radius: var(--radius);
+            border: 1.5px solid var(--border); background: transparent;
+            align-items: center; justify-content: center; cursor: pointer; flex-direction: column; gap: 4px;
+        }
+        .hamburger-btn span { width: 16px; height: 1.5px; background: var(--ink); display: block; border-radius: 2px; }
 
-        .ll-page-body { background: #f8fafc; min-height: calc(100vh - 120px); }
-        .ll-topbar { background: #fff; border-bottom: 1px solid #e5e7eb; }
-        .ll-footer { border-top: 1px solid #e5e7eb; background: #fff; }
-        .ll-footer .text-muted { font-size: 0.8125rem; }
-        .ll-page-header { padding: 1.25rem 0; }
-        .ll-page-header .page-title { font-size: 1.375rem; font-weight: 700; color: #0f172a; }
+        /* ─── PAGE CONTENT ─── */
+        .page-content { padding: 2rem; flex: 1; }
 
-        .ll-xp-card {
-            background: linear-gradient(135deg, rgba(37, 99, 235, 0.15), rgba(124, 58, 237, 0.1));
-            border: 1px solid rgba(37, 99, 235, 0.15);
-            border-radius: 10px;
+        /* ─── OVERLAY ─── */
+        .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(13,21,38,.4); z-index: 45; }
+        .sidebar-overlay.visible { display: block; }
+
+        @media (max-width: 768px) {
+            :root { --sidebar-w: 0px; }
+            .sidebar { transform: translateX(-260px); width: 260px; }
+            .sidebar.open { transform: translateX(0); }
+            .main { margin-left: 0; }
+            .hamburger-btn { display: flex; }
+            .page-content { padding: 1.25rem; }
+            .topbar { padding: .75rem 1.25rem; }
         }
     </style>
     {% block user_styles %}{% endblock %}
 {% endblock %}
 
 {% block body %}
-    <div class="page">
-        {# ===== SIDEBAR ===== #}
-        <aside class="navbar navbar-vertical navbar-expand-lg ll-user-sidebar" data-bs-theme="dark">
-            <div class="container-fluid">
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#user-sidebar-menu" aria-controls="user-sidebar-menu"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+    {% set _route = app.request.attributes.get('_route') %}
+    {% set _user = app.user %}
 
-                <h1 class="navbar-brand navbar-brand-autodark">
-                    <a href="{{ path('user_dashboard') }}">
-                        <span class="ll-logo-icon"><i class="ti ti-language"></i></span>
-                        <span class="ll-logo-text">LinguaLearn</span>
-                    </a>
-                </h1>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-                <div class="collapse navbar-collapse" id="user-sidebar-menu">
-                    <ul class="navbar-nav pt-lg-2">
+    <aside class="sidebar" id="sidebar">
+        <a href="{{ path('app_homepage') }}" class="sidebar-logo">
+            <div class="sidebar-logo-icon">L</div>
+            <span class="sidebar-logo-text">Lingua<span>Learn</span></span>
+        </a>
 
-                        <li class="ll-nav-section">Overview</li>
-
-                        <li class="nav-item">
-                            <a class="nav-link {% if app.request.attributes.get('_route') == 'user_dashboard' %}active{% endif %}"
-                               href="{{ path('user_dashboard') }}">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-home"></i></span>
-                                <span class="nav-link-title">Dashboard</span>
-                            </a>
-                        </li>
-
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-user"></i></span>
-                                <span class="nav-link-title">My Profile</span>
-                            </a>
-                        </li>
-
-                        <li class="ll-nav-section">Learning</li>
-
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#"
-                               data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="false">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-book-2"></i></span>
-                                <span class="nav-link-title">My Courses</span>
-                            </a>
-                            <div class="dropdown-menu">
-                                <a class="dropdown-item" href="#"><i class="ti ti-list me-2"></i> All Courses</a>
-                                <a class="dropdown-item" href="#"><i class="ti ti-progress me-2"></i> In Progress</a>
-                                <a class="dropdown-item" href="#"><i class="ti ti-check me-2"></i> Completed</a>
-                            </div>
-                        </li>
-
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-clipboard-check"></i></span>
-                                <span class="nav-link-title">Exercises</span>
-                            </a>
-                        </li>
-
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-certificate"></i></span>
-                                <span class="nav-link-title">Practice Tests</span>
-                            </a>
-                        </li>
-
-                        <li class="ll-nav-section">Community</li>
-
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-messages"></i></span>
-                                <span class="nav-link-title">Forum</span>
-                            </a>
-                        </li>
-
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-chart-line"></i></span>
-                                <span class="nav-link-title">My Progress</span>
-                            </a>
-                        </li>
-
-                        <li class="ll-nav-section">Help</li>
-
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#"
-                               data-bs-toggle="dropdown" data-bs-auto-close="false" role="button" aria-expanded="false">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-help"></i></span>
-                                <span class="nav-link-title">Support</span>
-                            </a>
-                            <div class="dropdown-menu">
-                                <a class="dropdown-item" href="#"><i class="ti ti-help-circle me-2"></i> FAQ</a>
-                                <a class="dropdown-item" href="#"><i class="ti ti-message-circle me-2"></i> Contact</a>
-                            </div>
-                        </li>
-
-                        {% if is_granted('ROLE_ADMIN') %}
-                            <li class="ll-nav-section">Administration</li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ path('admin_dashboard') }}">
-                                    <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-shield"></i></span>
-                                    <span class="nav-link-title">Admin Panel</span>
-                                </a>
-                            </li>
-                        {% endif %}
-                    </ul>
-
-                    {# XP Progress Card #}
-                    {% if app.user and app.user.learningStats %}
-                        <div class="mx-3 mt-auto mb-3 p-3 ll-xp-card">
-                            <div class="text-white small fw-bold mb-2">
-                                <i class="ti ti-flame me-1"></i> Your Progress
-                            </div>
-                            <div class="text-white" style="font-size: 1.25rem; font-weight: 700;">
-                                {{ app.user.learningStats.totalXP|number_format }} XP
-                            </div>
-                            <div class="progress mt-2" style="height: 4px; background: rgba(255,255,255,0.15);">
-                                <div class="progress-bar" style="width: {{ min(100, (app.user.learningStats.totalXP / 1000) * 100) }}%; background: var(--ll-primary);"></div>
-                            </div>
-                            <div class="small mt-1" style="color: rgba(255,255,255,0.6);">
-                                {{ app.user.learningStats.wordsLearned }} words learned
-                            </div>
-                        </div>
-                    {% endif %}
-                </div>
-
-                {# Sidebar User #}
-                <div class="d-none d-lg-block" style="border-top: 1px solid rgba(255,255,255,0.06); padding: 0.75rem 1rem;">
-                    <div class="d-flex align-items-center">
-                    <span class="avatar avatar-sm me-2"
-                          style="background-image: url(https://ui-avatars.com/api/?name={{ app.user ? app.user.firstName ~ '+' ~ app.user.lastName : 'User' }}&background=2563eb&color=fff); background-size: cover;">
-                    </span>
-                        <div class="flex-fill" style="min-width: 0;">
-                            <div class="fw-bold text-white small text-truncate">
-                                {{ app.user ? app.user.fullName : 'Guest' }}
-                            </div>
-                            <div class="small text-truncate" style="color: var(--ll-sidebar-text); font-size: 0.75rem;">
-                                {% if app.user and app.user.isPremium %}
-                                    <i class="ti ti-crown" style="color: #f59e0b;"></i> Premium
-                                {% else %}
-                                    Free Plan
-                                {% endif %}
-                            </div>
-                        </div>
-                        <a href="{{ path('app_logout') }}" class="ms-2" style="color: var(--ll-sidebar-text);" title="Logout">
-                            <i class="ti ti-logout"></i>
-                        </a>
-                    </div>
+        <div class="sidebar-user">
+            <div class="user-avatar {{ _user.isPremium ? 'premium' : '' }}">
+                {{ _user.firstName|default('U')|first|upper }}{{ _user.lastName|default('')|first|upper }}
+            </div>
+            <div class="user-info">
+                <div class="user-name">{{ _user.fullName }}</div>
+                <div class="user-plan {{ _user.isPremium ? 'premium' : 'free' }}">
+                    {{ _user.isPremium ? '👑 ' ~ _user.subscriptionPlan : 'Free Plan' }}
                 </div>
             </div>
-        </aside>
-
-        {# ===== MAIN CONTENT ===== #}
-        <div class="page-wrapper">
-
-            {# Top Bar #}
-            <header class="navbar navbar-expand-md ll-topbar d-print-none">
-                <div class="container-xl">
-                    <div class="navbar-nav flex-row order-md-last">
-                        {% include 'components/_notifications.html.twig' ignore missing %}
-                        {% include 'components/_user_menu.html.twig' ignore missing %}
-                    </div>
-                    <div class="d-flex">
-                        <div class="page-pretitle" style="font-size: 0.7rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: #94a3b8;">
-                            {% block page_pretitle %}{% endblock %}
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            {# Flash Messages #}
-            {% include 'components/_flash_messages.html.twig' ignore missing %}
-
-            {# Page Header #}
-            {% block page_header %}
-                <div class="page-header d-print-none ll-page-header">
-                    <div class="container-xl">
-                        <div class="row g-2 align-items-center">
-                            <div class="col">
-                                {% block breadcrumb %}{% endblock %}
-                                <h2 class="page-title" style="font-size: 1.375rem; font-weight: 700; color: #0f172a;">
-                                    {{ block('page_title') }}
-                                </h2>
-                            </div>
-                            <div class="col-auto ms-auto d-print-none">
-                                <div class="btn-list">
-                                    {% block page_actions %}{% endblock %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            {% endblock %}
-
-            {# Page Body #}
-            <div class="page-body ll-page-body">
-                <div class="container-xl">
-                    {% block content %}{% endblock %}
-                </div>
-            </div>
-
-            {# Footer #}
-            <footer class="footer footer-transparent d-print-none ll-footer mt-auto">
-                <div class="container-xl">
-                    <div class="row text-center align-items-center">
-                        <div class="col-12 col-lg-auto mt-3 mt-lg-0">
-                            <ul class="list-inline list-inline-dots mb-0">
-                                <li class="list-inline-item">
-                                    <a href="#" class="link-secondary text-decoration-none"><i class="ti ti-help me-1"></i>Support</a>
-                                </li>
-                                <li class="list-inline-item">
-                                    <a href="#" class="link-secondary text-decoration-none"><i class="ti ti-shield-lock me-1"></i>Privacy</a>
-                                </li>
-                            </ul>
-                        </div>
-                        <div class="col-lg-auto ms-lg-auto">
-                            <span class="text-muted">&copy; {{ 'now'|date('Y') }} LinguaLearn. All rights reserved.</span>
-                        </div>
-                    </div>
-                </div>
-            </footer>
         </div>
+
+        <nav class="sidebar-nav">
+            <span class="nav-section-label">Main</span>
+            <a href="{{ path('user_dashboard') }}" class="nav-item {{ _route == 'user_dashboard' ? 'active' : '' }}">
+                <span class="nav-icon">🏠</span> Dashboard
+            </a>
+            <a href="{{ path('language_select') }}" class="nav-item {{ _route == 'language_select' ? 'active' : '' }}">
+                <span class="nav-icon">📚</span> My Courses
+                <span class="nav-badge">{{ _user.userLanguages|length }}</span>
+            </a>
+                <a href="{{ path('learn_practice') }}" class="nav-item {{ _route == 'learn_practice' ? 'active' : '' }}">
+                    <span class="nav-icon">🧩</span> Practice
+                </a>
+                <a href="{{ path('learn_skills_index') }}" class="nav-item {{ _route == 'learn_skills_index' ? 'active' : '' }}">
+                    <span class="nav-icon">📊</span> Analyse des compétences
+                </a>
+                <a href="{{ path('pricing') }}" class="nav-item {{ _route == 'pricing' ? 'active' : '' }}">
+                <span class="nav-icon">📝</span> Mock Tests
+                {% if not _user.isPremium %}<span class="nav-badge" style="background:var(--gold)">PRO</span>{% endif %}
+            </a>
+
+            <span class="nav-section-label">Account</span>
+            <a href="{{ path('user_profile') }}" class="nav-item {{ _route == 'user_profile' ? 'active' : '' }}">
+                <span class="nav-icon">👤</span> My Profile
+            </a>
+            <a href="{{ path('user_profile') }}#notifications" class="nav-item">
+                <span class="nav-icon">🔔</span> Notifications
+                {% set unread = 0 %}
+                {% for n in _user.notifications %}{% if not n.isRead %}{% set unread = unread + 1 %}{% endif %}{% endfor %}
+                {% if unread > 0 %}<span class="nav-badge orange">{{ unread }}</span>{% endif %}
+            </a>
+            <a href="{{ path('pricing') }}" class="nav-item">
+                <span class="nav-icon">👑</span> Plans & Billing
+            </a>
+
+            {% if is_granted('ROLE_ADMIN') %}
+                <span class="nav-section-label">Admin</span>
+                <a href="{{ path('admin_dashboard') }}" class="nav-item">
+                    <span class="nav-icon">🛡</span> Admin Panel
+                </a>
+            {% endif %}
+
+            {% if not _user.isPremium %}
+                <div class="sidebar-upgrade">
+                    <div class="sidebar-upgrade-label">✦ Go Premium</div>
+                    <p>Unlock all courses, mock tests & AI practice.</p>
+                    <a href="{{ path('pricing') }}" class="sidebar-upgrade-btn">Upgrade Now →</a>
+                </div>
+            {% endif %}
+        </nav>
+
+        <div class="sidebar-bottom">
+            <a href="{{ path('app_logout') }}" class="nav-item">
+                <span class="nav-icon">🚪</span> Log Out
+            </a>
+        </div>
+    </aside>
+
+    <div class="main">
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="hamburger-btn" id="hamburgerBtn" aria-label="Toggle menu">
+                    <span></span><span></span><span></span>
+                </button>
+                <div>
+                    <div class="page-heading">{% block page_heading_content %}{{ block('page_title') }}{% endblock %}</div>
+                    <div class="page-sub">{% block page_sub_content %}{% endblock %}</div>
+                </div>
+            </div>
+            <div class="topbar-right">
+                <a href="{{ path('user_profile') }}#notifications" class="topbar-btn" title="Notifications">
+                    🔔
+                    {% set unread = 0 %}
+                    {% for n in _user.notifications %}{% if not n.isRead %}{% set unread = unread + 1 %}{% endif %}{% endfor %}
+                    {% if unread > 0 %}<span class="notif-dot"></span>{% endif %}
+                </a>
+                <a href="{{ path('user_profile') }}" class="topbar-btn" title="My Profile">👤</a>
+            </div>
+        </header>
+
+        {% include 'components/_flash_messages.html.twig' ignore missing %}
+
+        <main class="page-content">
+            {% block content %}{% endblock %}
+        </main>
     </div>
+
+    <script>
+        const sidebar   = document.getElementById('sidebar');
+        const overlay   = document.getElementById('sidebarOverlay');
+        const hamburger = document.getElementById('hamburgerBtn');
+        if (hamburger) {
+            hamburger.addEventListener('click', () => { sidebar.classList.toggle('open'); overlay.classList.toggle('visible'); });
+        }
+        if (overlay) {
+            overlay.addEventListener('click', () => { sidebar.classList.remove('open'); overlay.classList.remove('visible'); });
+        }
+    </script>
 {% endblock %}

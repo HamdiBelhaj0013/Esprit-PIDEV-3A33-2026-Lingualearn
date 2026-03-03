@@ -77,10 +77,10 @@ class SkillAnalyzerService
                 if (!$exercise instanceof Exercice) {
                     continue;
                 }
-                $skills = $exercise->getSkills();
-                if ($skills === []) {
-                    continue;
-                }
+                $skills = $exercise->getSkillCodes();
+if ($skills === []) {
+    continue;
+}
 
                 $normalizedScore = $exerciseAttempt->getIsCorrect() ? 100 : 0;
                 $difficulty = max(1, min(5, $exercise->getDifficulty()));

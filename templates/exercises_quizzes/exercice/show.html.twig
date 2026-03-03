@@ -1,4 +1,4 @@
-{% extends 'admin/base_html.twig' %}
+{% extends 'layouts/admin.html.twig' %}
 
 {% block title %}Exercice #{{ exercice.id }}{% endblock %}
 {% block page_title %}<i class="ti ti-puzzle me-2"></i>Exercice #{{ exercice.id }}{% endblock %}
@@ -20,32 +20,15 @@
 {% endblock %}
 
 {% block stylesheets %}
-{{ parent() }}
-{{ include('exercises_quizzes/_eq_styles.html.twig') }}
+    {{ parent() }}
+    {{ include('exercises_quizzes/_eq_styles.html.twig') }}
 {% endblock %}
 
-<<<<<<< Updated upstream
-{% block body %}
-<div class="row">
-    <div class="col-lg-8 mx-auto">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="ti ti-info-circle me-2"></i>
-                    Informations de l'exercice
-                </h3>
-            </div>
-            <div class="card-body">
-                <div class="datagrid">
-                    <div class="datagrid-item">
-                        <div class="datagrid-title">ID</div>
-                        <div class="datagrid-content">
-                            <span class="badge bg-secondary-lt">#{{ exercice.id }}</span>
-=======
 {% block content %}
 <div class="eq-page-wrap">
     <div class="row justify-content-center">
         <div class="col-12 col-lg-9">
+
             <div class="card eq-card mb-3">
                 <div class="card-header">
                     <h3 class="card-title"><i class="ti ti-info-circle me-2"></i>Informations</h3>
@@ -54,23 +37,51 @@
                     <div class="datagrid eq-datagrid">
                         <div class="datagrid-item">
                             <div class="datagrid-title">ID</div>
-                            <div class="datagrid-content"><span class="badge eq-badge bg-secondary-lt">#{{ exercice.id }}</span></div>
->>>>>>> Stashed changes
+                            <div class="datagrid-content">
+                                <span class="badge eq-badge bg-secondary-lt">#{{ exercice.id }}</span>
+                            </div>
                         </div>
+
                         <div class="datagrid-item">
                             <div class="datagrid-title">Quiz</div>
                             <div class="datagrid-content">
                                 {% if exercice.quiz %}
-                                    <a href="{{ path('quiz_show', { id: exercice.quiz.id }) }}" class="text-primary fw-semibold">{{ exercice.quiz.title }}</a>
+                                    <a href="{{ path('quiz_show', { id: exercice.quiz.id }) }}" class="text-primary fw-semibold">
+                                        {{ exercice.quiz.title }}
+                                    </a>
                                 {% else %}
                                     <span class="text-muted">—</span>
                                 {% endif %}
                             </div>
                         </div>
+
                         <div class="datagrid-item">
                             <div class="datagrid-title">Type</div>
-                            <div class="datagrid-content"><span class="badge eq-badge bg-primary-lt text-primary">{{ exercice.type }}</span></div>
+                            <div class="datagrid-content">
+                                <span class="badge eq-badge bg-primary-lt text-primary">{{ exercice.type }}</span>
+                            </div>
                         </div>
+
+                        <div class="datagrid-item">
+                            <div class="datagrid-title">Difficulté</div>
+                            <div class="datagrid-content">
+                                <span class="badge eq-badge bg-azure-lt text-dark">{{ exercice.difficulty }}/5</span>
+                            </div>
+                        </div>
+
+                        <div class="datagrid-item">
+                            <div class="datagrid-title">Compétences</div>
+                            <div class="datagrid-content">
+                                {% if exercice.skillCodes is not empty %}
+                                    {% for code in exercice.skillCodes %}
+                                        <span class="badge eq-badge bg-success-lt text-success me-1">{{ code }}</span>
+                                    {% endfor %}
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
                         <div class="datagrid-item">
                             <div class="datagrid-title">Activé</div>
                             <div class="datagrid-content">
@@ -81,6 +92,7 @@
                                 {% endif %}
                             </div>
                         </div>
+
                         <div class="datagrid-item">
                             <div class="datagrid-title">Généré par IA</div>
                             <div class="datagrid-content">
@@ -105,22 +117,22 @@
             </div>
 
             {% if exercice.options is not empty %}
-            <div class="card eq-card mb-3">
-                <div class="card-header">
-                    <h3 class="card-title"><i class="ti ti-list me-2"></i>Options</h3>
-                </div>
-                <div class="list-group list-group-flush">
-                    {% for option in exercice.options %}
-                    <div class="list-group-item d-flex align-items-center eq-list-item">
-                        <span class="badge eq-badge bg-azure-lt me-2">{{ loop.index }}</span>
-                        <span class="flex-grow-1">{{ option }}</span>
-                        {% if option == exercice.correctAnswer %}
-                        <span class="badge eq-badge bg-success-lt text-success"><i class="ti ti-check me-1"></i> Correcte</span>
-                        {% endif %}
+                <div class="card eq-card mb-3">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="ti ti-list me-2"></i>Options</h3>
                     </div>
-                    {% endfor %}
+                    <div class="list-group list-group-flush">
+                        {% for option in exercice.options %}
+                            <div class="list-group-item d-flex align-items-center eq-list-item">
+                                <span class="badge eq-badge bg-azure-lt me-2">{{ loop.index }}</span>
+                                <span class="flex-grow-1">{{ option }}</span>
+                                {% if option == exercice.correctAnswer %}
+                                    <span class="badge eq-badge bg-success-lt text-success"><i class="ti ti-check me-1"></i> Correcte</span>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
                 </div>
-            </div>
             {% endif %}
 
             <div class="card eq-card">
@@ -134,10 +146,12 @@
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 </div>
 
+{# Modal suppression #}
 <div class="modal modal-blur fade" id="deleteModal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
         <div class="modal-content">
