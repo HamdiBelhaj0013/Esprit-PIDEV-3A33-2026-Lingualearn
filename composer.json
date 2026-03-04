@@ -7,24 +7,24 @@
         "php": ">=8.2",
         "ext-ctype": "*",
         "ext-iconv": "*",
-        "damienharper/auditor-bundle": "*",
-        "doctrine/doctrine-bundle": "^2.18",
+        "damienharper/auditor-bundle": ">=6.3",
+        "doctrine/doctrine-bundle": "^2.18.2",
         "doctrine/doctrine-migrations-bundle": "^3.7",
         "doctrine/migrations": "3.8",
         "doctrine/orm": "^3.6.2",
-        "dompdf/dompdf": "*",
-        "knplabs/knp-paginator-bundle": "*",
-        "phpdocumentor/reflection-docblock": "^5.6",
-        "phpstan/phpdoc-parser": "^2.3",
-        "pusher/pusher-php-server": "*",
-        "stripe/stripe-php": "*",
+        "dompdf/dompdf": ">=3.1.5",
+        "knplabs/knp-paginator-bundle": ">=6.10",
+        "phpdocumentor/reflection-docblock": "^5.6.6",
+        "phpstan/phpdoc-parser": "^2.3.2",
+        "pusher/pusher-php-server": ">=7.2.7",
+        "stripe/stripe-php": ">=19.4",
         "symfony/asset": "7.4.*",
         "symfony/asset-mapper": "7.4.*",
         "symfony/console": "7.4.*",
         "symfony/doctrine-messenger": "7.4.*",
         "symfony/dotenv": "7.4.*",
         "symfony/expression-language": "7.4.*",
-        "symfony/flex": "^2",
+        "symfony/flex": "^2.10",
         "symfony/form": "7.4.*",
         "symfony/framework-bundle": "7.4.*",
         "symfony/google-mailer": "7.4.*",
@@ -32,9 +32,9 @@
         "symfony/intl": "7.4.*",
         "symfony/mailer": "7.4.*",
         "symfony/mailtrap-mailer": "7.4.*",
-        "symfony/mercure-bundle": "*",
+        "symfony/mercure-bundle": ">=0.4.2",
         "symfony/mime": "7.4.*",
-        "symfony/monolog-bundle": "^3.0|^4.0",
+        "symfony/monolog-bundle": "^3.0|^4.0.1",
         "symfony/notifier": "7.4.*",
         "symfony/process": "7.4.*",
         "symfony/property-access": "7.4.*",
@@ -54,12 +54,12 @@
         "symfony/webpack-encore-bundle": "^2.4",
         "symfony/workflow": "7.4.*",
         "symfony/yaml": "7.4.*",
-        "twig/extra-bundle": "^2.12|^3.0",
-        "twig/twig": "^2.12|^3.0",
-        "vich/uploader-bundle": "*",
-        "web-auth/webauthn-lib": "*",
-        "web-auth/webauthn-symfony-bundle": "*",
-        "winzou/state-machine-bundle": "*"
+        "twig/extra-bundle": "^2.12|^3.23",
+        "twig/twig": "^2.12|^3.23",
+        "vich/uploader-bundle": ">=2.9.1",
+        "web-auth/webauthn-lib": ">=5.2.3",
+        "web-auth/webauthn-symfony-bundle": ">=5.2.3",
+        "winzou/state-machine-bundle": ">=0.6.3"
     },
     "config": {
         "allow-plugins": {
@@ -96,17 +96,12 @@
             "assets:install %PUBLIC_DIR%": "symfony-cmd",
             "importmap:install": "symfony-cmd"
         },
-        "patch-doctrine": [
-            "@php patch-doctrine.php"
-        ],
         "post-install-cmd": [
-            "@auto-scripts",
-            "@patch-doctrine"
-        ],
-        "post-update-cmd": [
-            "@auto-scripts",
-            "@patch-doctrine"
-        ]
+    "@auto-scripts"
+],
+"post-update-cmd": [
+    "@auto-scripts"
+]
     },
     "conflict": {
         "symfony/symfony": "*"
@@ -118,13 +113,21 @@
         }
     },
     "require-dev": {
+<<<<<<< Updated upstream
         "doctrine/doctrine-fixtures-bundle": "^4.3",
         "phpstan/phpstan": "*",
         "phpunit/phpunit": "^11.5",
+=======
+        "doctrine/doctrine-fixtures-bundle": "^4.3.1",
+        "phpstan/phpstan": ">=2.1.40",
+        "phpstan/phpstan-doctrine": "^2.0",
+        "phpstan/phpstan-symfony": "^2.0",
+        "phpunit/phpunit": "^11.5.55",
+>>>>>>> Stashed changes
         "symfony/browser-kit": "7.4.*",
         "symfony/css-selector": "7.4.*",
         "symfony/debug-bundle": "7.4.*",
-        "symfony/maker-bundle": "^1.65",
+        "symfony/maker-bundle": "^1.66",
         "symfony/stopwatch": "7.4.*",
         "symfony/web-profiler-bundle": "7.4.*"
     }

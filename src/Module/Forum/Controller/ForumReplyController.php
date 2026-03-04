@@ -73,9 +73,9 @@ class ForumReplyController extends AbstractController
 
         // Automatically set the author to the currently logged-in user
         $currentUser = $this->getUser();
-        if ($currentUser) {
-            $reply->setAuthorId($currentUser->getId());
-        }
+        if ($currentUser && method_exists($currentUser, 'getId')) {
+    $reply->setAuthorId($currentUser->getId());
+}
 
         // Pre-select post if coming from a post page (but admin can still change it)
         $preselectedPostId = $request->query->get('postId');
@@ -91,9 +91,9 @@ class ForumReplyController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             // Ensure author is set
-            if (!$reply->getAuthorId() && $currentUser) {
-                $reply->setAuthorId($currentUser->getId());
-            }
+            if ($currentUser && method_exists($currentUser, 'getId')) {
+    $reply->setAuthorId($currentUser->getId());
+}
 
             $this->repository->save($reply, true);
             $this->addFlash('success', 'Reply created successfully!');
