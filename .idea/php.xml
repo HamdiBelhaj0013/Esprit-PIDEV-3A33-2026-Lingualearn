@@ -193,9 +193,8 @@
       <path value="$PROJECT_DIR$/vendor/web-auth/webauthn-lib" />
       <path value="$PROJECT_DIR$/vendor/web-auth/webauthn-symfony-bundle" />
       <path value="$PROJECT_DIR$/vendor/stripe/stripe-php" />
-      <path value="$PROJECT_DIR$/vendor/phpstan/phpstan" />
-      <path value="$PROJECT_DIR$/vendor/phpmyadmin/sql-parser" />
-      <path value="$PROJECT_DIR$/vendor/ahmed-bhs/doctrine-doctor" />
+      <path value="$PROJECT_DIR$/vendor/phpstan/extension-installer" />
+      <path value="$PROJECT_DIR$/vendor/phpstan/phpstan-symfony" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.2" />
