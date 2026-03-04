@@ -19,6 +19,10 @@ return [
     Knp\Bundle\PaginatorBundle\KnpPaginatorBundle::class => ['all' => true],
     Vich\UploaderBundle\VichUploaderBundle::class => ['all' => true],
     Symfony\Bundle\MercureBundle\MercureBundle::class => ['all' => true],
+<<<<<<< HEAD
+    AhmedBhs\DoctrineDoctor\DoctrineDoctorBundle::class => ['dev' => true, 'test' => true],
+=======
     DH\AuditorBundle\DHAuditorBundle::class => ['all' => true],
     Webauthn\Bundle\WebauthnBundle::class => ['all' => true],
+>>>>>>> 3e8e4967c4ad44be8ae1497e64700bdf182a6a74
 ];

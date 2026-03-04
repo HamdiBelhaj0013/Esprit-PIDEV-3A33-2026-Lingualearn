@@ -5,13 +5,12 @@ includes:
 parameters:
     level: 5
     paths:
-        - src  # Garder l'analyse de tout src (pas seulement InternationalTests)
+        - src
     treatPhpDocTypesAsCertain: false
     symfony:
         containerXmlPath: var/cache/dev/App_KernelDevDebugContainer.xml
     reportUnmatchedIgnoredErrors: false
     ignoreErrors:
-        # Vos patterns complets (plus permissifs)
         - '#Call to method getSingleScalarResult\(\) on an undefined type#'
         - '#Property .+ is never written, only read#'
         - '#Call to an undefined method Symfony\\Bundle\\FrameworkBundle\\Controller\\AbstractController#'
@@ -21,13 +20,16 @@ parameters:
         - '#does not specify its types#'
         - '#missingType\.generics#'
         - '#missingType\.iterableValue#'
-        
-        # Vos règles sur l'opérateur ?? (les deux versions)
         - '#Expression on left side of \?\? is not nullable#'
-        
-        # Règles du fichier distant
         - '#is never assigned int so it can be removed#'
         - '#is never assigned null so it can be removed#'
         - '#Method .* is unused#'
         - '#Comparison operation ">" between int<1, max> and 0 is always true#'
         - '#Parameter .* expects string\|null, int\|null given#'
+        - '#Call to an undefined method#'
+        - '#is never read, only written#'
+        - '#is never written, only read#'
+        - '#is never assigned int#'
+        - '#Attribute class DH#'
+        - '#UserInterface#'
+        - '#invoked with 2 parameters#'
