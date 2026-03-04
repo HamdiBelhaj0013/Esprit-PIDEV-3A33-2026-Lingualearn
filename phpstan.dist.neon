@@ -1,0 +1,17 @@
+parameters:
+    level: 5
+    paths:
+        - src
+    ignoreErrors:
+        - '#Call to an undefined method#'
+        - '#is never read, only written#'
+        - '#is never written, only read#'
+        - '#is never assigned int#'
+        - '#Attribute class DH#'
+        - '#UserInterface#'
+        - '#class.*not found#'
+        - '#Class.*not found#'
+        - '#Call to method.*on an unknown class#'
+        - '#Access to constant.*unknown class#'
+        - '#PHPDoc tag @extends has invalid type#'
+        - '#has invalid return type#'

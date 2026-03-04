@@ -49,7 +49,8 @@
         "symfony/workflow": "7.4.*",
         "symfony/yaml": "7.4.*",
         "twig/extra-bundle": "^2.12|^3.0",
-        "twig/twig": "^2.12|^3.0"
+        "twig/twig": "^2.12|^3.0",
+        "webmozart/assert": "1.11"
     },
     "config": {
         "allow-plugins": {
@@ -108,7 +109,9 @@
         }
     },
     "require-dev": {
+        "ahmed-bhs/doctrine-doctor": "*",
         "doctrine/doctrine-fixtures-bundle": "^4.3",
+        "phpstan/phpstan": "*",
         "phpunit/phpunit": "^11.5",
         "symfony/browser-kit": "7.4.*",
         "symfony/css-selector": "7.4.*",
