@@ -404,11 +404,13 @@ class UserController extends AbstractController
                 return $this->redirectToRoute('admin_users_notify', ['id' => $user->getId()]);
             }
 
+            /** @var \App\Module\UserManagement\Entity\User|null $admin */
+            $admin = $this->getUser();
             $this->notificationService->sendFromAdmin(
                 $user,
                 $message,
                 $type,
-                (int) $this->getUser()?->getId(),
+                (int) $admin?->getId(),
             );
 
             $this->addFlash('success', sprintf('Notification sent to %s.', $user->getFullName()));
@@ -481,10 +483,12 @@ class UserController extends AbstractController
             return $this->redirectToRoute('admin_users_notify', ['id' => $notification->getUser()->getId()]);
         }
 
+        /** @var \App\Module\UserManagement\Entity\User|null $admin */
+        $admin = $this->getUser();
         $this->notificationService->replyFromAdmin(
             $notification,
             $replyMessage,
-            (int) $this->getUser()?->getId(),
+            (int) $admin?->getId(),
         );
 
         $this->addFlash('success', 'Reply sent and original notification marked as read.');

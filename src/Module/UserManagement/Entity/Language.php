@@ -68,18 +68,13 @@ class Language
     {
         if (!$this->userLanguages->contains($userLanguage)) {
             $this->userLanguages->add($userLanguage);
-            $userLanguage->setLanguage($this);
         }
         return $this;
     }
 
     public function removeUserLanguage(UserLanguage $userLanguage): self
     {
-        if ($this->userLanguages->removeElement($userLanguage)) {
-            if ($userLanguage->getLanguage() === $this) {
-                $userLanguage->setLanguage(null);
-            }
-        }
+        $this->userLanguages->removeElement($userLanguage);
         return $this;
     }
 }
