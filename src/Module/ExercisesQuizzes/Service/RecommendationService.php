@@ -6,11 +6,9 @@ namespace App\Module\ExercisesQuizzes\Service;
 
 use App\Module\ExercisesQuizzes\Entity\RecommendationSession;
 use App\Module\ExercisesQuizzes\Repository\ExerciceRepository;
-use App\Module\ExercisesQuizzes\Repository\QuizAttemptRepository;
 use App\Module\ExercisesQuizzes\Repository\RecommendationSessionRepository;
 use App\Module\ExercisesQuizzes\Repository\SkillProfileRepository;
 use App\Module\UserManagement\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
 
 /**
  * Détecte les compétences faibles (mastery < seuil), trie par priorité, sélectionne les exercices recommandés (déterministe en DB).
@@ -24,9 +22,7 @@ class RecommendationService
     public function __construct(
         private SkillProfileRepository $skillProfileRepository,
         private ExerciceRepository $exerciceRepository,
-        private QuizAttemptRepository $quizAttemptRepository,
         private RecommendationSessionRepository $recommendationSessionRepository,
-        private EntityManagerInterface $em,
     ) {}
 
     /**
@@ -79,7 +75,7 @@ class RecommendationService
     /**
      * Exercices déjà bien maîtrisés (skill avec mastery >= seuil) : on exclut leurs IDs pour varier.
      *
-     * @param array $profiles
+     * @param \App\Module\ExercisesQuizzes\Entity\SkillProfile[] $profiles
      * @return int[]
      */
     private function getRecentlyMasteredExerciseIds(User $user, array $profiles): array
@@ -95,7 +91,12 @@ class RecommendationService
         }
 
         $exercises = $this->exerciceRepository->findBySkillCodes($strongSkills, null, [], 50);
-        return array_map(fn ($e) => $e->getId(), $exercises);
+
+        // on filtre les null au cas où getId() retourne ?int
+        return array_values(array_filter(
+            array_map(fn ($e) => $e->getId(), $exercises),
+            fn ($id) => $id !== null
+        ));
     }
 
     /**
@@ -108,8 +109,16 @@ class RecommendationService
     private function selectRecommendedExerciseIds(array $weakSkillCodes, array $excludeIds): array
     {
         if ($weakSkillCodes === []) {
-            $all = $this->exerciceRepository->findBy(['enabled' => true], ['id' => 'ASC'], self::RECOMMENDED_EXERCISES_LIMIT);
-            return array_values(array_filter(array_map(fn ($e) => $e->getId(), $all), fn ($id) => $id !== null));
+            $all = $this->exerciceRepository->findBy(
+                ['enabled' => true],
+                ['id' => 'ASC'],
+                self::RECOMMENDED_EXERCISES_LIMIT
+            );
+
+            return array_values(array_filter(
+                array_map(fn ($e) => $e->getId(), $all),
+                fn ($id) => $id !== null
+            ));
         }
 
         $ids = [];
@@ -118,6 +127,7 @@ class RecommendationService
             2 => 3,
             3 => 4,
         ];
+
         foreach ($byDifficulty as $maxDiff => $limit) {
             $found = $this->exerciceRepository->findBySkillCodes($weakSkillCodes, $maxDiff, $excludeIds, $limit);
             foreach ($found as $e) {
@@ -129,7 +139,13 @@ class RecommendationService
         }
 
         if (count($ids) < self::RECOMMENDED_EXERCISES_LIMIT) {
-            $extra = $this->exerciceRepository->findBySkillCodes($weakSkillCodes, null, array_merge($excludeIds, $ids), self::RECOMMENDED_EXERCISES_LIMIT - count($ids));
+            $extra = $this->exerciceRepository->findBySkillCodes(
+                $weakSkillCodes,
+                null,
+                array_merge($excludeIds, $ids),
+                self::RECOMMENDED_EXERCISES_LIMIT - count($ids)
+            );
+
             foreach ($extra as $e) {
                 $id = $e->getId();
                 if ($id !== null && !in_array($id, $ids, true)) {

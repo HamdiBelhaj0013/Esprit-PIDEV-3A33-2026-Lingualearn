@@ -1,0 +1,4 @@
+parameters:
+  level: 6
+  paths:
+    - src/Module/ExercisesQuizzes/Service/SecondChanceService.php

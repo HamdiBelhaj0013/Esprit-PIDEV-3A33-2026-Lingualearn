@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Tests\Controller;
+namespace App\Tests\Controller\ExercisesQuizzes;
 
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
-final class ExercisesQuizzes/QuizControllerTest extends WebTestCase
+final class QuizControllerTest extends WebTestCase
 {
     public function testIndex(): void
     {

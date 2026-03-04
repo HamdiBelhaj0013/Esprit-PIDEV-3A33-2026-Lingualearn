@@ -21,4 +21,6 @@ return [
     Symfony\Bundle\MercureBundle\MercureBundle::class => ['all' => true],
     DH\AuditorBundle\DHAuditorBundle::class => ['all' => true],
     Webauthn\Bundle\WebauthnBundle::class => ['all' => true],
+    AhmedBhs\DoctrineDoctor\DoctrineDoctorBundle::class => ['dev' => true, 'test' => true],
+
 ];

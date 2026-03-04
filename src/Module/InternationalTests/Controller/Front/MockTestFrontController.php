@@ -53,8 +53,8 @@ class MockTestFrontController extends AbstractController
         private readonly TestPerformanceAnalyzer $performanceAnalyzer,
         private readonly GeminiWritingService    $geminiService,
         private readonly GeminiListeningService  $geminiListeningService,
-         private readonly GeminiSpeakingService   $geminiSpeakingService,
-    private readonly DeepgramTranscriptionService       $deepgramService
+        private readonly GeminiSpeakingService   $geminiSpeakingService,
+        private readonly DeepgramTranscriptionService       $deepgramService
     ) {}
 
     // ═══════════════════════════════════════════════════════════
@@ -286,7 +286,7 @@ class MockTestFrontController extends AbstractController
         ]);
     }
 
-     #[Route('/{id}/take-speaking', name: 'mock_tests_take_speaking', methods: ['GET'])]
+    #[Route('/{id}/take-speaking', name: 'mock_tests_take_speaking', methods: ['GET'])]
     public function takeSpeaking(MockTest $mockTest, Request $request): Response
     {
         if (!$mockTest->isActive()) {
@@ -758,8 +758,8 @@ class MockTestFrontController extends AbstractController
         ]);
     }
 
-    
-     #[Route('/{id}/submit-speaking', name: 'mock_tests_submit_speaking', methods: ['POST'])]
+
+    #[Route('/{id}/submit-speaking', name: 'mock_tests_submit_speaking', methods: ['POST'])]
     public function submitSpeaking(
         MockTest               $mockTest,
         Request                $request,

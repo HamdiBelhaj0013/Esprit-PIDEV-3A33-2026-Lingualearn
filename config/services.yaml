@@ -147,7 +147,11 @@ services:
         arguments:
             $faceApiUrl: '%env(FACE_API_URL)%'
 
+    # =========================================================
+    # SUMMARIZER
+    # =========================================================
+
     App\Service\HuggingFaceSummarizer:
         arguments:
-            $hfApiKey: '%env(HUGGINGFACE_API_KEY)%'
+            $hfApiKey: '%env(HUGGINGFACE_API_TOKEN)%'
             $hfModel: '%env(HUGGINGFACE_SUMMARY_MODEL)%'

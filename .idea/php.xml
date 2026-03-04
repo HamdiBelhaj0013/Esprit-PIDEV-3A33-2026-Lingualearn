@@ -193,12 +193,18 @@
       <path value="$PROJECT_DIR$/vendor/web-auth/webauthn-lib" />
       <path value="$PROJECT_DIR$/vendor/web-auth/webauthn-symfony-bundle" />
       <path value="$PROJECT_DIR$/vendor/stripe/stripe-php" />
+      <path value="$PROJECT_DIR$/vendor/phpmyadmin/sql-parser" />
+      <path value="$PROJECT_DIR$/vendor/ahmed-bhs/doctrine-doctor" />
+      <path value="$PROJECT_DIR$/vendor/phpstan/extension-installer" />
+      <path value="$PROJECT_DIR$/vendor/phpstan/phpstan" />
+      <path value="$PROJECT_DIR$/vendor/phpstan/phpstan-symfony" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.2" />
   <component name="PhpStan">
     <PhpStan_settings>
       <phpstan_by_interpreter asDefaultInterpreter="true" interpreter_id="545d9d19-2152-4e95-976c-49660655e24f" timeout="60000" />
+      <PhpStanConfiguration tool_path="$PROJECT_DIR$/vendor/bin/phpstan" />
     </PhpStan_settings>
   </component>
   <component name="PhpStanOptionsConfiguration">

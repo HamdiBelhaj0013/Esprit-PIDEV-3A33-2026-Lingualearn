@@ -41,20 +41,20 @@ final class HuggingFaceSummarizer
         ]);
 
         $status = $response->getStatusCode();
-        $data = $response->toArray(false);
+        $data = $response->toArray(false); // <- toujours array
 
         if ($status >= 400) {
-            $msg = is_array($data) && isset($data['error']) ? $data['error'] : $response->getContent(false);
+            $msg = isset($data['error']) ? (string) $data['error'] : $response->getContent(false);
             throw new \RuntimeException('HF error: ' . $msg);
         }
 
         // format habituel: [ { summary_text: "..." } ]
-        if (is_array($data) && isset($data[0]['summary_text'])) {
+        if (isset($data[0]['summary_text'])) {
             return (string) $data[0]['summary_text'];
         }
 
         // fallback
-        if (is_array($data) && isset($data['summary_text'])) {
+        if (isset($data['summary_text'])) {
             return (string) $data['summary_text'];
         }
 
