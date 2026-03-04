@@ -14,7 +14,8 @@ class Exercice
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
-
+#[ORM\Column(type: 'smallint', options: ['default' => 3])]
+private int $difficulty = 3;
     #[ORM\Column(length: 50)]
     #[Assert\NotBlank(message: "Le type d'exercice ne peut pas être vide.")]
     private ?string $type = null;
@@ -34,27 +35,64 @@ class Exercice
     #[Assert\NotBlank(message: "La réponse correcte ne peut pas être vide.")]
     private ?string $correctAnswer = null;
 
+    /**
+     * Codes de compétences liées à cet exercice (ex: grammar, vocab, listening...)
+     */
+    #[ORM\Column(type: 'json', options: ['default' => '[]'])]
+    private array $skillCodes = [];
+
+    #[ORM\Column]
+    private bool $aiGenerated = false;
+
+    #[ORM\Column]
+    private bool $enabled = true;
+
+    #[ORM\ManyToOne(targetEntity: Quiz::class, inversedBy: 'exercices')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    private ?Quiz $quiz = null;
+
+    // --------------------------
+    // Validation
+    // --------------------------
+
     #[Assert\Callback]
-    public function validate(ExecutionContextInterface $context, $payload)
+    public function validate(ExecutionContextInterface $context, $payload): void
     {
         if ($this->type === 'multiple_choice' && empty($this->options)) {
             $context->buildViolation('Les options sont obligatoires pour un exercice à choix multiples.')
                 ->atPath('options')
                 ->addViolation();
         }
+
+        if ($this->correctAnswer !== null && $this->correctAnswer !== '' && !empty($this->options)) {
+            $normalizedAnswer = self::normalizeOption($this->correctAnswer);
+            $normalizedOptions = array_map([self::class, 'normalizeOption'], $this->options);
+            if (!in_array($normalizedAnswer, $normalizedOptions, true)) {
+                $context->buildViolation('La réponse correcte doit correspondre à l\'une des options fournies.')
+                    ->atPath('correctAnswer')
+                    ->addViolation();
+            }
+        }
+    }
+public function getDifficulty(): int
+{
+    return $this->difficulty;
+}
+
+public function setDifficulty(int $difficulty): self
+{
+    $this->difficulty = max(1, min(5, $difficulty));
+    return $this;
+}
+    public static function normalizeOption(string $value): string
+    {
+        $value = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $value);
+        $value = preg_replace('/[\p{C}\p{Z}]/u', ' ', $value);
+        return trim($value);
     }
 
-    #[ORM\Column]
-    private bool $aiGenerated = false;
-
-    #[ORM\Column]
-    private bool $enabled = true; // <-- Nouveau champ pour activer/désactiver l'exercice
-
-    #[ORM\ManyToOne(targetEntity: Quiz::class, inversedBy: 'exercices')]
-    private ?Quiz $quiz = null;
-
     // --------------------------
-    // Getters et setters
+    // Getters / Setters
     // --------------------------
 
     public function getId(): ?int
@@ -136,6 +174,45 @@ class Exercice
     public function setEnabled(bool $enabled): self
     {
         $this->enabled = $enabled;
+        return $this;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getSkillCodes(): array
+    {
+        return $this->skillCodes;
+    }
+
+    /**
+     * @param string[] $skillCodes
+     */
+    public function setSkillCodes(array $skillCodes): self
+    {
+        // nettoyage + suppression des doublons
+        $skillCodes = array_map('strval', $skillCodes);
+        $skillCodes = array_values(array_unique(array_filter($skillCodes, fn($v) => trim($v) !== '')));
+
+        $this->skillCodes = $skillCodes;
+        return $this;
+    }
+
+    public function addSkillCode(string $skillCode): self
+    {
+        $skillCode = trim($skillCode);
+        if ($skillCode !== '' && !in_array($skillCode, $this->skillCodes, true)) {
+            $this->skillCodes[] = $skillCode;
+        }
+        return $this;
+    }
+
+    public function removeSkillCode(string $skillCode): self
+    {
+        $this->skillCodes = array_values(array_filter(
+            $this->skillCodes,
+            fn($s) => $s !== $skillCode
+        ));
         return $this;
     }
 }

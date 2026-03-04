@@ -1,0 +1,338 @@
+{% extends 'layouts/user.html.twig' %}
+
+{% block title %}Résultat du quiz — {{ lesson.title }}{% endblock %}
+{% block page_title %}Résultat du quiz{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ include('exercises_quizzes/_eq_styles.html.twig') }}
+    <style>
+        .eq-wrap{max-width:980px;margin:0 auto;padding:1rem 0 1.25rem}
+
+        /* Hero */
+        .eq-hero{
+            border-radius:18px;
+            border:1px solid rgba(15,23,42,.08);
+            background:
+                radial-gradient(900px 260px at 0% 0%, rgba(102,126,234,.18), transparent 60%),
+                radial-gradient(700px 240px at 100% 20%, rgba(124,58,237,.14), transparent 55%),
+                #fff;
+            box-shadow:0 14px 34px rgba(2,6,23,.07);
+            overflow:hidden;
+        }
+        .eq-hero-top{
+            padding:1.15rem 1.15rem;
+            display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;
+        }
+        .eq-hero-title{margin:0;font-weight:900;letter-spacing:-.02em;color:#0f172a}
+        .eq-hero-sub{margin:.3rem 0 0;color:#64748b}
+        .eq-status{
+            display:inline-flex;align-items:center;gap:.5rem;
+            padding:.35rem .65rem;border-radius:999px;
+            border:1px solid rgba(15,23,42,.08);
+            font-weight:900;font-size:.78rem;
+            background:rgba(255,255,255,.75);
+            color:#334155;
+        }
+        .eq-status.success{background:rgba(16,185,129,.10);border-color:rgba(16,185,129,.18);color:#047857}
+        .eq-status.danger{background:rgba(239,68,68,.10);border-color:rgba(239,68,68,.18);color:#b91c1c}
+
+        /* Score block */
+        .eq-scorebox{
+            padding:1rem 1.15rem 1.15rem;
+            border-top:1px solid rgba(15,23,42,.06);
+            display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;
+        }
+        .eq-score{
+            display:flex;align-items:center;gap:1rem;flex-wrap:wrap;
+        }
+        .eq-score-val{
+            font-size:3.1rem;font-weight:950;letter-spacing:-.04em;line-height:1;color:#0f172a;
+        }
+        .eq-score-val.passed{color:var(--eq-success)}
+        .eq-score-val.failed{color:var(--eq-danger)}
+        .eq-score-meta{color:#64748b;font-size:.92rem}
+        .eq-actions{display:flex;gap:.5rem;flex-wrap:wrap}
+
+        /* Stat cards */
+        .eq-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem;margin-top:.9rem}
+        .eq-stat{
+            border-radius:16px;
+            border:1px solid rgba(15,23,42,.08);
+            background:#fff;
+            box-shadow:0 10px 22px rgba(2,6,23,.05);
+            padding:.85rem .95rem;
+        }
+        .eq-stat-k{color:#64748b;font-size:.78rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em}
+        .eq-stat-v{margin-top:.25rem;color:#0f172a;font-weight:950;font-size:1.15rem}
+        .eq-mini{color:#64748b;font-size:.86rem;margin-top:.2rem}
+
+        /* Section blocks */
+        .eq-block{
+            margin-top:1rem;
+            border-radius:18px;
+            border:1px solid rgba(15,23,42,.08);
+            background:#fff;
+            box-shadow:0 14px 30px rgba(2,6,23,.06);
+            overflow:hidden;
+        }
+        .eq-block-h{
+            padding:1rem 1.15rem;
+            border-bottom:1px solid rgba(15,23,42,.06);
+            display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;
+        }
+        .eq-block-title{margin:0;font-weight:950;letter-spacing:-.01em;color:#0f172a;font-size:1rem}
+        .eq-pill{
+            display:inline-flex;align-items:center;gap:.4rem;
+            padding:.3rem .6rem;border-radius:999px;
+            background:rgba(148,163,184,.12);
+            border:1px solid rgba(148,163,184,.22);
+            font-size:.78rem;font-weight:900;color:#475569;
+        }
+
+        /* Wrong answers cards */
+        .eq-wrong-item{
+            border:1px solid rgba(15,23,42,.08);
+            border-radius:16px;
+            padding:1rem 1rem;
+            background:linear-gradient(180deg, rgba(248,250,252,.9), #fff);
+        }
+        .eq-q{font-weight:950;color:#0f172a;margin:0 0 .5rem}
+        .eq-ans{
+            display:grid;gap:.35rem;
+            color:#64748b;font-size:.9rem;margin:0 0 .75rem;
+        }
+        .eq-ans b{color:#334155}
+        .eq-ai{
+            border-left:4px solid rgba(102,126,234,.75);
+            background:linear-gradient(180deg, rgba(102,126,234,.06), rgba(124,58,237,.04));
+            border-radius:12px;
+            padding:.75rem .85rem;
+        }
+        .eq-ai p{margin:0 0 .4rem}
+        .eq-ai p:last-child{margin:0}
+        .eq-ai strong{color:#0f172a}
+        .eq-generate-row{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+
+        @media (max-width: 900px){
+            .eq-stats{grid-template-columns:1fr}
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="eq-wrap">
+
+    {# HERO #}
+    <div class="eq-hero">
+        <div class="eq-hero-top">
+            <div>
+                <h2 class="eq-hero-title">
+                    <i class="ti ti-clipboard-check me-2"></i>Résultat du quiz
+                </h2>
+                <p class="eq-hero-sub mb-0">
+                    {{ lesson.title }}
+                </p>
+            </div>
+
+            {% if result.passed %}
+                <span class="eq-status success"><i class="ti ti-circle-check"></i> Réussi</span>
+            {% else %}
+                <span class="eq-status danger"><i class="ti ti-circle-x"></i> Non réussi</span>
+            {% endif %}
+        </div>
+
+        <div class="eq-scorebox">
+            <div class="eq-score">
+                <div class="eq-score-val {{ result.passed ? 'passed' : 'failed' }}">
+                    {{ result.score }}%
+                </div>
+                <div class="eq-score-meta">
+                    <div><b>{{ result.correct }}</b> bonne(s) réponse(s) sur <b>{{ result.total }}</b></div>
+                    <div>Score minimum requis : <b>{{ result.passingScore }}%</b></div>
+
+                    {% if result.secondChanceUsed is defined and result.secondChanceUsed %}
+                        <div class="mt-1 text-info small">
+                            <i class="ti ti-dice me-1"></i>
+                            Meilleur score (après 2ᵉ chance) :
+                            <b>{{ result.bestScore|default(result.score) }}%</b>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="eq-actions">
+                <a href="{{ path('learn_practice') }}" class="btn btn-outline-primary btn-sm">
+                    <i class="ti ti-arrow-left me-1"></i> Quiz
+                </a>
+                <a href="{{ path('learn_lesson_quiz_play', { id: lesson.id }) }}" class="btn btn-primary btn-sm">
+                    {{ result.passed ? 'Rejouer' : 'Réessayer' }} <i class="ti ti-arrow-right ms-1"></i>
+                </a>
+                <a href="{{ path('lesson_show', { id: lesson.id }) }}" class="btn btn-outline-secondary btn-sm">
+                    Voir la leçon
+                </a>
+
+                {% if attempt and attempt.state == 'second_chance_available' %}
+                    <a href="{{ path('learn_lesson_quiz_second_chance_start', { id: lesson.id, attemptId: attempt.id }) }}"
+                       class="btn btn-warning btn-sm">
+                        <i class="ti ti-dice me-1"></i> Deuxième chance
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {# STATS #}
+    <div class="eq-stats">
+        <div class="eq-stat">
+            <div class="eq-stat-k">Score</div>
+            <div class="eq-stat-v">{{ result.score }}%</div>
+            <div class="eq-mini">{{ result.passed ? 'Validé' : 'À améliorer' }}</div>
+        </div>
+        <div class="eq-stat">
+            <div class="eq-stat-k">Réponses</div>
+            <div class="eq-stat-v">{{ result.correct }}/{{ result.total }}</div>
+            <div class="eq-mini">Exactitude : {{ result.total > 0 ? ((result.correct / result.total) * 100)|round : 0 }}%</div>
+        </div>
+        <div class="eq-stat">
+            <div class="eq-stat-k">Prochaine étape</div>
+            <div class="eq-stat-v">
+                <a href="{{ path('learn_skills_index') }}" class="text-decoration-none">
+                    Analyser mes compétences →
+                </a>
+            </div>
+            <div class="eq-mini">Recommandations personnalisées</div>
+        </div>
+    </div>
+
+    {# WRONG ANSWERS + AI #}
+    {% if wrongExerciseAttempts is defined and wrongExerciseAttempts|length > 0 %}
+        <div class="eq-block">
+            <div class="eq-block-h">
+                <h3 class="eq-block-title">
+                    <i class="ti ti-bulb me-2"></i>Réponses incorrectes & explications IA
+                </h3>
+                <span class="eq-pill"><i class="ti ti-alert-circle"></i>{{ wrongExerciseAttempts|length }} à revoir</span>
+            </div>
+
+            <div class="p-3 p-md-4">
+                <div class="accordion" id="wrongAccordion">
+                    {% for exerciseAttempt in wrongExerciseAttempts %}
+                        {% set ex = exerciseAttempt.exercise %}
+                        {% set feedback = aiFeedbackByExerciseId[ex.id] ?? null %}
+                        <div class="accordion-item mb-2" style="border:0;">
+                            <h2 class="accordion-header" id="h{{ ex.id }}">
+                                <button class="accordion-button collapsed" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#c{{ ex.id }}"
+                                        aria-expanded="false" aria-controls="c{{ ex.id }}"
+                                        style="border-radius:14px;border:1px solid rgba(15,23,42,.08);box-shadow:0 10px 22px rgba(2,6,23,.05);">
+                                    <span class="me-2 text-danger"><i class="ti ti-x"></i></span>
+                                    <span class="fw-bold text-truncate">{{ ex.question }}</span>
+                                </button>
+                            </h2>
+
+                            <div id="c{{ ex.id }}" class="accordion-collapse collapse" aria-labelledby="h{{ ex.id }}" data-bs-parent="#wrongAccordion">
+                                <div class="accordion-body" style="padding: .75rem 0 0;">
+                                    <div class="eq-wrong-item ai-feedback-block" data-attempt-id="{{ attempt.id }}" data-exercise-id="{{ ex.id }}">
+                                        <p class="eq-q">{{ ex.question }}</p>
+
+                                        <div class="eq-ans">
+                                            <div>Votre réponse : <b class="text-danger">{{ exerciseAttempt.givenAnswer ?? '(vide)' }}</b></div>
+                                            <div>Bonne réponse : <b class="text-success">{{ ex.correctAnswer }}</b></div>
+                                        </div>
+
+                                        {% if feedback %}
+                                            <div class="eq-ai ai-feedback-content">
+                                                <p class="small"><strong>Explication :</strong> {{ feedback.aiExplanation }}</p>
+                                                {% if feedback.aiCorrection %}<p class="small"><strong>Correction :</strong> {{ feedback.aiCorrection }}</p>{% endif %}
+                                                {% if feedback.aiTip %}<p class="small"><strong>Astuce :</strong> {{ feedback.aiTip }}</p>{% endif %}
+                                                {% if feedback.aiExample %}<p class="small"><strong>Exemple :</strong> {{ feedback.aiExample }}</p>{% endif %}
+                                            </div>
+                                        {% else %}
+                                            <p class="small text-muted mb-2 ai-unavailable-message">Explication IA non générée.</p>
+
+                                            <div class="eq-generate-row">
+                                                <button type="button" class="btn btn-sm btn-outline-primary btn-generate-ai"
+                                                        data-attempt-id="{{ attempt.id }}" data-exercise-id="{{ ex.id }}">
+                                                    <i class="ti ti-sparkles me-1"></i> Générer explication IA
+                                                </button>
+                                                <span class="small text-muted">≈ quelques secondes</span>
+                                            </div>
+
+                                            <p class="small text-muted mt-2 ai-error-message d-none"></p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+</div>
+
+{# ---- JS inchangé (même logique) ---- #}
+<script>
+(function() {
+    var feedbackUrlTemplate = '{{ path('learn_quiz_ai_feedback_generate', { attemptId: attempt.id, exerciseId: 0 }) }}';
+    document.querySelectorAll('.btn-generate-ai').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var exerciseId = this.dataset.exerciseId;
+            var block = this.closest('.ai-feedback-block');
+            var unavailableMsg = block.querySelector('.ai-unavailable-message');
+            var errorMsg = block.querySelector('.ai-error-message');
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="ti ti-loader-2 me-1"></i> Génération…';
+            if (errorMsg) { errorMsg.classList.add('d-none'); errorMsg.textContent = ''; }
+
+            var url = feedbackUrlTemplate.replace('/exercise/0/', '/exercise/' + exerciseId + '/');
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/json', 'Accept': 'application/json' }
+            }).then(function(r) { return r.json(); }).then(function(data) {
+                if (data.explanation || data.message) {
+                    if (unavailableMsg) unavailableMsg.classList.add('d-none');
+
+                    var content = block.querySelector('.ai-feedback-content');
+                    if (!content) {
+                        content = document.createElement('div');
+                        content.className = 'eq-ai ai-feedback-content mt-2';
+
+                        var parts = [];
+                        if (data.explanation) parts.push('<p class="small mb-1"><strong>Explication :</strong> ' + escapeHtml(data.explanation) + '</p>');
+                        if (data.correction) parts.push('<p class="small mb-1"><strong>Correction :</strong> ' + escapeHtml(data.correction) + '</p>');
+                        if (data.tip) parts.push('<p class="small mb-1"><strong>Astuce :</strong> ' + escapeHtml(data.tip) + '</p>');
+                        if (data.example) parts.push('<p class="small mb-0"><strong>Exemple :</strong> ' + escapeHtml(data.example) + '</p>');
+                        if (parts.length === 0 && data.message) parts.push('<p class="small text-muted mb-0">' + escapeHtml(data.message) + '</p>');
+
+                        content.innerHTML = parts.join('');
+                        btn.parentNode.insertBefore(content, btn);
+                        btn.remove();
+                    }
+                } else if (data.message && errorMsg) {
+                    errorMsg.textContent = data.message;
+                    errorMsg.classList.remove('d-none');
+                }
+            }).catch(function() {
+                if (errorMsg) { errorMsg.textContent = 'Service indisponible. Réessayez plus tard.'; errorMsg.classList.remove('d-none'); }
+            }).finally(function() {
+                if (document.body.contains(btn)) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="ti ti-sparkles me-1"></i> Générer explication IA';
+                }
+            });
+        });
+    });
+
+    function escapeHtml(s) {
+        var d = document.createElement('div');
+        d.textContent = s;
+        return d.innerHTML;
+    }
+})();
+</script>
+{% endblock %}

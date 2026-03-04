@@ -33,6 +33,11 @@ class UserLessonStatus
     #[Assert\PositiveOrZero(message: "Le score doit être positif ou zéro.")]
     private int $bestQuizScore = 0;
 
+    /** Dernier score obtenu à ce quiz (mis à jour à chaque tentative). */
+    #[ORM\Column]
+    #[Assert\PositiveOrZero(message: "Le score doit être positif ou zéro.")]
+    private int $lastQuizScore = 0;
+
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $completedAt = null;
 
@@ -89,6 +94,17 @@ class UserLessonStatus
     public function setBestQuizScore(int $bestQuizScore): self
     {
         $this->bestQuizScore = $bestQuizScore;
+        return $this;
+    }
+
+    public function getLastQuizScore(): int
+    {
+        return $this->lastQuizScore;
+    }
+
+    public function setLastQuizScore(int $lastQuizScore): self
+    {
+        $this->lastQuizScore = $lastQuizScore;
         return $this;
     }
 

@@ -1,49 +1,77 @@
+{# templates/exercises_quizzes/quiz/new.html.twig #}
 {% extends 'layouts/admin.html.twig' %}
 
-{% block title %}Create Quiz{% endblock %}
-{% block page_title %}Create New Quiz{% endblock %}
+{% block title %}Nouveau quiz{% endblock %}
+{% block page_title %}Nouveau quiz{% endblock %}
 
 {% block breadcrumb %}
 <ol class="breadcrumb breadcrumb-arrows" aria-label="breadcrumbs">
     <li class="breadcrumb-item"><a href="{{ path('admin_dashboard') }}">Dashboard</a></li>
-    <li class="breadcrumb-item"><a href="{{ path('quiz_index') }}">Quizzes</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Create</li>
+    <li class="breadcrumb-item"><a href="{{ path('quiz_index') }}">Quiz</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Créer</li>
 </ol>
 {% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    {{ include('exercises_quizzes/_eq_styles.html.twig') }}
+{% endblock %}
+
 {% block content %}
-<div class="row">
-    <div class="col-lg-8 mx-auto">
-        <form method="post" action="{{ path('quiz_new') }}">
-            <div class="card">
+<div class="eq-page-wrap">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-9">
+            <div class="card eq-card shadow-sm">
+
                 <div class="card-header">
-                    <h3 class="card-title">Quiz Details</h3>
+                    <h3 class="card-title"><i class="ti ti-list-check me-2"></i>Créer un quiz</h3>
                 </div>
+
+                {{ form_start(form, { attr: { class: 'eq-quiz-form eq-form' } }) }}
+
                 <div class="card-body">
-                    {{ form_start(form) }}
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="mb-3">
-                                {{ form_label(form.title, 'Quiz Title', {'label_attr': {'class': 'form-label required'}}) }}
-                                {{ form_widget(form.title, {'attr': {'class': 'form-control', 'placeholder': 'Enter quiz title'}}) }}
-                                {{ form_errors(form.title) }}
-                            </div>
+                    <div class="mb-4">
+                        <div class="eq-section-title">Contexte</div>
+                        {{ form_row(form.lesson, { label: 'Leçon associée', attr: { class: 'form-select' } }) }}
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="eq-section-title">Informations générales</div>
+                        {{ form_row(form.title, { attr: { class: 'form-control' } }) }}
+                        {{ form_row(form.description, { attr: { class: 'form-control', rows: 3 } }) }}
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="eq-section-title">Paramètres</div>
+                        <div class="row g-3">
+                            <div class="col-md-6">{{ form_row(form.passingScore, { attr: { class: 'form-control' } }) }}</div>
+                            <div class="col-md-6">{{ form_row(form.questionCount, { attr: { class: 'form-control' } }) }}</div>
+                        </div>
+                        <div class="row g-3 mt-2">
+                            <div class="col-md-6">{{ form_row(form.difficulty, { attr: { class: 'form-select' } }) }}</div>
+                            <div class="col-12">{{ form_row(form.skillCodesText, { attr: { class: 'form-control', rows: 3 } }) }}</div>
                         </div>
                     </div>
-                    {{ form_end(form) }}
-                </div>
-                <div class="card-footer text-end">
-                    <div class="d-flex">
-                        <a href="{{ path('quiz_index') }}" class="btn btn-link">Cancel</a>
-                        <button type="submit" class="btn btn-primary ms-auto">
-                            <i class="ti ti-device-floppy icon"></i>
-                            Create Quiz
-                        </button>
+
+                    <div class="mb-0">
+                        <div class="eq-section-title">Statut</div>
+                        {{ form_row(form.enabled, { row_attr: { class: 'mb-0' } }) }}
                     </div>
                 </div>
+
+                <div class="card-footer d-flex justify-content-center justify-content-md-end gap-2 flex-wrap">
+                    <a href="{{ path('quiz_index') }}" class="btn eq-btn eq-btn-outline">
+                        <i class="ti ti-arrow-left me-1"></i> Annuler
+                    </a>
+                    <button type="submit" class="btn eq-btn eq-btn-primary">
+                        <i class="ti ti-device-floppy me-1"></i> Créer le quiz
+                    </button>
+                </div>
+
+                {{ form_end(form) }}
+
             </div>
-        </form>
+        </div>
     </div>
 </div>
 {% endblock %}
-

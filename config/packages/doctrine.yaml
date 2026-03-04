@@ -49,6 +49,12 @@ doctrine:
                 dir: "%kernel.project_dir%/src/Module/UserManagement/Entity"
                 prefix: 'App\Module\UserManagement\Entity'
                 alias: UserManagement
+            App:
+                is_bundle: false
+                type: attribute
+                dir: '%kernel.project_dir%/src/Entity'
+                prefix: 'App\Entity'
+                alias: App
         controller_resolver:
             auto_mapping: false
 

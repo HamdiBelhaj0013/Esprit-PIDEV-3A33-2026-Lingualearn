@@ -418,7 +418,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         enabled?: bool|Param, // Default: true
  *     },
  *     lock?: bool|string|array{ // Lock configuration
- *         enabled?: bool|Param, // Default: false
+ *         enabled?: bool|Param, // Default: true
  *         resources?: array<string, string|list<scalar|Param|null>>,
  *     },
  *     semaphore?: bool|string|array{ // Semaphore configuration
@@ -645,7 +645,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         }>,
  *     },
  *     uid?: bool|array{ // Uid configuration
- *         enabled?: bool|Param, // Default: false
+ *         enabled?: bool|Param, // Default: true
  *         default_uuid_version?: 7|6|4|1|Param, // Default: 7
  *         name_based_uuid_version?: 5|3|Param, // Default: 5
  *         name_based_uuid_namespace?: scalar|Param|null,
@@ -1016,7 +1016,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         enabled?: bool|Param, // Default: false
  *     },
  *     intl?: bool|array{
- *         enabled?: bool|Param, // Default: false
+ *         enabled?: bool|Param, // Default: true
  *     },
  *     cssinliner?: bool|array{
  *         enabled?: bool|Param, // Default: false
@@ -1153,6 +1153,39 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *             lock_factory?: scalar|Param|null, // The service ID of the lock factory used by the login rate limiter (or null to disable locking). // Default: null
  *             cache_pool?: string|Param, // The cache pool to use for storing the limiter state // Default: "cache.rate_limiter"
  *             storage_service?: string|Param, // The service ID of a custom storage implementation, this precedes any configured "cache_pool" // Default: null
+ *         },
+ *         webauthn?: array{
+ *             user_provider?: scalar|Param|null, // Default: null
+ *             options_storage?: scalar|Param|null, // Deprecated: The child node "options_storage" at path "security.firewalls..webauthn.options_storage" is deprecated. Please use the root option "options_storage" instead. // Default: null
+ *             success_handler?: scalar|Param|null, // Default: "Webauthn\\Bundle\\Security\\Handler\\DefaultSuccessHandler"
+ *             failure_handler?: scalar|Param|null, // Default: "Webauthn\\Bundle\\Security\\Handler\\DefaultFailureHandler"
+ *             secured_rp_ids?: array<string, scalar|Param|null>,
+ *             authentication?: bool|array{
+ *                 enabled?: bool|Param, // Default: true
+ *                 profile?: scalar|Param|null, // Default: "default"
+ *                 options_builder?: scalar|Param|null, // Default: null
+ *                 routes?: array{
+ *                     host?: scalar|Param|null, // Default: null
+ *                     options_method?: scalar|Param|null, // Default: "POST"
+ *                     options_path?: scalar|Param|null, // Default: "/login/options"
+ *                     result_method?: scalar|Param|null, // Default: "POST"
+ *                     result_path?: scalar|Param|null, // Default: "/login"
+ *                 },
+ *                 options_handler?: scalar|Param|null, // Default: "Webauthn\\Bundle\\Security\\Handler\\DefaultRequestOptionsHandler"
+ *             },
+ *             registration?: bool|array{
+ *                 enabled?: bool|Param, // Default: false
+ *                 profile?: scalar|Param|null, // Default: "default"
+ *                 options_builder?: scalar|Param|null, // Default: null
+ *                 routes?: array{
+ *                     host?: scalar|Param|null, // Default: null
+ *                     options_method?: scalar|Param|null, // Default: "POST"
+ *                     options_path?: scalar|Param|null, // Default: "/register/options"
+ *                     result_method?: scalar|Param|null, // Default: "POST"
+ *                     result_path?: scalar|Param|null, // Default: "/register"
+ *                 },
+ *                 options_handler?: scalar|Param|null, // Default: "Webauthn\\Bundle\\Security\\Handler\\DefaultCreationOptionsHandler"
+ *             },
  *         },
  *         x509?: array{
  *             provider?: scalar|Param|null,
@@ -1521,6 +1554,115 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     script_attributes?: array<string, scalar|Param|null>,
  *     link_attributes?: array<string, scalar|Param|null>,
  * }
+ * @psalm-type WinzouStateMachineConfig = array<string, array{ // Default: []
+ *         class?: scalar|Param|null,
+ *         graph?: scalar|Param|null, // Default: "default"
+ *         property_path?: scalar|Param|null, // Default: "state"
+ *         state_machine_class?: scalar|Param|null, // Default: "SM\\StateMachine\\StateMachine"
+ *         states?: array<string, scalar|Param|null>,
+ *         transitions?: array<string, array{ // Default: []
+ *             from?: list<scalar|Param|null>,
+ *             to?: scalar|Param|null,
+ *         }>,
+ *         callbacks?: array{
+ *             guard?: array<string, array{ // Default: []
+ *                 on?: mixed,
+ *                 from?: mixed,
+ *                 to?: mixed,
+ *                 excluded_on?: mixed,
+ *                 excluded_from?: mixed,
+ *                 excluded_to?: mixed,
+ *                 do?: mixed,
+ *                 disabled?: scalar|Param|null, // Default: false
+ *                 priority?: scalar|Param|null, // Default: 0
+ *                 args?: list<scalar|Param|null>,
+ *             }>,
+ *             before?: array<string, array{ // Default: []
+ *                 on?: mixed,
+ *                 from?: mixed,
+ *                 to?: mixed,
+ *                 excluded_on?: mixed,
+ *                 excluded_from?: mixed,
+ *                 excluded_to?: mixed,
+ *                 do?: mixed,
+ *                 disabled?: scalar|Param|null, // Default: false
+ *                 priority?: scalar|Param|null, // Default: 0
+ *                 args?: list<scalar|Param|null>,
+ *             }>,
+ *             after?: array<string, array{ // Default: []
+ *                 on?: mixed,
+ *                 from?: mixed,
+ *                 to?: mixed,
+ *                 excluded_on?: mixed,
+ *                 excluded_from?: mixed,
+ *                 excluded_to?: mixed,
+ *                 do?: mixed,
+ *                 disabled?: scalar|Param|null, // Default: false
+ *                 priority?: scalar|Param|null, // Default: 0
+ *                 args?: list<scalar|Param|null>,
+ *             }>,
+ *         },
+ *     }>
+ * @psalm-type KnpPaginatorConfig = array{
+ *     default_options?: array{
+ *         sort_field_name?: scalar|Param|null, // Default: "sort"
+ *         sort_direction_name?: scalar|Param|null, // Default: "direction"
+ *         filter_field_name?: scalar|Param|null, // Default: "filterField"
+ *         filter_value_name?: scalar|Param|null, // Default: "filterValue"
+ *         page_name?: scalar|Param|null, // Default: "page"
+ *         distinct?: bool|Param, // Default: true
+ *         page_out_of_range?: scalar|Param|null, // Default: "ignore"
+ *         default_limit?: scalar|Param|null, // Default: 10
+ *     },
+ *     template?: array{
+ *         pagination?: scalar|Param|null, // Default: "@KnpPaginator/Pagination/sliding.html.twig"
+ *         rel_links?: scalar|Param|null, // Default: "@KnpPaginator/Pagination/rel_links.html.twig"
+ *         filtration?: scalar|Param|null, // Default: "@KnpPaginator/Pagination/filtration.html.twig"
+ *         sortable?: scalar|Param|null, // Default: "@KnpPaginator/Pagination/sortable_link.html.twig"
+ *     },
+ *     page_range?: scalar|Param|null, // Default: 5
+ *     page_limit?: scalar|Param|null, // Default: null
+ *     convert_exception?: bool|Param, // Default: false
+ *     remove_first_page_param?: bool|Param, // Default: false
+ * }
+ * @psalm-type VichUploaderConfig = array{
+ *     default_filename_attribute_suffix?: scalar|Param|null, // Default: "_name"
+ *     db_driver?: scalar|Param|null,
+ *     storage?: scalar|Param|null, // Default: "file_system"
+ *     use_flysystem_to_resolve_uri?: bool|Param, // Default: false
+ *     twig?: scalar|Param|null, // twig requires templating // Default: true
+ *     form?: scalar|Param|null, // Default: true
+ *     metadata?: array{
+ *         cache?: scalar|Param|null, // Default: "file"
+ *         type?: scalar|Param|null, // Default: "attribute"
+ *         file_cache?: array{
+ *             dir?: scalar|Param|null, // Default: "%kernel.cache_dir%/vich_uploader"
+ *         },
+ *         auto_detection?: bool|Param, // Default: true
+ *         directories?: list<array{ // Default: []
+ *             path?: scalar|Param|null,
+ *             namespace_prefix?: scalar|Param|null, // Default: ""
+ *         }>,
+ *     },
+ *     mappings?: array<string, array{ // Default: []
+ *         uri_prefix?: scalar|Param|null, // Default: "/uploads"
+ *         upload_destination?: scalar|Param|null, // Default: null
+ *         namer?: string|array{
+ *             service?: scalar|Param|null, // Default: null
+ *             options?: mixed, // Default: null
+ *         },
+ *         directory_namer?: string|array{
+ *             service?: scalar|Param|null, // Default: null
+ *             options?: mixed, // Default: null
+ *         },
+ *         delete_on_remove?: scalar|Param|null, // Default: true
+ *         erase_fields?: scalar|Param|null, // Default: true
+ *         delete_on_update?: scalar|Param|null, // Default: true
+ *         inject_on_load?: scalar|Param|null, // Default: false
+ *         namer_keep_extension?: scalar|Param|null, // Default: false
+ *         db_driver?: scalar|Param|null, // Default: null
+ *     }>,
+ * }
  * @psalm-type MercureConfig = array{
  *     hubs?: array<string, array{ // Default: []
  *         url?: scalar|Param|null, // URL of the hub's publish endpoint
@@ -1542,148 +1684,95 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     default_cookie_lifetime?: int|Param, // Default lifetime of the cookie containing the JWT, in seconds. Defaults to the value of "framework.session.cookie_lifetime". // Default: null
  *     enable_profiler?: bool|Param, // Deprecated: The child node "enable_profiler" at path "mercure.enable_profiler" is deprecated. // Enable Symfony Web Profiler integration.
  * }
- * @psalm-type DoctrineDoctorConfig = array{
- *     enabled?: bool|Param, // Enable or disable Doctrine Doctor // Default: true
- *     analysis?: array{
- *         exclude_third_party_entities?: bool|Param, // Exclude entities from vendor/ directory during analysis (recommended for cleaner reports) // Default: true
- *         exclude_paths?: list<scalar|Param|null>,
+ * @psalm-type DhAuditorConfig = array{
+ *     enabled?: bool|Param, // Default: true
+ *     timezone?: scalar|Param|null, // Default: "UTC"
+ *     user_provider?: scalar|Param|null, // Default: "dh_auditor.user_provider"
+ *     security_provider?: scalar|Param|null, // Default: "dh_auditor.security_provider"
+ *     role_checker?: scalar|Param|null, // Default: "dh_auditor.role_checker"
+ *     providers?: array<string, mixed>,
+ * }
+ * @psalm-type WebauthnConfig = array{
+ *     fake_credential_generator?: scalar|Param|null, // A service that implements the FakeCredentialGenerator to generate fake credentials for preventing username enumeration. // Default: "Webauthn\\SimpleFakeCredentialGenerator"
+ *     clock?: scalar|Param|null, // PSR-20 Clock service. // Default: "webauthn.clock.default"
+ *     options_storage?: scalar|Param|null, // Service responsible of the options/user entity storage during the ceremony // Default: "Webauthn\\Bundle\\Security\\Storage\\SessionStorage"
+ *     event_dispatcher?: scalar|Param|null, // PSR-14 Event Dispatcher service. // Default: "Psr\\EventDispatcher\\EventDispatcherInterface"
+ *     http_client?: scalar|Param|null, // A Symfony HTTP client. // Default: "webauthn.http_client.default"
+ *     logger?: scalar|Param|null, // A PSR-3 logger to receive logs during the processes // Default: "webauthn.logger.default"
+ *     credential_repository?: scalar|Param|null, // This repository is responsible of the credential storage // Default: "Webauthn\\Bundle\\Repository\\DummyPublicKeyCredentialSourceRepository"
+ *     user_repository?: scalar|Param|null, // This repository is responsible of the user storage // Default: "Webauthn\\Bundle\\Repository\\DummyPublicKeyCredentialUserEntityRepository"
+ *     allowed_origins?: array<string, scalar|Param|null>,
+ *     allow_subdomains?: bool|Param, // Default: false
+ *     secured_rp_ids?: array<string, scalar|Param|null>,
+ *     counter_checker?: scalar|Param|null, // This service will check if the counter is valid. By default it throws an exception (recommended). // Default: "Webauthn\\Counter\\ThrowExceptionIfInvalid"
+ *     top_origin_validator?: scalar|Param|null, // For cross origin (e.g. iframe), this service will be in charge of verifying the top origin. // Default: null
+ *     creation_profiles?: array<string, array{ // Default: []
+ *         rp?: array{
+ *             id?: scalar|Param|null, // Default: null
+ *             name?: scalar|Param|null,
+ *             icon?: scalar|Param|null, // Deprecated: The child node "icon" at path "webauthn.creation_profiles..rp.icon" is deprecated and has no effect. // Default: null
+ *         },
+ *         challenge_length?: int|Param, // Default: 32
+ *         timeout?: int|Param, // Default: null
+ *         authenticator_selection_criteria?: array{
+ *             authenticator_attachment?: scalar|Param|null, // Default: null
+ *             require_resident_key?: bool|Param, // Default: false
+ *             user_verification?: scalar|Param|null, // Default: "preferred"
+ *             resident_key?: scalar|Param|null, // Default: "preferred"
+ *         },
+ *         extensions?: array<string, scalar|Param|null>,
+ *         public_key_credential_parameters?: list<int|Param>,
+ *         attestation_conveyance?: scalar|Param|null, // Default: "none"
+ *     }>,
+ *     request_profiles?: array<string, array{ // Default: []
+ *         rp_id?: scalar|Param|null, // Default: null
+ *         challenge_length?: int|Param, // Default: 32
+ *         timeout?: int|Param, // Default: null
+ *         user_verification?: scalar|Param|null, // Default: "preferred"
+ *         extensions?: array<string, scalar|Param|null>,
+ *     }>,
+ *     metadata?: bool|array{ // Enable the support of the Metadata Statements. Please read the documentation for this feature.
+ *         enabled?: bool|Param, // Default: false
+ *         mds_repository?: scalar|Param|null, // The Metadata Statement repository.
+ *         status_report_repository?: scalar|Param|null, // The Status Report repository.
+ *         certificate_chain_checker?: scalar|Param|null, // A Certificate Chain checker. // Default: "Webauthn\\MetadataService\\CertificateChain\\PhpCertificateChainValidator"
  *     },
- *     analyzers?: array{
- *         n_plus_one?: array{
- *             enabled?: bool|Param, // Default: true
- *             threshold?: int|Param, // Minimum number of similar queries to trigger N+1 detection // Default: 5
- *         },
- *         slow_query?: array{
- *             enabled?: bool|Param, // Default: true
- *             threshold?: int|Param, // Threshold in milliseconds for slow query detection // Default: 100
- *         },
- *         missing_index?: array{
- *             enabled?: bool|Param, // Default: true
- *             slow_query_threshold?: int|Param, // Only run EXPLAIN on queries slower than this (ms) // Default: 50
- *             explain_queries?: bool|Param, // Execute EXPLAIN to detect missing indexes // Default: true
- *             min_rows_scanned?: int|Param, // Minimum rows scanned to suggest an index // Default: 1000
- *         },
- *         hydration?: array{
- *             enabled?: bool|Param, // Default: true
- *             row_threshold?: int|Param, // Number of rows to consider for hydration analysis // Default: 99
- *             critical_threshold?: int|Param, // Number of rows to mark as critical // Default: 999
- *         },
- *         eager_loading?: array{
- *             enabled?: bool|Param, // Default: true
- *             join_threshold?: int|Param, // Maximum number of JOINs before warning // Default: 4
- *             critical_join_threshold?: int|Param, // Number of JOINs to mark as critical // Default: 7
- *         },
- *         find_all?: array{
- *             enabled?: bool|Param, // Enable findAll() detection // Default: true
- *             threshold?: int|Param, // Maximum number of rows before flagging as issue // Default: 99
- *         },
- *         entity_manager_clear?: array{
- *             enabled?: bool|Param, // Enable EntityManager::clear() detection for batch operations // Default: true
- *             batch_size_threshold?: int|Param, // Minimum number of INSERT/UPDATE operations to trigger detection // Default: 20
- *         },
- *         get_reference?: array{
- *             enabled?: bool|Param, // Enable getReference() optimization detection // Default: true
- *             threshold?: int|Param, // Minimum number of simple SELECT by ID queries to suggest getReference() // Default: 2
- *         },
- *         flush_in_loop?: array{
- *             enabled?: bool|Param, // Enable flush() in loop detection (anti-pattern) // Default: true
- *             flush_count_threshold?: int|Param, // Minimum number of flush calls to trigger detection // Default: 5
- *             time_window_ms?: int|Param, // Time window in milliseconds to consider flushes as being in a loop // Default: 1000
- *         },
- *         lazy_loading?: array{
- *             enabled?: bool|Param, // Enable lazy loading in loop detection // Default: true
- *             threshold?: int|Param, // Minimum number of lazy load queries to trigger detection // Default: 10
- *         },
- *         dql_injection?: array{
- *             enabled?: bool|Param, // Enable DQL/SQL injection vulnerability detection (security) // Default: true
- *         },
- *         bulk_operation?: array{
- *             enabled?: bool|Param, // Enable bulk operation optimization detection // Default: true
- *             threshold?: int|Param, // Minimum number of UPDATE/DELETE to suggest bulk operations // Default: 20
- *         },
- *         strict_mode?: array{
- *             enabled?: bool|Param, // Check MySQL/MariaDB SQL strict moconfiguration // Default: true
- *         },
- *         charset?: array{
- *             enabled?: bool|Param, // Check database charset (utf8 vs utf8mb4) // Default: true
- *         },
- *         inno_db_engine?: array{
- *             enabled?: bool|Param, // Check if tables use InnoDB engine // Default: true
- *         },
- *         connection_pooling?: array{
- *             enabled?: bool|Param, // Analyze connection pool configuration // Default: true
- *         },
- *         collection_initialization?: array{
- *             enabled?: bool|Param, // Detect uninitialized entity collections // Default: true
- *         },
- *         cascade_configuration?: array{
- *             enabled?: bool|Param, // Analyze cascaconfiguration on associations // Default: true
- *         },
- *         sensitive_data_exposure?: array{
- *             enabled?: bool|Param, // Detect sensitive data exposure in serialization // Default: true
- *         },
- *         insecure_random?: array{
- *             enabled?: bool|Param, // Detect insecure random generators for security operations // Default: true
- *         },
- *         sql_injection_raw_queries?: array{
- *             enabled?: bool|Param, // Detect SQL injection vulnerabilities in raw queries // Default: true
- *         },
- *         foreign_key_mapping?: array{
- *             enabled?: bool|Param, // Detect foreign keys mapped as primitives instead of object relations // Default: true
- *         },
- *         partial_object?: array{
- *             enabled?: bool|Param, // Detect queries loading full entities when partial objects would be more efficient // Default: true
- *             threshold?: int|Param, // Minimum number of queries to trigger detection // Default: 5
- *         },
- *         dto_hydration?: array{
- *             enabled?: bool|Param, // Detect aggregation queries that should use DTO hydration // Default: true
- *         },
- *         cascade_all?: array{
- *             enabled?: bool|Param, // Detect dangerous cascade="all" usage // Default: true
- *         },
- *         cascade_persist_independent?: array{
- *             enabled?: bool|Param, // Detect cascade="persist" on independent entities (risk of duplicates) // Default: true
- *         },
- *         missing_orphan_removal?: array{
- *             enabled?: bool|Param, // Detect composition relationships without orphanRemoval // Default: true
- *         },
- *         cascade_remove_independent?: array{
- *             enabled?: bool|Param, // Detect cascade="remove" on independent entities (data loss risk) // Default: true
- *         },
- *         bidirectional_consistency?: array{
- *             enabled?: bool|Param, // Detect inconsistencies in bidirectional associations // Default: true
- *         },
- *         orphan_removal_no_cascade?: array{
- *             enabled?: bool|Param, // Detect orphanRemoval without cascade="remove" // Default: true
- *         },
- *         ondelete_mismatch?: array{
- *             enabled?: bool|Param, // Detect mismatches between ORM cascade and database onDelete // Default: true
- *         },
- *         join_optimization?: array{
- *             enabled?: bool|Param, // Detect suboptimal JOIN usage (LEFT JOIN on NOT NULL, too many JOINs, unused JOINs) // Default: true
- *             max_joins_recommended?: int|Param, // Maximum recommended number of JOINs in a single query // Default: 5
- *             max_joins_critical?: int|Param, // Number of JOINs to mark as critical // Default: 8
- *         },
- *         doctrine_cache?: array{
- *             enabled?: bool|Param, // Detect ArrayCache in production (causes 50-80% performance loss) // Default: true
- *         },
- *         naming_convention?: array{
- *             enabled?: bool|Param, // Detect naming convention violations (tables/columns should be snake_case) // Default: true
- *         },
- *         missing_embeddable_opportunity?: array{
- *             enabled?: bool|Param, // Detect groups of properties that should be refactored into Embeddables (Address, Money, PersonName, etc.) // Default: true
- *         },
- *         blameable_trait?: array{
- *             enabled?: bool|Param, // Detect missing blameable/timestampable traits and bad practices in existing implementations // Default: true
- *         },
- *     },
- *     profiler?: array{
- *         show_in_toolbar?: bool|Param, // Show Doctrine Doctor in the Symfony profiler toolbar // Default: true
- *         show_debug_info?: bool|Param, // Show debug information (for bundle maintainers and debugging purposes) // Default: false
- *     },
- *     debug?: array{ // Debug settings for contributors and advanced users
- *         enabled?: bool|Param, // Enable debug mode (verbose logging, detailed error messages). Keep disabled for production. // Default: false
- *         internal_logging?: bool|Param, // Enable internal logging for Doctrine Doctor analyzers. Can add ~133ms overhead. Enable only for debugging. // Default: false
+ *     controllers?: bool|array{
+ *         enabled?: bool|Param, // Default: false
+ *         creation?: array<string, array{ // Default: []
+ *             options_method?: scalar|Param|null, // Default: "POST"
+ *             options_path?: scalar|Param|null,
+ *             result_method?: scalar|Param|null, // Default: "POST"
+ *             result_path?: scalar|Param|null, // Default: null
+ *             host?: scalar|Param|null, // Default: null
+ *             profile?: scalar|Param|null, // Default: "default"
+ *             options_builder?: scalar|Param|null, // When set, corresponds to the ID of the Public Key Credential Creation Builder. The profile-based ebuilder is ignored. // Default: null
+ *             user_entity_guesser?: scalar|Param|null,
+ *             hide_existing_credentials?: scalar|Param|null, // In order to prevent username enumeration, the existing credentials can be hidden. This is highly recommended when the attestation ceremony is performed by anonymous users. // Default: false
+ *             options_storage?: scalar|Param|null, // Deprecated: The child node "options_storage" at path "webauthn.controllers.creation..options_storage" is deprecated. Please use the root option "options_storage" instead. // Service responsible of the options/user entity storage during the ceremony // Default: null
+ *             success_handler?: scalar|Param|null, // Default: "Webauthn\\Bundle\\Service\\DefaultSuccessHandler"
+ *             failure_handler?: scalar|Param|null, // Default: "Webauthn\\Bundle\\Service\\DefaultFailureHandler"
+ *             options_handler?: scalar|Param|null, // Default: "Webauthn\\Bundle\\Security\\Handler\\DefaultCreationOptionsHandler"
+ *             allowed_origins?: array<string, scalar|Param|null>,
+ *             allow_subdomains?: bool|Param, // Default: false
+ *             secured_rp_ids?: array<string, scalar|Param|null>,
+ *         }>,
+ *         request?: array<string, array{ // Default: []
+ *             options_method?: scalar|Param|null, // Default: "POST"
+ *             options_path?: scalar|Param|null,
+ *             result_method?: scalar|Param|null, // Default: "POST"
+ *             result_path?: scalar|Param|null, // Default: null
+ *             host?: scalar|Param|null, // Default: null
+ *             profile?: scalar|Param|null, // Default: "default"
+ *             options_builder?: scalar|Param|null, // When set, corresponds to the ID of the Public Key Credential Creation Builder. The profile-based ebuilder is ignored. // Default: null
+ *             options_storage?: scalar|Param|null, // Deprecated: The child node "options_storage" at path "webauthn.controllers.request..options_storage" is deprecated. Please use the root option "options_storage" instead. // Service responsible of the options/user entity storage during the ceremony // Default: null
+ *             success_handler?: scalar|Param|null, // Default: "Webauthn\\Bundle\\Service\\DefaultSuccessHandler"
+ *             failure_handler?: scalar|Param|null, // Default: "Webauthn\\Bundle\\Service\\DefaultFailureHandler"
+ *             options_handler?: scalar|Param|null, // Default: "Webauthn\\Bundle\\Security\\Handler\\DefaultRequestOptionsHandler"
+ *             allowed_origins?: array<string, scalar|Param|null>,
+ *             allow_subdomains?: bool|Param, // Default: false
+ *             secured_rp_ids?: array<string, scalar|Param|null>,
+ *         }>,
  *     },
  * }
  * @psalm-type ConfigType = array{
@@ -1700,7 +1789,12 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     security?: SecurityConfig,
  *     monolog?: MonologConfig,
  *     webpack_encore?: WebpackEncoreConfig,
+ *     winzou_state_machine?: WinzouStateMachineConfig,
+ *     knp_paginator?: KnpPaginatorConfig,
+ *     vich_uploader?: VichUploaderConfig,
  *     mercure?: MercureConfig,
+ *     dh_auditor?: DhAuditorConfig,
+ *     webauthn?: WebauthnConfig,
  *     "when@dev"?: array{
  *         imports?: ImportsConfig,
  *         parameters?: ParametersConfig,
@@ -1718,8 +1812,12 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         monolog?: MonologConfig,
  *         maker?: MakerConfig,
  *         webpack_encore?: WebpackEncoreConfig,
+ *         winzou_state_machine?: WinzouStateMachineConfig,
+ *         knp_paginator?: KnpPaginatorConfig,
+ *         vich_uploader?: VichUploaderConfig,
  *         mercure?: MercureConfig,
- *         doctrine_doctor?: DoctrineDoctorConfig,
+ *         dh_auditor?: DhAuditorConfig,
+ *         webauthn?: WebauthnConfig,
  *     },
  *     "when@prod"?: array{
  *         imports?: ImportsConfig,
@@ -1735,7 +1833,12 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         security?: SecurityConfig,
  *         monolog?: MonologConfig,
  *         webpack_encore?: WebpackEncoreConfig,
+ *         winzou_state_machine?: WinzouStateMachineConfig,
+ *         knp_paginator?: KnpPaginatorConfig,
+ *         vich_uploader?: VichUploaderConfig,
  *         mercure?: MercureConfig,
+ *         dh_auditor?: DhAuditorConfig,
+ *         webauthn?: WebauthnConfig,
  *     },
  *     "when@test"?: array{
  *         imports?: ImportsConfig,
@@ -1752,8 +1855,12 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         security?: SecurityConfig,
  *         monolog?: MonologConfig,
  *         webpack_encore?: WebpackEncoreConfig,
+ *         winzou_state_machine?: WinzouStateMachineConfig,
+ *         knp_paginator?: KnpPaginatorConfig,
+ *         vich_uploader?: VichUploaderConfig,
  *         mercure?: MercureConfig,
- *         doctrine_doctor?: DoctrineDoctorConfig,
+ *         dh_auditor?: DhAuditorConfig,
+ *         webauthn?: WebauthnConfig,
  *     },
  *     ...<string, ExtensionType|array{ // extra keys must follow the when@%env% pattern or match an extension alias
  *         imports?: ImportsConfig,

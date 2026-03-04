@@ -3,7 +3,6 @@
 namespace App\Module\InternationalTests\Repository;
 
 use App\Module\InternationalTests\Entity\TestQuestion;
-use App\Module\InternationalTests\Entity\MockTest;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -15,7 +14,48 @@ class TestQuestionRepository extends ServiceEntityRepository
     }
 
     /**
-     * Recherche avec filtre et tri
+     * ─── NOUVEAU : 10 questions actives aléatoires pour un MockTest ───
+     * C'est LA méthode clé pour le front-office.
+     * Peu importe combien de questions existent, on en renvoie toujours $limit.
+     */
+    public function findRandomQuestions(int $mockTestId, int $limit = 10): array
+    {
+        // Récupère toutes les questions actives du test
+        $questions = $this->createQueryBuilder('q')
+            ->where('q.mockTest = :mockTestId')
+            ->andWhere('q.isActive = true')
+            ->setParameter('mockTestId', $mockTestId)
+            ->getQuery()
+            ->getResult();
+
+        // Mélange aléatoirement côté PHP (plus portable que RAND() en DQL)
+        shuffle($questions);
+
+        // Retourne seulement le nombre demandé
+        return array_slice($questions, 0, $limit);
+    }
+
+    /**
+     * ─── NOUVEAU : Questions aléatoires par section/catégorie ───
+     * Utile si on veut équilibrer les sections (ex: 3 Reading + 3 Grammar + 4 Vocab)
+     */
+    public function findRandomQuestionsBySection(int $mockTestId, string $section, int $limit = 5): array
+    {
+        $questions = $this->createQueryBuilder('q')
+            ->where('q.mockTest = :mockTestId')
+            ->andWhere('q.isActive = true')
+            ->andWhere('q.sectionCategory = :section')
+            ->setParameter('mockTestId', $mockTestId)
+            ->setParameter('section', $section)
+            ->getQuery()
+            ->getResult();
+
+        shuffle($questions);
+        return array_slice($questions, 0, $limit);
+    }
+
+    /**
+     * Recherche avec filtre et tri (back-office)
      */
     public function findWithFilters(
         ?string $searchTerm = null,
@@ -29,7 +69,6 @@ class TestQuestionRepository extends ServiceEntityRepository
             ->leftJoin('q.mockTest', 'm')
             ->addSelect('m');
 
-        // Recherche par texte
         if ($searchTerm) {
             $qb->andWhere(
                 $qb->expr()->orX(
@@ -40,25 +79,21 @@ class TestQuestionRepository extends ServiceEntityRepository
             )->setParameter('search', '%' . $searchTerm . '%');
         }
 
-        // Filtre par section
         if ($sectionCategory) {
             $qb->andWhere('q.sectionCategory = :section')
                 ->setParameter('section', $sectionCategory);
         }
 
-        // Filtre par test
         if ($mockTestId) {
             $qb->andWhere('q.mockTest = :mockTestId')
                 ->setParameter('mockTestId', $mockTestId);
         }
 
-        // Filtre par statut actif/inactif
         if ($isActive !== null) {
             $qb->andWhere('q.isActive = :isActive')
                 ->setParameter('isActive', $isActive);
         }
 
-        // Tri
         $allowedSortFields = ['id', 'questionText', 'sectionCategory', 'points', 'createdAt', 'updatedAt'];
         if (in_array($sortBy, $allowedSortFields)) {
             $qb->orderBy('q.' . $sortBy, strtoupper($sortOrder) === 'DESC' ? 'DESC' : 'ASC');
@@ -72,7 +107,7 @@ class TestQuestionRepository extends ServiceEntityRepository
     }
 
     /**
-     * Obtenir toutes les catégories uniques
+     * Obtenir toutes les catégories uniques (back-office)
      */
     public function findAllSectionCategories(): array
     {
@@ -85,13 +120,68 @@ class TestQuestionRepository extends ServiceEntityRepository
         return array_column($result, 'sectionCategory');
     }
 
+    // ── Métier Avancé #4 : Détection de doublons ────────────────────────────
+
     /**
-     * Statistiques des questions
+     * Récupère toutes les questions qui ont un embedding (pour la comparaison).
+     * Exclut optionnellement une question par son ID (utile en mode édition).
+     */
+    public function findAllWithEmbedding(?int $excludeId = null): array
+    {
+        $qb = $this->createQueryBuilder('q')
+            ->leftJoin('q.mockTest', 'm')
+            ->addSelect('m')
+            ->where('q.embedding IS NOT NULL')
+            ->andWhere('q.isActive = true');
+
+        if ($excludeId !== null) {
+            $qb->andWhere('q.id != :excludeId')
+               ->setParameter('excludeId', $excludeId);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * Récupère toutes les questions sans embedding (pour la commande de génération).
+     */
+    public function findWithoutEmbedding(): array
+    {
+        return $this->createQueryBuilder('q')
+            ->where('q.embedding IS NULL')
+            ->andWhere('q.isActive = true')
+            ->orderBy('q.createdAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Compte les questions avec et sans embedding (pour les stats).
+     */
+    public function countEmbeddingStats(): array
+    {
+        $total   = $this->count(['isActive' => true]);
+        $withEmb = $this->createQueryBuilder('q')
+            ->select('COUNT(q.id)')
+            ->where('q.embedding IS NOT NULL')
+            ->andWhere('q.isActive = true')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return [
+            'total'       => $total,
+            'withEmbedding' => (int) $withEmb,
+            'without'     => $total - (int) $withEmb,
+        ];
+    }
+
+    /**
+     * Statistiques des questions (back-office)
      */
     public function getStatistics(): array
     {
-        $total = $this->count([]);
-        $active = $this->count(['isActive' => true]);
+        $total    = $this->count([]);
+        $active   = $this->count(['isActive' => true]);
         $inactive = $this->count(['isActive' => false]);
 
         $qb = $this->createQueryBuilder('q')
@@ -100,16 +190,16 @@ class TestQuestionRepository extends ServiceEntityRepository
             ->getSingleResult();
 
         return [
-            'total' => $total,
-            'active' => $active,
-            'inactive' => $inactive,
+            'total'          => $total,
+            'active'         => $active,
+            'inactive'       => $inactive,
             'totalMockTests' => $qb['totalMockTests'] ?? 0,
-            'totalPoints' => $qb['totalPoints'] ?? 0
+            'totalPoints'    => $qb['totalPoints'] ?? 0,
         ];
     }
 
     /**
-     * Recherche paginée
+     * Recherche paginée (back-office)
      */
     public function findPaginatedWithFilters(
         int $page = 1,
@@ -121,26 +211,17 @@ class TestQuestionRepository extends ServiceEntityRepository
         string $sortBy = 'createdAt',
         string $sortOrder = 'DESC'
     ): array {
-        $offset = ($page - 1) * $limit;
-
-        $results = $this->findWithFilters(
-            $searchTerm,
-            $sectionCategory,
-            $mockTestId,
-            $isActive,
-            $sortBy,
-            $sortOrder
-        );
-
-        $total = count($results);
-        $paginated = array_slice($results, $offset, $limit);
+        $offset  = ($page - 1) * $limit;
+        $results = $this->findWithFilters($searchTerm, $sectionCategory, $mockTestId, $isActive, $sortBy, $sortOrder);
+        $total   = count($results);
 
         return [
-            'data' => $paginated,
+            'data'  => array_slice($results, $offset, $limit),
             'total' => $total,
-            'page' => $page,
+            'page'  => $page,
             'limit' => $limit,
-            'pages' => ceil($total / $limit)
+            'pages' => ceil($total / $limit),
         ];
     }
 }
+

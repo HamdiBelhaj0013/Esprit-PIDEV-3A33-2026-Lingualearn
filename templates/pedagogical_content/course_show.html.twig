@@ -155,7 +155,7 @@
         <span class="nav-section-label">Main</span>
         <a href="{{ path('user_dashboard') }}" class="nav-item"><span class="nav-icon">⊞</span> Dashboard</a>
         <a href="{{ path('language_select') }}" class="nav-item active"><span class="nav-icon">📚</span> My Courses</a>
-        <a href="#" class="nav-item"><span class="nav-icon">🧩</span> Practice</a>
+        <a href="{{ path('learn_practice') }}" class="nav-item"><span class="nav-icon">🧩</span> Practice</a>
         <a href="#" class="nav-item"><span class="nav-icon">📝</span> Mock Tests</a>
         <span class="nav-section-label">Account</span>
         <a href="{{ path('user_profile') }}" class="nav-item"><span class="nav-icon">👤</span> My Profile</a>
@@ -201,8 +201,7 @@
                     <div class="course-stat-label">Lessons</div>
                 </div>
                 <div class="course-stat">
-                    {% set totalXp = 0 %}
-                    {% for l in lessons %}{% set totalXp = totalXp + l.xpReward %}{% endfor %}
+                    {% set totalXp = lessons|column('xpReward')|sum %}
                     <div class="course-stat-val">{{ totalXp }}</div>
                     <div class="course-stat-label">Total XP</div>
                 </div>

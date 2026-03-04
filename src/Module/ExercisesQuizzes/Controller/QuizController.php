@@ -5,20 +5,29 @@ namespace App\Module\ExercisesQuizzes\Controller;
 use App\Module\ExercisesQuizzes\Entity\Quiz;
 use App\Module\ExercisesQuizzes\Form\QuizType;
 use App\Module\ExercisesQuizzes\Repository\QuizRepository;
+use App\Module\PedagogicalContent\Repository\LessonRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
-#[Route('/admin/quizzes', name: 'quiz_')]  // ← CHANGÉ ICI
+#[Route('/admin/quizzes', name: 'quiz_')]
 class QuizController extends AbstractController
 {
+    public function __construct(
+        private CsrfTokenManagerInterface $csrfTokenManager,
+    ) {}
+
     #[Route('/', name: 'index', methods: ['GET'])]
-    public function index(): Response
+    public function index(LessonRepository $lessonRepository): Response
     {
-        return $this->render('exercises_quizzes/quiz/index.html.twig');
+        $lessons = $lessonRepository->findBy([], ['title' => 'ASC']);
+        return $this->render('exercises_quizzes/quiz/index.html.twig', [
+            'lessons' => $lessons,
+        ]);
     }
 
     #[Route('/ajax/list', name: 'ajax_list', methods: ['GET'])]
@@ -26,16 +35,21 @@ class QuizController extends AbstractController
     {
         $search = $request->query->get('search', '');
         $status = $request->query->get('status', null);
+        $lessonId = $request->query->get('lesson_id');
+        $lessonIdFilter = is_numeric($lessonId) ? (int) $lessonId : null;
         $sortField = $request->query->get('sortField', 'id');
         $sortOrder = $request->query->get('sortOrder', 'DESC');
 
-        $quizzes = $quizRepository->findByFilter($search, $status, $sortField, $sortOrder);
+        $quizzes = $quizRepository->findByFilter($search, $status, $sortField, $sortOrder, $lessonIdFilter);
 
         $data = [];
         foreach ($quizzes as $quiz) {
+            $lesson = $quiz->getLesson();
             $data[] = [
                 'id' => $quiz->getId(),
                 'title' => $quiz->getTitle(),
+                'lessonId' => $lesson?->getId(),
+                'lessonTitle' => $lesson?->getTitle(),
                 'exerciseCount' => count($quiz->getExercices()),
                 'createdAt' => $quiz->getCreatedAt() ? $quiz->getCreatedAt()->format('d/m/Y') : '-',
                 'updatedAt' => $quiz->getUpdatedAt() ? $quiz->getUpdatedAt()->format('d/m/Y H:i') : '-',
@@ -43,13 +57,15 @@ class QuizController extends AbstractController
                 'showUrl' => $this->generateUrl('quiz_show', ['id' => $quiz->getId()]),
                 'editUrl' => $this->generateUrl('quiz_edit', ['id' => $quiz->getId()]),
                 'deleteUrl' => $this->generateUrl('quiz_delete', ['id' => $quiz->getId()]),
+                'deleteToken' => $this->csrfTokenManager->getToken('delete' . $quiz->getId())->getValue(),
                 'toggleUrl' => $this->generateUrl('quiz_toggle_status', ['id' => $quiz->getId()]),
+                'exercisesUrl' => $this->generateUrl('exercice_index', []) . '?quiz_id=' . $quiz->getId(),
             ];
         }
 
         return new JsonResponse([
             'quizzes' => $data,
-            'total' => count($data)
+            'total' => count($data),
         ]);
     }
 

@@ -1,0 +1,12 @@
+parameters:
+    level: 5
+    paths:
+        - src/Module/InternationalTests
+    treatPhpDocTypesAsCertain: false
+    ignoreErrors:
+        - '#Expression on left side of \?\? is not nullable#'
+        - '#is never assigned int so it can be removed#'
+        - '#is never assigned null so it can be removed#'
+        - '#Method .* is unused#'
+        - '#Comparison operation ">" between int<1, max> and 0 is always true#'
+        - '#Parameter .* expects string\|null, int\|null given#'

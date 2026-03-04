@@ -105,16 +105,21 @@
         .lesson-content p { margin-bottom: 1rem; }
         .lesson-content p:last-child { margin-bottom: 0; }
 
+  <button class="btn btn-outline" type="button" id="summaryBtn">🧠 Résumer la leçon</button>
+  <span id="summaryStatus" style="font-size:.82rem;color:var(--muted);"></span>
+
+
+
+  <div style="font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem;">
+    Résumé
+  </div>
+  <div id="summaryText" style="color:var(--ink-soft);line-height:1.7;"></div>
+</div>
         /* ─── VOCABULARY FLASHCARDS ─── */
         .vocab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
 
-        .flashcard {
-            perspective: 800px; cursor: pointer; height: 140px;
-        }
-        .flashcard-inner {
-            position: relative; width: 100%; height: 100%;
-            transform-style: preserve-3d; transition: transform .5s cubic-bezier(.4,0,.2,1);
-        }
+        .flashcard { perspective: 800px; cursor: pointer; height: 140px; }
+        .flashcard-inner { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform .5s cubic-bezier(.4,0,.2,1); }
         .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
         .flashcard-front, .flashcard-back {
             position: absolute; inset: 0; backface-visibility: hidden;
@@ -131,24 +136,18 @@
 
         .vocab-controls { display: flex; align-items: center; justify-content: space-between; margin-top: 1.25rem; }
         .vocab-hint { font-size: .78rem; color: var(--muted); display: flex; align-items: center; gap: .4rem; }
-        .vocab-counter { font-family: 'DM Mono', monospace; font-size: .75rem; color: var(--muted); }
         .flip-all-btn { padding: .45rem 1rem; border-radius: 100px; font-size: .78rem; font-weight: 600; border: 1.5px solid var(--border); background: var(--white); color: var(--ink-soft); cursor: pointer; transition: all .2s; }
         .flip-all-btn:hover { border-color: var(--blue); color: var(--blue); }
 
         /* ─── GRAMMAR RULES ─── */
         .grammar-list { display: flex; flex-direction: column; gap: 1rem; }
-        .grammar-card {
-            background: var(--white); border: 1.5px solid var(--border);
-            border-radius: var(--radius); overflow: hidden;
-            transition: border-color .2s;
-        }
+        .grammar-card { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: border-color .2s; }
         .grammar-card:hover { border-color: var(--violet); }
         .grammar-rule-header {
             padding: 1rem 1.25rem; background: var(--violet-bg);
             display: flex; align-items: center; gap: .75rem;
             border-bottom: 1px solid rgba(124,58,237,.12);
         }
-        .grammar-rule-icon { font-size: 1rem; }
         .grammar-rule-name { font-weight: 600; font-size: .88rem; color: var(--violet); }
         .grammar-example {
             padding: 1rem 1.25rem;
@@ -157,11 +156,8 @@
             border-radius: 0 4px 4px 0; background: var(--off-white);
         }
 
-        /* ─── QUIZ (simple self-check) ─── */
-        .quiz-card {
-            background: var(--white); border: 1.5px solid var(--border);
-            border-radius: var(--radius-lg); padding: 2rem; margin-bottom: 1.25rem;
-        }
+        /* ─── QUIZ ─── */
+        .quiz-card { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; margin-bottom: 1.25rem; }
         .quiz-question { font-weight: 600; font-size: .95rem; color: var(--ink); margin-bottom: 1.25rem; line-height: 1.5; }
         .quiz-options { display: flex; flex-direction: column; gap: .6rem; }
         .quiz-option {
@@ -179,18 +175,14 @@
         .quiz-feedback.correct { background: var(--green-bg); color: var(--green); }
         .quiz-feedback.wrong { background: var(--red-bg); color: var(--red); }
 
-        /* ─── COMPLETE SECTION ─── */
+        /* ─── COMPLETE ─── */
         .complete-section {
             background: linear-gradient(135deg, var(--blue-bg), #e0eaff);
             border: 1.5px solid rgba(37,99,235,.2);
             border-radius: var(--radius-lg); padding: 2.5rem;
             text-align: center; margin-top: 1.5rem;
         }
-        .complete-icon { font-size: 3rem; margin-bottom: 1rem; }
         .complete-title { font-family: 'Fraunces', serif; font-size: 1.6rem; font-weight: 300; color: var(--ink); margin-bottom: .5rem; }
-        .complete-sub { font-size: .88rem; color: var(--muted); margin-bottom: 1.75rem; }
-        .xp-earned { display: inline-flex; align-items: center; gap: .5rem; background: var(--gold-bg); border: 1.5px solid rgba(202,138,4,.2); border-radius: 100px; padding: .5rem 1.25rem; font-family: 'Fraunces', serif; font-size: 1.2rem; color: var(--gold); margin-bottom: 1.75rem; }
-        .complete-actions { display: flex; gap: .75rem; justify-content: center; flex-wrap: wrap; }
 
         /* ─── BUTTONS ─── */
         .btn { padding: .6rem 1.35rem; border-radius: 100px; font-family: 'Sora', sans-serif; font-size: .85rem; font-weight: 600; text-decoration: none; cursor: pointer; border: none; transition: all .2s; display: inline-flex; align-items: center; gap: .4rem; }
@@ -200,17 +192,6 @@
         .btn-outline:hover { border-color: var(--blue) !important; color: var(--blue); }
         .btn-green { background: var(--green); color: var(--white); }
         .btn-green:hover { background: #15803d; box-shadow: 0 4px 14px rgba(22,163,74,.3); }
-
-        /* ─── NAV BAR (prev/next) ─── */
-        .lesson-nav { display: flex; align-items: center; justify-content: space-between; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); gap: 1rem; }
-        .lesson-nav-btn { display: flex; align-items: center; gap: .5rem; padding: .65rem 1.1rem; border-radius: var(--radius); border: 1.5px solid var(--border); background: var(--white); text-decoration: none; font-size: .82rem; font-weight: 500; color: var(--muted); transition: all .2s; }
-        .lesson-nav-btn:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-bg); }
-        .lesson-nav-btn.disabled { opacity: .4; pointer-events: none; }
-        .lesson-nav-label { font-size: .68rem; font-family: 'DM Mono', monospace; letter-spacing: .1em; text-transform: uppercase; display: block; color: var(--muted); margin-bottom: .1rem; }
-
-        /* ─── EMPTY / NO DATA ─── */
-        .no-data { text-align: center; padding: 2.5rem; color: var(--muted); font-size: .88rem; background: var(--white); border: 1.5px dashed var(--border); border-radius: var(--radius-lg); }
-        .no-data-icon { font-size: 2rem; margin-bottom: .6rem; }
 
         .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(13,21,38,.4); z-index: 45; }
         .sidebar-overlay.visible { display: block; }
@@ -232,33 +213,7 @@
 </head>
 <body>
 
-{# ─── LEFT SIDEBAR ─── #}
-<aside class="sidebar" id="sidebar">
-    <a href="{{ path('app_homepage') }}" class="sidebar-logo">
-        <div class="sidebar-logo-text">Lingua<span>Learn</span></div>
-    </a>
-    <div class="sidebar-user">
-        <div class="user-avatar {{ app.user.isPremium is defined and app.user.isPremium ? 'premium' : '' }}">
-            {{ app.user.firstName|first|upper }}{{ app.user.lastName|first|upper }}
-        </div>
-        <div class="user-info">
-            <div class="user-name">{{ app.user.fullName }}</div>
-            <div class="user-plan {{ app.user.isPremium is defined and app.user.isPremium ? 'premium' : 'free' }}">
-                {{ app.user.isPremium is defined and app.user.isPremium ? '★ ' ~ app.user.subscriptionPlan : 'Free Plan' }}
-            </div>
-        </div>
-    </div>
-    <nav class="sidebar-nav">
-        <span class="nav-section-label">Main</span>
-        <a href="{{ path('user_dashboard') }}" class="nav-item"><span class="nav-icon">⊞</span> Dashboard</a>
-        <a href="{{ path('language_select') }}" class="nav-item active"><span class="nav-icon">📚</span> My Courses</a>
-        <a href="#" class="nav-item"><span class="nav-icon">🧩</span> Practice</a>
-        <a href="#" class="nav-item"><span class="nav-icon">📝</span> Mock Tests</a>
-        <span class="nav-section-label">Account</span>
-        <a href="{{ path('user_profile') }}" class="nav-item"><span class="nav-icon">👤</span> My Profile</a>
-        <a href="{{ path('app_logout') }}" class="nav-item"><span class="nav-icon">→</span> Log Out</a>
-    </nav>
-</aside>
+{% include 'components/sidebar.html.twig' %}
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
 {# ─── RIGHT LESSON SIDEBAR ─── #}
@@ -268,21 +223,21 @@
         <div class="ls-dot"></div> Reading
     </div>
     {% if lesson.vocabularyData|length > 0 %}
-    <div class="ls-section" id="ls-vocab" onclick="switchTab('vocab')">
-        <div class="ls-dot"></div> Vocabulary
-        <span style="margin-left:auto;font-family:'DM Mono',monospace;font-size:.65rem;color:var(--muted);">{{ lesson.vocabularyData|length }}</span>
-    </div>
+        <div class="ls-section" id="ls-vocab" onclick="switchTab('vocab')">
+            <div class="ls-dot"></div> Vocabulary
+            <span style="margin-left:auto;font-family:'DM Mono',monospace;font-size:.65rem;color:var(--muted);">{{ lesson.vocabularyData|length }}</span>
+        </div>
     {% endif %}
     {% if lesson.grammarData|length > 0 %}
-    <div class="ls-section" id="ls-grammar" onclick="switchTab('grammar')">
-        <div class="ls-dot"></div> Grammar
-        <span style="margin-left:auto;font-family:'DM Mono',monospace;font-size:.65rem;color:var(--muted);">{{ lesson.grammarData|length }}</span>
-    </div>
+        <div class="ls-section" id="ls-grammar" onclick="switchTab('grammar')">
+            <div class="ls-dot"></div> Grammar
+            <span style="margin-left:auto;font-family:'DM Mono',monospace;font-size:.65rem;color:var(--muted);">{{ lesson.grammarData|length }}</span>
+        </div>
     {% endif %}
     {% if lesson.vocabularyData|length > 0 %}
-    <div class="ls-section" id="ls-quiz" onclick="switchTab('quiz')">
-        <div class="ls-dot"></div> Quick Quiz
-    </div>
+        <div class="ls-section" id="ls-quiz" onclick="switchTab('quiz')">
+            <div class="ls-dot"></div> Quick Quiz
+        </div>
     {% endif %}
     <div class="ls-section" id="ls-complete" onclick="switchTab('complete')">
         <div class="ls-dot"></div> Complete
@@ -296,8 +251,6 @@
 </aside>
 
 <div class="main">
-
-    {# ─── TOPBAR ─── #}
     <header class="topbar">
         <button class="hamburger-btn" id="hamburgerBtn"><span></span><span></span><span></span></button>
         <a href="{{ path('course_show', {id: course.id}) }}" class="topbar-back">← {{ course.title }}</a>
@@ -311,8 +264,6 @@
     </header>
 
     <main class="page-content">
-
-        {# Lesson counter #}
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
             <div style="font-family:'DM Mono',monospace;font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);">
                 Lesson {{ lessonIndex }} of {{ totalLessons }}
@@ -322,7 +273,6 @@
             </div>
         </div>
 
-        {# ─── TABS ─── #}
         <div class="tabs" id="tabBar">
             <button class="tab-btn active" onclick="switchTab('read')" id="tab-read">📖 Read</button>
             {% if lesson.vocabularyData|length > 0 %}
@@ -337,11 +287,99 @@
             <button class="tab-btn" onclick="switchTab('complete')" id="tab-complete">✅ Done</button>
         </div>
 
-        {# ─── TAB: READING ─── #}
         <div class="tab-panel active" id="panel-read">
             <div class="lesson-content">
                 {{ lesson.content|nl2br }}
             </div>
+{# ── SUMMARY BUTTON ── #}
+<div style="margin-top:1rem; display:flex; gap:.75rem; align-items:center; flex-wrap:wrap;">
+    <button class="btn btn-outline" type="button" id="summaryBtn">🧠 Résumer la leçon</button>
+    <span id="summaryStatus" style="font-size:.82rem;color:var(--muted);"></span>
+</div>
+
+<div id="summaryBox" style="display:none;margin-top:.75rem;padding:1rem;border-radius:14px;background:var(--white);border:1.5px solid var(--border);">
+    <div style="font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem;">
+        Résumé
+    </div>
+    <div id="summaryText" style="color:var(--ink-soft);line-height:1.7;"></div>
+</div>
+            {# ── TTS Controls (Web Speech API) ── #}
+            <div style="margin-top: 1rem; display:flex; flex-wrap:wrap; gap:.75rem; align-items:center;">
+                <button class="btn btn-outline" type="button" id="ttsPlayBtn">🔊 Écouter</button>
+                <button class="btn btn-outline" type="button" id="ttsPauseBtn" disabled>⏸ Pause</button>
+                <button class="btn btn-outline" type="button" id="ttsStopBtn" disabled>⏹ Stop</button>
+
+                <label style="font-size:.8rem;color:var(--muted);display:flex;gap:.5rem;align-items:center;">
+                    Voix
+                    <select id="ttsVoice" style="padding:.35rem .5rem;border:1.5px solid var(--border);border-radius:10px;background:var(--white);">
+                        <option value="">Auto</option>
+                    </select>
+                </label>
+
+                <label style="font-size:.8rem;color:var(--muted);display:flex;gap:.5rem;align-items:center;">
+                    Vitesse
+                    <select id="ttsRate" style="padding:.35rem .5rem;border:1.5px solid var(--border);border-radius:10px;background:var(--white);">
+                        <option value="0.8">0.8x</option>
+                        <option value="1" selected>1.0x</option>
+                        <option value="1.1">1.1x</option>
+                        <option value="1.25">1.25x</option>
+                    </select>
+                </label>
+
+                <label style="font-size:.8rem;color:var(--muted);display:flex;gap:.5rem;align-items:center;">
+                    Mode
+                    <select id="ttsMode" style="padding:.35rem .5rem;border:1.5px solid var(--border);border-radius:10px;background:var(--white);">
+                        <option value="full" selected>Tout</option>
+                        <option value="sentence">Phrase par phrase</option>
+                    </select>
+                </label>
+            </div>
+
+            {# ── STT practice (Web Speech API) ── #}
+            <div style="margin-top: 1rem; background: var(--white); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem;">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+                    <div>
+                        <div style="font-weight:700;color:var(--ink);">🎤 Entraînement oral (STT)</div>
+                        <div style="font-size:.82rem;color:var(--muted);margin-top:.2rem;">
+                            Clique “Démarrer micro”, lis la phrase, puis compare.
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;">
+                        <button class="btn btn-outline" type="button" id="sttStartBtn">🎙️ Démarrer micro</button>
+                        <button class="btn btn-outline" type="button" id="sttStopBtn" disabled>🛑 Stop</button>
+                    </div>
+                </div>
+
+                <div style="margin-top:.75rem;">
+                    <div style="font-size:.75rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:.08em;text-transform:uppercase;">
+                        Phrase à lire
+                    </div>
+                    <textarea id="sttTarget" placeholder="Écris ou colle une phrase ici..."
+                              style="width:100%; margin-top:.35rem; padding:.75rem 1rem; border-radius:12px;
+                              background:var(--off-white); border:1.5px solid var(--border); color:var(--ink-soft);
+                              line-height:1.6; min-height:90px;"></textarea>
+                </div>
+
+                <div style="margin-top:.75rem; display:flex; gap:.75rem; flex-wrap:wrap;">
+                    <button class="btn btn-outline" type="button" id="sttPickSentenceBtn">🎯 Choisir une phrase</button>
+                    <button class="btn btn-outline" type="button" id="sttSpeakTargetBtn">🔁 Écouter la phrase</button>
+                </div>
+
+                <div style="margin-top:.75rem;">
+                    <div style="font-size:.75rem;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:.08em;text-transform:uppercase;">
+                        Transcription
+                    </div>
+                    <div id="sttResult" style="margin-top:.35rem; padding:.75rem 1rem; border-radius: 12px; background: var(--white); border: 1.5px solid var(--border); color: var(--ink-soft);">
+                        —
+                    </div>
+                </div>
+
+                <div style="margin-top:.75rem; display:flex; gap:.75rem; flex-wrap:wrap; align-items:center;">
+                    <div id="sttScore" style="font-weight:700;color:var(--blue);">Score: —</div>
+                    <div id="sttFeedback" style="font-size:.85rem;color:var(--muted);">—</div>
+                </div>
+            </div>
+
             <div style="margin-top:1.5rem;display:flex;justify-content:flex-end;">
                 {% if lesson.vocabularyData|length > 0 %}
                     <button class="btn btn-primary" onclick="switchTab('vocab')">Next: Vocabulary →</button>
@@ -353,91 +391,109 @@
             </div>
         </div>
 
-        {# ─── TAB: VOCABULARY ─── #}
-        {% if lesson.vocabularyData|length > 0 %}
-        <div class="tab-panel" id="panel-vocab">
-            <p style="font-size:.85rem;color:var(--muted);margin-bottom:1.25rem;">Click any card to reveal the translation.</p>
-            <div class="vocab-grid" id="vocabGrid">
-                {% for item in lesson.vocabularyData %}
-                    <div class="flashcard" onclick="flipCard(this)">
-                        <div class="flashcard-inner">
-                            <div class="flashcard-front">
-                                <div class="card-word">{{ item.word ?? item.term ?? (item|first) }}</div>
-                                <div class="card-hint">Tap to reveal</div>
-                            </div>
-                            <div class="flashcard-back">
-                                <div class="card-translation">{{ item.translation ?? item.meaning ?? (item|last) }}</div>
-                                <div class="card-hint-back">Translation</div>
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
+        {% if lesson.resourceName %}
+            <div style="margin-top: 1rem; display:flex; gap:.75rem; align-items:center;">
+                <a class="btn btn-outline" target="_blank"
+                   href="{{ path('lesson_resource_view', { id: lesson.id }) }}">
+                    📄 Voir la ressource (PDF)
+                </a>
+                <span style="font-size:.8rem;color:var(--muted);">
+                    Ressource disponible pour cette leçon
+                </span>
             </div>
-            <div class="vocab-controls">
-                <span class="vocab-hint">🃏 <span id="flippedCount">0</span> / {{ lesson.vocabularyData|length }} revealed</span>
-                <button class="flip-all-btn" onclick="flipAll()">Reveal All</button>
-            </div>
-            <div style="margin-top:1.5rem;display:flex;justify-content:flex-end;">
-                {% if lesson.grammarData|length > 0 %}
-                    <button class="btn btn-primary" onclick="switchTab('grammar')">Next: Grammar →</button>
-                {% else %}
-                    <button class="btn btn-primary" onclick="switchTab('quiz')">Next: Quiz →</button>
-                {% endif %}
-            </div>
-        </div>
         {% endif %}
 
-        {# ─── TAB: GRAMMAR ─── #}
+        {# ─── VOCABULARY ─── #}
+        {% if lesson.vocabularyData|length > 0 %}
+            <div class="tab-panel" id="panel-vocab">
+                <p style="font-size:.85rem;color:var(--muted);margin-bottom:1.25rem;">Click any card to reveal the translation.</p>
+                <div class="vocab-grid" id="vocabGrid">
+                    {% for item in lesson.vocabularyData %}
+                        <div class="flashcard" onclick="flipCard(this)">
+                            <div class="flashcard-inner">
+                                <div class="flashcard-front">
+                                    <div class="card-word">{{ item.word ?? item.term ?? (item|first) }}</div>
+                                    <div class="card-hint">Tap to reveal</div>
+                                </div>
+                                <div class="flashcard-back">
+                                    <div class="card-translation">{{ item.translation ?? item.meaning ?? (item|last) }}</div>
+                                    <div class="card-hint-back">Translation</div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="vocab-controls">
+                    <span class="vocab-hint">🃏 <span id="flippedCount">0</span> / {{ lesson.vocabularyData|length }} revealed</span>
+                    <button class="flip-all-btn" onclick="flipAll()">Reveal All</button>
+                </div>
+                <div style="margin-top:1.5rem;display:flex;justify-content:flex-end;">
+                    {% if lesson.grammarData|length > 0 %}
+                        <button class="btn btn-primary" onclick="switchTab('grammar')">Next: Grammar →</button>
+                    {% else %}
+                        <button class="btn btn-primary" onclick="switchTab('quiz')">Next: Quiz →</button>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+
+        {# ─── GRAMMAR ─── #}
         {% if lesson.grammarData|length > 0 %}
-        <div class="tab-panel" id="panel-grammar">
-            <div class="grammar-list">
-                {% for item in lesson.grammarData %}
-                    <div class="grammar-card">
-                        <div class="grammar-rule-header">
-                            <span class="grammar-rule-icon">📐</span>
-                            <span class="grammar-rule-name">{{ item.rule ?? item.title ?? item.name ?? 'Rule ' ~ loop.index }}</span>
-                        </div>
-                        {% if item.example is defined or item.exemple is defined %}
-                            <div class="grammar-example">{{ item.example ?? item.exemple }}</div>
-                        {% endif %}
-                        {% if item.explanation is defined or item.description is defined %}
-                            <div style="padding:.75rem 1.25rem 1rem;font-size:.85rem;color:var(--ink-soft);line-height:1.6;">
-                                {{ item.explanation ?? item.description }}
+            <div class="tab-panel" id="panel-grammar">
+                <div class="grammar-list">
+                    {% for item in lesson.grammarData %}
+                        <div class="grammar-card">
+                            <div class="grammar-rule-header">
+                                <span>📐</span>
+                                <span class="grammar-rule-name">{{ item.rule ?? item.title ?? item.name ?? 'Rule ' ~ loop.index }}</span>
                             </div>
-                        {% endif %}
-                    </div>
-                {% endfor %}
+                            {% if item.example is defined or item.exemple is defined %}
+                                <div class="grammar-example">{{ item.example ?? item.exemple }}</div>
+                            {% endif %}
+                            {% if item.explanation is defined or item.description is defined %}
+                                <div style="padding:.75rem 1.25rem 1rem;font-size:.85rem;color:var(--ink-soft);line-height:1.6;">
+                                    {{ item.explanation ?? item.description }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+                <div style="margin-top:1.5rem;display:flex;justify-content:flex-end;">
+                    {% if lesson.vocabularyData|length > 0 %}
+                        <button class="btn btn-primary" onclick="switchTab('quiz')">Next: Quiz →</button>
+                    {% else %}
+                        <button class="btn btn-green" onclick="switchTab('complete')">Complete Lesson →</button>
+                    {% endif %}
+                </div>
             </div>
-            <div style="margin-top:1.5rem;display:flex;justify-content:flex-end;">
-                {% if lesson.vocabularyData|length > 0 %}
-                    <button class="btn btn-primary" onclick="switchTab('quiz')">Next: Quiz →</button>
-                {% else %}
-                    <button class="btn btn-green" onclick="switchTab('complete')">Complete Lesson →</button>
-                {% endif %}
-            </div>
-        </div>
         {% endif %}
 
-        {# ─── TAB: QUIZ ─── #}
+        {# ─── QUIZ ─── #}
         {% if lesson.vocabularyData|length > 0 %}
-        <div class="tab-panel" id="panel-quiz">
-            <p style="font-size:.85rem;color:var(--muted);margin-bottom:1.5rem;">Test yourself on the vocabulary from this lesson.</p>
-            <div id="quizContainer"></div>
-            <div style="margin-top:1.5rem;display:flex;justify-content:space-between;align-items:center;">
-                <button class="btn btn-outline" onclick="resetQuiz()">🔄 Retry</button>
-                <button class="btn btn-green" onclick="switchTab('complete')">Complete Lesson →</button>
+            <div class="tab-panel" id="panel-quiz">
+                <p style="font-size:.85rem;color:var(--muted);margin-bottom:1.5rem;">Test yourself on the vocabulary from this lesson.</p>
+                <div id="quizContainer"></div>
+                <div style="margin-top:1.5rem;display:flex;justify-content:space-between;align-items:center;">
+                    <button class="btn btn-outline" onclick="resetQuiz()">🔄 Retry</button>
+                    <button class="btn btn-green" onclick="switchTab('complete')">Complete Lesson →</button>
+                </div>
             </div>
-        </div>
         {% endif %}
 
-        {# ─── TAB: COMPLETE ─── #}
+        {# ─── COMPLETE ─── #}
         <div class="tab-panel" id="panel-complete">
             <div class="complete-section">
-                <div class="complete-icon" id="completeIcon">🎉</div>
                 <div class="complete-title">Lesson Complete!</div>
-                <div class="complete-sub">Great work finishing <strong>{{ lesson.title }}</strong>.</div>
+                <div style="font-size:.88rem;color:var(--muted);margin-bottom:1.75rem;">
+                    Great work finishing <strong>{{ lesson.title }}</strong>.
+                </div>
                 <div class="xp-earned">⭐ +{{ lesson.xpReward }} XP earned</div>
                 <div class="complete-actions">
+                    <form method="post" action="{{ path('lesson_complete', {id: lesson.id}) }}" style="display:inline;" id="completeLessonForm">
+                        <input type="hidden" name="_token" value="{{ csrf_token('complete_lesson_' ~ lesson.id) }}">
+                        <input type="hidden" name="minutes" id="minutesInput" value="0">
+                        <button type="submit" class="btn btn-green">✅ Complete Lesson (+{{ lesson.xpReward }} XP)</button>
+                    </form>
                     {% if prevLesson %}
                         <a href="{{ path('lesson_show', {id: prevLesson.id}) }}" class="btn btn-outline">← Previous</a>
                     {% endif %}
@@ -451,203 +507,404 @@
             </div>
         </div>
 
-        {# ─── PREV / NEXT NAV ─── #}
-        <div class="lesson-nav">
-            {% if prevLesson %}
-                <a href="{{ path('lesson_show', {id: prevLesson.id}) }}" class="lesson-nav-btn">
-                    <span>←</span>
-                    <div>
-                        <span class="lesson-nav-label">Previous</span>
-                        {{ prevLesson.title }}
-                    </div>
-                </a>
-            {% else %}
-                <div class="lesson-nav-btn disabled"><span>←</span> <div><span class="lesson-nav-label">Previous</span>First lesson</div></div>
-            {% endif %}
-
-            <a href="{{ path('course_show', {id: course.id}) }}" style="font-size:.78rem;color:var(--muted);text-decoration:none;">All lessons</a>
-
-            {% if nextLesson %}
-                <a href="{{ path('lesson_show', {id: nextLesson.id}) }}" class="lesson-nav-btn" style="flex-direction:row-reverse;text-align:right;">
-                    <span>→</span>
-                    <div>
-                        <span class="lesson-nav-label">Next</span>
-                        {{ nextLesson.title }}
-                    </div>
-                </a>
-            {% else %}
-                <div class="lesson-nav-btn disabled" style="flex-direction:row-reverse;text-align:right;"><span>→</span><div><span class="lesson-nav-label">Next</span>Last lesson</div></div>
-            {% endif %}
-        </div>
-
     </main>
 </div>
 
 <script>
-// ─── TAB DATA FROM TWIG ───
+/* =========================
+   TAB / QUIZ (ton code)
+   ========================= */
+   const lessonId = {{ lesson.id|json_encode|raw }};
 const vocabData = {{ lesson.vocabularyData|json_encode|raw }};
-const totalTabs = document.querySelectorAll('.tab-btn').length;
-
-// ─── TAB SWITCHING ───
-const tabOrder = ['read', 'vocab', 'grammar', 'quiz', 'complete'].filter(t => document.getElementById('panel-' + t));
+const tabOrder = ['read','vocab','grammar','quiz','complete'].filter(t => document.getElementById('panel-' + t));
 
 function switchTab(name) {
-    if (!document.getElementById('panel-' + name)) return;
+  if (!document.getElementById('panel-' + name)) return;
 
-    // panels
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-    document.getElementById('panel-' + name).classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
 
-    // tab buttons
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    const btn = document.getElementById('tab-' + name);
-    if (btn) btn.classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('tab-' + name);
+  if (btn) btn.classList.add('active');
 
-    // right sidebar
-    document.querySelectorAll('.ls-section').forEach(s => s.classList.remove('active'));
-    const ls = document.getElementById('ls-' + name);
-    if (ls) ls.classList.add('active');
+  document.querySelectorAll('.ls-section').forEach(s => s.classList.remove('active'));
+  const ls = document.getElementById('ls-' + name);
+  if (ls) ls.classList.add('active');
 
-    // progress bar
-    const idx = tabOrder.indexOf(name);
-    const pct = Math.round(((idx + 1) / tabOrder.length) * 100);
-    document.getElementById('progressBar').style.width = pct + '%';
-    document.getElementById('progressLabel').textContent = (idx + 1) + ' / ' + tabOrder.length;
+  const idx = tabOrder.indexOf(name);
+  const pct = Math.round(((idx + 1) / tabOrder.length) * 100);
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = (idx + 1) + ' / ' + tabOrder.length;
 
-    // confetti on complete
-    if (name === 'complete') triggerConfetti();
+  if (name === 'complete') triggerConfetti();
 }
 
-// ─── FLASHCARDS ───
-function flipCard(el) {
-    el.classList.toggle('flipped');
-    updateFlippedCount();
+function flipCard(el){ el.classList.toggle('flipped'); updateFlippedCount(); }
+function flipAll(){
+  const cards = document.querySelectorAll('.flashcard');
+  const allFlipped = [...cards].every(c => c.classList.contains('flipped'));
+  cards.forEach(c => allFlipped ? c.classList.remove('flipped') : c.classList.add('flipped'));
+  updateFlippedCount();
+}
+function updateFlippedCount(){
+  const count = document.querySelectorAll('.flashcard.flipped').length;
+  const el = document.getElementById('flippedCount');
+  if (el) el.textContent = count;
 }
 
-function flipAll() {
-    const cards = document.querySelectorAll('.flashcard');
-    const allFlipped = [...cards].every(c => c.classList.contains('flipped'));
-    cards.forEach(c => allFlipped ? c.classList.remove('flipped') : c.classList.add('flipped'));
-    document.querySelector('.flip-all-btn').textContent = allFlipped ? 'Reveal All' : 'Hide All';
-    updateFlippedCount();
-}
-
-function updateFlippedCount() {
-    const count = document.querySelectorAll('.flashcard.flipped').length;
-    const el = document.getElementById('flippedCount');
-    if (el) el.textContent = count;
-}
-
-// ─── QUIZ ───
 function buildQuiz() {
-    if (!vocabData || vocabData.length === 0) return;
+  if (!vocabData || vocabData.length === 0) return;
+  const container = document.getElementById('quizContainer');
+  if (!container) return;
+  container.innerHTML = '';
 
-    const container = document.getElementById('quizContainer');
-    if (!container) return;
-    container.innerHTML = '';
+  const shuffled = [...vocabData].sort(() => Math.random() - .5).slice(0, Math.min(5, vocabData.length));
+  shuffled.forEach((item, qi) => {
+    const word = item.word || item.term || Object.values(item)[0];
+    const correct = item.translation || item.meaning || Object.values(item)[1];
 
-    // Pick up to 5 random words
-    const shuffled = [...vocabData].sort(() => Math.random() - .5).slice(0, Math.min(5, vocabData.length));
+    const others = vocabData
+      .filter(v => (v.translation || v.meaning || Object.values(v)[1]) !== correct)
+      .sort(() => Math.random() - .5)
+      .slice(0, 3)
+      .map(v => v.translation || v.meaning || Object.values(v)[1]);
 
-    shuffled.forEach((item, qi) => {
-        const word = item.word || item.term || Object.values(item)[0];
-        const correct = item.translation || item.meaning || Object.values(item)[1];
+    const options = [...others, correct].sort(() => Math.random() - .5);
 
-        // Wrong answers from other vocab items
-        const others = vocabData
-            .filter(v => (v.translation || v.meaning || Object.values(v)[1]) !== correct)
-            .sort(() => Math.random() - .5)
-            .slice(0, 3)
-            .map(v => v.translation || v.meaning || Object.values(v)[1]);
-
-        const options = [...others, correct].sort(() => Math.random() - .5);
-
-        const card = document.createElement('div');
-        card.className = 'quiz-card';
-        card.innerHTML = `
-            <div class="quiz-question">What is the translation of "<strong>${word}</strong>"?</div>
-            <div class="quiz-options">
-                ${options.map(opt => `
-                    <button class="quiz-option" onclick="checkAnswer(this, '${opt.replace(/'/g,"\\'")}', '${correct.replace(/'/g,"\\'")}', ${qi})">${opt}</button>
-                `).join('')}
-            </div>
-            <div class="quiz-feedback" id="feedback-${qi}"></div>
-        `;
-        container.appendChild(card);
-    });
+    const card = document.createElement('div');
+    card.className = 'quiz-card';
+    card.innerHTML = `
+      <div class="quiz-question">What is the translation of "<strong>${word}</strong>"?</div>
+      <div class="quiz-options">
+        ${options.map(opt => `
+          <button class="quiz-option" onclick="checkAnswer(this, '${opt.replace(/'/g,"\\'")}', '${correct.replace(/'/g,"\\'")}', ${qi})">${opt}</button>
+        `).join('')}
+      </div>
+      <div class="quiz-feedback" id="feedback-${qi}"></div>
+    `;
+    container.appendChild(card);
+  });
 }
 
 function checkAnswer(btn, chosen, correct, qi) {
-    const card = btn.closest('.quiz-card');
-    const feedback = document.getElementById('feedback-' + qi);
-    const allOptions = card.querySelectorAll('.quiz-option');
+  const card = btn.closest('.quiz-card');
+  const feedback = document.getElementById('feedback-' + qi);
+  const allOptions = card.querySelectorAll('.quiz-option');
 
-    allOptions.forEach(o => {
-        o.classList.add('revealed');
-        if (o.textContent.trim() === correct) o.classList.add('correct');
-    });
+  allOptions.forEach(o => {
+    o.classList.add('revealed');
+    if (o.textContent.trim() === correct) o.classList.add('correct');
+  });
 
-    if (chosen === correct) {
-        btn.classList.add('correct');
-        feedback.textContent = '✓ Correct!';
-        feedback.className = 'quiz-feedback show correct';
-    } else {
-        btn.classList.add('wrong');
-        feedback.textContent = '✗ Not quite — the answer is: ' + correct;
-        feedback.className = 'quiz-feedback show wrong';
-    }
+  if (chosen === correct) {
+    btn.classList.add('correct');
+    feedback.textContent = '✓ Correct!';
+    feedback.className = 'quiz-feedback show correct';
+  } else {
+    btn.classList.add('wrong');
+    feedback.textContent = '✗ Not quite — the answer is: ' + correct;
+    feedback.className = 'quiz-feedback show wrong';
+  }
 }
 
-function resetQuiz() { buildQuiz(); }
+function resetQuiz(){ buildQuiz(); }
 
-// ─── CONFETTI (CSS only, lightweight) ───
 function triggerConfetti() {
-    const existing = document.getElementById('confetti-wrap');
-    if (existing) existing.remove();
+  const existing = document.getElementById('confetti-wrap');
+  if (existing) existing.remove();
 
-    const wrap = document.createElement('div');
-    wrap.id = 'confetti-wrap';
-    wrap.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:9999;overflow:hidden;';
-    document.body.appendChild(wrap);
+  const wrap = document.createElement('div');
+  wrap.id = 'confetti-wrap';
+  wrap.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:9999;overflow:hidden;';
+  document.body.appendChild(wrap);
 
-    const colors = ['#2563eb','#16a34a','#ca8a04','#7c3aed','#ea580c','#3b82f6'];
-    for (let i = 0; i < 60; i++) {
-        const p = document.createElement('div');
-        const size = 6 + Math.random() * 8;
-        p.style.cssText = `
-            position:absolute; width:${size}px; height:${size}px;
-            background:${colors[Math.floor(Math.random()*colors.length)]};
-            border-radius:${Math.random() > .5 ? '50%' : '2px'};
-            left:${Math.random()*100}%; top:-12px;
-            animation: confettiFall ${1.5 + Math.random()*2}s ease-in ${Math.random()*.8}s forwards;
-            opacity: ${0.7 + Math.random()*.3};
-        `;
-        wrap.appendChild(p);
-    }
+  const colors = ['#2563eb','#16a34a','#ca8a04','#7c3aed','#ea580c','#3b82f6'];
+  for (let i = 0; i < 60; i++) {
+    const p = document.createElement('div');
+    const size = 6 + Math.random() * 8;
+    p.style.cssText = `
+      position:absolute; width:${size}px; height:${size}px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      border-radius:${Math.random() > .5 ? '50%' : '2px'};
+      left:${Math.random()*100}%; top:-12px;
+      animation: confettiFall ${1.5 + Math.random()*2}s ease-in ${Math.random()*.8}s forwards;
+      opacity: ${0.7 + Math.random()*.3};
+    `;
+    wrap.appendChild(p);
+  }
 
-    const style = document.createElement('style');
-    style.textContent = `@keyframes confettiFall {
-        0%   { transform: translateY(0) rotate(0deg); opacity:1; }
-        100% { transform: translateY(100vh) rotate(${360 + Math.random()*360}deg); opacity:0; }
-    }`;
-    document.head.appendChild(style);
-    setTimeout(() => { wrap.remove(); }, 4000);
+  const style = document.createElement('style');
+  style.textContent = `@keyframes confettiFall {
+    0% { transform: translateY(0) rotate(0deg); opacity:1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity:0; }
+  }`;
+  document.head.appendChild(style);
+  setTimeout(() => { wrap.remove(); }, 4000);
 }
 
-// ─── SIDEBAR TOGGLE ───
+// Sidebar toggle
 const sidebar = document.getElementById('sidebar');
 const overlay = document.getElementById('sidebarOverlay');
-document.getElementById('hamburgerBtn').addEventListener('click', () => {
-    sidebar.classList.toggle('open');
-    overlay.classList.toggle('visible');
+document.getElementById('hamburgerBtn')?.addEventListener('click', () => {
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('visible');
 });
-overlay.addEventListener('click', () => {
-    sidebar.classList.remove('open');
-    overlay.classList.remove('visible');
+overlay?.addEventListener('click', () => {
+  sidebar.classList.remove('open');
+  overlay.classList.remove('visible');
 });
 
-// ─── INIT ───
+// Timer minutes
+const lessonStartTime = Date.now();
+const completeForm = document.getElementById('completeLessonForm');
+if (completeForm) {
+  completeForm.addEventListener('submit', function () {
+    const elapsedMs = Date.now() - lessonStartTime;
+    let minutes = Math.round(elapsedMs / 60000);
+    if (minutes < 1) minutes = 1;
+    if (minutes > 240) minutes = 240;
+    const minutesInput = document.getElementById('minutesInput');
+    if (minutesInput) minutesInput.value = minutes;
+  });
+}
+
+/* =========================
+   NOUVEAU : TTS + STT navigateur (Open-source/gratuit)
+   ========================= */
+
+let currentUtterance = null;
+
+function getLessonText() {
+  const el = document.querySelector('.lesson-content');
+  return (el?.innerText || '').trim();
+}
+
+function speak(text) {
+  text = (text || '').trim();
+  if (!text) { alert("Texte vide."); return; }
+
+  window.speechSynthesis.cancel();
+  currentUtterance = new SpeechSynthesisUtterance(text);
+
+  // langue (tu peux changer selon langue du cours)
+  currentUtterance.lang = "fr-FR";
+
+  // vitesse
+  const rate = parseFloat(document.getElementById('ttsRate')?.value || "1");
+  currentUtterance.rate = isNaN(rate) ? 1 : rate;
+
+  // voix
+  const voiceName = document.getElementById('ttsVoice')?.value || "";
+  if (voiceName) {
+    const voices = window.speechSynthesis.getVoices();
+    const v = voices.find(v => v.name === voiceName);
+    if (v) currentUtterance.voice = v;
+  }
+
+  // boutons
+  const pauseBtn = document.getElementById('ttsPauseBtn');
+  const stopBtn  = document.getElementById('ttsStopBtn');
+  if (pauseBtn) { pauseBtn.disabled = false; pauseBtn.textContent = "⏸ Pause"; }
+  if (stopBtn) stopBtn.disabled = false;
+
+  currentUtterance.onend = () => {
+    if (pauseBtn) pauseBtn.disabled = true;
+    if (stopBtn) stopBtn.disabled = true;
+  };
+
+  window.speechSynthesis.speak(currentUtterance);
+}
+
+function loadVoices() {
+  const select = document.getElementById('ttsVoice');
+  if (!select) return;
+  const voices = window.speechSynthesis.getVoices();
+  select.innerHTML = '<option value="">Auto</option>';
+  voices.forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v.name;
+    opt.textContent = `${v.name} (${v.lang})`;
+    select.appendChild(opt);
+  });
+}
+window.speechSynthesis.onvoiceschanged = loadVoices;
+loadVoices();
+
+document.getElementById('ttsPlayBtn')?.addEventListener('click', () => {
+  const mode = document.getElementById('ttsMode')?.value || 'full';
+  if (mode === 'sentence') {
+    const phrase = document.getElementById('sttTarget')?.value || '';
+    speak(phrase || getLessonText());
+  } else {
+    speak(getLessonText());
+  }
+});
+
+document.getElementById('ttsPauseBtn')?.addEventListener('click', () => {
+  if (!window.speechSynthesis.speaking) return;
+  const btn = document.getElementById('ttsPauseBtn');
+  if (window.speechSynthesis.paused) {
+    window.speechSynthesis.resume();
+    if (btn) btn.textContent = "⏸ Pause";
+  } else {
+    window.speechSynthesis.pause();
+    if (btn) btn.textContent = "▶️ Reprendre";
+  }
+});
+
+document.getElementById('ttsStopBtn')?.addEventListener('click', () => {
+  window.speechSynthesis.cancel();
+  const pauseBtn = document.getElementById('ttsPauseBtn');
+  const stopBtn  = document.getElementById('ttsStopBtn');
+  if (pauseBtn) { pauseBtn.disabled = true; pauseBtn.textContent = "⏸ Pause"; }
+  if (stopBtn) stopBtn.disabled = true;
+});
+
+// Choisir une phrase depuis la leçon
+function getSentencesFromLesson() {
+  const text = getLessonText();
+  return text
+    .split(/(?<=[.!?])\s+/)
+    .map(s => s.trim())
+    .filter(s => s.length >= 15);
+}
+
+document.getElementById('sttPickSentenceBtn')?.addEventListener('click', () => {
+  const sentences = getSentencesFromLesson();
+  if (!sentences.length) { alert("Aucune phrase trouvée dans la leçon."); return; }
+  const pick = sentences[Math.floor(Math.random() * sentences.length)];
+  const targetEl = document.getElementById('sttTarget');
+  if (targetEl) targetEl.value = pick;
+  const out = document.getElementById('sttResult');
+  if (out) out.textContent = '—';
+  updateScore('');
+});
+
+// Écouter la phrase
+document.getElementById('sttSpeakTargetBtn')?.addEventListener('click', () => {
+  const phrase = document.getElementById('sttTarget')?.value || '';
+  if (!phrase.trim()) { alert("Écris ou choisis une phrase d'abord."); return; }
+  speak(phrase);
+});
+
+// STT navigateur (Chrome / Edge)
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null;
+
+function normalize(s) {
+  return (s || "")
+    .toLowerCase()
+    .replace(/[’']/g, "'")
+    .replace(/[^a-zàâçéèêëîïôùûüÿñæœ0-9\s']/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+function similarity(a, b) {
+  const A = new Set(normalize(a).split(' ').filter(Boolean));
+  const B = new Set(normalize(b).split(' ').filter(Boolean));
+  if (A.size === 0 || B.size === 0) return 0;
+  let common = 0;
+  A.forEach(w => { if (B.has(w)) common++; });
+  return common / Math.max(A.size, B.size);
+}
+function updateScore(spokenText) {
+  const target = document.getElementById('sttTarget')?.value || '';
+  const scoreEl = document.getElementById('sttScore');
+  const fbEl = document.getElementById('sttFeedback');
+
+  if (!target.trim()) {
+    if (scoreEl) scoreEl.textContent = "Score: —";
+    if (fbEl) fbEl.textContent = "Choisis une phrase d'abord.";
+    return;
+  }
+  const pct = Math.round(similarity(target, spokenText) * 100);
+  if (scoreEl) scoreEl.textContent = `Score: ${pct}%`;
+  if (!fbEl) return;
+  if (pct >= 85) fbEl.textContent = "Excellent ✅";
+  else if (pct >= 60) fbEl.textContent = "Bien 👍 (encore un effort)";
+  else fbEl.textContent = "Essaie encore 🙂";
+}
+
+if (SpeechRecognition) {
+  recognition = new SpeechRecognition();
+  recognition.lang = "fr-FR";
+  recognition.interimResults = false;
+  recognition.continuous = false;
+
+  recognition.onresult = (event) => {
+    const text = event.results?.[0]?.[0]?.transcript || '';
+    const out = document.getElementById('sttResult');
+    if (out) out.textContent = text || '—';
+    updateScore(text);
+  };
+
+  recognition.onerror = () => {
+    alert("Erreur micro / STT. (Essaie sur Chrome ou Edge)");
+  };
+
+  recognition.onend = () => {
+    document.getElementById('sttStartBtn').disabled = false;
+    document.getElementById('sttStopBtn').disabled = true;
+  };
+}
+
+document.getElementById('sttStartBtn')?.addEventListener('click', () => {
+  if (!recognition) { alert("STT non supporté. Utilise Chrome / Edge."); return; }
+  document.getElementById('sttStartBtn').disabled = true;
+  document.getElementById('sttStopBtn').disabled = false;
+  recognition.start();
+});
+
+document.getElementById('sttStopBtn')?.addEventListener('click', () => {
+  if (!recognition) return;
+  recognition.stop();
+});
+
+// INIT
 buildQuiz();
+// ====== SUMMARY (HF) ======
+const summaryBtn = document.getElementById('summaryBtn');
+const summaryStatus = document.getElementById('summaryStatus');
+const summaryBox = document.getElementById('summaryBox');
+const summaryText = document.getElementById('summaryText');
+
+summaryBtn?.addEventListener('click', async () => {
+  summaryStatus.textContent = 'Génération du résumé...';
+  summaryBtn.disabled = true;
+
+  try {
+    const url = `/learn/lesson/${lessonId}/summary`;
+    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+
+    // On lit d'abord en texte (au cas où le serveur renvoie du HTML)
+    const raw = await res.text();
+
+    let data;
+    try {
+      data = JSON.parse(raw);
+    } catch {
+      // Si ce n'est pas du JSON, on montre le contenu brut
+      throw new Error(`Réponse non-JSON (${res.status}) : ${raw.slice(0, 200)}...`);
+    }
+
+    if (!res.ok) {
+      alert(data.error || `Erreur summary (${res.status})`);
+      console.log(data);
+      return;
+    }
+
+    summaryText.textContent = data.summary || '(Résumé vide)';
+    summaryBox.style.display = 'block';
+    summaryStatus.textContent = '✅ Résumé prêt';
+  } catch (e) {
+    alert('Erreur réseau / serveur (voir console)');
+    console.error(e);
+  } finally {
+    summaryBtn.disabled = false;
+    setTimeout(() => (summaryStatus.textContent = ''), 2500);
+  }
+});
 </script>
 </body>
 </html>

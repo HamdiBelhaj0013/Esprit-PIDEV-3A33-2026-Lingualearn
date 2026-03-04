@@ -1,0 +1,24 @@
+vich_uploader:
+  db_driver: orm
+
+  mappings:
+    lesson_video:
+      uri_prefix: /uploads/lessons/videos
+      upload_destination: '%kernel.project_dir%/public/uploads/lessons/videos'
+      namer: Vich\UploaderBundle\Naming\SmartUniqueNamer
+      delete_on_update: true
+      delete_on_remove: true
+
+    lesson_thumb:
+      uri_prefix: /uploads/lessons/thumbs
+      upload_destination: '%kernel.project_dir%/public/uploads/lessons/thumbs'
+      namer: Vich\UploaderBundle\Naming\SmartUniqueNamer
+      delete_on_update: true
+      delete_on_remove: true
+
+    lesson_resource:
+      uri_prefix: /uploads/lessons/resources
+      upload_destination: '%kernel.project_dir%/public/uploads/lessons/resources'
+      namer: Vich\UploaderBundle\Naming\SmartUniqueNamer
+      delete_on_update: true
+      delete_on_remove: true

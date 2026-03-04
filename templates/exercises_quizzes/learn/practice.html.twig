@@ -1,0 +1,274 @@
+{% extends 'layouts/user.html.twig' %}
+
+{% block title %}Practice — Choisir un quiz{% endblock %}
+{% block page_title %}Practice — Quiz{% endblock %}
+
+{% block page_heading_content %}Practice{% endblock %}
+{% block page_sub_content %}Choisir un quiz pour t'entraîner{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ include('exercises_quizzes/_eq_styles.html.twig') }}
+
+    <style>
+        /* Page wrapper */
+        .eq-practice-wrap { max-width: 980px; margin: 0 auto; padding: 1rem 0 1.25rem; }
+
+        /* Header */
+        .eq-practice-hero {
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            background: linear-gradient(180deg, rgba(248,250,252,0.96) 0%, rgba(248,250,252,0.85) 100%);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+            padding: 0.75rem 0;
+            margin-bottom: 1rem;
+        }
+        .eq-practice-hero-card {
+            border-radius: 16px;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            background: radial-gradient(1200px 240px at 10% 0%, rgba(102,126,234,0.18), transparent 60%),
+                        radial-gradient(800px 240px at 90% 20%, rgba(124,58,237,0.14), transparent 55%),
+                        #ffffff;
+            box-shadow: 0 10px 30px rgba(2,6,23,0.06);
+            padding: 1rem 1rem;
+        }
+        .eq-practice-title {
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: #0f172a;
+            margin: 0;
+            font-size: 1.1rem;
+        }
+        .eq-practice-subtitle { color: #64748b; margin: .25rem 0 0; font-size: .9rem; line-height: 1.35; }
+        .eq-practice-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+
+        /* Small “pill” */
+        .eq-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            padding: .35rem .6rem;
+            border-radius: 999px;
+            border: 1px solid rgba(15,23,42,0.08);
+            background: rgba(255,255,255,0.8);
+            font-size: .78rem;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        /* Grid */
+        .eq-practice-grid { display: grid; gap: .85rem; }
+
+        /* Card */
+        .eq-card2 {
+            border-radius: 16px;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            background: #fff;
+            box-shadow: 0 6px 18px rgba(2,6,23,0.06);
+            transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+            overflow: hidden;
+        }
+        .eq-card2:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 32px rgba(2,6,23,0.10);
+            border-color: rgba(102,126,234,0.22);
+        }
+        .eq-card2-body {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 1rem;
+            padding: 1rem 1rem;
+        }
+
+        /* Left content */
+        .eq-quiz-title {
+            font-weight: 800;
+            margin: 0;
+            color: #0f172a;
+            letter-spacing: -0.01em;
+        }
+        .eq-quiz-meta { margin: .25rem 0 0; color: #64748b; font-size: .9rem; }
+        .eq-quiz-meta strong { color: #334155; }
+
+        .eq-badges { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .65rem; }
+
+        .eq-badge2 {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            padding: .32rem .55rem;
+            border-radius: 999px;
+            font-size: .78rem;
+            font-weight: 800;
+            border: 1px solid rgba(15,23,42,0.08);
+            background: rgba(248,250,252,1);
+            color: #334155;
+            white-space: nowrap;
+        }
+        .eq-badge2.primary { background: rgba(102,126,234,0.10); border-color: rgba(102,126,234,0.18); color: #1e40af; }
+        .eq-badge2.success { background: rgba(16,185,129,0.10); border-color: rgba(16,185,129,0.18); color: #047857; }
+        .eq-badge2.danger  { background: rgba(239,68,68,0.10); border-color: rgba(239,68,68,0.18); color: #b91c1c; }
+        .eq-badge2.muted   { background: rgba(148,163,184,0.12); border-color: rgba(148,163,184,0.22); color: #475569; }
+
+        /* Right actions */
+        .eq-card2-actions {
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+            align-items: stretch;
+            justify-content: center;
+            min-width: 210px;
+        }
+        .eq-btn-lg {
+            border-radius: 12px;
+            padding: .6rem .85rem;
+            font-weight: 800;
+        }
+        .eq-btn-soft {
+            border-radius: 12px;
+            padding: .55rem .85rem;
+            font-weight: 700;
+        }
+
+        /* Empty state */
+        .eq-empty {
+            border-radius: 16px;
+            border: 1px dashed rgba(15,23,42,0.18);
+            background: #fff;
+            padding: 2.25rem 1.25rem;
+            text-align: center;
+            color: #64748b;
+        }
+        .eq-empty h3 { color: #0f172a; font-weight: 900; margin-bottom: .25rem; }
+
+        /* Responsive */
+        @media (max-width: 760px) {
+            .eq-card2-body { grid-template-columns: 1fr; }
+            .eq-card2-actions { min-width: unset; }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="eq-practice-wrap">
+
+    <div class="eq-practice-hero">
+        <div class="eq-practice-hero-card">
+            <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
+                <div>
+                    <h2 class="eq-practice-title">
+                        <i class="ti ti-clipboard-list me-2"></i>Choisir un quiz
+                    </h2>
+                    <p class="eq-practice-subtitle">
+                        Passe un quiz pour t’entraîner. Ton meilleur score est sauvegardé. Tu peux aussi planifier une révision.
+                    </p>
+                    {% if items is not empty %}
+                        <div class="mt-2">
+                            <span class="eq-pill"><i class="ti ti-stack-2"></i>{{ items|length }} quiz</span>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="eq-practice-actions">
+                    <a href="{{ path('learn_skills_index') }}" class="btn btn-outline-primary btn-sm eq-btn-soft">
+                        <i class="ti ti-chart-dots me-1"></i> Mes compétences
+                    </a>
+                    <a href="{{ path('language_select') }}" class="btn btn-outline-secondary btn-sm eq-btn-soft">
+                        <i class="ti ti-language me-1"></i> Mes langues
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if items is empty %}
+        <div class="eq-empty">
+            <h3>Aucun quiz disponible</h3>
+            <p class="mb-3 small">
+                Les quiz doivent être rattachés à une leçon et avoir au moins <strong>un exercice activé</strong>.
+            </p>
+            <a href="{{ path('language_select') }}" class="btn btn-primary eq-btn-lg">
+                <i class="ti ti-arrow-right me-1"></i>Voir mes langues
+            </a>
+        </div>
+    {% else %}
+        <div class="eq-practice-grid">
+            {% for item in items %}
+                <div class="eq-card2">
+                    <div class="eq-card2-body">
+                        <div class="min-w-0">
+                            <h3 class="eq-quiz-title text-truncate">{{ item.quiz.title }}</h3>
+
+                            <p class="eq-quiz-meta">
+                                {% if item.lesson and item.course and item.language %}
+                                    Leçon : <strong>{{ item.lesson.title }}</strong> · {{ item.course.title }} ({{ item.language.name }})
+                                {% else %}
+                                    <span class="text-warning">Non associé à une leçon (à configurer).</span>
+                                {% endif %}
+                            </p>
+
+                            <div class="eq-badges">
+                                <span class="eq-badge2 muted"><i class="ti ti-list-numbers"></i>{{ item.exerciseCount }} question(s)</span>
+                                <span class="eq-badge2 primary"><i class="ti ti-target"></i>Min {{ item.quiz.passingScore }}%</span>
+
+                                {% if item.hasAttempted %}
+                                    {% set last = item.lastScore ?? item.bestScore %}
+                                    <span class="eq-badge2 {{ last >= item.quiz.passingScore ? 'success' : 'danger' }}">
+                                        <i class="ti ti-history"></i>Dernier {{ last }}%
+                                    </span>
+                                    <span class="eq-badge2 {{ item.passed ? 'success' : 'danger' }}">
+                                        <i class="ti ti-trophy"></i>Meilleur {{ item.bestScore }}%
+                                    </span>
+                                {% elseif item.schedule %}
+                                    <span class="eq-badge2 primary">
+                                        <i class="ti ti-calendar-event"></i>Planifié {{ item.schedule.scheduledAt|date('d/m/Y H:i') }}
+                                    </span>
+                                {% else %}
+                                    <span class="eq-badge2 muted"><i class="ti ti-clock"></i>Pas encore passé</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="eq-card2-actions">
+                            {% if item.canSchedule %}
+                                <a href="{{ path('learn_practice_quiz_schedule', { id: item.quiz.id }) }}"
+                                   class="btn btn-outline-primary btn-sm eq-btn-soft">
+                                    <i class="ti ti-calendar-event me-1"></i>{{ item.schedule ? 'Modifier' : 'Planifier' }}
+                                </a>
+
+                                {% if item.schedule %}
+                                    <form method="post"
+                                          action="{{ path('learn_practice_quiz_schedule_cancel', { scheduleId: item.schedule.id }) }}"
+                                          onsubmit="return confirm('Annuler cette planification ?');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('schedule_cancel_' ~ item.schedule.id) }}">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm eq-btn-soft w-100">
+                                            <i class="ti ti-x me-1"></i>Annuler
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            {% endif %}
+
+                            {% if item.playable %}
+                                <a href="{{ path('learn_lesson_quiz_play', { id: item.lesson.id }) }}?quiz={{ item.quiz.id }}"
+                                   class="btn btn-primary eq-btn-lg">
+                                    {{ item.hasAttempted ? 'Rejouer' : 'Commencer' }} <i class="ti ti-arrow-right ms-1"></i>
+                                </a>
+                                <a href="{{ path('lesson_show', { id: item.lesson.id }) }}"
+                                   class="btn btn-outline-secondary btn-sm eq-btn-soft">
+                                    Voir la leçon
+                                </a>
+                            {% else %}
+                                <button class="btn btn-secondary eq-btn-lg" disabled>
+                                    Non disponible
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -2,10 +2,11 @@
 
 namespace App\Module\ExercisesQuizzes\Entity;
 
-use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Validator\Constraints as Assert;
+use App\Module\PedagogicalContent\Entity\Lesson;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity]
 class Quiz
@@ -14,6 +15,11 @@ class Quiz
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
+
+    /** Leçon à laquelle ce quiz est rattaché (relation côté module ExercisesQuizzes uniquement). */
+    #[ORM\ManyToOne(targetEntity: Lesson::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?Lesson $lesson = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: "Le titre ne peut pas être vide.")]
@@ -37,6 +43,14 @@ class Quiz
     #[Assert\NotBlank(message: "Le nombre de questions est obligatoire.")]
     #[Assert\Positive(message: "Le nombre de questions doit être supérieur à zéro.")]
     private ?int $questionCount = null;
+
+    /** Niveau de difficulté global du quiz (1-5), pour affichage et pré-remplissage des exercices. */
+    #[ORM\Column(type: 'smallint', options: ['default' => 3])]
+    private int $difficulty = 3;
+
+    /** Codes de compétences couverts par ce quiz (ex: grammar, vocab), pour affichage. */
+    #[ORM\Column(type: 'json', options: ['default' => '[]'])]
+    private array $skillCodes = [];
 
     #[ORM\OneToMany(mappedBy: 'quiz', targetEntity: Exercice::class, cascade: ['persist', 'remove'])]
     private Collection $exercices;
@@ -150,7 +164,47 @@ private ?\DateTimeImmutable $createdAt = null;
         return $this;
     }
 
-  public function getCreatedAt(): ?\DateTimeImmutable
+    public function getDifficulty(): int
+    {
+        return $this->difficulty;
+    }
+
+    public function setDifficulty(int $difficulty): self
+    {
+        $this->difficulty = max(1, min(5, $difficulty));
+        return $this;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getSkillCodes(): array
+    {
+        return $this->skillCodes;
+    }
+
+    /**
+     * @param string[] $skillCodes
+     */
+    public function setSkillCodes(array $skillCodes): self
+    {
+        $skillCodes = array_map('strval', $skillCodes);
+        $this->skillCodes = array_values(array_unique(array_filter($skillCodes, fn ($v) => trim($v) !== '')));
+        return $this;
+    }
+
+    public function getLesson(): ?Lesson
+    {
+        return $this->lesson;
+    }
+
+    public function setLesson(?Lesson $lesson): self
+    {
+        $this->lesson = $lesson;
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeImmutable
 {
     return $this->createdAt;
 }
