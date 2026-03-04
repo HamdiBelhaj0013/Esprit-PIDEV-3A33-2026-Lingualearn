@@ -236,20 +236,41 @@ let lastFluency      = {};
 // TIMER
 // ═══════════════════════════════════════════════
 const duration   = {{ mockTest.durationMinutes }} * 60;
-const endTime    = Date.now() + duration * 1000;
+let timeRemaining = duration;   // ← secondes restantes
+let timerInterval = null;       // ← référence à l'intervalle
 let autoSubmitted = false;
+let timerStarted  = false;      // ← le timer n'a pas encore démarré
 
-function updateTimer() {
-    const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
-    const mins = Math.floor(remaining / 60), secs = remaining % 60;
+function updateTimerDisplay() {
+    const mins = Math.floor(timeRemaining / 60), secs = timeRemaining % 60;
     document.getElementById('timerDisplay').textContent = `${mins<10?'0'+mins:mins}:${secs<10?'0'+secs:secs}`;
-    document.getElementById('progressFill').style.width = ((duration - remaining) / duration * 100) + '%';
+    document.getElementById('progressFill').style.width = ((duration - timeRemaining) / duration * 100) + '%';
     const tw = document.getElementById('timerWrap');
-    if      (remaining <= 60)  tw.className = 'timer danger';
-    else if (remaining <= 300) tw.className = 'timer warning';
-    if (remaining <= 0 && !autoSubmitted) { autoSubmitted = true; doSubmit(); }
+    if      (timeRemaining <= 60)  tw.className = 'timer danger';
+    else if (timeRemaining <= 300) tw.className = 'timer warning';
+    else                           tw.className = 'timer';
+    if (timeRemaining <= 0 && !autoSubmitted) { autoSubmitted = true; pauseTimer(); doSubmit(); }
 }
-setInterval(updateTimer, 1000); updateTimer();
+
+function startTimer() {
+    if (timerInterval) return; // déjà en cours
+    timerStarted = true;
+    timerInterval = setInterval(() => {
+        timeRemaining = Math.max(0, timeRemaining - 1);
+        updateTimerDisplay();
+    }, 1000);
+    updateTimerDisplay();
+}
+
+function pauseTimer() {
+    if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+    }
+}
+
+// Initialiser l'affichage sans démarrer
+updateTimerDisplay();
 
 // ═══════════════════════════════════════════════
 // DÉMARRAGE — Appel AJAX vers Gemini
@@ -273,8 +294,9 @@ async function startConversation() {
         // Gemini lit à voix haute
         await speakText(firstText);
 
-        // Activer le micro
+        // Activer le micro + démarrer le timer maintenant que le test commence vraiment
         showMicZone();
+        startTimer(); // ← le timer démarre seulement ici
 
     } catch(e) {
         console.error('Start error:', e);
@@ -378,6 +400,7 @@ async function processAudio(base64Audio) {
 // ÉCHANGE AVEC GEMINI
 // ═══════════════════════════════════════════════
 async function sendToGemini(userText) {
+    pauseTimer(); // ← pause pendant que l'IA génère + parle
     showTyping(true);
 
     try {
@@ -409,10 +432,11 @@ async function sendToGemini(userText) {
             document.getElementById('submitZone').style.display = 'flex';
             addSystemMessage('✅ Conversation finished — click the button to get your score');
         } else {
-            // Prochain tour
+            // Prochain tour — reprendre le timer
             setMicState('idle');
             document.getElementById('micStatusLabel').textContent = 'Your turn to speak';
             document.getElementById('transcriptPreview').classList.remove('visible');
+            startTimer(); // ← le timer reprend quand c'est le tour du user
         }
 
     } catch(e) {

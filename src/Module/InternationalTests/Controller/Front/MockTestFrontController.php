@@ -20,7 +20,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use App\Module\InternationalTests\Service\GeminiListeningService;
 use App\Module\InternationalTests\Service\GeminiSpeakingService;
-use App\Module\InternationalTests\Service\AssemblyAiService;
+use App\Module\InternationalTests\Service\DeepgramTranscriptionService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 
@@ -40,7 +40,7 @@ class MockTestFrontController extends AbstractController
         private readonly GeminiWritingService    $geminiService,
         private readonly GeminiListeningService  $geminiListeningService,
          private readonly GeminiSpeakingService   $geminiSpeakingService,
-    private readonly AssemblyAiService       $assemblyAiService
+    private readonly DeepgramTranscriptionService       $deepgramService
     ) {}
 
     // ═══════════════════════════════════════════════════════════
@@ -329,12 +329,12 @@ class MockTestFrontController extends AbstractController
         }
 
         $languageName = $mockTest->getPlatformLanguage()?->getName() ?? 'English';
-        $result       = $this->assemblyAiService->transcribe($audioData, $languageName);
+        $result       = $this->deepgramService->transcribe($audioData, $languageName);
 
         // Calculer métriques de fluidité
         $fluencyMetrics = [];
         if ($result['success'] && !empty($result['words']) && $result['duration']) {
-            $fluencyMetrics = $this->assemblyAiService->computeFluencyMetrics(
+            $fluencyMetrics = $this->deepgramService->computeFluencyMetrics(
                 $result['words'],
                 (float) $result['duration']
             );
@@ -1047,7 +1047,7 @@ class MockTestFrontController extends AbstractController
                 'correctAnswer'   => 'N/A',
                 'isCorrect'       => false,
                 'points'          => $question->getPoints(),
-                'sectionCategory' => $questionA->getSectionCategory(),
+                'sectionCategory' => $question->getSectionCategory(),
             ];
         }
 

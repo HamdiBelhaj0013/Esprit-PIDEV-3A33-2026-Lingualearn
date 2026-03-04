@@ -78,6 +78,13 @@ class TestQuestion
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $updatedAt = null;
 
+    /**
+     * Vecteur d'embedding pour la détection de doublons (Métier Avancé #4)
+     * Généré via Gemini text-embedding-004 (768 dimensions)
+     */
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $embedding = null;
+
     public function __construct()
     {
         $this->createdAt      = new \DateTime();
@@ -250,6 +257,24 @@ class TestQuestion
     {
         $this->writingSubject = $writingSubject;
         return $this;
+    }
+
+    // ── Embedding (Métier Avancé #4) ────────────────────────────────────────
+
+    public function getEmbedding(): ?array
+    {
+        return $this->embedding;
+    }
+
+    public function setEmbedding(?array $embedding): self
+    {
+        $this->embedding = $embedding;
+        return $this;
+    }
+
+    public function hasEmbedding(): bool
+    {
+        return $this->embedding !== null && count($this->embedding) > 0;
     }
 
     /**

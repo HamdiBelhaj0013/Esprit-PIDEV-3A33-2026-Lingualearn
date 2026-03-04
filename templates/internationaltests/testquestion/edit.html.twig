@@ -4,148 +4,129 @@
 
 {% block page_title %}
     <i class="ti ti-pencil me-2"></i> Edit Question #{{ testQuestion.id }}
-    {% if testQuestion.mockTest %}<small class="text-muted fs-4">— {{ testQuestion.mockTest.title }}</small>{% endif %}
 {% endblock %}
 
 {% block page_actions %}
     <div class="col-auto ms-auto d-print-none">
-        {% if testQuestion.mockTest %}
-            <a href="{{ path('mocktest_show', {id: testQuestion.mockTest.id}) }}" class="btn btn-secondary">
-                <i class="ti ti-arrow-left icon"></i> Back to Test
-            </a>
-        {% else %}
-            <a href="{{ path('testquestion_index') }}" class="btn btn-secondary">
-                <i class="ti ti-arrow-left icon"></i> Back to List
-            </a>
-        {% endif %}
+        <a href="{{ path('mocktest_show', {id: testQuestion.mockTest.id}) }}" class="btn btn-secondary">
+            <i class="ti ti-arrow-left icon"></i> Back to Test
+        </a>
     </div>
 {% endblock %}
 
 {% block content %}
-{% set type = testCategory|lower %}
-
 <div class="row">
     <div class="col-md-9">
-        <div class="card mb-4">
-            <div class="card-header d-flex align-items-center gap-3">
-                <h3 class="card-title mb-0">
-                    {% if type == 'qcm' %}📋 QCM
-                    {% elseif type == 'writing' %}✍️ Writing
-                    {% elseif type == 'speaking' %}🎙️ Speaking
-                    {% elseif type == 'listening' %}🎧 Listening
-                    {% else %}Question{% endif %}
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="ti ti-writing me-2 text-purple"></i>Edit Question
                 </h3>
-                <span class="badge ms-auto
-                    {% if type == 'qcm' %}bg-blue-lt
-                    {% elseif type == 'writing' %}bg-orange-lt
-                    {% elseif type == 'speaking' %}bg-purple-lt
-                    {% elseif type == 'listening' %}bg-green-lt
-                    {% endif %}" style="font-size:.8rem;padding:.4rem .85rem;">
-                    {{ testCategory }}
-                </span>
+                <div class="card-options">
+                    {% if testQuestion.hasEmbedding %}
+                        <span class="badge bg-success-lt">
+                            <i class="ti ti-brain me-1"></i> Embedding stored
+                        </span>
+                    {% else %}
+                        <span class="badge bg-warning-lt">
+                            <i class="ti ti-brain me-1"></i> No embedding yet
+                        </span>
+                    {% endif %}
+                </div>
             </div>
-
             <div class="card-body">
-                {{ form_start(form, {'attr': {'id': 'question-form', 'novalidate': 'novalidate'}}) }}
+                {{ form_start(form, {'attr': {'id': 'questionForm'}}) }}
 
-                {# mockTest — rendered ONCE, always hidden in edit mode #}
-                <div style="display:none">
-                    {{ form_widget(form.mockTest) }}
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <label class="form-label required">{{ form_label(form.mockTest) }}</label>
+                        {{ form_widget(form.mockTest) }}
+                        {{ form_errors(form.mockTest) }}
+                    </div>
                 </div>
 
-                {# Points + banner #}
-                <div class="row g-3 mb-4">
+                {# ── CHAMP QUESTION AVEC DÉTECTION TEMPS RÉEL ── #}
+                <div class="mb-3">
+                    <label class="form-label required">Question Text</label>
+                    {{ form_widget(form.questionText, {'attr': {
+                        'id': 'questionTextInput',
+                        'class': 'form-control',
+                        'rows': 4
+                    }}) }}
+                    {{ form_errors(form.questionText) }}
+
+                    <div id="similarityCheckStatus" class="mt-2" style="display:none;">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="spinner-border spinner-border-sm text-purple" role="status" id="similaritySpinner" style="display:none;"></div>
+                            <span id="similarityStatusText" class="text-muted small"></span>
+                        </div>
+                    </div>
+
+                    <div id="duplicateAlert" class="alert alert-warning mt-3" style="display:none;">
+                        <div class="d-flex align-items-start gap-3">
+                            <span style="font-size:1.5rem;">⚠️</span>
+                            <div class="flex-grow-1">
+                                <h4 class="alert-title mb-1">Similar question detected!</h4>
+                                <p class="text-muted small mb-2" id="duplicateAlertSub">—</p>
+                                <div id="duplicateList"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Options (QCM)</label>
+                        {{ form_widget(form.options) }}
+                        {{ form_errors(form.options) }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Correct Answer</label>
+                        {{ form_widget(form.correctAnswer) }}
+                        {{ form_errors(form.correctAnswer) }}
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <label class="form-label">Reading Passage</label>
+                        {{ form_widget(form.readingPassage) }}
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <label class="form-label">Audio Text (Listening)</label>
+                        {{ form_widget(form.audioText) }}
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <label class="form-label">Writing Subject</label>
+                        {{ form_widget(form.writingSubject) }}
+                    </div>
+                </div>
+
+                <div class="row mb-3">
                     <div class="col-md-4">
                         <label class="form-label required">Points</label>
                         {{ form_widget(form.points) }}
                         {{ form_errors(form.points) }}
                     </div>
-
-                </div>
-
-                {# Question text — rendered ONCE #}
-                <div class="mb-4">
-                    <label class="form-label required">
-                        {% if type == 'listening' %}Question de compréhension
-                        {% elseif type == 'writing' %}Consigne
-                        {% elseif type == 'speaking' %}Titre de la session
-                        {% else %}Question{% endif %}
-                    </label>
-                    {{ form_widget(form.questionText) }}
-                    {{ form_errors(form.questionText) }}
-                </div>
-
-                {# QCM — readingPassage rendered ONCE #}
-                <div id="section-qcm" {% if type != 'qcm' %}style="display:none"{% endif %}>
-                    <div class="mb-4">
-                        <label class="form-label">Texte de lecture <span class="badge bg-secondary ms-1">Optionnel</span></label>
-                        {{ form_widget(form.readingPassage) }}
-                        {{ form_errors(form.readingPassage) }}
-                    </div>
-                    <div class="mb-3">
+                    <div class="col-md-4 d-flex align-items-end">
                         <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="is_multiple" onchange="toggleMultiple()">
-                            <label class="form-check-label" for="is_multiple">
-                                <strong>Choix multiples</strong> — plusieurs bonnes réponses
-                            </label>
+                            {{ form_widget(form.isActive) }}
+                            <label class="form-check-label">Active</label>
                         </div>
-                    </div>
-                    <div class="card bg-light mb-3">
-                        <div class="card-header d-flex align-items-center justify-content-between">
-                            <span><strong>Propositions de réponse</strong></span>
-                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addOption()">
-                                <i class="ti ti-plus icon"></i> Ajouter
-                            </button>
-                        </div>
-                        <div class="card-body">
-                            <div id="options-builder"></div>
-                            <p id="no-options-msg" class="text-muted text-center py-2 mb-0" style="display:none">Aucune option</p>
-                        </div>
-                    </div>
-                    <div class="mb-4">
-                        <label class="form-label required">Bonne(s) réponse(s)</label>
-                        <div id="correct-answers-display" class="correct-answers-wrap">
-                            <span class="text-muted small">Chargement...</span>
-                        </div>
-                        <small class="form-hint">Cliquez pour sélectionner / désélectionner</small>
                     </div>
                 </div>
 
-                {# Writing + Speaking — writingSubject rendered ONCE #}
-                <div id="section-writing-speaking" {% if type != 'writing' and type != 'speaking' %}style="display:none"{% endif %} class="mb-4">
-                    <label class="form-label required">
-                        {% if type == 'speaking' %}Sujet de conversation{% else %}Sujet de rédaction{% endif %}
-                    </label>
-                    {{ form_widget(form.writingSubject) }}
-                    {{ form_errors(form.writingSubject) }}
-                </div>
-
-                {# Listening — audioText rendered ONCE #}
-                <div id="section-listening" {% if type != 'listening' %}style="display:none"{% endif %} class="mb-4">
-                    <label class="form-label required">Texte audio (Text-to-Speech)</label>
-                    {{ form_widget(form.audioText) }}
-                    {{ form_errors(form.audioText) }}
-                    <small class="form-hint">Ce texte sera lu à voix haute par ElevenLabs.</small>
-                </div>
-
-                {# Always hidden — managed by JS #}
-                <div style="display:none">
-                    {{ form_widget(form.options) }}
-                    {{ form_widget(form.correctAnswer) }}
-                </div>
-
-                {# Active + Submit #}
-                <div class="d-flex align-items-center justify-content-between mt-3 pt-3 border-top">
-                    <div class="form-check form-switch">
-                        {{ form_widget(form.isActive, {'attr': {'class': 'form-check-input'}}) }}
-                        <label class="form-check-label" for="{{ form.isActive.vars.id }}">Active</label>
-                    </div>
-                    <div class="d-flex gap-3">
-                        {% if testQuestion.mockTest %}
-                            <a href="{{ path('mocktest_show', {id: testQuestion.mockTest.id}) }}" class="btn btn-link text-muted">Annuler</a>
-                        {% endif %}
-                        <button type="submit" class="btn btn-primary">
-                            <i class="ti ti-device-floppy icon"></i> Sauvegarder
+                <div class="card-footer bg-transparent mt-2">
+                    <div class="d-flex align-items-center">
+                        <a href="{{ path('mocktest_show', {id: testQuestion.mockTest.id}) }}" class="btn btn-link">Cancel</a>
+                        <button type="button" class="btn btn-primary ms-auto" id="saveBtn" onclick="handleSave()">
+                            <i class="ti ti-check icon"></i> Update Question
                         </button>
                     </div>
                 </div>
@@ -155,139 +136,215 @@
         </div>
     </div>
 
+    {# SIDEBAR #}
     <div class="col-md-3">
         <div class="card">
-            <div class="card-header"><h3 class="card-title">ℹ️ Infos</h3></div>
+            <div class="card-header">
+                <h3 class="card-title"><i class="ti ti-brain me-2 text-purple"></i>AI Duplicate Detection</h3>
+            </div>
             <div class="card-body">
-                {% if testQuestion.mockTest %}
-                <p class="text-muted small mb-2"><strong>Test :</strong> {{ testQuestion.mockTest.title }}</p>
-                <p class="text-muted small mb-2"><strong>Catégorie :</strong> <span class="badge bg-blue-lt">{{ testCategory }}</span></p>
+                <p class="text-muted small">
+                    The AI checks for similar questions as you edit. Your own question is excluded from the comparison.
+                </p>
+                <div class="mb-3">
+                    <div class="text-muted small mb-1">Detection threshold</div>
+                    <div class="progress mb-1" style="height:8px;">
+                        <div class="progress-bar bg-purple" style="width:85%"></div>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <small class="text-muted">0%</small>
+                        <small class="text-purple fw-bold">85%</small>
+                        <small class="text-muted">100%</small>
+                    </div>
+                </div>
                 <hr>
-                {% endif %}
-                <p class="text-muted small"><strong>ID :</strong> #{{ testQuestion.id }}</p>
-                <p class="text-muted small"><strong>Créée :</strong> {{ testQuestion.createdAt|date('d/m/Y') }}</p>
+                <div class="text-muted small">
+                    <div class="mb-1"><span class="badge bg-danger-lt me-1">≥95%</span> Near-identical</div>
+                    <div class="mb-1"><span class="badge bg-warning-lt me-1">≥90%</span> Very similar</div>
+                    <div><span class="badge bg-orange-lt me-1">≥85%</span> Similar</div>
+                </div>
+                <hr>
+                <div id="embeddingStats" class="text-muted small">
+                    <i class="ti ti-database me-1"></i> Ready to check…
+                </div>
+            </div>
+        </div>
+
+        {# Info question actuelle #}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title"><i class="ti ti-info-circle me-2"></i>Question Info</h3>
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <div class="text-muted small">Type</div>
+                    <span class="badge bg-azure-lt">{{ testQuestion.questionType }}</span>
+                </div>
+                <div class="mb-2">
+                    <div class="text-muted small">Points</div>
+                    <strong>{{ testQuestion.points }}</strong>
+                </div>
+                <div>
+                    <div class="text-muted small">Created</div>
+                    <small>{{ testQuestion.createdAt|date('d/m/Y H:i') }}</small>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
+{# ═══ MODAL CONFIRMATION DOUBLON ═══ #}
+<div id="duplicateModal" class="modal-overlay-dup">
+    <div class="modal-box-dup">
+        <div class="modal-icon-dup">⚠️</div>
+        <h3 class="modal-title-dup">Similar Question Found</h3>
+        <p class="modal-msg-dup" id="modalDupMessage">—</p>
+        <div id="modalDupList" class="mb-3"></div>
+        <div class="modal-actions-dup">
+            <button type="button" class="btn btn-secondary" onclick="closeDupModal()">
+                <i class="ti ti-x me-1"></i> Cancel — Keep editing
+            </button>
+            <button type="button" class="btn btn-warning" onclick="forceSave()">
+                <i class="ti ti-check me-1"></i> Update anyway
+            </button>
+        </div>
+    </div>
+</div>
+
 <style>
-.option-row{display:flex;align-items:center;gap:.6rem;margin-bottom:.6rem;}
-.option-letter-badge{width:30px;height:30px;border-radius:50%;background:#e2e8f0;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0;color:#374151;}
-.option-input{flex:1;border:1.5px solid #e2e8f0;border-radius:8px;padding:.5rem .85rem;font-size:.88rem;outline:none;transition:border-color .2s;font-family:inherit;}
-.option-input:focus{border-color:#2563eb;box-shadow:0 0 0 2px rgba(37,99,235,.1);}
-.option-remove{background:transparent;border:none;color:#9ca3af;cursor:pointer;font-size:1rem;padding:.2rem .4rem;border-radius:6px;}
-.option-remove:hover{color:#dc2626;background:#fef2f2;}
-.correct-answers-wrap{display:flex;flex-wrap:wrap;gap:.5rem;min-height:44px;padding:.5rem;border:1.5px solid #e2e8f0;border-radius:8px;background:#f8fafc;}
-.correct-toggle{padding:.4rem .9rem;border-radius:100px;border:1.5px solid #e2e8f0;cursor:pointer;font-size:.82rem;background:#fff;transition:all .2s;font-family:inherit;}
-.correct-toggle:hover{border-color:#2563eb;background:#eff6ff;color:#2563eb;}
-.correct-toggle.selected{border-color:#16a34a;background:#f0fdf4;color:#16a34a;font-weight:600;}
-.correct-toggle.selected::before{content:'✓ ';}
+.modal-overlay-dup{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.modal-overlay-dup.open{display:flex;}
+.modal-box-dup{background:#fff;border-radius:16px;padding:2rem;max-width:580px;width:94%;box-shadow:0 24px 60px rgba(0,0,0,.18);animation:modalIn .25s ease;max-height:85vh;overflow-y:auto;}
+@keyframes modalIn{from{transform:translateY(-20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-icon-dup{font-size:2.5rem;margin-bottom:.75rem;text-align:center;}
+.modal-title-dup{font-size:1.15rem;font-weight:700;color:#1a1a2e;margin-bottom:.4rem;text-align:center;}
+.modal-msg-dup{color:#6c757d;font-size:.88rem;margin-bottom:1.25rem;text-align:center;line-height:1.6;}
+.modal-actions-dup{display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap;}
+.modal-actions-dup .btn{border-radius:8px;font-weight:600;padding:.6rem 1.25rem;}
+.dup-card{background:#fffbeb;border:1.5px solid #f59e0b;border-radius:10px;padding:1rem 1.1rem;margin-bottom:.75rem;text-align:left;}
+.dup-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem;}
+.dup-score{font-size:1.1rem;font-weight:700;}
+.dup-text{font-size:.875rem;color:#374151;line-height:1.5;margin-bottom:.35rem;}
+.dup-meta{font-size:.75rem;color:#9ca3af;}
+.badge-similarity-danger{background:#fee2e2;color:#dc2626;padding:.2rem .55rem;border-radius:5px;font-weight:700;}
+.badge-similarity-warning{background:#fef3c7;color:#d97706;padding:.2rem .55rem;border-radius:5px;font-weight:700;}
+.badge-similarity-orange{background:#ffedd5;color:#ea580c;padding:.2rem .55rem;border-radius:5px;font-weight:700;}
 </style>
 
-{% if type == 'qcm' %}
 <script>
-const LETTERS  = ['A','B','C','D','E','F','G','H'];
-let options    = [];
-let correctSet = new Set();
-let isMultiple = false;
+const CHECK_URL  = '{{ path("testquestion_check_similarity") }}';
+const EXCLUDE_ID = {{ testQuestion.id }}; // exclure la question en cours d'édition
 
-const existingOptions = {{ testQuestion.options|json_encode|raw }};
-const existingCorrect = {{ testQuestion.correctAnswer|json_encode|raw }};
+let checkTimeout    = null;
+let lastCheckedText = '';
+let hasDuplicate    = false;
+let duplicateData   = [];
+let forceSubmit     = false;
 
-function init() {
-    if (Array.isArray(existingOptions)) {
-        existingOptions.forEach(o => {
-            const text = typeof o === 'object' ? (o.text || o.value || '') : String(o);
-            options.push({ id: Date.now() + Math.random(), text });
+document.getElementById('questionTextInput').addEventListener('input', function() {
+    const text = this.value.trim();
+    clearTimeout(checkTimeout);
+    if (text.length < 15) { hideDuplicateAlert(); return; }
+    checkTimeout = setTimeout(() => checkSimilarity(text), 1200);
+});
+
+async function checkSimilarity(text) {
+    if (text === lastCheckedText) return;
+    lastCheckedText = text;
+    showCheckingStatus();
+
+    try {
+        const res  = await fetch(CHECK_URL, {
+            method:  'POST',
+            headers: {'Content-Type': 'application/json'},
+            body:    JSON.stringify({ questionText: text, excludeId: EXCLUDE_ID })
         });
-    }
-    renderOptions();
-    if (existingCorrect && existingCorrect !== 'N/A' && existingCorrect !== '') {
-        if (existingCorrect.includes('|')) {
-            isMultiple = true;
-            document.getElementById('is_multiple').checked = true;
-            existingCorrect.split('|').map(s => s.trim()).forEach(c => {
-                const idx = options.findIndex(o => o.text === c);
-                if (idx >= 0) correctSet.add(idx);
-            });
+        const data = await res.json();
+        hideCheckingStatus();
+
+        if (!data.success) { showStatusText('⚪ Could not check (API unavailable)', 'text-muted'); return; }
+
+        updateEmbeddingStats(data.checkedCount);
+
+        if (data.hasDuplicate) {
+            hasDuplicate  = true;
+            duplicateData = data.duplicates;
+            showDuplicateAlert(data.duplicates, data.checkedCount);
+            showStatusText(`⚠️ ${data.duplicates.length} similar question(s) found`, 'text-warning');
         } else {
-            const idx = options.findIndex(o => o.text === existingCorrect.trim());
-            if (idx >= 0) correctSet.add(idx);
+            hasDuplicate  = false;
+            duplicateData = [];
+            hideDuplicateAlert();
+            showStatusText(`✅ No duplicates found (checked ${data.checkedCount} questions)`, 'text-success');
         }
+    } catch(e) {
+        hideCheckingStatus();
+        showStatusText('⚪ Duplicate check unavailable', 'text-muted');
     }
-    renderCorrectAnswers();
 }
 
-function toggleMultiple() {
-    isMultiple = document.getElementById('is_multiple').checked;
-    correctSet.clear(); renderCorrectAnswers();
+function handleSave() {
+    if (hasDuplicate && !forceSubmit) { openDupModal(); }
+    else { document.getElementById('questionForm').submit(); }
 }
-function addOption(text = '') {
-    options.push({ id: Date.now() + Math.random(), text });
-    renderOptions(); renderCorrectAnswers();
-    setTimeout(() => { const i = document.querySelectorAll('.option-input'); if (i.length) i[i.length-1].focus(); }, 50);
+
+function forceSave() { forceSubmit = true; closeDupModal(); document.getElementById('questionForm').submit(); }
+
+function openDupModal() {
+    document.getElementById('modalDupMessage').textContent =
+        `${duplicateData.length} similar question(s) already exist. Update anyway?`;
+    document.getElementById('modalDupList').innerHTML = buildDupCards(duplicateData);
+    document.getElementById('duplicateModal').classList.add('open');
 }
-function removeOption(id) {
-    const idx = options.findIndex(o => o.id === id);
-    if (idx < 0) return;
-    options.splice(idx, 1);
-    const ns = new Set();
-    correctSet.forEach(i => { if (i !== idx) ns.add(i > idx ? i-1 : i); });
-    correctSet = ns;
-    renderOptions(); renderCorrectAnswers();
+
+function closeDupModal() { document.getElementById('duplicateModal').classList.remove('open'); }
+
+document.getElementById('duplicateModal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeDupModal();
+});
+
+function showDuplicateAlert(duplicates, checkedCount) {
+    document.getElementById('duplicateAlertSub').textContent =
+        `Checked ${checkedCount} questions — ${duplicates.length} similar question(s) found`;
+    document.getElementById('duplicateList').innerHTML = buildDupCards(duplicates);
+    document.getElementById('duplicateAlert').style.display = 'block';
 }
-function updateText(id, val) {
-    const o = options.find(o => o.id === id);
-    if (o) o.text = val;
-    renderCorrectAnswers(); syncJson();
-}
-function renderOptions() {
-    const b = document.getElementById('options-builder');
-    const n = document.getElementById('no-options-msg');
-    if (!options.length) { b.innerHTML = ''; n.style.display = 'block'; syncJson(); return; }
-    n.style.display = 'none';
-    b.innerHTML = options.map((o, i) => `
-        <div class="option-row">
-            <div class="option-letter-badge">${LETTERS[i]||i+1}</div>
-            <input type="text" class="option-input" value="${esc(o.text)}"
-                placeholder="Option ${LETTERS[i]||i+1}..."
-                oninput="updateText(${JSON.stringify(o.id)}, this.value)">
-            <button type="button" class="option-remove" onclick="removeOption(${JSON.stringify(o.id)})">✕</button>
-        </div>`).join('');
-    syncJson();
-}
-function renderCorrectAnswers() {
-    const w = document.getElementById('correct-answers-display');
-    if (!options.length) { w.innerHTML = '<span class="text-muted small">Ajoutez des propositions</span>'; syncCorrect(); return; }
-    w.innerHTML = options.map((o, i) => {
-        const label = o.text || `Option ${LETTERS[i]}`;
-        return `<button type="button" class="correct-toggle ${correctSet.has(i)?'selected':''}" onclick="toggleCorrect(${i})">${LETTERS[i]}. ${esc(label)}</button>`;
+
+function hideDuplicateAlert() { document.getElementById('duplicateAlert').style.display = 'none'; }
+
+function buildDupCards(duplicates) {
+    return duplicates.map(d => {
+        const badgeClass = d.similarity >= 95 ? 'badge-similarity-danger' : d.similarity >= 90 ? 'badge-similarity-warning' : 'badge-similarity-orange';
+        const label = d.similarity >= 95 ? 'Near-identical' : d.similarity >= 90 ? 'Very similar' : 'Similar';
+        return `<div class="dup-card">
+            <div class="dup-card-header">
+                <span class="dup-meta"><i class="ti ti-file-text me-1"></i>${escHtml(d.mockTestTitle)} — ${escHtml(d.sectionCategory)}</span>
+                <span class="${badgeClass} dup-score">${d.similarity}% — ${label}</span>
+            </div>
+            <div class="dup-text">${escHtml(d.questionText.substring(0, 150))}${d.questionText.length > 150 ? '…' : ''}</div>
+            <div class="dup-meta">Question #${d.id} · Type: ${d.questionType}</div>
+        </div>`;
     }).join('');
-    syncCorrect();
 }
-function toggleCorrect(idx) {
-    if (isMultiple) { correctSet.has(idx) ? correctSet.delete(idx) : correctSet.add(idx); }
-    else { correctSet.clear(); correctSet.add(idx); }
-    renderCorrectAnswers();
-}
-function syncJson() {
-    const optionsField = document.querySelector('textarea[name="test_question[options]"]');
-    if (optionsField) {
-        optionsField.value = JSON.stringify(options.map(o => o.text));
-    }
-}
-function syncCorrect() {
-    const vals = [...correctSet].sort().map(i => options[i]?.text ?? '').filter(Boolean);
-    const correctField = document.querySelector('textarea[name="test_question[correctAnswer]"]');
-    if (correctField) {
-        correctField.value = vals.join('|');
-    }
-}
-function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-document.getElementById('question-form').addEventListener('submit', () => { syncJson(); syncCorrect(); });
-init();
-</script>
-{% endif %}
 
+function showCheckingStatus() {
+    document.getElementById('similarityCheckStatus').style.display = 'block';
+    document.getElementById('similaritySpinner').style.display     = 'inline-block';
+    document.getElementById('similarityStatusText').textContent    = 'Checking for duplicates…';
+    document.getElementById('similarityStatusText').className      = 'text-muted small';
+}
+function hideCheckingStatus() { document.getElementById('similaritySpinner').style.display = 'none'; }
+function showStatusText(text, cssClass) {
+    document.getElementById('similarityCheckStatus').style.display = 'block';
+    document.getElementById('similarityStatusText').textContent    = text;
+    document.getElementById('similarityStatusText').className      = cssClass + ' small';
+}
+function updateEmbeddingStats(count) {
+    document.getElementById('embeddingStats').innerHTML =
+        `<i class="ti ti-database me-1"></i> ${count} question(s) with embeddings`;
+}
+function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
 {% endblock %}

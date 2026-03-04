@@ -7,17 +7,13 @@ use Psr\Log\LoggerInterface;
 
 /**
  * AssemblyAiService — Transcription vocale via AssemblyAI
- *
- * IMPORTANT : Le free tier AssemblyAI supporte uniquement l'anglais.
- * Pour les autres langues, on force 'en' pour la transcription
- * (AssemblyAI comprend quand même d'autres langues avec 'en' dans
- * certains cas) ou on utilise language_detection automatique.
  */
 class AssemblyAiService
 {
-    private const BASE_URL      = 'https://api.assemblyai.com/v2';
-    private const POLL_INTERVAL = 2;
-    private const MAX_POLLS     = 30;
+    private const BASE_URL        = 'https://api.assemblyai.com/v2';
+    private const POLL_INTERVAL   = 2;
+    private const MAX_POLLS       = 30;
+    private const TIMEOUT_SECONDS = 15; // ← NOUVEAU : timeout par requête HTTP
 
     public function __construct(
         private HttpClientInterface $httpClient,
@@ -29,8 +25,10 @@ class AssemblyAiService
     {
         try {
             $audioBinary = base64_decode($audioData);
-            if (!$audioBinary || strlen($audioBinary) < 1000) {
-                throw new \Exception('Audio data too short or invalid (min 1KB required)');
+
+            // ← CORRIGÉ : seuil abaissé à 100 bytes (évite de bloquer les audios courts)
+            if (!$audioBinary || strlen($audioBinary) < 100) {
+                throw new \Exception('Audio data too short or invalid (min 100 bytes required)');
             }
 
             $this->logger->info('AssemblyAI: starting transcription', [
@@ -70,7 +68,8 @@ class AssemblyAiService
                 'authorization' => $this->assemblyAiApiKey,
                 'content-type'  => 'application/octet-stream',
             ],
-            'body' => $audioBinary,
+            'body'    => $audioBinary,
+            'timeout' => self::TIMEOUT_SECONDS,
         ]);
 
         $statusCode = $response->getStatusCode();
@@ -95,13 +94,11 @@ class AssemblyAiService
 
     private function requestTranscript(string $audioUrl): string
     {
-        // On utilise language_detection=true au lieu de forcer une langue
-        // Compatible avec tous les plans AssemblyAI
+        // ← CORRIGÉ : 'speech_model' (singulier, string) au lieu de 'speech_models' (array invalide)
         $payload = [
-            'audio_url'     => $audioUrl,
-            'speech_models' => ['universal-2'],  // Nouveau format requis par AssemblyAI
-            'punctuate'     => true,
-            'format_text'   => true,
+            'audio_url'   => $audioUrl,
+            'punctuate'   => true,
+            'format_text' => true,
         ];
 
         $response = $this->httpClient->request('POST', self::BASE_URL . '/transcript', [
@@ -109,7 +106,8 @@ class AssemblyAiService
                 'authorization' => $this->assemblyAiApiKey,
                 'content-type'  => 'application/json',
             ],
-            'json' => $payload,
+            'json'    => $payload,
+            'timeout' => self::TIMEOUT_SECONDS,
         ]);
 
         $statusCode = $response->getStatusCode();
@@ -139,6 +137,7 @@ class AssemblyAiService
 
             $response = $this->httpClient->request('GET', self::BASE_URL . '/transcript/' . $transcriptId, [
                 'headers' => ['authorization' => $this->assemblyAiApiKey],
+                'timeout' => self::TIMEOUT_SECONDS,
             ]);
 
             $data   = $response->toArray();

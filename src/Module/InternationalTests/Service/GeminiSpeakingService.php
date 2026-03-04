@@ -9,9 +9,9 @@ use Psr\Log\LoggerInterface;
  * GeminiSpeakingService
  * Gère la conversation speaking en 5 échanges + évaluation finale
  */
-class GeminiSpeakingService
+class GeminiSpeakingService // uses Groq API internally
 {
-    private const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+    private const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
     // Sujets en anglais — Gemini les traduit dans la langue du test via le prompt
     private const SUBJECTS_BY_LEVEL = [
@@ -23,7 +23,7 @@ class GeminiSpeakingService
     public function __construct(
         private HttpClientInterface $httpClient,
         private LoggerInterface     $logger,
-        private string              $geminiApiKey
+        private string              $groqApiKey
     ) {}
 
     // ═══════════════════════════════════════════════
@@ -48,7 +48,12 @@ Start the conversation with:
 2. Introduce the topic clearly — in {$languageName}
 3. Ask your FIRST question (open-ended, appropriate for {$level} level) — in {$languageName}
 
-Return ONLY a JSON object (JSON keys stay in English, ALL values in {$languageName}):
+IMPORTANT: Return ONLY a raw JSON object. No markdown. No backticks. No explanation before or after. Start your response directly with { and end with }.
+
+Example of expected output:
+{"subject":"Routine quotidienne","welcome":"Bonjour ! Bienvenue à votre test oral.","firstQuestion":"Pouvez-vous me décrire votre journée typique ?","instructions":"Parlez clairement et prenez votre temps."}
+
+Now return the JSON object (JSON keys stay in English, ALL values in {$languageName}):
 {
   "subject": "The topic name translated into {$languageName}",
   "welcome": "Your welcome message IN {$languageName}",
@@ -61,7 +66,7 @@ Rules:
 - ALL other text values MUST be in {$languageName} — mandatory
 - Question must be open-ended (no yes/no)
 - Difficulty appropriate for {$level}
-- Return ONLY JSON, no markdown
+- Start your response with { and end with }
 PROMPT;
 
         try {
@@ -122,7 +127,12 @@ Student's latest answer: "{$userAnswer}"
 
 {$lastInstruction}
 
-Return ONLY a JSON object (keys in English, ALL values in {$languageName}):
+IMPORTANT: Return ONLY a raw JSON object. No markdown. No backticks. No explanation. Start your response with { and end with }.
+
+Example of expected output format:
+{"reaction":"Très bien !","nextQuestion":"Quelle est votre activité préférée le week-end ?","isFinished":false}
+
+Now return the JSON object (keys in English, ALL values in {$languageName}):
 {
   "reaction": "Your brief reaction IN {$languageName}",
   "nextQuestion": "{$nextQuestionHint}",
@@ -134,20 +144,69 @@ Rules:
 - Level: {$level}
 - Be natural, warm, and encouraging
 - React specifically to what the student said
-- Return ONLY JSON, no markdown
+- Return ONLY the JSON object, starting with {
 PROMPT;
 
         try {
             $response = $this->callGemini($prompt);
+            $this->logger->info('GeminiSpeaking::continueConversation raw response', ['raw' => substr($response, 0, 500)]);
             $content  = $this->cleanJson($response);
             $result   = json_decode($content, true);
-            if (!$result || !isset($result['reaction'])) throw new \Exception('Invalid response');
+            if (!$result || !isset($result['reaction'])) {
+                $this->logger->error('GeminiSpeaking::continueConversation JSON decode failed', [
+                    'raw'        => substr($response, 0, 500),
+                    'cleaned'    => substr($content, 0, 500),
+                    'json_error' => json_last_error_msg(),
+                ]);
+                throw new \Exception('Invalid response: ' . json_last_error_msg());
+            }
             return $result;
         } catch (\Exception $e) {
             $this->logger->error('GeminiSpeaking::continueConversation failed', ['error' => $e->getMessage()]);
+
+            // Fallback dynamique selon langue et numéro d'échange
+            $followUpQuestions = [
+                'english' => [
+                    1 => "That's great! Can you give me more details about that?",
+                    2 => "Interesting! How does that affect your daily life?",
+                    3 => "I see! What do you think are the main challenges with this?",
+                    4 => "Good point! Can you compare this with your past experience?",
+                ],
+                'french'   => [
+                    1 => "C'est intéressant ! Pouvez-vous me donner plus de détails ?",
+                    2 => "Très bien ! Comment cela influence-t-il votre quotidien ?",
+                    3 => "Je vois ! Quels sont selon vous les principaux défis ?",
+                    4 => "Bonne réponse ! Pouvez-vous comparer avec votre expérience passée ?",
+                ],
+                'français' => [
+                    1 => "C'est intéressant ! Pouvez-vous me donner plus de détails ?",
+                    2 => "Très bien ! Comment cela influence-t-il votre quotidien ?",
+                    3 => "Je vois ! Quels sont selon vous les principaux défis ?",
+                    4 => "Bonne réponse ! Pouvez-vous comparer avec votre expérience passée ?",
+                ],
+                'spanish' => [
+                    1 => "¡Interesante! ¿Puedes darme más detalles?",
+                    2 => "¡Muy bien! ¿Cómo afecta esto tu vida diaria?",
+                    3 => "¡Entiendo! ¿Cuáles son los principales desafíos?",
+                    4 => "¡Buena respuesta! ¿Puedes compararlo con tu experiencia pasada?",
+                ],
+            ];
+
+            $langKey   = strtolower(trim($languageName));
+            $questions = $followUpQuestions[$langKey] ?? $followUpQuestions['english'];
+            $question  = $questions[$exchangeNumber] ?? $questions[1];
+
+            $reactions = [
+                'english' => "Thank you for your answer.",
+                'french'  => "Merci pour votre réponse.",
+                'français'=> "Merci pour votre réponse.",
+                'spanish' => "Gracias por su respuesta.",
+            ];
+            $reaction = $reactions[$langKey] ?? $reactions['english'];
+
             return [
-                'reaction'     => "Merci pour votre réponse.",
-                'nextQuestion' => $isLast ? null : "Pouvez-vous m'en dire plus à ce sujet ?",
+                'reaction'     => $reaction,
+                'nextQuestion' => $isLast ? null : $question,
                 'isFinished'   => $isLast,
             ];
         }
@@ -245,46 +304,67 @@ PROMPT;
     // HELPERS
     // ═══════════════════════════════════════════════
 
-    private function callGemini(string $prompt, int $maxRetries = 3): string
+    private function callGemini(string $prompt, int $maxRetries = 2): string
     {
         $lastError = null;
         for ($attempt = 1; $attempt <= $maxRetries; $attempt++) {
             try {
-                $response = $this->httpClient->request('POST', self::GEMINI_API_URL, [
-                    'query' => ['key' => $this->geminiApiKey],
-                    'json'  => [
-                        'contents'         => [['parts' => [['text' => $prompt]]]],
-                        'generationConfig' => ['temperature' => 0.75, 'maxOutputTokens' => 2048],
+                $response = $this->httpClient->request('POST', self::GROQ_API_URL, [
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $this->groqApiKey,
+                        'Content-Type'  => 'application/json',
+                    ],
+                    'timeout' => 20,
+                    'json'    => [
+                        'model'       => 'llama-3.3-70b-versatile',
+                        'messages'    => [
+                            ['role' => 'user', 'content' => $prompt]
+                        ],
+                        'temperature' => 0.75,
+                        'max_tokens'  => 1024,
                     ],
                 ]);
 
                 $statusCode = $response->getStatusCode();
 
-                // Rate limit → attendre et réessayer
                 if ($statusCode === 429) {
-                    $waitSeconds = $attempt * 8; // 8s, 16s, 24s
-                    $this->logger->warning('Gemini rate limit (429), retrying in ' . $waitSeconds . 's', ['attempt' => $attempt]);
-                    sleep($waitSeconds);
+                    $this->logger->warning('Groq rate limit (429), retrying...', ['attempt' => $attempt]);
+                    sleep($attempt * 3);
                     continue;
                 }
 
-                return $response->toArray()['candidates'][0]['content']['parts'][0]['text'] ?? '';
+                $data = $response->toArray();
+                return $data['choices'][0]['message']['content'] ?? '';
 
             } catch (\Exception $e) {
                 $lastError = $e;
+                $this->logger->error('Groq API error', ['attempt' => $attempt, 'error' => $e->getMessage()]);
                 if ($attempt < $maxRetries) {
-                    sleep($attempt * 3);
+                    sleep(2);
                 }
             }
         }
-        throw $lastError ?? new \Exception('Gemini API failed after ' . $maxRetries . ' attempts');
+        throw $lastError ?? new \Exception('Groq API failed after ' . $maxRetries . ' attempts');
     }
 
     private function cleanJson(string $content): string
     {
         $content = preg_replace('/```json\s*/i', '', $content);
-        $content = preg_replace('/```\s*$/',      '', $content);
-        return trim($content);
+        $content = preg_replace('/```\s*/', '', $content);
+        $content = trim($content);
+
+        // Extraire le JSON si entouré de texte parasite
+        if (!str_starts_with($content, '{')) {
+            $start = strpos($content, '{');
+            $end   = strrpos($content, '}');
+            if ($start !== false && $end !== false) {
+                $content = substr($content, $start, $end - $start + 1);
+            }
+        }
+
+        $this->logger->debug('GeminiSpeaking: raw JSON', ['preview' => substr($content, 0, 200)]);
+
+        return $content;
     }
 
     private function formatHistory(array $history): string

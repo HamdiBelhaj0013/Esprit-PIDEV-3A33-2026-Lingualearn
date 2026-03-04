@@ -57,7 +57,6 @@ services:
     #     tags:
     #         - { name: kernel.event_subscriber }
 
-
     # Gemini Listening Service
     App\Module\InternationalTests\Service\GeminiListeningService:
         arguments:
@@ -68,9 +67,17 @@ services:
         arguments:
             $geminiApiKey: '%env(GEMINI_API_KEY)%'
 
-    App\Module\InternationalTests\Service\AssemblyAiService:
-        arguments:
-            $assemblyAiApiKey: '%env(ASSEMBLYAI_API_KEY)%'
+    # Speaking Service — utilise Groq (llama-3.3-70b) au lieu de Gemini
     App\Module\InternationalTests\Service\GeminiSpeakingService:
         arguments:
+            $groqApiKey: '%env(GROQ_API_KEY)%'
+
+    # Gemini Embedding Service
+    App\Module\InternationalTests\Service\GeminiEmbeddingService:
+        arguments:
             $geminiApiKey: '%env(GEMINI_API_KEY)%'
+
+    # Deepgram Transcription Service (remplace AssemblyAiService)
+    App\Module\InternationalTests\Service\DeepgramTranscriptionService:
+        arguments:
+            $deepgramApiKey: '%env(DEEPGRAM_API_KEY)%'

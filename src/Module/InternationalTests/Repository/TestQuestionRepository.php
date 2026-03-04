@@ -120,6 +120,61 @@ class TestQuestionRepository extends ServiceEntityRepository
         return array_column($result, 'sectionCategory');
     }
 
+    // ── Métier Avancé #4 : Détection de doublons ────────────────────────────
+
+    /**
+     * Récupère toutes les questions qui ont un embedding (pour la comparaison).
+     * Exclut optionnellement une question par son ID (utile en mode édition).
+     */
+    public function findAllWithEmbedding(?int $excludeId = null): array
+    {
+        $qb = $this->createQueryBuilder('q')
+            ->leftJoin('q.mockTest', 'm')
+            ->addSelect('m')
+            ->where('q.embedding IS NOT NULL')
+            ->andWhere('q.isActive = true');
+
+        if ($excludeId !== null) {
+            $qb->andWhere('q.id != :excludeId')
+               ->setParameter('excludeId', $excludeId);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * Récupère toutes les questions sans embedding (pour la commande de génération).
+     */
+    public function findWithoutEmbedding(): array
+    {
+        return $this->createQueryBuilder('q')
+            ->where('q.embedding IS NULL')
+            ->andWhere('q.isActive = true')
+            ->orderBy('q.createdAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Compte les questions avec et sans embedding (pour les stats).
+     */
+    public function countEmbeddingStats(): array
+    {
+        $total   = $this->count(['isActive' => true]);
+        $withEmb = $this->createQueryBuilder('q')
+            ->select('COUNT(q.id)')
+            ->where('q.embedding IS NOT NULL')
+            ->andWhere('q.isActive = true')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return [
+            'total'       => $total,
+            'withEmbedding' => (int) $withEmb,
+            'without'     => $total - (int) $withEmb,
+        ];
+    }
+
     /**
      * Statistiques des questions (back-office)
      */
@@ -169,3 +224,4 @@ class TestQuestionRepository extends ServiceEntityRepository
         ];
     }
 }
+
