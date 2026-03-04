@@ -22,6 +22,7 @@ use App\Module\InternationalTests\Service\GeminiListeningService;
 use App\Module\InternationalTests\Service\GeminiSpeakingService;
 use App\Module\InternationalTests\Service\DeepgramTranscriptionService;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use App\Module\UserManagement\Entity\User;
 
 
 
@@ -29,6 +30,19 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 #[IsGranted('ROLE_USER')]
 class MockTestFrontController extends AbstractController
 {
+    /**
+     * Retourne l'utilisateur authentifié typé en tant que User (et non UserInterface).
+     * Corrige l'erreur PHPStan : UserInterface n'a pas de méthode getId().
+     */
+    private function getAuthenticatedUser(): User
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw new \LogicException('L\'utilisateur doit être connecté et être une instance de User.');
+        }
+        return $user;
+    }
+
     private const PASS_SCORE         = 10;
     private const TOTAL_SCORE        = 20;
     private const QUESTIONS_PER_TEST = 10;
@@ -81,7 +95,7 @@ class MockTestFrontController extends AbstractController
             throw $this->createNotFoundException('Language not found.');
         }
 
-        $user             = $this->getUser();
+        $user             = $this->getAuthenticatedUser();
         $countByLevel     = $mockTestRepo->countActiveByLevelAndLanguage($langId);
         $bestScoreByLevel = [];
         $unlockedLevels   = [];
@@ -136,7 +150,7 @@ class MockTestFrontController extends AbstractController
         if ($levelIndex > 0) {
             $prevLevel = MockTest::LEVELS[$levelIndex - 1];
             $prevBest  = $resultRepo->getBestScoreByUserAndLevel(
-                $this->getUser()->getId(), $prevLevel, $langId
+                $this->getAuthenticatedUser()->getId(), $prevLevel, $langId
             );
             if ($prevBest === null || $prevBest < self::PASS_SCORE) {
                 $this->addFlash('error',
@@ -151,7 +165,7 @@ class MockTestFrontController extends AbstractController
         $bestScores = [];
         foreach ($mockTests as $test) {
             $bestScores[$test->getId()] = $resultRepo->getBestScoreByUserAndTest(
-                $this->getUser()->getId(), $test->getId()
+                $this->getAuthenticatedUser()->getId(), $test->getId()
             );
         }
 
@@ -536,7 +550,7 @@ class MockTestFrontController extends AbstractController
         // ── Sauvegarde TestResult avec données temporelles ──
         $testResult = new TestResult();
         $testResult->setMockTest($mockTest);
-        $testResult->setUser($this->getUser());
+        $testResult->setUser($this->getAuthenticatedUser());
         $testResult->setOverallScore($finalScore);
         $testResult->setAiWeaknessReport($aiWeaknessReport);
         $testResult->setDateTaken(new \DateTime());
@@ -554,7 +568,7 @@ class MockTestFrontController extends AbstractController
         // ── Vérification et génération automatique du certificat ──
         $langId = $mockTest->getPlatformLanguage()?->getId();
         if ($langId) {
-            $certificateService->checkAndGenerateCertificate($this->getUser(), $langId);
+            $certificateService->checkAndGenerateCertificate($this->getAuthenticatedUser(), $langId);
         }
 
         $session->remove('mock_test_questions_' . $mockTest->getId());
@@ -602,7 +616,7 @@ class MockTestFrontController extends AbstractController
         // Vérifier si un certificat existe pour cette langue
         $certificate = null;
         if ($langId) {
-            $certificate = $certificateService->generateOrGetCertificate($this->getUser(), $langId);
+            $certificate = $certificateService->generateOrGetCertificate($this->getAuthenticatedUser(), $langId);
         }
 
         return $this->render('internationaltests/mocktest_front/result.html.twig', [
@@ -631,7 +645,7 @@ class MockTestFrontController extends AbstractController
     #[Route('/my-results', name: 'mock_tests_my_results', methods: ['GET'])]
     public function myResults(TestResultRepository $resultRepo): Response
     {
-        $user    = $this->getUser();
+        $user    = $this->getAuthenticatedUser();
         $results = $resultRepo->findByUser($user->getId());
 
         // ── MÉTIER AVANCÉ #1 : Analyse de performance multi-dimensionnelle ──
@@ -693,7 +707,7 @@ class MockTestFrontController extends AbstractController
 
         // Create TestResult
         $result = new TestResult();
-        $result->setUser($this->getUser());
+        $result->setUser($this->getAuthenticatedUser());
         $result->setMockTest($mockTest);
         $result->setDateTaken(new \DateTime());
 
@@ -710,7 +724,7 @@ class MockTestFrontController extends AbstractController
         $em->flush();
 
         // Check for certificate generation
-        $certificateService->checkAndGenerateCertificate($this->getUser(), $mockTest->getPlatformLanguage()->getId());
+        $certificateService->checkAndGenerateCertificate($this->getAuthenticatedUser(), $mockTest->getPlatformLanguage()->getId());
 
         // Store correction details in session so result page can display AI feedback
         $writingDetails = [
@@ -811,7 +825,7 @@ class MockTestFrontController extends AbstractController
         // Sauvegarder TestResult
         $testResult = new TestResult();
         $testResult->setMockTest($mockTest);
-        $testResult->setUser($this->getUser());
+        $testResult->setUser($this->getAuthenticatedUser());
         $testResult->setOverallScore($finalScore);
         $testResult->setAiNote($rawScore);
         $testResult->setAiWeaknessReport($aiWeaknessReport);
@@ -833,7 +847,7 @@ class MockTestFrontController extends AbstractController
         // Certificat
         $langId = $mockTest->getPlatformLanguage()?->getId();
         if ($langId) {
-            $certificateService->checkAndGenerateCertificate($this->getUser(), $langId);
+            $certificateService->checkAndGenerateCertificate($this->getAuthenticatedUser(), $langId);
         }
 
         // Détails pour la page résultat
@@ -942,7 +956,7 @@ class MockTestFrontController extends AbstractController
         // ── Sauvegarde TestResult ──
         $testResult = new TestResult();
         $testResult->setMockTest($mockTest);
-        $testResult->setUser($this->getUser());
+        $testResult->setUser($this->getAuthenticatedUser());
         $testResult->setOverallScore($finalScore);
         $testResult->setAiNote($rawScore);
         $testResult->setAiWeaknessReport($aiWeaknessReport);
@@ -962,7 +976,7 @@ class MockTestFrontController extends AbstractController
         // ── Vérification certificat ──
         $langId = $mockTest->getPlatformLanguage()?->getId();
         if ($langId) {
-            $certificateService->checkAndGenerateCertificate($this->getUser(), $langId);
+            $certificateService->checkAndGenerateCertificate($this->getAuthenticatedUser(), $langId);
         }
 
         // ── Nettoyage session ──
@@ -1058,7 +1072,7 @@ class MockTestFrontController extends AbstractController
 
         $testResult = new TestResult();
         $testResult->setMockTest($mockTest);
-        $testResult->setUser($this->getUser());
+        $testResult->setUser($this->getAuthenticatedUser());
         $testResult->setOverallScore($finalScore);
         $testResult->setAiWeaknessReport([]);
         $testResult->setAiCorrection(['timeReport' => $timeReport, 'elapsedTime' => $elapsedData, 'rawScore' => $scoreOn20, 'type' => $type]);
