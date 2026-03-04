@@ -65,18 +65,19 @@ class ForumPostController extends AbstractController
 
         // Automatically set the author to the currently logged-in user
         $currentUser = $this->getUser();
-        if ($currentUser) {
-            $post->setAuthorId($currentUser->getId());
-        }
+        $currentUser = $this->getUser();
+if ($currentUser && method_exists($currentUser, 'getId')) {
+    $post->setAuthorId($currentUser->getId());
+}
 
         $form = $this->createForm(ForumPostType::class, $post);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             // Ensure author is set
-            if (!$post->getAuthorId() && $currentUser) {
-                $post->setAuthorId($currentUser->getId());
-            }
+            if ($currentUser && method_exists($currentUser, 'getId')) {
+    $post->setAuthorId($currentUser->getId());
+}
 
             $this->repository->save($post, true);
             $this->addFlash('success', 'Post created successfully!');

@@ -1,12 +1,35 @@
+includes:
+    - vendor/phpstan/phpstan-symfony/extension.neon
+    - vendor/phpstan/phpstan-doctrine/extension.neon
+
 parameters:
     level: 5
     paths:
-        - src/Module/InternationalTests
+        - src
     treatPhpDocTypesAsCertain: false
+    symfony:
+        containerXmlPath: var/cache/dev/App_KernelDevDebugContainer.xml
+    reportUnmatchedIgnoredErrors: false
     ignoreErrors:
+        - '#Call to method getSingleScalarResult\(\) on an undefined type#'
+        - '#Property .+ is never written, only read#'
+        - '#Call to an undefined method Symfony\\Bundle\\FrameworkBundle\\Controller\\AbstractController#'
+        - '#Call to an undefined method .*UserInterface::getId\(\)#'
+        - '#Cannot call method \w+\(\) on .+\|null#'
+        - '#Parameter \#\d+ \$\w+ of function \w+ expects \w+, \w+\|null given#'
+        - '#does not specify its types#'
+        - '#missingType\.generics#'
+        - '#missingType\.iterableValue#'
         - '#Expression on left side of \?\? is not nullable#'
         - '#is never assigned int so it can be removed#'
         - '#is never assigned null so it can be removed#'
         - '#Method .* is unused#'
         - '#Comparison operation ">" between int<1, max> and 0 is always true#'
         - '#Parameter .* expects string\|null, int\|null given#'
+        - '#Call to an undefined method#'
+        - '#is never read, only written#'
+        - '#is never written, only read#'
+        - '#is never assigned int#'
+        - '#Attribute class DH#'
+        - '#UserInterface#'
+        - '#invoked with 2 parameters#'

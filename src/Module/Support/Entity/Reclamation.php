@@ -35,7 +35,7 @@ class Reclamation
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
+    private int $id;
 
     #[ORM\Column(length: 100)]
     private ?string $subject = null;
@@ -54,6 +54,7 @@ class Reclamation
     private ?User $user = null;
 
     #[ORM\OneToMany(targetEntity: SupportResponse::class, mappedBy: 'reclamation', cascade: ['persist', 'remove'])]
+    /** @var Collection<int, SupportResponse> */
     private Collection $responses;
 
     #[ORM\Column(length: 10)]
@@ -168,7 +169,8 @@ class Reclamation
     public function setSubmittedAt(\DateTimeInterface $d): static { $this->submittedAt = $d; return $this; }
     public function getUser(): ?User { return $this->user; }
     public function setUser(?User $u): static { $this->user = $u; return $this; }
-    public function getResponses(): Collection { return $this->responses; }
+    /** @return Collection<int, SupportResponse> */
+    public function getResponses(): Collection { return $this->responses; } 
     public function addResponse(SupportResponse $r): static
     {
         if (!$this->responses->contains($r)) { $this->responses->add($r); $r->setReclamation($this); }

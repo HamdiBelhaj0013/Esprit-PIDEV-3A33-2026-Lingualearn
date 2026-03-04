@@ -111,8 +111,8 @@ class ForumPostRepository extends ServiceEntityRepository
             'total' => $this->count([]),
             'active' => $this->count(['isActive' => true]),
             'inactive' => $this->count(['isActive' => false]),
-            'totalViews' => (int) $qb->select('SUM(p.viewCount)')->getQuery()->getSingleScalarResult() ?? 0,
-            'totalReplies' => (int) $this->createQueryBuilder('p')->select('SUM(p.replyCount)')->getQuery()->getSingleScalarResult() ?? 0,
+            'totalViews' => (int) ($qb->select('SUM(p.viewCount)')->getQuery()->getSingleScalarResult() ?: 0),
+'totalReplies' => (int) ($this->createQueryBuilder('p')->select('SUM(p.replyCount)')->getQuery()->getSingleScalarResult() ?: 0),
         ];
     }
 
