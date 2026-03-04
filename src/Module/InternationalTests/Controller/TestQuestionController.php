@@ -12,10 +12,20 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Module\InternationalTests\Service\GeminiEmbeddingService;
+use App\Module\InternationalTests\Service\QuestionSimilarityService;
 
 #[Route('/internationaltests/testquestion')]
 class TestQuestionController extends AbstractController
 {
+    // ── Seuil de blocage : 75% de similarité ──────────────────────
+    private const BLOCK_THRESHOLD = 0.75;
+
+    public function __construct(
+        private GeminiEmbeddingService    $embeddingService,
+        private QuestionSimilarityService $similarityService
+    ) {}
+
     #[Route('/', name: 'testquestion_index', methods: ['GET'])]
     public function index(TestQuestionRepository $repository, MockTestRepository $mockTestRepository): Response
     {
@@ -102,6 +112,46 @@ class TestQuestionController extends AbstractController
         }
     }
 
+    // ── Métier Avancé #4 : Détection de doublons ────────────────────────────
+
+    /**
+     * Route AJAX — vérifie la similarité en temps réel (pendant la saisie).
+     * Utilisée uniquement pour l'AFFICHAGE d'un warning dans le formulaire.
+     * Le blocage réel se fait côté serveur dans new() et edit().
+     */
+    #[Route('/check-similarity', name: 'testquestion_check_similarity', methods: ['POST'])]
+    public function checkSimilarity(Request $request): JsonResponse
+    {
+        $data         = json_decode($request->getContent(), true);
+        $questionText = trim($data['questionText'] ?? '');
+        $excludeId    = isset($data['excludeId']) ? (int) $data['excludeId'] : null;
+
+        if (strlen($questionText) < 10) {
+            return new JsonResponse([
+                'success'      => false,
+                'hasDuplicate' => false,
+                'message'      => 'Question too short to check.',
+            ]);
+        }
+
+        $result = $this->similarityService->checkForDuplicates($questionText, $excludeId);
+
+        // On filtre les résultats selon le seuil de BLOCAGE (75%)
+        $blockingDuplicates = array_filter(
+            $result['duplicates'] ?? [],
+            fn($d) => ($d['similarityRaw'] ?? 0) >= self::BLOCK_THRESHOLD
+        );
+
+        return new JsonResponse([
+            'success'            => true,
+            'hasDuplicate'       => !empty($blockingDuplicates),
+            'duplicates'         => array_values($blockingDuplicates),
+            'checkedCount'       => $result['checkedCount'],
+            'threshold'          => self::BLOCK_THRESHOLD * 100,
+            'error'              => $result['error'] ?? null,
+        ]);
+    }
+
     #[Route('/new', name: 'testquestion_new', methods: ['GET', 'POST'])]
     public function new(
         Request                $request,
@@ -125,12 +175,30 @@ class TestQuestionController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $this->handleFormData($form, $testQuestion);
+
+            // ── Métier Avancé #4 : Vérification doublon BLOQUANTE côté serveur ──
+            $duplicateCheck = $this->checkDuplicateBeforeSave($testQuestion->getQuestionText(), null);
+            if ($duplicateCheck !== null) {
+                // Doublon détecté → on ne sauvegarde PAS, on renvoie le formulaire avec l'alerte
+                return $this->render('internationaltests/testquestion/new.html.twig', [
+                    'form'             => $form->createView(),
+                    'mockTest'         => $mockTest,
+                    'testCategory'     => $mockTest ? $mockTest->getTestCategory() : 'QCM',
+                    'duplicateWarning' => $duplicateCheck, // ← transmis au template
+                ]);
+            }
+
+            // ── Pas de doublon → génération embedding + sauvegarde ──
+            $embedding = $this->embeddingService->generateEmbedding($testQuestion->getQuestionText());
+            if ($embedding) {
+                $testQuestion->setEmbedding($embedding);
+            }
+
             $em->persist($testQuestion);
             $em->flush();
 
             $this->addFlash('success', 'Question créée avec succès !');
 
-            // Redirect back to mockTest show if we came from there
             if ($testQuestion->getMockTest()) {
                 return $this->redirectToRoute('mocktest_show', [
                     'id' => $testQuestion->getMockTest()->getId(),
@@ -143,6 +211,7 @@ class TestQuestionController extends AbstractController
             'form'             => $form->createView(),
             'mockTest'         => $mockTest,
             'testCategory'     => $mockTest ? $mockTest->getTestCategory() : 'QCM',
+            'duplicateWarning' => null,
         ]);
     }
 
@@ -169,6 +238,24 @@ class TestQuestionController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $this->handleFormData($form, $testQuestion);
+
+            // ── Métier Avancé #4 : Vérification doublon BLOQUANTE (en excluant la question actuelle) ──
+            $duplicateCheck = $this->checkDuplicateBeforeSave($testQuestion->getQuestionText(), $testQuestion->getId());
+            if ($duplicateCheck !== null) {
+                return $this->render('internationaltests/testquestion/edit.html.twig', [
+                    'form'             => $form->createView(),
+                    'testQuestion'     => $testQuestion,
+                    'testCategory'     => $testQuestion->getMockTest()?->getTestCategory() ?? 'QCM',
+                    'duplicateWarning' => $duplicateCheck,
+                ]);
+            }
+
+            // ── Pas de doublon → régénérer l'embedding + sauvegarde ──
+            $embedding = $this->embeddingService->generateEmbedding($testQuestion->getQuestionText());
+            if ($embedding) {
+                $testQuestion->setEmbedding($embedding);
+            }
+
             $em->flush();
 
             $this->addFlash('success', 'Question mise à jour avec succès !');
@@ -178,9 +265,10 @@ class TestQuestionController extends AbstractController
         }
 
         return $this->render('internationaltests/testquestion/edit.html.twig', [
-            'form'         => $form->createView(),
-            'testQuestion' => $testQuestion,
-            'testCategory' => $testQuestion->getMockTest()?->getTestCategory() ?? 'QCM',
+            'form'             => $form->createView(),
+            'testQuestion'     => $testQuestion,
+            'testCategory'     => $testQuestion->getMockTest()?->getTestCategory() ?? 'QCM',
+            'duplicateWarning' => null,
         ]);
     }
 
@@ -211,11 +299,51 @@ class TestQuestionController extends AbstractController
 
     // ── Private helpers ──────────────────────────────────────────────────────
 
+    /**
+     * Vérifie les doublons AVANT la sauvegarde.
+     * Retourne un tableau d'info sur le doublon si bloquant (>75%), null sinon.
+     * 
+     * Si l'API Gemini est indisponible (timeout), on laisse passer la sauvegarde
+     * pour ne pas bloquer l'utilisateur à cause d'une erreur externe.
+     */
+    private function checkDuplicateBeforeSave(string $questionText, ?int $excludeId): ?array
+    {
+        if (strlen(trim($questionText)) < 10) {
+            return null; // Question trop courte, pas de vérification
+        }
+
+        $result = $this->similarityService->checkForDuplicates($questionText, $excludeId);
+
+        // Si l'API est indisponible, on laisse passer (fail-open)
+        if (isset($result['error']) && !empty($result['error'])) {
+            return null;
+        }
+
+        // Filtrer selon le seuil de BLOCAGE 75%
+        $blockingDuplicates = array_filter(
+            $result['duplicates'] ?? [],
+            fn($d) => ($d['similarityRaw'] ?? 0) >= self::BLOCK_THRESHOLD
+        );
+
+        if (empty($blockingDuplicates)) {
+            return null; // Pas de doublon → sauvegarde autorisée
+        }
+
+        // Retourner le doublon le plus similaire pour l'affichage
+        $topDuplicate = reset($blockingDuplicates);
+        return [
+            'similarity'    => $topDuplicate['similarity'],       // ex: 82.5
+            'questionText'  => $topDuplicate['questionText'],     // texte de la question existante
+            'mockTestTitle' => $topDuplicate['mockTestTitle'],    // nom du test
+            'questionId'    => $topDuplicate['id'],               // id pour lien éventuel
+            'count'         => count($blockingDuplicates),        // nb total de doublons
+        ];
+    }
+
     private function handleFormData($form, TestQuestion $testQuestion): void
     {
         $type = $testQuestion->getMockTest()?->getTestCategory() ?? 'QCM';
 
-        // Sync questionType on entity from parent mockTest's testCategory
         $questionType = match(strtolower($type)) {
             'writing'   => TestQuestion::TYPE_WRITING,
             'speaking'  => TestQuestion::TYPE_SPEAKING,
@@ -223,21 +351,16 @@ class TestQuestionController extends AbstractController
             default     => TestQuestion::TYPE_QCM,
         };
         $testQuestion->setQuestionType($questionType);
-
-        // Set sectionCategory = testCategory (since we removed the field from the form)
         $testQuestion->setSectionCategory($type);
 
         if ($questionType === TestQuestion::TYPE_QCM) {
-            // Parse options
             $raw = $form->get('options')->getData();
             $testQuestion->setOptions($this->parseOptions($raw));
 
-            // correctAnswer is already mapped from the form field
             if (empty($testQuestion->getCorrectAnswer())) {
                 $testQuestion->setCorrectAnswer('');
             }
         } else {
-            // Writing / Speaking / Listening — no options, no correctAnswer
             $testQuestion->setOptions([]);
             $testQuestion->setCorrectAnswer('N/A');
         }
@@ -250,7 +373,6 @@ class TestQuestionController extends AbstractController
         }
         $raw = trim($raw);
 
-        // Try JSON object format: {"A": "Option A", "B": "Option B"}
         if (str_starts_with($raw, '{')) {
             $decoded = json_decode($raw, true);
             if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
@@ -258,11 +380,9 @@ class TestQuestionController extends AbstractController
             }
         }
 
-        // Try JSON array format: ["Option A", "Option B", "Option C", "Option D"]
         if (str_starts_with($raw, '[')) {
             $decoded = json_decode($raw, true);
             if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                // Convert to associative array with A, B, C, D keys
                 $letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
                 $result = [];
                 foreach (array_values($decoded) as $index => $value) {
@@ -274,13 +394,11 @@ class TestQuestionController extends AbstractController
             }
         }
 
-        // Plain text: one per line
         $lines = array_values(array_filter(
             array_map('trim', explode("\n", str_replace("\r\n", "\n", $raw))),
             fn($l) => $l !== ''
         ));
 
-        // Convert to associative array with A, B, C, D keys
         $letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
         $result = [];
         foreach ($lines as $index => $value) {

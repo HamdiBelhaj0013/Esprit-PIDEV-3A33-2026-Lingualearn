@@ -92,9 +92,20 @@ services:
         arguments:
             $assemblyAiApiKey: '%env(ASSEMBLYAI_API_KEY)%'
 
+    # Speaking Service — uses Groq (llama-3.3-70b)
     App\Module\InternationalTests\Service\GeminiSpeakingService:
         arguments:
+            $groqApiKey: '%env(GROQ_API_KEY)%'
+
+    # Gemini Embedding Service
+    App\Module\InternationalTests\Service\GeminiEmbeddingService:
+        arguments:
             $geminiApiKey: '%env(GEMINI_API_KEY)%'
+
+    # Deepgram Transcription Service
+    App\Module\InternationalTests\Service\DeepgramTranscriptionService:
+        arguments:
+            $deepgramApiKey: '%env(DEEPGRAM_API_KEY)%'
 
     # =========================================================
     # EXERCISES & QUIZZES - AI
@@ -135,7 +146,7 @@ services:
     App\Module\UserManagement\Service\FaceRecognitionService:
         arguments:
             $faceApiUrl: '%env(FACE_API_URL)%'
-# =========================================================
+
     App\Service\HuggingFaceSummarizer:
         arguments:
             $hfApiKey: '%env(HUGGINGFACE_API_KEY)%'

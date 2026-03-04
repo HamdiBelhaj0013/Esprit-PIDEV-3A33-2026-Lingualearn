@@ -71,6 +71,44 @@
 
     {# ── Formulaire principal ── #}
     <div class="col-md-9 order-md-1">
+
+        {# ══════════════════════════════════════════════════════
+           ALERTE DOUBLON SERVEUR — bloque la sauvegarde
+           ══════════════════════════════════════════════════════ #}
+        {% if duplicateWarning is defined and duplicateWarning is not null %}
+        <div class="alert alert-danger alert-dismissible mb-3" role="alert">
+            <div class="d-flex align-items-start gap-3">
+                <span style="font-size:1.5rem;">🚫</span>
+                <div>
+                    <h4 class="alert-heading mb-1" style="font-size:1rem;">Question non sauvegardée — Doublon détecté</h4>
+                    <p class="mb-1" style="font-size:.875rem;">
+                        Similarité de <strong>{{ duplicateWarning.similarity }}%</strong>
+                        avec une question existante dans <strong>« {{ duplicateWarning.mockTestTitle }} »</strong>.
+                    </p>
+                    <p class="mb-1 text-muted" style="font-size:.82rem;">
+                        « {{ duplicateWarning.questionText|slice(0,120) }}{% if duplicateWarning.questionText|length > 120 %}…{% endif %} »
+                    </p>
+                    <small>Les questions avec une similarité &gt; 75% ne peuvent pas être créées. Modifiez votre question.</small>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endif %}
+
+        {# ══════════════════════════════════════════════════════
+           ALERTE DOUBLON TEMPS RÉEL — warning JS pendant la saisie
+           ══════════════════════════════════════════════════════ #}
+        <div class="alert alert-warning d-none mb-3" id="similarityWarning">
+            <div class="d-flex align-items-start gap-2">
+                <span>⚠️</span>
+                <div>
+                    <strong>Question potentiellement similaire</strong>
+                    <p class="mb-0 mt-1" id="similarityWarningText" style="font-size:.875rem;"></p>
+                    <small class="text-muted">La sauvegarde sera bloquée si la similarité dépasse 75%.</small>
+                </div>
+            </div>
+        </div>
+
         <div class="card">
             <div class="card-header d-flex align-items-center gap-3">
                 <h3 class="card-title mb-0">
@@ -93,7 +131,7 @@
             <div class="card-body">
                 {{ form_start(form, {'attr': {'id': 'question-form', 'novalidate': 'novalidate'}}) }}
 
-                {# mockTest — rendu ONCE, caché si pré-sélectionné #}
+                {# mockTest — caché si pré-sélectionné #}
                 <div {% if mockTest %}style="display:none"{% endif %} class="mb-3">
                     <label class="form-label required">Mock Test</label>
                     {{ form_widget(form.mockTest) }}
@@ -107,7 +145,7 @@
                     {{ form_errors(form.points) }}
                 </div>
 
-                {# Question text #}
+                {# Question text + indicateurs doublon #}
                 <div class="mb-4">
                     <label class="form-label required">
                         {% if type == 'listening' %}Question de compréhension
@@ -117,6 +155,16 @@
                     </label>
                     {{ form_widget(form.questionText) }}
                     {{ form_errors(form.questionText) }}
+                    {# Indicateurs état vérification #}
+                    <div class="mt-1 d-none" id="checkingIndicator">
+                        <small class="text-muted">
+                            <span class="spinner-border spinner-border-sm me-1" style="width:.75rem;height:.75rem;"></span>
+                            Vérification des doublons…
+                        </small>
+                    </div>
+                    <div class="mt-1 d-none text-success" id="uniqueIndicator">
+                        <small>✅ Question unique — aucun doublon détecté</small>
+                    </div>
                 </div>
 
                 {# ── QCM ── #}
@@ -202,7 +250,7 @@
                                 <i class="ti ti-x icon"></i> Annuler
                             </a>
                         {% endif %}
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
                             <i class="ti ti-device-floppy icon"></i> Créer la question
                         </button>
                     </div>
@@ -230,6 +278,9 @@
 .correct-toggle.selected::before{content:'✓ ';}
 </style>
 
+{# ══════════════════════════════════════════════════════
+   JS QCM — identique à l'original
+   ══════════════════════════════════════════════════════ #}
 {% if type == 'qcm' %}
 <script>
 const LETTERS  = ['A','B','C','D','E','F','G','H'];
@@ -314,5 +365,75 @@ document.getElementById('question-form').addEventListener('submit', () => { sync
 addOption(); addOption(); addOption(); addOption();
 </script>
 {% endif %}
+
+{# ══════════════════════════════════════════════════════
+   JS DÉTECTION DE DOUBLONS EN TEMPS RÉEL
+   ══════════════════════════════════════════════════════ #}
+<script>
+const CHECK_URL = '{{ path("testquestion_check_similarity") }}';
+let debounceTimer   = null;
+let lastCheckedText = '';
+
+const questionTextarea  = document.getElementById('question_text');
+const warningBox        = document.getElementById('similarityWarning');
+const warningText       = document.getElementById('similarityWarningText');
+const checkingIndicator = document.getElementById('checkingIndicator');
+const uniqueIndicator   = document.getElementById('uniqueIndicator');
+
+if (questionTextarea) {
+    questionTextarea.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        const text = questionTextarea.value.trim();
+        if (text.length < 20) { hideAllIndicators(); return; }
+        debounceTimer = setTimeout(() => checkSimilarity(text), 1200);
+    });
+}
+
+async function checkSimilarity(text) {
+    if (text === lastCheckedText) return;
+    lastCheckedText = text;
+
+    hideAllIndicators();
+    checkingIndicator.classList.remove('d-none');
+
+    try {
+        const res  = await fetch(CHECK_URL, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ questionText: text, excludeId: null }),
+            signal:  AbortSignal.timeout(12000)
+        });
+        const data = await res.json();
+        checkingIndicator.classList.add('d-none');
+
+        if (!data.success || data.error) { hideAllIndicators(); return; }
+
+        if (data.hasDuplicate && data.duplicates.length > 0) {
+            const top = data.duplicates[0];
+            warningText.innerHTML =
+                `Similarité <strong>${top.similarity}%</strong> avec
+                 « ${escHtml(top.questionText.substring(0,100))}… »
+                 dans <em>${escHtml(top.mockTestTitle)}</em>.`;
+            warningBox.classList.remove('d-none');
+            uniqueIndicator.classList.add('d-none');
+        } else {
+            warningBox.classList.add('d-none');
+            uniqueIndicator.classList.remove('d-none');
+        }
+    } catch (e) {
+        checkingIndicator.classList.add('d-none');
+        hideAllIndicators();
+    }
+}
+
+function hideAllIndicators() {
+    checkingIndicator.classList.add('d-none');
+    uniqueIndicator.classList.add('d-none');
+    warningBox.classList.add('d-none');
+}
+function escHtml(t) {
+    return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
 
 {% endblock %}
