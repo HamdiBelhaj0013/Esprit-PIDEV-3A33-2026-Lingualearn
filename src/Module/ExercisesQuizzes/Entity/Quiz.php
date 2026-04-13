@@ -9,6 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity]
+#[ORM\HasLifecycleCallbacks]
 class Quiz
 {
     #[ORM\Id]
@@ -52,12 +53,18 @@ class Quiz
     #[ORM\Column(type: 'json', options: ['default' => '[]'])]
     private array $skillCodes = [];
 
-    #[ORM\OneToMany(mappedBy: 'quiz', targetEntity: Exercice::class, cascade: ['persist', 'remove'])]
+    /**
+     * FIX: orphanRemoval=true added — Exercice is owned by Quiz (composition).
+     * Removing an Exercice from the collection now deletes it from the DB.
+     * cascade=remove kept — deleting a Quiz deletes all its Exercices.
+     */
+    #[ORM\OneToMany(mappedBy: 'quiz', targetEntity: Exercice::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $exercices;
 
     public function __construct()
     {
-        $this->exercices = new ArrayCollection();
+        $this->exercices  = new ArrayCollection();
+        $this->createdAt  = new \DateTimeImmutable(); // FIX: always set, never null
     }
 
     /**
@@ -91,10 +98,12 @@ class Quiz
     }
 
     // Ajout des colonnes pour gérer la création et modification
-   #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-private ?\DateTimeImmutable $createdAt = null;
+    // FIX: createdAt should not be nullable — every Quiz has a creation time.
+    // Set in constructor so it is always present.
+    #[ORM\Column(type: 'datetime_immutable', nullable: false)]
+    private \DateTimeImmutable $createdAt;
 
-#[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
 
     #[ORM\Column]
@@ -103,6 +112,12 @@ private ?\DateTimeImmutable $createdAt = null;
     // -----------------------------
     // Getters et Setters
     // -----------------------------
+
+    #[ORM\PreUpdate]
+    public function setUpdatedAtValue(): void
+    {
+        $this->updatedAt = new \DateTimeImmutable();
+    }
 
     public function isEnabled(): bool
     {
@@ -205,25 +220,17 @@ private ?\DateTimeImmutable $createdAt = null;
     }
 
     public function getCreatedAt(): ?\DateTimeImmutable
-{
-    return $this->createdAt;
-}
-
-
-
-    public function setCreatedAt(?\DateTimeInterface $createdAt): self
     {
-        $this->createdAt = $createdAt;
-        return $this;
+        return $this->createdAt;
     }
 
-   public function getUpdatedAt(): ?\DateTimeImmutable
-{
-    return $this->updatedAt;
-}
-    public function setUpdatedAt(?\DateTimeInterface $updatedAt): self
+
+
+    // FIX: No public setCreatedAt — set once in constructor, immutable after.
+
+    public function getUpdatedAt(): ?\DateTimeImmutable
     {
-        $this->updatedAt = $updatedAt;
-        return $this;
+        return $this->updatedAt;
     }
+    // FIX: No public setUpdatedAt — managed by PreUpdate lifecycle callback.
 }

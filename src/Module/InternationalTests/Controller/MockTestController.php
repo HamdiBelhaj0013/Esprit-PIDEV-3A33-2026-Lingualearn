@@ -121,7 +121,7 @@ class MockTestController extends AbstractController
             }
 
             $isActive = $action === 'activate';
-            
+
             $qb = $em->createQueryBuilder();
             $qb->update(MockTest::class, 'm')
                 ->set('m.isActive', ':isActive')
@@ -180,7 +180,7 @@ class MockTestController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
-            
+
             $this->addFlash('success', 'Mock test updated successfully!');
             return $this->redirectToRoute('mocktest_index');
         }
@@ -197,7 +197,7 @@ class MockTestController extends AbstractController
         if ($this->isCsrfTokenValid('delete'.$mockTest->getId(), $request->request->get('_token'))) {
             $em->remove($mockTest);
             $em->flush();
-            
+
             $this->addFlash('success', 'Mock test deleted successfully!');
         }
 

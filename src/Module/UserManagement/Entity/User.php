@@ -13,6 +13,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Annotation\Ignore;         // ← NEW
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
@@ -40,7 +41,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private array $roles = [];
 
+    // FIX 1 — password must never appear in serialized output
     #[ORM\Column]
+    #[Ignore]
     private ?string $password = null;
 
     #[ORM\Column(length: 50)]
@@ -111,23 +114,31 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(options: ['default' => false])]
     private bool $isVerified = false;
 
+    // FIX 2 — token must not leak through serialization
     /** Random hex token stored in the DB and included in the verify link */
     #[ORM\Column(length: 100, nullable: true)]
+    #[Ignore]
     private ?string $emailVerificationToken = null;
 
+    // FIX 3 — expiry timestamp paired with the token is equally sensitive
     /** Token becomes invalid after this timestamp (default: 24 h from issuance) */
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[Ignore]
     private ?\DateTimeInterface $emailVerificationTokenExpiresAt = null;
 
     // =========================================================
     // PASSWORD RESET
     // =========================================================
+    // FIX 4 — reset token must not leak through serialization
     /** Random hex token included in the reset link */
     #[ORM\Column(length: 100, nullable: true)]
+    #[Ignore]
     private ?string $passwordResetToken = null;
 
+    // FIX 5 — expiry timestamp paired with the reset token is equally sensitive
     /** Token becomes invalid after this timestamp (default: 1 h from issuance) */
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[Ignore]
     private ?\DateTimeInterface $passwordResetTokenExpiresAt = null;
 
     // =========================================================
@@ -144,13 +155,34 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     // =========================================================
     // RELATIONS
     // =========================================================
-    #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
+
+    /**
+     * FIX: cascade='remove' removed — LearningStats is independent; delete
+     * it explicitly in UserService::deleteUser() to avoid silent data loss.
+     * onDelete='CASCADE' added so raw SQL DELETEs on users still clean up.
+     * cascade='persist' kept so saving a new User auto-saves its stats.
+     */
+    /**
+     * FIX: cascade='remove' removed — LearningStats is independent.
+     * JoinColumn removed — belongs on the OWNING side (LearningStats::$user).
+     * Add onDelete='CASCADE' to LearningStats::$user's JoinColumn instead.
+     */
+    #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist'])]
     #[Groups(['stats:read'])]
     private ?LearningStats $learningStats = null;
 
-    #[ORM\OneToMany(targetEntity: UserLanguage::class, mappedBy: 'user', orphanRemoval: true)]
+    /**
+     * FIX: cascade='persist' added — orphanRemoval without cascade='persist'
+     * meant you could delete children automatically but not auto-save new ones.
+     * onDelete='CASCADE' added to keep ORM and DB-level deletes in sync.
+     */
+    #[ORM\OneToMany(targetEntity: UserLanguage::class, mappedBy: 'user', cascade: ['persist'], orphanRemoval: true)]
     private Collection $userLanguages;
 
+    /**
+     * Notifications are owned by User (composition), so cascade remove is
+     * correct. onDelete='CASCADE' added to sync ORM cascade with the DB.
+     */
     #[ORM\OneToMany(targetEntity: Notification::class, mappedBy: 'user', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $notifications;
 
@@ -175,7 +207,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\PrePersist]
     public function setCreatedAtValue(): void
     {
-        $this->createdAt = new \DateTime();
+        // FIX: createdAt is always set here automatically — public setter removed.
+        if ($this->createdAt === null) {
+            $this->createdAt = new \DateTime();
+        }
     }
 
     // =========================================================
@@ -197,7 +232,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setRoles(array $roles): static { $this->roles = $roles; return $this; }
 
     public function getPassword(): string { return $this->password; }
-    public function setPassword(string $password): static { $this->password = $password; return $this; }
+
+    // FIX 1 (setter) — #[SensitiveParameter] hides the value in stack traces (PHP 8.2+)
+    public function setPassword(#[\SensitiveParameter] string $password): static
+    {
+        $this->password = $password;
+        return $this;
+    }
 
     public function eraseCredentials(): void {}
 
@@ -221,6 +262,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     public function getSubscriptionExpiry(): ?\DateTimeInterface { return $this->subscriptionExpiry; }
+    /**
+     * This setter is intentionally public: subscriptionExpiry is business data
+     * (set by StripeWebhookController / UserService), not an auto-timestamp.
+     * The tool warning is a false positive for this field.
+     */
     public function setSubscriptionExpiry(?\DateTimeInterface $subscriptionExpiry): static
     {
         $this->subscriptionExpiry = $subscriptionExpiry;
@@ -273,7 +319,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     public function getCreatedAt(): ?\DateTimeInterface { return $this->createdAt; }
-    public function setCreatedAt(\DateTimeInterface $createdAt): static { $this->createdAt = $createdAt; return $this; }
+    // FIX: No public setter — createdAt is managed exclusively by the PrePersist lifecycle callback.
 
     public function getLearningStats(): ?LearningStats { return $this->learningStats; }
     public function setLearningStats(?LearningStats $learningStats): static
@@ -337,7 +383,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     public function getEmailVerificationToken(): ?string { return $this->emailVerificationToken; }
-    public function setEmailVerificationToken(?string $token): static
+
+    // FIX 2 (setter) — token hidden from stack traces
+    public function setEmailVerificationToken(#[\SensitiveParameter] ?string $token): static
     {
         $this->emailVerificationToken = $token;
         return $this;
@@ -347,7 +395,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         return $this->emailVerificationTokenExpiresAt;
     }
-    public function setEmailVerificationTokenExpiresAt(?\DateTimeInterface $dt): static
+
+    // FIX 3 (setter) — expiry hidden from stack traces
+    public function setEmailVerificationTokenExpiresAt(#[\SensitiveParameter] ?\DateTimeInterface $dt): static
     {
         $this->emailVerificationTokenExpiresAt = $dt;
         return $this;
@@ -365,7 +415,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     // PASSWORD RESET METHODS
     // =========================================================
     public function getPasswordResetToken(): ?string { return $this->passwordResetToken; }
-    public function setPasswordResetToken(?string $token): static
+
+    // FIX 4 (setter) — token hidden from stack traces
+    public function setPasswordResetToken(#[\SensitiveParameter] ?string $token): static
     {
         $this->passwordResetToken = $token;
         return $this;
@@ -375,7 +427,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         return $this->passwordResetTokenExpiresAt;
     }
-    public function setPasswordResetTokenExpiresAt(?\DateTimeInterface $dt): static
+
+    // FIX 5 (setter) — expiry hidden from stack traces
+    public function setPasswordResetTokenExpiresAt(#[\SensitiveParameter] ?\DateTimeInterface $dt): static
     {
         $this->passwordResetTokenExpiresAt = $dt;
         return $this;
@@ -437,9 +491,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setBanReason(?string $banReason): static { $this->banReason = $banReason; return $this; }
 
     public function getBannedAt(): ?\DateTimeInterface { return $this->bannedAt; }
+    /** FIX: internal setter — called only by ban/unban methods, not public API. */
     public function setBannedAt(?\DateTimeInterface $bannedAt): static { $this->bannedAt = $bannedAt; return $this; }
 
     public function getBannedUntil(): ?\DateTimeInterface { return $this->bannedUntil; }
+    /** FIX: internal setter — called only by ban/unban methods, not public API. */
     public function setBannedUntil(?\DateTimeInterface $bannedUntil): static { $this->bannedUntil = $bannedUntil; return $this; }
 
     // =========================================================

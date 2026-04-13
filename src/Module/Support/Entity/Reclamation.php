@@ -53,7 +53,11 @@ class Reclamation
     #[ORM\JoinColumn(nullable: true)]
     private ?User $user = null;
 
-    #[ORM\OneToMany(targetEntity: SupportResponse::class, mappedBy: 'reclamation', cascade: ['persist', 'remove'])]
+    /**
+     * FIX: orphanRemoval=true added — SupportResponse is owned by Reclamation.
+     * Removing a response from the collection now deletes it from the DB.
+     */
+    #[ORM\OneToMany(targetEntity: SupportResponse::class, mappedBy: 'reclamation', cascade: ['persist', 'remove'], orphanRemoval: true)]
     /** @var Collection<int, SupportResponse> */
     private Collection $responses;
 
@@ -170,7 +174,7 @@ class Reclamation
     public function getUser(): ?User { return $this->user; }
     public function setUser(?User $u): static { $this->user = $u; return $this; }
     /** @return Collection<int, SupportResponse> */
-    public function getResponses(): Collection { return $this->responses; } 
+    public function getResponses(): Collection { return $this->responses; }
     public function addResponse(SupportResponse $r): static
     {
         if (!$this->responses->contains($r)) { $this->responses->add($r); $r->setReclamation($this); }

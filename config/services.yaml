@@ -140,6 +140,21 @@ services:
             $cluster: '%env(PUSHER_APP_CLUSTER)%'
 
     # =========================================================
+    # SUPPORT MODULE - PUSHER
+    # =========================================================
+
+    App\Module\Support\Service\PusherService:
+        arguments:
+            $appKey:    '%env(PUSHER_APP_KEY)%'
+            $appSecret: '%env(PUSHER_APP_SECRET)%'
+            $appId:     '%env(PUSHER_APP_ID)%'
+            $cluster:   '%env(PUSHER_APP_CLUSTER)%'
+
+    App\Module\Support\Service\NotificationService:
+        arguments:
+            $pusherService: '@App\Module\Support\Service\PusherService'
+
+    # =========================================================
     # FACE RECOGNITION
     # =========================================================
 

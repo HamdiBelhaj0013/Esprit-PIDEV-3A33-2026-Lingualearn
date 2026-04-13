@@ -72,7 +72,9 @@ class DashboardController extends AbstractController
         $averageRating    = $this->getAverageRating();
 
         // ── Recent signups ────────────────────────────────────────────
-        $recentRegistrations = $this->userRepository->findBy([], ['createdAt' => 'DESC'], 10);
+        // FIX: findBy() lazy-loads relations when the template iterates users.
+        // findRecentRegistrations() eager-loads learningStats + userLanguages in one query.
+        $recentRegistrations = $this->userRepository->findRecentRegistrations(10);
 
         // ── Growth chart — auto-pick granularity ──────────────────────
         // ≤ 31 days  → daily   |   > 31 days → monthly

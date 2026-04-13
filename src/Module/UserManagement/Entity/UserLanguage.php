@@ -13,8 +13,13 @@ class UserLanguage
     #[ORM\Column]
     private ?int $id = null;
 
+    /**
+     * FIX: onDelete='CASCADE' added — when a User is deleted via raw SQL,
+     * the DB removes orphaned UserLanguage rows without ORM involvement.
+     * This aligns the DB constraint with the orphanRemoval=true on User side.
+     */
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'userLanguages')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?User $user = null;
 
     /**
@@ -91,11 +96,7 @@ class UserLanguage
         return $this->isNative;
     }
 
-    public function isIsNative(): bool
-    {
-        return $this->isNative;
-    }
-
+    // isIsNative() removed — duplicate of isNative(). Use isNative() directly.
     public function getIsNative(): bool
     {
         return $this->isNative;
@@ -111,10 +112,7 @@ class UserLanguage
     {
         return $this->addedAt;
     }
-
-    public function setAddedAt(\DateTimeInterface $addedAt): self
-    {
-        $this->addedAt = $addedAt;
-        return $this;
-    }
+    // FIX: No public setAddedAt — addedAt is set once in the constructor
+    // and must never be changed. Removing the public setter prevents
+    // accidental manipulation of the enrollment timestamp.
 }

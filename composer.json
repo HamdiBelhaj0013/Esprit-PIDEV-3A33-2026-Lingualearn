@@ -7,6 +7,7 @@
         "php": ">=8.2",
         "ext-ctype": "*",
         "ext-iconv": "*",
+        "ahmed-bhs/doctrine-doctor": "1.0",
         "damienharper/auditor-bundle": "*",
         "doctrine/doctrine-bundle": "^2.18",
         "doctrine/doctrine-migrations-bundle": "^3.7",
@@ -17,6 +18,7 @@
         "phpdocumentor/reflection-docblock": "^5.6",
         "phpstan/phpdoc-parser": "^2.3",
         "pusher/pusher-php-server": "*",
+        "stichoza/google-translate-php": "*",
         "stripe/stripe-php": "*",
         "symfony/asset": "7.4.*",
         "symfony/asset-mapper": "7.4.*",
@@ -59,6 +61,7 @@
         "vich/uploader-bundle": "*",
         "web-auth/webauthn-lib": "*",
         "web-auth/webauthn-symfony-bundle": "*",
+        "webmozart/assert": "1.11",
         "winzou/state-machine-bundle": "*"
     },
     "config": {
@@ -119,6 +122,7 @@
     },
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "^4.3",
+        "phpstan/phpstan": "*",
         "phpunit/phpunit": "^11.5",
         "symfony/browser-kit": "7.4.*",
         "symfony/css-selector": "7.4.*",

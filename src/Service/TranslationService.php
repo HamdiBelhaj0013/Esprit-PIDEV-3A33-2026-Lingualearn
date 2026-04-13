@@ -10,13 +10,22 @@ class TranslationService
     {
         try {
             $translator = new GoogleTranslate($targetLang);
-            
+            $translator->setOptions([
+                CURLOPT_TIMEOUT => 5,
+                CURLOPT_CONNECTTIMEOUT => 3,
+            ]);
+
             return [
                 'titre' => $translator->translate($titre) ?? $titre,
                 'contenu' => $translator->translate($contenu) ?? $contenu,
             ];
         } catch (\Exception $e) {
-            throw new \Exception('Erreur de traduction publication: ' . $e->getMessage());
+            // Fallback silencieux — retourne le texte original si Google bloque
+            return [
+                'titre' => $titre,
+                'contenu' => $contenu,
+                'error' => $e->getMessage(),
+            ];
         }
     }
 
@@ -24,9 +33,14 @@ class TranslationService
     {
         try {
             $translator = new GoogleTranslate($targetLang);
+            $translator->setOptions([
+                CURLOPT_TIMEOUT => 5,
+                CURLOPT_CONNECTTIMEOUT => 3,
+            ]);
+
             return $translator->translate($contenu) ?? $contenu;
         } catch (\Exception $e) {
-            throw new \Exception('Erreur de traduction commentaire: ' . $e->getMessage());
+            return $contenu; // Retourne original si erreur
         }
     }
 

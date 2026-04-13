@@ -26,7 +26,10 @@ class UserDashboardController extends AbstractController
     public function dashboard(): Response
     {
         /** @var \App\Module\UserManagement\Entity\User $user */
-        $user = $this->userRepository->findWithStats($this->getUser()->getId());
+        // FIX: findWithStats() only eager-loads learningStats — accessing
+        // userLanguages or notifications in the template triggers lazy queries.
+        // findWithFullProfile() loads all 4 relations in a single JOIN query.
+        $user = $this->userRepository->findWithFullProfile($this->getUser()->getId());
 
         return $this->render('user/dashboard/index.html.twig', [
             'user' => $user,
@@ -37,9 +40,12 @@ class UserDashboardController extends AbstractController
     public function profile(): Response
     {
         /** @var \App\Module\UserManagement\Entity\User $user */
-        $user = $this->userRepository->findWithStats($this->getUser()->getId());
+        // FIX: same as dashboard() — findWithFullProfile() replaces findWithStats()
+        // so userLanguages + platform_language are already loaded here, making the
+        // array_map below and the duplicate-check loop both free (no extra queries).
+        $user = $this->userRepository->findWithFullProfile($this->getUser()->getId());
 
-        // Show only enabled platform languages that the user hasn't enrolled in yet
+        // No lazy queries — ul.language (platform_language) was JOIN'd above.
         $enrolledIds = array_map(
             fn(UserLanguage $ul) => $ul->getPlatformLanguage()->getId(),
             $user->getUserLanguages()->toArray()

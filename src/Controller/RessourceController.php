@@ -403,7 +403,7 @@ public function ameliorer(Request $request, HttpClientInterface $client): JsonRe
     try {
 
        $response = $client->request('POST',
-    'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
     [
         'headers' => [
             'Content-Type' => 'application/json',

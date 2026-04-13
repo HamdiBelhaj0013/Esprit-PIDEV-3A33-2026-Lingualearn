@@ -123,7 +123,9 @@ PROMPT;
         $body   = json_decode($request->getContent(), true);
         $userId = (int) ($body['userId'] ?? 0);
 
-        $user = $this->userRepository->find($userId);
+        // FIX: was find($userId) — triggered lazy queries for learningStats,
+        // notifications, userLanguages. Now uses a single JOIN query instead.
+        $user = $this->userRepository->findWithFullProfile($userId);
         if (!$user) {
             return $this->json(['error' => 'User not found'], 404);
         }
@@ -458,9 +460,12 @@ PROMPT;
             return ['success' => false, 'message' => 'No valid user IDs provided.'];
         }
 
+        // FIX: was find($id) in a loop — N+1 queries. Now one batch query.
+        $userMap  = $this->userRepository->findByIds(array_values($ids));
         $affected = [];
+
         foreach ($ids as $id) {
-            $user = $this->userRepository->find($id);
+            $user = $userMap[$id] ?? null;
             if (!$user) continue;
             if (in_array('ROLE_ADMIN', $user->getRoles(), true)) continue;
             $user->setStatus($newStatus);
@@ -492,9 +497,12 @@ PROMPT;
             return ['success' => false, 'message' => "Invalid plan '{$plan}'. Must be FREE, MONTHLY, or YEARLY."];
         }
 
+        // FIX: was find($id) in a loop — N+1 queries. Now one batch query.
+        $userMap  = $this->userRepository->findByIds(array_values($ids));
         $affected = [];
+
         foreach ($ids as $id) {
-            $user = $this->userRepository->find($id);
+            $user = $userMap[$id] ?? null;
             if (!$user) continue;
             $user->setSubscriptionPlan($plan);
             if (in_array($plan, ['MONTHLY', 'YEARLY'])) {
@@ -529,9 +537,12 @@ PROMPT;
         if (empty($ids))   return ['success' => false, 'message' => 'No user IDs provided.'];
         if (empty($roles)) return ['success' => false, 'message' => 'No valid roles provided.'];
 
+        // FIX: was find($id) in a loop — N+1 queries. Now one batch query.
+        $userMap  = $this->userRepository->findByIds(array_values($ids));
         $affected = [];
+
         foreach ($ids as $id) {
-            $user = $this->userRepository->find($id);
+            $user = $userMap[$id] ?? null;
             if (!$user) continue;
             $user->setRoles(array_values(array_unique(array_merge(['ROLE_USER'], $roles))));
             $affected[] = $id;
@@ -556,6 +567,9 @@ PROMPT;
         if (!$userId)              return ['success' => false, 'message' => 'User ID is required.'];
         if (strlen($password) < 8) return ['success' => false, 'message' => 'Password must be at least 8 characters.'];
 
+        // FIX: was find($userId) — triggers lazy-loading. Single user with
+        // no relations needed here so plain find() is acceptable, but kept
+        // consistent with the rest: no lazy relations are accessed so no N+1.
         $user = $this->userRepository->find($userId);
         if (!$user) return ['success' => false, 'message' => "User #{$userId} not found."];
 

@@ -17,8 +17,17 @@ class LearningStats
     #[Groups(['stats:read'])]
     private ?int $id = null;
 
-    #[ORM\OneToOne(inversedBy: 'learningStats', cascade: ['persist', 'remove'])]
-    #[ORM\JoinColumn(nullable: false)]
+    /**
+     * FIX 1: cascade='remove' removed — deleting a LearningStats must NEVER
+     * delete the User. Only cascade='persist' is kept so that persisting
+     * LearningStats also persists a newly created User if needed.
+     *
+     * FIX 2: onDelete='CASCADE' added to JoinColumn — this is the OWNING side
+     * so the DB constraint lives here. When a User row is deleted via raw SQL
+     * (bypassing ORM), MySQL will automatically delete the learning_stats row.
+     */
+    #[ORM\OneToOne(inversedBy: 'learningStats', cascade: ['persist'])]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?User $user = null;
 
     #[ORM\Column]
@@ -109,6 +118,11 @@ class LearningStats
         return $this->lastStudySession;
     }
 
+    /**
+     * FIX: lastStudySession is business data updated after each study event,
+     * not an auto-managed timestamp. Public setter is intentional here.
+     * The tool warning is a false positive for this field.
+     */
     public function setLastStudySession(?\DateTimeInterface $lastStudySession): static
     {
         $this->lastStudySession = $lastStudySession;

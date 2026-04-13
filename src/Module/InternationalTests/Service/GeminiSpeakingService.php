@@ -20,6 +20,51 @@ class GeminiSpeakingService // uses Groq API internally
         'Advanced'     => ['globalization', 'AI ethics', 'cultural identity', 'economic inequality', 'future of education'],
     ];
 
+    /**
+     * Maps localized (French, etc.) language names → canonical English names for the LLM prompt.
+     * The LLM must receive "English", "French", "Spanish"… not "Anglais", "Français", "Espagnol".
+     */
+    private const LANGUAGE_NAME_MAP = [
+        // French-localized names
+        'anglais'     => 'English',
+        'français'    => 'French',
+        'espagnol'    => 'Spanish',
+        'allemand'    => 'German',
+        'arabe'       => 'Arabic',
+        'italien'     => 'Italian',
+        'portugais'   => 'Portuguese',
+        'chinois'     => 'Chinese',
+        'japonais'    => 'Japanese',
+        'russe'       => 'Russian',
+        'turc'        => 'Turkish',
+        'néerlandais' => 'Dutch',
+        'coréen'      => 'Korean',
+        // Already-English names (passthrough)
+        'english'     => 'English',
+        'french'      => 'French',
+        'spanish'     => 'Spanish',
+        'german'      => 'German',
+        'arabic'      => 'Arabic',
+        'italian'     => 'Italian',
+        'portuguese'  => 'Portuguese',
+        'chinese'     => 'Chinese',
+        'japanese'    => 'Japanese',
+        'russian'     => 'Russian',
+        'turkish'     => 'Turkish',
+        'dutch'       => 'Dutch',
+        'korean'      => 'Korean',
+    ];
+
+    /**
+     * Normalizes any localized language name to its canonical English equivalent.
+     * Falls back to ucfirst of the original value if not in the map.
+     */
+    private function normalizeLanguageName(string $languageName): string
+    {
+        $key = mb_strtolower(trim($languageName));
+        return self::LANGUAGE_NAME_MAP[$key] ?? ucfirst($languageName);
+    }
+
     public function __construct(
         private HttpClientInterface $httpClient,
         private LoggerInterface     $logger,
@@ -32,6 +77,8 @@ class GeminiSpeakingService // uses Groq API internally
 
     public function startConversation(string $level, string $languageName): array
     {
+        $languageName = $this->normalizeLanguageName($languageName);
+
         $subjects = self::SUBJECTS_BY_LEVEL[$level] ?? self::SUBJECTS_BY_LEVEL['Intermediate'];
         $subject  = $subjects[array_rand($subjects)];
 
@@ -106,6 +153,8 @@ PROMPT;
 
     public function continueConversation(array $history, string $userAnswer, int $exchangeNumber, string $level, string $languageName): array
     {
+        $languageName = $this->normalizeLanguageName($languageName);
+
         $historyText      = $this->formatHistory($history);
         $isLast           = $exchangeNumber >= 5;
         $lastInstruction  = $isLast
@@ -218,6 +267,8 @@ PROMPT;
 
     public function evaluateConversation(array $history, array $fluencyMetrics, string $level, string $languageName): array
     {
+        $languageName = $this->normalizeLanguageName($languageName);
+
         $historyText   = $this->formatHistory($history);
         $fluencyInfo   = json_encode($fluencyMetrics, JSON_PRETTY_PRINT);
 
@@ -371,6 +422,6 @@ PROMPT;
     {
         return implode("\n", array_map(fn($h) =>
             ($h['role'] === 'gemini' ? 'Examiner' : 'Student') . ': ' . $h['text'],
-        $history));
+            $history));
     }
 }

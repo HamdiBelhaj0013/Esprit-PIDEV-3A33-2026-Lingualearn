@@ -62,10 +62,19 @@ class MockTest
     #[ORM\Column(type: 'integer')]
     private int $durationMinutes;
 
-    #[ORM\OneToMany(mappedBy: 'mockTest', targetEntity: TestQuestion::class, cascade: ['persist', 'remove'])]
+    /**
+     * FIX: orphanRemoval=true added — TestQuestion is owned by MockTest
+     * (composition). Removing from collection now deletes the DB row.
+     * onDelete='CASCADE' aligns ORM cascade with the DB constraint so
+     * direct SQL DELETEs on mock_test don't cause FK violations.
+     */
+    #[ORM\OneToMany(mappedBy: 'mockTest', targetEntity: TestQuestion::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $testQuestions;
 
-    #[ORM\OneToMany(mappedBy: 'mockTest', targetEntity: TestResult::class, cascade: ['persist', 'remove'])]
+    /**
+     * FIX: same as testQuestions — TestResult is owned by MockTest.
+     */
+    #[ORM\OneToMany(mappedBy: 'mockTest', targetEntity: TestResult::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $testResults;
 
     #[ORM\Column(type: 'boolean', options: ['default' => true])]
@@ -148,10 +157,10 @@ class MockTest
     public function setIsActive(bool $isActive): self { $this->isActive = $isActive; return $this; }
 
     public function getCreatedAt(): ?\DateTimeInterface { return $this->createdAt; }
-    public function setCreatedAt(\DateTimeInterface $createdAt): self { $this->createdAt = $createdAt; return $this; }
+    // FIX: No public setCreatedAt — set in constructor, never changed after.
 
     public function getUpdatedAt(): ?\DateTimeInterface { return $this->updatedAt; }
-    public function setUpdatedAt(?\DateTimeInterface $updatedAt): self { $this->updatedAt = $updatedAt; return $this; }
+    // FIX: No public setUpdatedAt — managed exclusively by the PreUpdate lifecycle callback.
 
     public function getTestResults(): Collection { return $this->testResults; }
 

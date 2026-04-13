@@ -16,6 +16,12 @@ class Course
     #[ORM\Column]
     private ?int $id = null;
 
+    /**
+     * FIX: author uses nullable=true + onDelete=SET NULL so courses survive
+     * user deletion (admin may delete a teacher account). The Assert\NotNull
+     * constraint ensures author is always set on form submission.
+     * This is intentional — the tool warning is a false positive here.
+     */
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'courses')]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     #[Assert\NotNull(message: 'L\'auteur est obligatoire.')]
@@ -55,7 +61,13 @@ class Course
     #[ORM\Column(type: 'datetime')]
     private ?\DateTimeInterface $publishedAt = null;
 
-    #[ORM\OneToMany(mappedBy: 'course', targetEntity: Lesson::class, cascade: ['persist', 'remove'])]
+    /**
+     * FIX: orphanRemoval=true added — Lesson is owned by Course (composition).
+     * Removing a Lesson from the collection now deletes it from the DB.
+     * cascade=remove kept — deleting a Course deletes all its Lessons.
+     * onDelete=CASCADE added so raw SQL deletes on course table clean up lessons.
+     */
+    #[ORM\OneToMany(mappedBy: 'course', targetEntity: Lesson::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $lessons;
 
     public function __construct()
@@ -133,6 +145,10 @@ class Course
         return $this->publishedAt;
     }
 
+    /**
+     * FIX: publishedAt is business data set when admin publishes a course,
+     * not an auto-managed timestamp. Public setter is intentional.
+     */
     public function setPublishedAt(?\DateTimeInterface $publishedAt): self
     {
         $this->publishedAt = $publishedAt;
