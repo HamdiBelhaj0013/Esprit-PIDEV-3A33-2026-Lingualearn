@@ -17,7 +17,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 class AdminAiController extends AbstractController
 {
-    // ✅ RESTORED: localhost was working — Symfony runs on Windows, not Docker
+
     private const OLLAMA_URL   = 'http://127.0.0.1:11434/api/chat';
     private const OLLAMA_MODEL = 'llama3';
 
