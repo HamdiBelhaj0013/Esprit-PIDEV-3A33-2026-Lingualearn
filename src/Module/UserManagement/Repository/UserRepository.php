@@ -89,7 +89,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     public function findWithStats(int $id): ?User
     {
         return $this->createQueryBuilder('u')
-            ->innerJoin('u.learningStats', 'ls') // FIX: NOT NULL FK → INNER JOIN is 20-30% faster
+            ->leftJoin('u.learningStats', 'ls')  // ← was innerJoin
             ->addSelect('ls')
             ->where('u.id = :id')
             ->setParameter('id', $id)

@@ -95,17 +95,146 @@ class UserController extends AbstractController
     }
 
     // =========================================================
-    //  READ
+    //  BULK ACTIONS
     // =========================================================
 
-    #[Route('/{id}', name: 'show', methods: ['GET'])]
-    public function show(int $id): Response
+    #[Route('/bulk', name: 'bulk', methods: ['POST'])]
+    public function bulk(Request $request): Response
     {
-        $user = $this->userRepository->findWithStats($id);
-        if (!$user) {
-            throw $this->createNotFoundException('User not found');
+        $ids    = $request->request->all('ids');
+        $action = $request->request->get('bulk_action');
+
+        if (empty($ids) || !in_array($action, ['activate', 'suspend', 'delete'], true)) {
+            $this->addFlash('warning', 'No users selected or invalid action.');
+            return $this->redirectToRoute('admin_users_index');
         }
-        return $this->render('user_management/show.html.twig', ['user' => $user]);
+        if (!$this->isCsrfTokenValid('bulk_action', $request->request->get('_token'))) {
+            $this->addFlash('danger', 'Invalid security token.');
+            return $this->redirectToRoute('admin_users_index');
+        }
+
+        $processed = 0;
+        foreach ($this->userRepository->findBy(['id' => $ids]) as $user) {
+            if ($user === $this->getUser()) {
+                continue;
+            }
+            match ($action) {
+                'activate' => $this->userService->activateUser($user),
+                'suspend'  => $this->userService->suspendUser($user),
+                'delete'   => $this->userService->deleteUser($user),
+            };
+            $processed++;
+        }
+
+        $this->addFlash('success', sprintf('%d user(s) %sd successfully.', $processed, $action));
+        return $this->redirectToRoute('admin_users_index');
+    }
+
+    // =========================================================
+    //  CSV EXPORT
+    // =========================================================
+
+    #[Route('/export/csv', name: 'export_csv', methods: ['GET'])]
+    public function exportCsv(Request $request): StreamedResponse
+    {
+        $filters = [
+            'search'           => trim($request->query->get('search', '')) ?: null,
+            'status'           => $request->query->get('status'),
+            'role'             => $request->query->get('role'),
+            'subscriptionPlan' => $request->query->get('subscriptionPlan'),
+            'isPremium'        => $request->query->get('isPremium') !== null
+                ? filter_var($request->query->get('isPremium'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE)
+                : null,
+            'sort'      => $request->query->get('sort', 'u.createdAt'),
+            'direction' => $request->query->get('direction', 'DESC'),
+        ];
+        $criteria = array_filter($filters, fn($v) => $v !== null && $v !== '');
+        [$users]  = $this->userRepository->findAdvanced($criteria, 1, 100000);
+
+        $response = new StreamedResponse(function () use ($users) {
+            $handle = fopen('php://output', 'w');
+            fputs($handle, "\xEF\xBB\xBF");
+            fputcsv($handle, [
+                'ID', 'First Name', 'Last Name', 'Email', 'Status', 'Roles',
+                'Subscription Plan', 'Is Premium', 'Subscription Expiry', 'Created At',
+                'Total XP', 'Words Learned', 'Minutes Studied',
+            ]);
+            foreach ($users as $user) {
+                $stats = $user->getLearningStats();
+                fputcsv($handle, [
+                    $user->getId(),
+                    $user->getFirstName(),
+                    $user->getLastName(),
+                    $user->getEmail(),
+                    $user->getStatus(),
+                    implode(', ', $user->getRoles()),
+                    $user->getSubscriptionPlan(),
+                    $user->isPremium() ? 'Yes' : 'No',
+                    $user->getSubscriptionExpiry()?->format('Y-m-d H:i') ?? '',
+                    $user->getCreatedAt()?->format('Y-m-d H:i') ?? '',
+                    $stats?->getTotalXP() ?? 0,
+                    $stats?->getWordsLearned() ?? 0,
+                    $stats?->getTotalMinutesStudied() ?? 0,
+                ]);
+            }
+            fclose($handle);
+        });
+
+        $response->headers->set('Content-Type', 'text/csv; charset=utf-8');
+        $response->headers->set('Content-Disposition', 'attachment; filename="users_export_' . date('Ymd_His') . '.csv"');
+        return $response;
+    }
+
+    // =========================================================
+    //  NOTIFICATION ROUTES (no /{id} prefix — must stay before show)
+    // =========================================================
+
+    /**
+     * Mark a single notification as read.
+     */
+    #[Route('/notification/{id}/read', name: 'notification_read', methods: ['POST'])]
+    public function notificationMarkRead(Request $request, Notification $notification): Response
+    {
+        if (!$this->isCsrfTokenValid('notif_read' . $notification->getId(), $request->request->get('_token'))) {
+            $this->addFlash('danger', 'Invalid security token.');
+            return $this->redirectToRoute('admin_users_notify', ['id' => $notification->getUser()->getId()]);
+        }
+
+        $this->notificationService->markAsRead($notification);
+        $this->addFlash('success', 'Notification marked as read.');
+
+        return $this->redirectToRoute('admin_users_notify', ['id' => $notification->getUser()->getId()]);
+    }
+
+    /**
+     * Admin replies to a notification — saves a new notification in the thread.
+     */
+    #[Route('/notification/{id}/reply', name: 'notification_reply', methods: ['POST'])]
+    public function notificationReply(Request $request, Notification $notification): Response
+    {
+        if (!$this->isCsrfTokenValid('notif_reply' . $notification->getId(), $request->request->get('_token'))) {
+            $this->addFlash('danger', 'Invalid security token.');
+            return $this->redirectToRoute('admin_users_notify', ['id' => $notification->getUser()->getId()]);
+        }
+
+        $replyMessage = trim($request->request->get('reply', ''));
+
+        if (empty($replyMessage)) {
+            $this->addFlash('warning', 'Reply cannot be empty.');
+            return $this->redirectToRoute('admin_users_notify', ['id' => $notification->getUser()->getId()]);
+        }
+
+        /** @var \App\Module\UserManagement\Entity\User|null $admin */
+        $admin = $this->getUser();
+        $this->notificationService->replyFromAdmin(
+            $notification,
+            $replyMessage,
+            (int) $admin?->getId(),
+        );
+
+        $this->addFlash('success', 'Reply sent and original notification marked as read.');
+
+        return $this->redirectToRoute('admin_users_notify', ['id' => $notification->getUser()->getId()]);
     }
 
     // =========================================================
@@ -265,97 +394,6 @@ class UserController extends AbstractController
     }
 
     // =========================================================
-    //  BULK ACTIONS
-    // =========================================================
-
-    #[Route('/bulk', name: 'bulk', methods: ['POST'])]
-    public function bulk(Request $request): Response
-    {
-        $ids    = $request->request->all('ids');
-        $action = $request->request->get('bulk_action');
-
-        if (empty($ids) || !in_array($action, ['activate', 'suspend', 'delete'], true)) {
-            $this->addFlash('warning', 'No users selected or invalid action.');
-            return $this->redirectToRoute('admin_users_index');
-        }
-        if (!$this->isCsrfTokenValid('bulk_action', $request->request->get('_token'))) {
-            $this->addFlash('danger', 'Invalid security token.');
-            return $this->redirectToRoute('admin_users_index');
-        }
-
-        $processed = 0;
-        foreach ($this->userRepository->findBy(['id' => $ids]) as $user) {
-            if ($user === $this->getUser()) {
-                continue;
-            }
-            match ($action) {
-                'activate' => $this->userService->activateUser($user),
-                'suspend'  => $this->userService->suspendUser($user),
-                'delete'   => $this->userService->deleteUser($user),
-            };
-            $processed++;
-        }
-
-        $this->addFlash('success', sprintf('%d user(s) %sd successfully.', $processed, $action));
-        return $this->redirectToRoute('admin_users_index');
-    }
-
-    // =========================================================
-    //  CSV EXPORT
-    // =========================================================
-
-    #[Route('/export/csv', name: 'export_csv', methods: ['GET'])]
-    public function exportCsv(Request $request): StreamedResponse
-    {
-        $filters = [
-            'search'           => trim($request->query->get('search', '')) ?: null,
-            'status'           => $request->query->get('status'),
-            'role'             => $request->query->get('role'),
-            'subscriptionPlan' => $request->query->get('subscriptionPlan'),
-            'isPremium'        => $request->query->get('isPremium') !== null
-                ? filter_var($request->query->get('isPremium'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE)
-                : null,
-            'sort'      => $request->query->get('sort', 'u.createdAt'),
-            'direction' => $request->query->get('direction', 'DESC'),
-        ];
-        $criteria = array_filter($filters, fn($v) => $v !== null && $v !== '');
-        [$users]  = $this->userRepository->findAdvanced($criteria, 1, 100000);
-
-        $response = new StreamedResponse(function () use ($users) {
-            $handle = fopen('php://output', 'w');
-            fputs($handle, "\xEF\xBB\xBF");
-            fputcsv($handle, [
-                'ID', 'First Name', 'Last Name', 'Email', 'Status', 'Roles',
-                'Subscription Plan', 'Is Premium', 'Subscription Expiry', 'Created At',
-                'Total XP', 'Words Learned', 'Minutes Studied',
-            ]);
-            foreach ($users as $user) {
-                $stats = $user->getLearningStats();
-                fputcsv($handle, [
-                    $user->getId(),
-                    $user->getFirstName(),
-                    $user->getLastName(),
-                    $user->getEmail(),
-                    $user->getStatus(),
-                    implode(', ', $user->getRoles()),
-                    $user->getSubscriptionPlan(),
-                    $user->isPremium() ? 'Yes' : 'No',
-                    $user->getSubscriptionExpiry()?->format('Y-m-d H:i') ?? '',
-                    $user->getCreatedAt()?->format('Y-m-d H:i') ?? '',
-                    $stats?->getTotalXP() ?? 0,
-                    $stats?->getWordsLearned() ?? 0,
-                    $stats?->getTotalMinutesStudied() ?? 0,
-                ]);
-            }
-            fclose($handle);
-        });
-
-        $response->headers->set('Content-Type', 'text/csv; charset=utf-8');
-        $response->headers->set('Content-Disposition', 'attachment; filename="users_export_' . date('Ymd_His') . '.csv"');
-        return $response;
-    }
-
-    // =========================================================
     //  LEARNING STATS
     // =========================================================
 
@@ -432,23 +470,6 @@ class UserController extends AbstractController
     }
 
     /**
-     * Mark a single notification as read.
-     */
-    #[Route('/notification/{id}/read', name: 'notification_read', methods: ['POST'])]
-    public function notificationMarkRead(Request $request, Notification $notification): Response
-    {
-        if (!$this->isCsrfTokenValid('notif_read' . $notification->getId(), $request->request->get('_token'))) {
-            $this->addFlash('danger', 'Invalid security token.');
-            return $this->redirectToRoute('admin_users_notify', ['id' => $notification->getUser()->getId()]);
-        }
-
-        $this->notificationService->markAsRead($notification);
-        $this->addFlash('success', 'Notification marked as read.');
-
-        return $this->redirectToRoute('admin_users_notify', ['id' => $notification->getUser()->getId()]);
-    }
-
-    /**
      * Mark ALL notifications as read for a user.
      */
     #[Route('/{id}/notifications/read-all', name: 'notifications_read_all', methods: ['POST'])]
@@ -463,37 +484,6 @@ class UserController extends AbstractController
         $this->addFlash('success', 'All notifications marked as read.');
 
         return $this->redirectToRoute('admin_users_notify', ['id' => $user->getId()]);
-    }
-
-    /**
-     * Admin replies to a notification — saves a new notification in the thread.
-     */
-    #[Route('/notification/{id}/reply', name: 'notification_reply', methods: ['POST'])]
-    public function notificationReply(Request $request, Notification $notification): Response
-    {
-        if (!$this->isCsrfTokenValid('notif_reply' . $notification->getId(), $request->request->get('_token'))) {
-            $this->addFlash('danger', 'Invalid security token.');
-            return $this->redirectToRoute('admin_users_notify', ['id' => $notification->getUser()->getId()]);
-        }
-
-        $replyMessage = trim($request->request->get('reply', ''));
-
-        if (empty($replyMessage)) {
-            $this->addFlash('warning', 'Reply cannot be empty.');
-            return $this->redirectToRoute('admin_users_notify', ['id' => $notification->getUser()->getId()]);
-        }
-
-        /** @var \App\Module\UserManagement\Entity\User|null $admin */
-        $admin = $this->getUser();
-        $this->notificationService->replyFromAdmin(
-            $notification,
-            $replyMessage,
-            (int) $admin?->getId(),
-        );
-
-        $this->addFlash('success', 'Reply sent and original notification marked as read.');
-
-        return $this->redirectToRoute('admin_users_notify', ['id' => $notification->getUser()->getId()]);
     }
 
     // =========================================================
@@ -595,5 +585,19 @@ class UserController extends AbstractController
         $this->entityManager->flush();
         $this->addFlash('success', sprintf('Password reset for %s.', $user->getFullName()));
         return $this->redirectToRoute('admin_users_show', ['id' => $user->getId()]);
+    }
+
+    // =========================================================
+    //  READ — /{id} MUST BE LAST to avoid swallowing other routes
+    // =========================================================
+
+    #[Route('/{id}', name: 'show', methods: ['GET'])]
+    public function show(int $id): Response
+    {
+        $user = $this->userRepository->findWithStats($id);
+        if (!$user) {
+            throw $this->createNotFoundException('User not found');
+        }
+        return $this->render('user_management/show.html.twig', ['user' => $user]);
     }
 }
