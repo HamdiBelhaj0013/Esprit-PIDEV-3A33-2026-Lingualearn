@@ -494,6 +494,7 @@ public function genererImage(Request $request, HttpClientInterface $client): Jso
 }
 
 
+
 #[Route('/quiz/chat', name: 'app_quiz_chat', methods: ['POST'])]
     public function chat(Request $request, HttpClientInterface $client): JsonResponse
     {
