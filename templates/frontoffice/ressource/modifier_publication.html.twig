@@ -514,8 +514,6 @@
         <ul class="nav-links">
             <li><a href="{{ path('user_dashboard') }}">Home</a></li>
             <li><a href="{{ path('ressources') }}" class="active">Ressources</a></li>
-            <li><a href="#features">Features</a></li>
-            <li><a href="#about">About</a></li>
         </ul>
         <div class="nav-actions">
             {% if app.user %}
@@ -545,8 +543,6 @@
         <button class="mobile-close" id="mobileClose">✕</button>
         <a href="" class="mobile-link">Home</a>
         <a href="{{ path('ressources') }}" class="mobile-link">Ressources</a>
-        <a href="#features" class="mobile-link">Features</a>
-        <a href="#about" class="mobile-link">About</a>
         <div class="mobile-actions">
             {% if app.user %}
                 <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">

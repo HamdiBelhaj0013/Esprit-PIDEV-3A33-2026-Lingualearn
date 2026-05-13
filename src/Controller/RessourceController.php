@@ -15,7 +15,9 @@ use Stichoza\GoogleTranslate\GoogleTranslate;
 use App\Service\NotificationService;
 use App\Service\TranslationService ;
 use App\Entity\Commentaire;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[IsGranted('ROLE_USER')]
 class RessourceController extends AbstractController
 {
 
