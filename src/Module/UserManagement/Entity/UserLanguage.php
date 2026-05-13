@@ -23,7 +23,7 @@ class UserLanguage
     private ?User $user = null;
 
     /**
-     * Now points directly to PlatformLanguage (the admin-managed language with courses).
+     * Points directly to PlatformLanguage (the admin-managed language with courses).
      * No more intermediate Language entity needed in the enrollment flow.
      */
     #[ORM\ManyToOne(targetEntity: PlatformLanguage::class)]

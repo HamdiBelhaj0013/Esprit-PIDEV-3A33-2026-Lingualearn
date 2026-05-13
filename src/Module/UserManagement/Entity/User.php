@@ -2,6 +2,8 @@
 
 namespace App\Module\UserManagement\Entity;
 
+use App\Entity\Publication;
+use App\Module\PedagogicalContent\Entity\Course;
 use App\Module\Support\Entity\Reclamation;
 use App\Module\Support\Entity\SupportResponse;
 use App\Module\UserManagement\Repository\UserRepository;
@@ -13,7 +15,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
-use Symfony\Component\Serializer\Annotation\Ignore;         // ← NEW
+use Symfony\Component\Serializer\Annotation\Ignore;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
@@ -157,12 +159,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     // =========================================================
 
     /**
-     * FIX: cascade='remove' removed — LearningStats is independent; delete
-     * it explicitly in UserService::deleteUser() to avoid silent data loss.
-     * onDelete='CASCADE' added so raw SQL DELETEs on users still clean up.
-     * cascade='persist' kept so saving a new User auto-saves its stats.
-     */
-    /**
      * FIX: cascade='remove' removed — LearningStats is independent.
      * JoinColumn removed — belongs on the OWNING side (LearningStats::$user).
      * Add onDelete='CASCADE' to LearningStats::$user's JoinColumn instead.
@@ -192,6 +188,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: SupportResponse::class, mappedBy: 'author')]
     private Collection $supportResponses;
 
+    #[ORM\OneToMany(mappedBy: 'author', targetEntity: Course::class)]
+    private Collection $courses;
+
+    /** FIX: inverse side of Publication#user — required for Doctrine mapping validation. */
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Publication::class)]
+    private Collection $publications;
+
     // =========================================================
     // CONSTRUCTOR / LIFECYCLE
     // =========================================================
@@ -201,6 +204,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->notifications    = new ArrayCollection();
         $this->reclamations     = new ArrayCollection();
         $this->supportResponses = new ArrayCollection();
+        $this->courses          = new ArrayCollection();
+        $this->publications     = new ArrayCollection();
         $this->roles            = ['ROLE_USER'];
     }
 
@@ -265,7 +270,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * This setter is intentionally public: subscriptionExpiry is business data
      * (set by StripeWebhookController / UserService), not an auto-timestamp.
-     * The tool warning is a false positive for this field.
      */
     public function setSubscriptionExpiry(?\DateTimeInterface $subscriptionExpiry): static
     {
@@ -278,18 +282,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     /**
      * DO NOT call this directly to grant or revoke premium.
-     *
      * isPremium is a COMPUTED field — always derived from subscriptionPlan
-     * + subscriptionExpiry via updatePremiumStatus(). Calling setPremium(true)
-     * without a valid plan and future expiry is meaningless: the next call to
-     * setSubscriptionPlan() or setSubscriptionExpiry() will immediately
-     * overwrite whatever was set here.
-     *
-     * To upgrade: call UserService::upgradeToPremium()
-     * To downgrade: call UserService::downgradeToFree()
-     *
+     * + subscriptionExpiry via updatePremiumStatus().
      * @internal Kept only so legacy call-sites do not throw fatal errors.
-     *           All writes are intentionally ignored.
      */
     public function setPremium(bool $isPremium): static
     {
@@ -300,7 +295,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * Recomputes isPremium from subscriptionPlan + subscriptionExpiry.
      * This is the ONLY place that writes to $this->isPremium.
-     * Called automatically by setSubscriptionPlan() and setSubscriptionExpiry().
      */
     private function updatePremiumStatus(): void
     {
@@ -367,6 +361,50 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         if ($this->notifications->removeElement($notification)) {
             if ($notification->getUser() === $this) {
                 $notification->setUser(null);
+            }
+        }
+        return $this;
+    }
+
+    // =========================================================
+    // COURSES
+    // =========================================================
+    public function getCourses(): Collection { return $this->courses; }
+    public function addCourse(Course $course): static
+    {
+        if (!$this->courses->contains($course)) {
+            $this->courses->add($course);
+            $course->setAuthor($this);
+        }
+        return $this;
+    }
+    public function removeCourse(Course $course): static
+    {
+        if ($this->courses->removeElement($course)) {
+            if ($course->getAuthor() === $this) {
+                $course->setAuthor(null);
+            }
+        }
+        return $this;
+    }
+
+    // =========================================================
+    // PUBLICATIONS
+    // =========================================================
+    public function getPublications(): Collection { return $this->publications; }
+    public function addPublication(Publication $publication): static
+    {
+        if (!$this->publications->contains($publication)) {
+            $this->publications->add($publication);
+            $publication->setUser($this);
+        }
+        return $this;
+    }
+    public function removePublication(Publication $publication): static
+    {
+        if ($this->publications->removeElement($publication)) {
+            if ($publication->getUser() === $this) {
+                $publication->setUser(null);
             }
         }
         return $this;

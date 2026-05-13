@@ -89,8 +89,8 @@ class QuizController extends AbstractController
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $quiz->setCreatedAt(new \DateTimeImmutable());
-            $quiz->setUpdatedAt(new \DateTimeImmutable());
+
+
 
             $em->persist($quiz);
             $em->flush();
@@ -120,7 +120,7 @@ class QuizController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $quiz->setUpdatedAt(new \DateTimeImmutable());
+
 
             $em->flush();
 

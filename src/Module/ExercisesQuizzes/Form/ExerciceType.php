@@ -128,16 +128,6 @@ class ExerciceType extends AbstractType
                 $skillText = $data['skillCodesText'] ?? '';
                 $entity->setSkillCodes(self::normalizeSkillCodesText($skillText));
             }
-            // Validation : quand des options sont fournies, la réponse correcte doit être parmi elles
-            $correctAnswer = trim((string) ($data['correctAnswer'] ?? ''));
-            if ($correctAnswer !== '' && $options !== []) {
-                $normalizedAnswer = Exercice::normalizeOption($correctAnswer);
-                if (!in_array($normalizedAnswer, $options, true)) {
-                    $event->getForm()->get('correctAnswer')->addError(
-                        new FormError('La réponse correcte doit correspondre à l\'une des options fournies.')
-                    );
-                }
-            }
         });
     }
 
@@ -185,3 +175,4 @@ class ExerciceType extends AbstractType
         ]);
     }
 }
+
