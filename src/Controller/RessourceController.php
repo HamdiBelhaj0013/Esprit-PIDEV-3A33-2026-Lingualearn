@@ -129,14 +129,10 @@ public function traitement(
 
 
 
-   /* $user = $this->getUser();
+    $user = $this->getUser();
 
     if (!$user) {
         throw $this->createAccessDeniedException('Vous devez être connecté pour publier.');
-    }*/
-    $user = $em->getRepository(User::class)->find(1);
-    if (!$user) {
-        throw $this->createNotFoundException('Utilisateur statique non trouvé.');
     }
 
     $publication = new Publication();
@@ -199,6 +195,16 @@ public function supprimer(
     EntityManagerInterface $em,
     Request $request
 ): Response {
+    $currentUser = $this->getUser();
+    if (!$currentUser || $currentUser->getId() !== $publication->getUser()->getId()) {
+        $this->addFlash('error', 'Vous n\'êtes pas autorisé à supprimer cette publication.');
+        $redirect = $request->request->get('redirect');
+        if ($redirect === 'admin') {
+            return $this->redirectToRoute('admin_gestion_publications');
+        }
+        return $this->redirectToRoute('ressources');
+    }
+
     // Sécurité CSRF
     if ($this->isCsrfTokenValid('delete'.$publication->getId(), $request->request->get('_token'))) {
         // Supprimer le fichier si existe
@@ -240,6 +246,12 @@ public function modifier(
     Request $request,
     EntityManagerInterface $em
 ): Response {
+    $currentUser = $this->getUser();
+    if (!$currentUser || $currentUser->getId() !== $publication->getUser()->getId()) {
+        $this->addFlash('error', 'Vous n\'êtes pas autorisé à modifier cette publication.');
+        return $this->redirectToRoute('ressources');
+    }
+
     $redirect = $request->request->get('redirect');
     if ($request->isMethod('POST')) {
         $titre = $request->request->get('titre');

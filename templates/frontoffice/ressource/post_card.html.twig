@@ -14,17 +14,19 @@
         </div>
 
         <div class="post-actions">
-            <a href="{{ path('modifier_publication', {'id': pub.id}) }}" title="Modifier">
-                <i class="bi bi-pencil"></i>
-            </a>
+            {% if app.user and app.user.id == pub.user.id %}
+                <a href="{{ path('modifier_publication', {'id': pub.id}) }}" title="Modifier">
+                    <i class="bi bi-pencil"></i>
+                </a>
 
-            <form method="post" action="{{ path('supprimer_publication', {id: pub.id}) }}"
-                  onsubmit="return confirm('Supprimer cette publication ?');" style="display:inline;">
-                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ pub.id) }}">
-                <button type="submit" title="Supprimer">
-                    <i class="bi bi-trash"></i>
-                </button>
-            </form>
+                <form method="post" action="{{ path('supprimer_publication', {id: pub.id}) }}"
+                      onsubmit="return confirm('Supprimer cette publication ?');" style="display:inline;">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ pub.id) }}">
+                    <button type="submit" title="Supprimer">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </form>
+            {% endif %}
 
             <button onclick="signalPublication({{ pub.id }})" title="Signaler">
                 <i class="bi bi-flag"></i>
